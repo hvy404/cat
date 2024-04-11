@@ -1,0 +1,91 @@
+import { z } from 'zod';
+
+export const resumeSchema = z.object({
+  id: z.string().describe("A unique identifier for the resume."),
+  name: z.string().describe("Full name of the candidate."),
+  title: z.string().describe("Current title or role."),
+  company: z.string().describe("Name of the current or most recent company."),
+  skills: z.array(z.string()).describe("List of skills."),
+  contact: z.object({
+    phone: z.string().optional(),
+    location: z.string(),
+    email: z.string(),
+  }).describe("Contact information."),
+  summary: z.string().describe("Brief personal summary."),
+  education: z.array(z.object({
+    institution: z.string(),
+    degree: z.string(),
+    start_date: z.string(),
+    end_date: z.string().optional(),
+  })).describe("Education history."),
+  certificates: z.array(z.object({
+    name: z.string(),
+    issuer: z.string(),
+    date: z.string(),
+  })).describe("List of certificates."),
+  internships: z.array(z.object({
+    company: z.string(),
+    title: z.string(),
+    start_date: z.string(),
+    end_date: z.string().optional(),
+    responsibilities: z.array(z.string()),
+  })).describe("Internship experiences."),
+  training: z.array(z.object({
+    institution: z.string(),
+    title: z.string(),
+    start_date: z.string(),
+    end_date: z.string().optional(),
+    responsibilities: z.array(z.string()),
+  })).describe("Training sessions or courses."),
+  created_at: z.string().optional(),
+  updated_at: z.string().optional(),
+  languages: z.array(z.object({
+    language: z.string(),
+    proficiency: z.string(),
+  })).describe("List of languages spoken and proficiency levels."),
+  professional_summary: z.string().optional().describe("A brief overview of the candidate's professional background and achievements."),
+  technical_skills: z.array(z.string()).optional().describe("Detailed list of technical skills, tools, and technologies."),
+  soft_skills: z.array(z.string()).optional().describe("List of non-technical or soft skills."),
+  projects: z.array(z.object({
+    name: z.string(),
+    description: z.string(),
+    technologies_used: z.array(z.string()),
+    role: z.string(),
+  })).describe("Details of relevant projects."),
+  publications: z.array(z.object({
+    title: z.string(),
+    publication_date: z.string(),
+    url: z.string().optional(),
+  })).describe("Information on publications."),
+  achievements: z.array(z.object({
+    name: z.string(),
+    date: z.string(),
+    description: z.string().optional(),
+  })).describe("List of notable achievements or awards."),
+  references: z.array(z.object({
+    name: z.string(),
+    contact_information: z.string(),
+    relationship: z.string().optional(),
+  })).describe("Contact information for references."),
+  links: z.object({
+    linkedin: z.string().optional(),
+    github: z.string().optional(),
+    portfolio: z.string().optional(),
+  }).describe("URLs to the candidate's professional websites or profiles."),
+  availability: z.string().optional().describe("Details about the candidate's availability to start work."),
+  objective: z.string().optional().describe("A detailed statement of the candidate's career objectives."),
+  volunteer_experience: z.array(z.object({
+    organization: z.string(),
+    role: z.string(),
+    description: z.string(),
+    start_date: z.string(),
+    end_date: z.string().optional(),
+  })).describe("Information about volunteer work."),
+  interests: z.array(z.string()).optional().describe("A section for personal interests or hobbies."),
+  endorsements: z.array(z.object({
+    name: z.string(),
+    endorsement: z.string(),
+  })).optional().describe("Professional endorsements."),
+  visa_status: z.string().optional().describe("Work permit or visa status for international candidates."),
+  industry_experience: z.array(z.string()).optional().describe("Experience in specific industries."),
+}).describe("Resume");
