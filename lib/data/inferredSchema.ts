@@ -2,13 +2,12 @@ import { z } from "zod";
 
 export const inferredSchema = z
   .object({
-    /* name: z.string().describe("Full name of the candidate."), */
     manager_trait: z
       .object({
-        manager_trait: z
+        manager_boolean: z
           .boolean()
           .describe(
-            "Indicates if the applicant can perform supervisor role based on current experience."
+            "Indicates if the applicant can perform supervisor and management role based on previous experience and tenure."
           ),
         manager_trait_reason: z
           .string()

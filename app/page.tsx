@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import Dropzone, { useDropzone } from "react-dropzone";
-import { ingestResume } from "@/lib/ingestResume";
 import { generateLiftedStatic } from "@/lib/staticGenerate";
 import { generateLiftedInferred } from "@/lib/inferredGenerate";
 import { CodeBlock, dracula } from "react-code-blocks";
@@ -45,6 +44,12 @@ export default function Home() {
     setFileResponse(response); // Set inital resume data to trigger rest of actions
   };
 
+  const handleClickResetAll = () => {
+    setResponse("");
+    setInferResponse("");
+    setFileResponse("");
+  };
+
   // Generate static schema
   useEffect(() => {
     if (fileResponse) {
@@ -84,8 +89,8 @@ export default function Home() {
         01 Alpha. Defining schema.
       </div>
       <div className="flex flex-row gap-x-8">
-        <div className="w-1/2 border border-1 border-gray-400 rounded-md p-4">
-          <Dropzone onDrop={handleFileUpload} multiple={false}>
+        <div className="w-1/2 border border-1 border-gray-400 rounded-md p-4 flex justify-between">
+          <Dropzone onDrop={handleFileUpload} multiple={false} disabled={!!fileResponse}>
             {({ getRootProps, getInputProps }) => (
               <section>
                 <div {...getRootProps()}>
@@ -95,6 +100,7 @@ export default function Home() {
               </section>
             )}
           </Dropzone>
+          <button onClick={handleClickResetAll}>Reset All</button>
         </div>
         <div className="w-1/2 rounded-md p-4"></div>
       </div>
