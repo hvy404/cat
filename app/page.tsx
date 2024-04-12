@@ -6,7 +6,6 @@ import { generateLiftedStatic } from "@/lib/staticGenerate";
 import { generateLiftedInferred } from "@/lib/inferredGenerate";
 import { CodeBlock, dracula } from "react-code-blocks";
 import { resumeParserUpload } from "@/lib/receiveUpload";
-import { set } from "zod";
 
 function MyCoolCodeBlock({
   code,
@@ -101,7 +100,7 @@ export default function Home() {
       </div>
       <div className="flex flex-row gap-x-8">
         <div className="w-1/2 border border-1 border-gray-400 rounded-md p-4">
-          {isStaticResumeLoading && <p>Generating...</p>}
+          {isStaticResumeLoading && <p>Generating points from resume...</p>}
           {response && (
             <MyCoolCodeBlock
               code={response}
@@ -111,7 +110,7 @@ export default function Home() {
           )}
         </div>
         <div className="w-1/2 border border-1 border-gray-400 rounded-md p-4 h-[75vh] max-h-[80vh] overflow-y-scroll">
-          {isInferredResumeLoading && <p>Generating...</p>}
+          {isInferredResumeLoading && <p>Generating inferred points...</p>}
           {inferResponse && (
             <MyCoolCodeBlock
               code={inferResponse}

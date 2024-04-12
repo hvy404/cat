@@ -25,7 +25,9 @@ export async function generateLiftedInferred(resume: string) {
         content: JSON.stringify(resume),
       },
     ],
-    model: 'mistralai/Mistral-7B-Instruct-v0.1',
+    //model: 'mistralai/Mistral-7B-Instruct-v0.1',
+    model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
+    max_tokens: 4000,
     temperature: 0.3,
     // @ts-ignore – Together.ai supports schema while OpenAI does not
     response_format: { type: 'json_object', schema: jsonSchema },

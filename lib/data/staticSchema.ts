@@ -1,3 +1,4 @@
+import { start } from "repl";
 import { z } from "zod";
 
 export const staticSchema = z
@@ -23,6 +24,17 @@ export const staticSchema = z
         })
       )
       .describe("Education history."),
+      work_experience: z
+      .array(
+        z.object({
+          organization: z.string(),
+          job_title: z.string(),
+          responsibilties: z.string(),
+          start_date: z.string().optional(),
+          end_date: z.string().optional(),
+        })
+      )
+      .describe("Applicant past job history."),
     technical_skills: z
       .array(z.string())
       .optional()
@@ -31,14 +43,6 @@ export const staticSchema = z
       .array(z.string())
       .optional()
       .describe("List of non-technical or soft skills."),
-    availability: z
-      .string()
-      .optional()
-      .describe("Details about the candidate's availability to start work."),
-    visa_status: z
-      .string()
-      .optional()
-      .describe("Work permit or visa status for international candidates."),
     industry_experience: z
       .array(z.string())
       .optional()
