@@ -7,7 +7,7 @@ export const inferredSchema = z
         manager_boolean: z
           .boolean()
           .describe(
-            "Indicates if the applicant can perform supervisor and management role based on previous experience and tenure."
+            "Indicates if the applicant can perform supervisor and management role based on previous experience and tenure. True or false."
           ),
         manager_trait_reason: z
           .string()
@@ -15,6 +15,7 @@ export const inferredSchema = z
             "Explanation why the applicant can or cannot perform supervisor role."
           ),
       })
+      .optional()
       .describe(
         "Trait and explanation regarding the applicant's ability to perform supervisor role."
       ),

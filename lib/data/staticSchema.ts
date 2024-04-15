@@ -1,4 +1,3 @@
-import { start } from "repl";
 import { z } from "zod";
 
 export const staticSchema = z
@@ -6,7 +5,6 @@ export const staticSchema = z
     name: z.string().describe("Full name of the candidate."),
     title: z.string().describe("Current title or role."),
     company: z.string().describe("Name of the current or most recent company."),
-    skills: z.array(z.string()).describe("List of skills."),
     contact: z
       .object({
         phone: z.string().optional(),
@@ -24,7 +22,7 @@ export const staticSchema = z
         })
       )
       .describe("Education history."),
-      work_experience: z
+    work_experience: z
       .array(
         z.object({
           organization: z.string(),
@@ -51,5 +49,13 @@ export const staticSchema = z
       .array(z.string())
       .optional()
       .describe("Security clearance or certifications."),
+    fedcon_experience: z
+      .array(z.string())
+      .optional()
+      .describe("Experience in Federal contracting if applicable."),
+    professional_certifications: z
+      .array(z.string())
+      .optional()
+      .describe("List of professional certifications if applicable."),
   })
   .describe("Resume");
