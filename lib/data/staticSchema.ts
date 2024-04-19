@@ -27,7 +27,7 @@ export const staticSchema = z
         z.object({
           organization: z.string(),
           job_title: z.string(),
-          responsibilties: z.string(),
+          responsibilities: z.string(),
           start_date: z.string().optional(),
           end_date: z.string().optional(),
         })
