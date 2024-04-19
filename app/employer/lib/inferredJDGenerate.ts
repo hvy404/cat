@@ -1,28 +1,28 @@
 "use server";
 import OpenAI from 'openai';
 import { zodToJsonSchema } from 'zod-to-json-schema';
-import { inferredSchema } from './data/inferredSchema';
+import { inferredJDSchema } from './inferredSchema';
 
-const jsonSchema = zodToJsonSchema(inferredSchema, 'ResumeSchema');
+const jsonSchema = zodToJsonSchema(inferredJDSchema, 'JDSchema');
 
 const togetherai = new OpenAI({
   apiKey: process.env.TOGETHER_API_KEY,
   baseURL: 'https://api.together.xyz/v1',
 });
 
-export async function generateLiftedInferred(resume: string) {
-  console.log('Generating inferred resume data');
+export async function generateLiftedInferredJD(jobDescription: string) {
+  console.log('Generating inferred JD data');
 
   const extract = await togetherai.chat.completions.create({
     messages: [
       {
         role: 'system',
         content:
-        'The following is resume data. Use the resume data to populate relevant fields the resume schema, and answer in JSON. If key values are not relevant, leave it empty. Do not make anything up.',
+        'The following is job description data. Use the job description data to populate relevant fields the job description schema, and answer in JSON. If key values are not relevant, leave it empty. Do not make anything up.',
       },
       {
         role: 'user',
-        content: JSON.stringify(resume),
+        content: JSON.stringify(jobDescription),
       },
     ],
     model: 'mistralai/Mistral-7B-Instruct-v0.1',
