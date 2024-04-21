@@ -36,7 +36,7 @@ export const staticSchema = z
     technical_skills: z
       .array(z.string())
       .optional()
-      .describe("Detailed list of technical skills, tools, and technologies."),
+      .describe("Detailed list hard skills, tools, and technologies from previous roles."),
     soft_skills: z
       .array(z.string())
       .optional()

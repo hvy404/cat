@@ -4,7 +4,7 @@ interface JobData {
     jobSummary?: string;
     employmentType?: string;
     applicationDeadline?: string;
-    embedding?: string;
+    embedding?: number[];
     company?: string;
     department?: string;
     workLocation?: {
@@ -33,6 +33,11 @@ interface JobData {
     potentialCandidateTraits?: { trait?: string, importance?: string }[];
 }
 
+// Helper function to format the embedding array
+function formatArrayForCypher(array: number[]) {
+    return `[${array.join(", ")}]`;  // Adds a space after each comma
+  }
+
 export function generateJobCypher(data: JobData): string {
     let cypher = `
 CREATE (j:Job {
@@ -41,7 +46,7 @@ CREATE (j:Job {
     jobSummary: "${(data.jobSummary || '').replace(/"/g, '\\"')}",
     employmentType: "${data.employmentType || 'N/A'}",
     applicationDeadline: "${data.applicationDeadline || 'N/A'}",
-    embedding: "${data.embedding || ''}",
+    embedding: ${data.embedding ? formatArrayForCypher(data.embedding) : "[]"},
     company: "${data.company || 'N/A'}",
     department: "${data.department || 'N/A'}",
     remotePossible: ${data.workLocation?.remotePossible || false},
