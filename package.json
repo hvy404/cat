@@ -13,6 +13,7 @@
     "@langchain/openai": "^0.0.27",
     "fetch-blob": "^4.0.0",
     "langchain": "^0.1.32",
+    "mammoth": "^1.7.1",
     "neo4j-driver": "^5.19.0",
     "next": "14.1.4",
     "pdf-parse": "^1.1.1",
