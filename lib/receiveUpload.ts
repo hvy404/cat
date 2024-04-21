@@ -1,5 +1,5 @@
 "use server";
-import { PDFLoader } from "langchain/document_loaders/fs/pdf";
+import pdf from 'pdf-parse';
 import * as mammoth from "mammoth";
 
 export async function resumeParserUpload(formData: FormData) {
@@ -8,14 +8,13 @@ export async function resumeParserUpload(formData: FormData) {
   let pageContent = "";
 
   if (file.type === "application/pdf") {
-    // Process PDF file using PDFLoader
-    const loader = new PDFLoader(file, {
-      parsedItemSeparator: "",
-      splitPages: false,
-    });
+    // Process PDF file using pdf-parse
+    const arrayBuffer = await file.arrayBuffer();
+    const dataBuffer = Buffer.from(arrayBuffer);
+    
+    const data = await pdf(dataBuffer);
 
-    const docs = await loader.load();
-    pageContent = docs.map((doc) => doc.pageContent).join(" ");
+    pageContent = data.text; // Extracted text from all pages
   } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
     // Process docx file using Mammoth
     const arrayBuffer = await file.arrayBuffer();

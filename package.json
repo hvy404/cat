@@ -11,6 +11,7 @@
   "dependencies": {
     "@langchain/community": "^0.0.46",
     "@langchain/openai": "^0.0.27",
+    "@types/pdf-parse": "^1.1.4",
     "fetch-blob": "^4.0.0",
     "langchain": "^0.1.32",
     "mammoth": "^1.7.1",
