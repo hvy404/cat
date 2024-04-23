@@ -19,7 +19,7 @@ export async function resumeParserUpload(formData: FormData) {
     // Process docx file using Mammoth
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    const result = await mammoth.convertToHtml({ buffer });
+    const result = await mammoth.extractRawText({ buffer });
     pageContent = result.value;
   } else {
     throw new Error("Unsupported file type");
