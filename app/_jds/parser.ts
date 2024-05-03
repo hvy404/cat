@@ -61,7 +61,7 @@ export async function sowParser(formData: FormData) {
   // Process each chunk for embeddings
   for (const chunk of chunks) {
     const embeddingResponse = await openai.embeddings.create({
-      model: "togethercomputer/m2-bert-80M-2k-retrieval",
+      model: "togethercomputer/m2-bert-80M-8k-retrieval",
       input: chunk,
     });
 

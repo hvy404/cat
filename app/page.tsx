@@ -1,5 +1,5 @@
-import AddReusme from "./canidate/add-resume";
-import MainLanding from "./canidate/hero";
+import AddReusme from "./candidate/add-resume";
+import MainLanding from "./candidate/hero";
 
 export default function Main() {
   return (

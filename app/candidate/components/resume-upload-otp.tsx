@@ -1,6 +1,6 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,11 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { verifyOtp } from "@/lib/otp/candidate-verify-otp";
+
+interface ResumeUploadOTPProps {
+  candidateID: string;
+}
 
 const FormSchema = z.object({
   pin: z.string().min(6, {
@@ -26,20 +31,29 @@ const FormSchema = z.object({
   }),
 });
 
-function ResumeUploadOTP() {
+function ResumeUploadOTP({ candidateID }: ResumeUploadOTPProps) {
   const [otpValue, setOtpValue] = useState("");
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
+    mode: "onSubmit", // Change validation mode to onSubmit
     defaultValues: {
       pin: "",
     },
   });
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
-    console.log("OTP submitted:", data);
-  }
+  // Verify OTP and hndle return value verifyOtp
+  const verifyOTP = async (otp: string) => {
+    const actionType = "upload";
+    const result = await verifyOtp(candidateID, otp, actionType);
+    console.log("OTP verification result:", result);
+  };
 
+  function onSubmit(data: z.infer<typeof FormSchema>) {
+    verifyOTP(data.pin);
+
+    // TODO: Begin onboard process to ingest resume and direct to the next page
+  }
 
   return (
     <div>
@@ -54,14 +68,18 @@ function ResumeUploadOTP() {
               name="pin"
               render={({ field }) => (
                 <FormItem>
-                  {/* <FormLabel>One-Time Passocde</FormLabel> */}
                   <FormControl>
                     <div className="text-white font-semibold">
                       <InputOTP
                         maxLength={6}
                         {...field}
                         value={otpValue}
-                        onChange={(value) => setOtpValue(value)}
+                        onChange={(value) => {
+                          setOtpValue(value); // Maintain local state
+                          form.setValue("pin", value, {
+                            shouldValidate: false,
+                          }); // Update form state without triggering validation
+                        }}
                       >
                         <InputOTPGroup>
                           <InputOTPSlot index={0} className="ring-0" />

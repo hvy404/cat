@@ -2,16 +2,10 @@
 import OpenAI from "openai";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
-import { zodToJsonSchema } from "zod-to-json-schema";
-import { keyPersonnelTypeSchema } from "./getKeyPersonnelSchema";
 
-export async function getKeyPersonnel(owner: string) {
-  console.log("getKPs");
+export async function getJobDescription(owner: string, role_name: string) {
+  console.log("get JD");
 
-  const docSchema = zodToJsonSchema(
-    keyPersonnelTypeSchema,
-    "keyPersonnelTypeSchema"
-  );
 
   const togetherAi = new OpenAI({
     apiKey: process.env.TOGETHER_API_KEY,
@@ -22,8 +16,8 @@ export async function getKeyPersonnel(owner: string) {
   const supabase = createClient(cookieStore);
 
   const embeddingsResponse = await togetherAi.embeddings.create({
-    model: "togethercomputer/m2-bert-80M-2k-retrieval",
-    input: "Identify the key personnel roles.",
+    model: "togethercomputer/m2-bert-80M-8k-retrieval",
+    input: `What are the responsibilties for the role ${role_name}.`,
   });
 
   // Extract the embeddings from the response
@@ -44,7 +38,7 @@ export async function getKeyPersonnel(owner: string) {
       {
         role: "system",
         content:
-          "Use the provided context to identify the key personnels (KP). Your answer will only the role names, do not include any comments. Your answer must be in JSON format.",
+          `Use the provided context to identify the job description for the role ${role_name}. The job description will be used to recruit candidates for the role. Include the following information: job title, job description, responsibilities, required qualifications, and preferred qualifications. Write the job description in a professional and engaging manner.`,
       },
       {
         role: "user",
@@ -52,12 +46,14 @@ export async function getKeyPersonnel(owner: string) {
       },
     ],
     model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
-    temperature: 0.4,
+    temperature: 0.6,
+    max_tokens: 7000,
     // @ts-ignore – Together.ai supports schema while OpenAI does not
-    response_format: { type: "json_object", schema: docSchema },
   });
 
-  const output = JSON.parse(extract.choices[0].message.content!);
+  const output = extract.choices[0].message.content!;
+
+  console.log(output);
 
   return output;
 }

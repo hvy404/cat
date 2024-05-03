@@ -11,11 +11,8 @@ export async function resumeUnconfirmedAddToDatabase(
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  console.log("Recevied email", email);
-  console.log("Recevied signature", signature);
-
   // Add to Supabase
-  const { error } = await supabase.from("candidates").insert([
+  const { data, error } = await supabase.from("candidates").insert([
     {
       uuid: uuid,
       signature: signature,
@@ -24,10 +21,15 @@ export async function resumeUnconfirmedAddToDatabase(
     },
   ]);
 
-  console.log("added to database", fileName, signature);
-
-  return {
-    success: true,
-    message: "Resume uploaded successfully.",
-  };
+  if (error) {
+    return {
+      success: false,
+      message: `Failed to upload resume`,
+    };
+  } else {
+    return {
+      success: true,
+      message: "Resume uploaded successfully.",
+    };
+  }
 }

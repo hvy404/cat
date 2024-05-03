@@ -1,5 +1,5 @@
 import { PlusIcon } from "@heroicons/react/24/solid";
-import ResumeUploadBox from "./modules/upload-box";
+import ResumeUploadBox from "./components/upload-box";
 
 export default function AddReusme() {
   return (
