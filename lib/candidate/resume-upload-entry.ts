@@ -11,6 +11,10 @@ export async function resumeUnconfirmedAddToDatabase(
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
+  // Get timestamp in UTC
+  const timestamp = new Date().toUTCString();
+  // TODO: add timestamp to the database
+
   // Add to Supabase
   const { data, error } = await supabase.from("candidates").insert([
     {

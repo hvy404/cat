@@ -43,7 +43,7 @@ export type Data = {
   security_clearance: string[];
   manager_trait: ManagerTrait;
   applicant_id: string;
-  embedding?: number[]; 
+  embedding?: number[];
   matching_opt_in?: string;
   active_looking?: string;
   active_looking_confirmed_date?: string;
@@ -60,7 +60,7 @@ export type Data = {
 
 // Helper function to format the embedding array
 function formatArrayForCypher(array: number[]) {
-  return `[${array.join(", ")}]`;  // Adds a space after each comma
+  return `[${array.join(", ")}]`; // Adds a space after each comma
 }
 
 //TODO: jds_viewed, interviewed_by should be matched to jds by relatonship and not used as properties
@@ -88,13 +88,19 @@ export function generateCandidateCypherQuery(data: Data, userId: string) {
     active_looking_confirmed_date: "${
       data.active_looking_confirmed_date || ""
     }",
-    applied_at: "${(data.applied_at || []).join(", ")}",
-    jds_viewed: "${(data.jds_viewed || []).join(", ")}",
-    interviewed_by: "${(data.interviewed_by || []).join(", ")}",
-    resume_matched_to_jd: "${(data.resume_matched_to_jd || []).join(", ")}",
-    resume_requested_by_company: "${(
-      data.resume_requested_by_company || []
-    ).join(", ")}"
+    applied_at: ${data.applied_at ? JSON.stringify(data.applied_at) : "[]"},
+    jds_viewed: ${data.jds_viewed ? JSON.stringify(data.jds_viewed) : "[]"},
+    interviewed_by: ${
+      data.interviewed_by ? JSON.stringify(data.interviewed_by) : "[]"
+    },
+    resume_matched_to_jd: ${
+      data.resume_matched_to_jd ? JSON.stringify(data.resume_matched_to_jd) : "[]"
+    },
+    resume_requested_by_company: ${
+      data.resume_requested_by_company
+      ? JSON.stringify(data.resume_requested_by_company)
+      : "[]"
+  }
   })
   WITH t`;
 

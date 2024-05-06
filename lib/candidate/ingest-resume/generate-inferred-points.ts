@@ -12,16 +12,20 @@ const togetherai = new OpenAI({
   baseURL: "https://api.together.xyz/v1",
 });
 
+const systemPrompt =
+  "Use the following resume data to populate relevant fields the resume schema and answer in JSON. If key values are not relevant, leave it empty. Do not make anything up.";
+
 export async function generateLiftedInferred(resume: string, id: string) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
+
+  console.log("generateLiftedInferred function is running")
 
   const extract = await togetherai.chat.completions.create({
     messages: [
       {
         role: "system",
-        content:
-          "The following is resume data. Use the resume data to populate relevant fields the resume schema, and answer in JSON. If key values are not relevant, leave it empty. Do not make anything up.",
+        content: systemPrompt,
       },
       {
         role: "user",
@@ -47,11 +51,12 @@ export async function generateLiftedInferred(resume: string, id: string) {
     console.error(error);
     return {
       message: "Failed to insert inferred points.",
-      error: error,
+      success: false,
     };
   }
 
   return {
     message: "Success",
+    success: true,
   };
 }

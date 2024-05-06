@@ -4,6 +4,7 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import { staticSchema } from "./data/staticSchema";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
+import { SubContent } from "@radix-ui/react-dropdown-menu";
 
 const jsonSchema = zodToJsonSchema(staticSchema, "ResumeSchema");
 
@@ -46,12 +47,12 @@ export async function generateLiftedStatic(resume: string, id: string) {
     console.error(error);
     return {
       message: "Failed to insert static points.",
-      error: error,
+      success: false,
     };
   }
 
-  // Serialize the output to JSON and return to client
   return {
     message: "Success",
+    success: true,
   };
 }

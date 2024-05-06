@@ -1,10 +1,7 @@
 import { inngest } from "@/lib/inngest/client";
-import { GetEvents, Inngest } from "inngest";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { resumeParserUpload } from "@/lib/candidate/ingest-resume/retrieve-resume";
-
-type Events = GetEvents<typeof inngest>;
 
 export const resumeExtract = inngest.createFunction(
   { id: "candidate-extract-resume" },
@@ -31,8 +28,11 @@ export const resumeExtract = inngest.createFunction(
       };
     }
 
+    console.log("Step 0 Started");
+
+    // Extract details from the resume
     await step.sendEvent("onboard-move-to-extract-details", {
-      name: "app/candidate-onboard-generate-details",
+      name: "app/candidate-onboard-generate-static",
       data: {
         user: {
           id: event.data.user.id,
@@ -40,17 +40,6 @@ export const resumeExtract = inngest.createFunction(
       },
     });
 
-    await step.sendEvent("onboard-generate-cypher", {
-      name: "app/candidate-generate-cypher",
-      data: {
-        user: {
-          id: event.data.user.id,
-        },
-      },
-    });
-
-
-
-    return { count: "1" };
+    return { message: "Resume extracted successfully." };
   }
 );

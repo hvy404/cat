@@ -1,9 +1,10 @@
 import { serve } from "inngest/next";
 import { inngest } from "@/lib/inngest/client";
-import { resumeExtract } from "@/inngest/resume-extract";
+import { resumeExtract } from "@/inngest/resume-start-onboard";
 import { resumeGenerateStatic } from "@/inngest/resume-static";
 import { resumeGenerateInferred } from "@/inngest/resume-inferred";
 import { generateCandidateCypher } from "@/inngest/resume-generate-cypher";
+import { resumeGenerateEmbeddings } from "@/inngest/resume-embeddings";
 
 /**
  * Represents the serve function for handling HTTP requests.
@@ -16,6 +17,6 @@ import { generateCandidateCypher } from "@/inngest/resume-generate-cypher";
 export const { GET, POST, PUT } = serve({
   client: inngest,
   functions: [
-    resumeExtract, resumeGenerateStatic, resumeGenerateInferred, generateCandidateCypher
+    resumeExtract, resumeGenerateStatic, resumeGenerateInferred, generateCandidateCypher, resumeGenerateEmbeddings
   ],
 });
