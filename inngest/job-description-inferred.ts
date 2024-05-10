@@ -8,22 +8,22 @@
 import { inngest } from "@/lib/inngest/client";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
-import { generateLiftedStatic } from "@/lib/candidate/ingest-resume/generate-static-points";
+import { generateJDInferred } from "@/lib/dashboard/infer/from-jd/inferred";
 
-export const resumeGenerateStatic = inngest.createFunction(
-  { id: "candidate-generate-static-info" },
-  { event: "app/candidate-onboard-generate-static" },
+export const jobDescriptionGenerateInferred = inngest.createFunction(
+  { id: "job-description-generate-inferred-info" },
+  { event: "app/job-description-onboard-generate-inferred" },
   async ({ event, step }) => {
     const cookieStore = cookies();
     const supabase = createClient(cookieStore);
-    const id = event.data.user.id;
+    const jobDescriptionID = event.data.job_description.id;
 
-    console.log("candidate-generate-static-info function activated");
+    console.log("job-description-generate-inferred-info function activated");
 
     const { data, error } = await supabase
-      .from("candidate_resume")
+      .from("job_postings")
       .select("raw")
-      .eq("user", id);
+      .eq("jd_uuid", jobDescriptionID);
 
     if (error) {
       console.error(error);
@@ -37,12 +37,12 @@ export const resumeGenerateStatic = inngest.createFunction(
 
     // Check if rawExtract is null or undefined and return early
     if (rawExtract == null) {
-      console.error("Resume is null. Cannot generate static points.");
-      return { message: "Resume data is missing or invalid." };
+      console.error("JD is null. Cannot generate static points.");
+      return { message: "JD data is missing or invalid." };
     }
 
     // Proceed with processing since rawExtract is not null
-    const result = await generateLiftedStatic(rawExtract, id);
+    const result = await generateJDInferred(rawExtract, jobDescriptionID);
     if (result.success) {
       // console.log("Successfully generated static points");
       return { message: "Successfully generate static points" };

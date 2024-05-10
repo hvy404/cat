@@ -3,29 +3,22 @@ import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { inngest } from "@/lib/inngest/client";
 
-export async function candidateStartOnboard(userId: string) {
+export async function jobDescriptionStartOnboard(jdUUID: string, employerId: string, filename: string) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  const { data, error } = await supabase
-    .from("candidates")
-    .select("filename")
-    .eq("uuid", userId);
+  console.log("Starting job description onboarding");
+  console.log("JD UUID: ", jdUUID);
+  console.log("Employer ID: ", employerId);
 
-  if (error) {
-    console.error(error);
-    return {
-      message: "Failed to get resume filename.",
-      error: error,
-    };
-  }
   // Send an event to Inngest
   const { ids } = await inngest.send({
-    name: "app/candidate-start-onboard",
+    name: "app/job-description-start-onboard",
     data: {
-      user: {
-        id: userId,
-        resume: data[0].filename,
+      job_description: {
+        employer: employerId,
+        id: jdUUID,
+        filename: filename,
       },
     },
   });

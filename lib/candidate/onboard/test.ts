@@ -28,7 +28,7 @@ export async function generateTestSearch(query: string) {
   // Call the function to generate the cypher query
   const cypherQuery = generateCypher("talent-embeddings", embeddings, 5);
 
-  console.log(cypherQuery);
+  console.log("Matches: ", cypherQuery);
 
   return embeddingsResponse;
 }

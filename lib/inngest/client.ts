@@ -1,4 +1,4 @@
-import { GetEvents, Inngest } from "inngest";
+import { Inngest } from "inngest";
 
 /**
  * The Inngest client instance for the Catalyst application.

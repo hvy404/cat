@@ -1,3 +1,11 @@
+/**
+ * Generates embeddings for a candidate and writes them to a Neo4j database.
+ *
+ * @param event - The event triggering the function.
+ * @param step - The step object containing additional information.
+ * @returns A promise that resolves to an object with a success message.
+ */
+
 import { inngest } from "@/lib/inngest/client";
 import { generateCandidateEmbeddings } from "@/lib/candidate/ingest-resume/generate-embedding";
 import { read, write } from "@/lib/neo4j/utils";

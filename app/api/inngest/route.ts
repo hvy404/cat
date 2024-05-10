@@ -5,6 +5,11 @@ import { resumeGenerateStatic } from "@/inngest/resume-static";
 import { resumeGenerateInferred } from "@/inngest/resume-inferred";
 import { generateCandidateCypher } from "@/inngest/resume-generate-cypher";
 import { resumeGenerateEmbeddings } from "@/inngest/resume-embeddings";
+import { generateJobDescriptionCypher } from "@/inngest/job-description-gen-cypher";
+import { jobDescriptionEmbeddings } from "@/inngest/job-generate-embeddings";
+import { jobDescriptionOnboard } from "@/inngest/job-description-start-loading";
+import { jobDescriptionGenerateStatic } from "@/inngest/job-description-static";
+import { jobDescriptionGenerateInferred } from "@/inngest/job-description-inferred";
 
 /**
  * Represents the serve function for handling HTTP requests.
@@ -17,6 +22,15 @@ import { resumeGenerateEmbeddings } from "@/inngest/resume-embeddings";
 export const { GET, POST, PUT } = serve({
   client: inngest,
   functions: [
-    resumeExtract, resumeGenerateStatic, resumeGenerateInferred, generateCandidateCypher, resumeGenerateEmbeddings
+    resumeExtract,
+    resumeGenerateStatic,
+    resumeGenerateInferred,
+    generateCandidateCypher,
+    resumeGenerateEmbeddings,
+    generateJobDescriptionCypher,
+    jobDescriptionEmbeddings,
+    jobDescriptionOnboard,
+    jobDescriptionGenerateStatic,
+    jobDescriptionGenerateInferred,
   ],
 });

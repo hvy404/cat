@@ -8,46 +8,54 @@
 import { inngest } from "@/lib/inngest/client";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
-import { generateCandidateCypherQuery } from "@/lib/candidate/ingest-resume/generate-cypher-query";
+//import { generateCandidateCypherQuery } from "@/lib/candidate/ingest-resume/generate-cypher-query";
+import { generateJobCypherQuery } from "@/lib/dashboard/generate-cypher-query";
 import { read, write } from "@/lib/neo4j/utils";
 
-export const generateCandidateCypher = inngest.createFunction(
-  { id: "candidate-add-to-neo-workflow" },
-  { event: "app/candidate-add-to-neo-workflow" },
+export const generateJobDescriptionCypher = inngest.createFunction(
+  { id: "job-description-add-to-neo-workflow" },
+  { event: "app/job-description-add-to-neo-workflow" },
   async ({ event, step }) => {
     const cookieStore = cookies();
     const supabase = createClient(cookieStore);
-    const userId = event.data.user.id;
+
+    const jobDescriptionID = event.data.job_description.id;
+    const employerID = event.data.job_description.employer;
 
     try {
       const { data, error } = await supabase
-        .from("candidate_resume")
+        .from("job_postings")
         .select("static, inferred")
-        .eq("user", userId);
+        .eq("jd_uuid", jobDescriptionID);
 
       if (error) throw new Error(error.message);
 
       const staticData = data[0].static;
       const inferredData = data[0].inferred;
-      const candidateData = { ...staticData, ...inferredData };
-      const cypherQuery = generateCandidateCypherQuery(candidateData, userId);
+      const jobDescriptionData = { ...staticData, ...inferredData };
 
-      console.log(
-        "Writing then sending cypher query to Neo4j from candidate-add-to-neo-workflow Inngest function."
+      console.log(JSON.stringify(jobDescriptionData));
+
+      const cypherQuery = generateJobCypherQuery(
+        jobDescriptionData,
+        jobDescriptionID,
+        employerID
       );
+
+      //console.log(cypherQuery);
+
+      //console.log( "Writing then sending cypher query to Neo4j from candidate-add-to-neo-workflow Inngest function.");
 
       // Run the Cypher query and wait for it to complete successfully
       // TODO: Write doesn't return an error and thus does not throw an error. This needs enhancement
-
       await write(cypherQuery);
 
       return {
         message:
-          "Successfully added candidate to Neo and started embeddings generation.",
+          "Successfully added job description to Neo and started embeddings generation.",
         success: true,
       };
     } catch (err) {
-      //console.error(err);
       throw new Error("There was an error executing the operation: " + err);
       /* return {
         message: "Failed to execute the operation.",

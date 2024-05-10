@@ -1,10 +1,14 @@
+/**
+ * Generates inferred points for a candidate's resume.
+ * @param event - The event triggering the function.
+ * @param step - The step in the event.
+ * @returns A promise that resolves to an object with the generated inferred points or an error message.
+ */
+
 import { inngest } from "@/lib/inngest/client";
-import { GetEvents, Inngest } from "inngest";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { generateLiftedInferred } from "@/lib/candidate/ingest-resume/generate-inferred-points";
-
-type Events = GetEvents<typeof inngest>;
 
 export const resumeGenerateInferred = inngest.createFunction(
   { id: "candidate-generate-inferred-info" },
@@ -14,6 +18,8 @@ export const resumeGenerateInferred = inngest.createFunction(
     const supabase = createClient(cookieStore);
 
     const id = event.data.user.id;
+
+    console.log("candidate-generate-inferred-info function activated");
 
     const { data, error } = await supabase
       .from("candidate_resume")
@@ -40,11 +46,7 @@ export const resumeGenerateInferred = inngest.createFunction(
     const result = await generateLiftedInferred(rawExtract, id);
 
     if (result.success) {
-      // Proceed to generate Step 3 - Generate cypher
-      await step.sendEvent("onboard-add-to-neo-workflow", {
-        name: "app/candidate-add-to-neo-workflow",
-        data: { user: { id: event.data.user.id } },
-      });
+      // console.log("Successfully generated inferred points");
       return {
         message: "Successfully generate inferred points",
         success: true,
