@@ -12,7 +12,7 @@ interface ContextItem {
   similarity?: number;
 }
 
-export async function getType(owner: string, sowId: string) {
+export async function getDocumentType(owner: string, sowId: string) {
   const docSchema = zodToJsonSchema(documentTypeSchema, "docTypeSchema");
 
   const togetherAi = new OpenAI({
@@ -54,8 +54,6 @@ export async function getType(owner: string, sowId: string) {
     })
   );
 
-  console.log("optimizedResults", optimizedResults);
-
   const systemPrompt = `Given the provided context, your task is to determine whether the document is a Statement of Work (SOW) or a Performance Work Statement (PWS). In the Federal RFQ context, a SOW typically outlines specific tasks, deliverables, and a timeline for a vendor to provide services or deliver goods. On the other hand, a PWS describes the desired outcome, objectives, and performance standards, leaving the 'how' up to the vendor. Your answer must be in JSON format, specifying the document type and the key indicators that led to your conclusion.`;
 
   const extract = await togetherAi.chat.completions.create({
@@ -77,8 +75,6 @@ export async function getType(owner: string, sowId: string) {
 
   const output = JSON.parse(extract.choices[0].message.content!);
 
-  console.log("output", output);
-
   // Add the document type to the database
   const { error } = await supabase
     .from("sow_meta")
@@ -86,9 +82,12 @@ export async function getType(owner: string, sowId: string) {
     .eq("sow_id", sowId);
 
   if (error) {
-    console.error("Error inserting document type", error);
+    //console.error("Error inserting document type", error);
     throw new Error("Error inserting document type");
   }
 
-  return output;
+  return {
+    success: true,
+    type: output.document_type,
+  };
 }

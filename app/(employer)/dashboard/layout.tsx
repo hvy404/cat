@@ -3,9 +3,9 @@ import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/themeProvider";
 //import { GoogleAnalytics } from "@next/third-parties/google";
 //import { GoogleTagManager } from "@next/third-parties/google";
-import "./globals.css";
-import { MainHeader } from "./header";
+import "../../globals.css";
 //import MainFooter from "./footer";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -31,13 +31,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="max-w-7xl mx-auto">
-            <MainHeader />
-            {children}
-            {/* <MainFooter /> */}
+          <div>
+            <TooltipProvider>{children}</TooltipProvider>
           </div>
         </ThemeProvider>
-        {/* <Toaster /> */}
       </body>
     </html>
   );

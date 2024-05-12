@@ -3,7 +3,7 @@ import OpenAI from "openai";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { zodToJsonSchema } from "zod-to-json-schema";
-import { keyPersonnelTypeSchema } from "./schema/getKeyPersonnelSchema";
+import { rolesTypeSchema } from "./schema/getRolesSchema";
 
 interface ContextItem {
   id: number;
@@ -12,11 +12,11 @@ interface ContextItem {
   similarity?: number;
 }
 
-export async function getKeyPersonnel(owner: string, sowId: string) {
-  const docSchema = zodToJsonSchema(
-    keyPersonnelTypeSchema,
-    "keyPersonnelTypeSchema"
-  );
+export async function getPersonnel(owner: string, sowId: string) {
+  //let docType = "";
+  const docType = "sow"; // TODO: Get this from the dynamic property
+
+  const docSchema = zodToJsonSchema(rolesTypeSchema, "rolesTypeSchema");
 
   const togetherAi = new OpenAI({
     apiKey: process.env.TOGETHER_API_KEY,
@@ -25,24 +25,24 @@ export async function getKeyPersonnel(owner: string, sowId: string) {
 
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
-  let docType = "sow"; // TODO: Get this from the dynamic property
 
+  // Step 1 - Establish scope and requirements
   let oppDeliverables = "";
   let oppRequirements = "";
 
   const summaries: { [key: string]: string } = {};
 
   // Questions for Part 1
-  const embeddingInputs = [
-    {
-      key: "oppDeliverables",
-      question: "What are the key deliverables and performance standards?",
-    },
-    {
-      key: "oppRequirements",
-      question: "What are the specific requirements outlined in the SOW/PWS?",
-    },
-  ];
+const embeddingInputs = [
+  {
+    key: "oppDeliverables",
+    question: "What are the key deliverables and performance standards?",
+  },
+  {
+    key: "oppRequirements",
+    question: "What are the specific requirements outlined in the SOW/PWS?",
+  },
+];
 
   // Loop through each question, generate embeddings, and query the database
   for (const input of embeddingInputs) {
@@ -68,10 +68,12 @@ export async function getKeyPersonnel(owner: string, sowId: string) {
       throw new Error("No context found for question: " + input.question);
     }
 
-    // Remove metadata and similarity from context
+    // Remove metadata and similarity from context to save token window
     const optimizedResults = (context as ContextItem[]).map(
       ({ id, content }) => ({ id, content })
     );
+
+    console.log("Optimized Results:", optimizedResults);
 
     // Define system prompts for each question
     let sysPrompt = "";
@@ -110,12 +112,19 @@ export async function getKeyPersonnel(owner: string, sowId: string) {
   // Combine all summaries into one output
   const findings = `Deliverables: ${oppDeliverables}\n\nRequirements: ${oppRequirements}`;
 
-  // Second part of the process
+  // Step 2: Extract roles from the context
+  // Set the input based on the document type
+  let embeddingInput = "";
+  if (docType === "sow") {
+    embeddingInput = "Scope of work and tasks for this opportunity?";
+  } else {
+    embeddingInput =
+      "Performance work statement and tasks for this opportunity?";
+  }
 
   const embeddingsResponse = await togetherAi.embeddings.create({
     model: "togethercomputer/m2-bert-80M-8k-retrieval",
-    input:
-      "Identify the key personnel roles and their qualifications requirements.",
+    input: embeddingInput,
   });
 
   // Extract the embeddings from the response
@@ -128,12 +137,13 @@ export async function getKeyPersonnel(owner: string, sowId: string) {
   const { data: context, error } = await supabase.rpc("sow_builder", {
     filter: filter,
     query_embedding: embeddings,
-    match_count: 13,
-    threshold: 0.4,
+    match_count: 12,
+    threshold: 0.43,
   });
 
   if (error) {
     console.error("Error fetching data:", error);
+    throw new Error("Error fetching data");
   } else {
     //console.log("Context data:", context);
   }
@@ -143,7 +153,7 @@ export async function getKeyPersonnel(owner: string, sowId: string) {
     throw new Error("No context found");
   }
 
-  // Remove metadata and similarity from context
+  // Remove metadata and similarity from context to save token window
   const optimizedResults = (context as ContextItem[]).map(
     ({ id, content }) => ({
       id,
@@ -151,11 +161,11 @@ export async function getKeyPersonnel(owner: string, sowId: string) {
     })
   );
 
-  const systemPrompt = `As an experienced contract manager at a federal contracting firm, analyze the 'Opportunity Context' provided to identify the required Key Personnel roles based on the client's requirements. Your answer should be a list of role/job titles only, without any introductory text, comments, information, greetings, or notices.`;
-  const convertToJSONPrompt = `You are a helpful AI assistant. Convert the identified Key Personnel roles to a JSON list.`;
+  const systemPrompt = `As an experienced hiring manager at a federal contracting firm, analyze the provided Opportunity Context to identify the necessary personnel roles to support the contract and meet the client's requirements. Consider the client's needs and any mentioned tasks to determine these roles. Your answer should be a list of role/job titles only, without any introductory text, comments, information, greetings, or notices.`;
+  const convertToJSONPrompt = `Rewrite the following list into a JSON array.`;
 
   // Summarize the context
-  const identifiedKeyRoles = await togetherAi.chat.completions.create({
+  const identifiedRoles = await togetherAi.chat.completions.create({
     messages: [
       {
         role: "system",
@@ -170,10 +180,10 @@ export async function getKeyPersonnel(owner: string, sowId: string) {
     temperature: 0.2,
   });
 
-  let identifiedRolesList = identifiedKeyRoles.choices[0].message.content;
+  let identifiedRolesList = identifiedRoles.choices[0].message.content;
 
   // Summarize identifiedRolesList and findings
-  const refinedRolesInstruction = `As an experienced contract manager at a federal contracting firm, your task is to review the 'Roles' and 'Scope Summary' sections. Based on the client's requirements outlined in the 'Scope Summary', evaluate the current list of Key Personnel roles. If any roles are missing that are necessary to fulfill the client's requirements, add them to the list. Conversely, if there are roles listed that are not relevant or necessary according to the 'Scope Summary', remove them. Your final output should be a refined list of role/job titles only, without any introductory text, comments, information, greetings, or notices.`;
+  const refinedRolesInstruction = `As an experienced contract manager at a federal contracting firm, your task is to review the 'Roles' and 'Scope Summary' sections. Based on the client's requirements outlined in the 'Scope Summary', evaluate the current list of personnel roles. If any roles are missing that are necessary to fulfill the client's requirements, add them to the list. Conversely, if there are roles listed that are not relevant or necessary according to the 'Scope Summary', remove them. Your final output should be a refined list of role/job titles only, without any introductory text, comments, information, greetings, or notices.`;
   const refinedRoles = await togetherAi.chat.completions.create({
     messages: [
       {
@@ -191,7 +201,7 @@ export async function getKeyPersonnel(owner: string, sowId: string) {
 
   let refinedRolesList = refinedRoles.choices[0].message.content;
 
-  // Convert to structure JSON format using another LLM's JSON mode
+  // Convert the refinedRolesList to JSON by using JSON supported model
   const extract = await togetherAi.chat.completions.create({
     messages: [
       {
@@ -211,6 +221,7 @@ export async function getKeyPersonnel(owner: string, sowId: string) {
 
   const output = JSON.parse(extract.choices[0].message.content!);
 
+  // If output is empty, return early error
   if (output.length === 0) {
     throw new Error("No roles identified");
   }
@@ -218,13 +229,16 @@ export async function getKeyPersonnel(owner: string, sowId: string) {
   // Save to 'output' to key_personnel column in the 'sow_meta' table, in the row where 'sow_id' = sowId
   const { error: saveError } = await supabase
     .from("sow_meta")
-    .update({ key_personnel: output })
+    .update({ detected_personnel: output })
     .eq("sow_id", sowId);
 
   if (saveError) {
-    console.error("Error inserting key personnel", saveError);
-    throw new Error("Error inserting key personnel");
+    console.error("Error inserting personnel roles", saveError);
+    throw new Error("Error inserting personnel roles");
   }
 
-  return output;
+  return {
+    success: true,
+    roles: output,
+  };
 }

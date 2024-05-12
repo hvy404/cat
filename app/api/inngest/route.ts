@@ -10,6 +10,13 @@ import { jobDescriptionEmbeddings } from "@/inngest/job-generate-embeddings";
 import { jobDescriptionOnboard } from "@/inngest/job-description-start-loading";
 import { jobDescriptionGenerateStatic } from "@/inngest/job-description-static";
 import { jobDescriptionGenerateInferred } from "@/inngest/job-description-inferred";
+import { jdWizardOnboardDocs } from "@/inngest/jd-wizard-onboard-start"; // JD Wizard - Start onboarding
+import { jdWizardDetectRoles } from "@/inngest/jd-wizard-detect-roles"; // JD Wizard - Detect roles
+import { jdWizardProcessSow } from "@/inngest/jd-wizard-chunk"; 
+import { jdWizardFindDocType } from "@/inngest/jd-wizard-doc-identify"; 
+import { jdWizardGetKeyPersonnel } from "@/inngest/jd-wizard-get-key-personnel"; 
+import { jdWizardGetPersonnel } from "@/inngest/jd-wizard-get-personnel"; 
+import { jdGenerateDescription } from "@/inngest/jd-wizard-generate-jd"; // JD Wizard - Generate JD function
 
 /**
  * Represents the serve function for handling HTTP requests.
@@ -32,5 +39,12 @@ export const { GET, POST, PUT } = serve({
     jobDescriptionOnboard,
     jobDescriptionGenerateStatic,
     jobDescriptionGenerateInferred,
+    jdWizardOnboardDocs,
+    jdWizardDetectRoles,
+    jdWizardProcessSow,
+    jdWizardFindDocType,
+    jdWizardGetKeyPersonnel,
+    jdWizardGetPersonnel,
+    jdGenerateDescription,
   ],
 });

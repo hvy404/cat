@@ -3,12 +3,12 @@ import { useEffect, useState, useCallback } from "react";
 import Dropzone, { useDropzone } from "react-dropzone";
 import { sowParser } from "../../../lib/jd-builder/sow-parse";
 //import { retrieveMatches } from "./retrieve";
-import { getType } from "../../../lib/jd-builder/getType";
-import { getRoles } from "../../../lib/jd-builder/getRoles";
-import { getKeyPersonnel } from "../../../lib/jd-builder/getKeyPersonnel";
-import { getJobDescription } from "../../../lib/jd-builder/buildJobDescription";
-import { getScopeSummary } from "../../../lib/jd-builder/getScopeSummary";
-import { getFinalJobDescriptions } from "../../../lib/jd-builder/getFinalJobDescription";
+import { getDocumentType } from "../../../lib/jd-builder/get-doc-type";
+import { getPersonnel } from "../../../lib/jd-builder/get-personnel";
+import { getKeyPersonnel } from "../../../lib/jd-builder/get-key-personnel";
+import { getJobDescription } from "../../../lib/jd-builder/generate-job-description";
+//import { getScopeSummary } from "../../../lib/jd-builder/deprecate_getScopeSummary";
+//import { getFinalJobDescriptions } from "../../../lib/jd-builder/getFinalJobDescription";
 import { sowUpload } from "@/lib/jd-builder/sow-upload";
 
 export default function JDGenerator() {
@@ -80,29 +80,30 @@ export default function JDGenerator() {
   // handle button click, call retrieveMatches and console.log the response
   // Identify if this is a PWS or SOW
   const handleIdentifyDocument = async () => {
-    const response = await getType(employerID, sowUUID);
-    setDocumentType(response.document_type);
+    const response = await getDocumentType(employerID, sowUUID);
+    console.log(response.type);
+    setDocumentType(response.type);
   };
 
   // handle getRoles button click, call getRoles and set the roles state
   // this function gets the potential roles from the document
-  const handleGetRoles = async () => {
+ /*  const handleGetRoles = async () => {
     console.log("handleGetRoles");
-    const response = await getRoles(employerID);
+    const response = await getPersonnel(employerID);
     setRoles(response.personnel_roles);
-  };
+  }; */
 
   // handle getKeyPersonnel button click, call getKeyPersonnel and set the keyPersonnel state
   // this function gets the key personnel from the document
-  const handleGetKeyPersonnel = async () => {
+ /*  const handleGetKeyPersonnel = async () => {
     const response = await getKeyPersonnel(employerID, sowUUID);
     setKeyPersonnel(response.key_personnel_roles);
-  };
+  }; */
 
   // handle getJobDescription button click, call getJobDescription and set the jobDescription state
   // this function gets the job description for a role. Role is provided as an argument
   const handleGetJobDescription = async (role: string) => {
-    const response = await getJobDescription(employerID, /* role, */ sowUUID);
+    const response = await getJobDescription(employerID, role, sowUUID);
     //setJobDescription(response);
     console.log(response);
   };
@@ -110,16 +111,16 @@ export default function JDGenerator() {
   // handle getScopeSummary button click, call getScopeSummary and set the scopeSummary state
   // this function gets the scope summary from the document
   // It gets set to state and passed to getFinalJobDescriptions as one of the context paremeters.
-  const handleGetScopeSummary = async () => {
+ /*  const handleGetScopeSummary = async () => {
     const response = await getScopeSummary(employerID, sowUUID);
     setScopeSummary(response);
     console.log(response);
-  };
+  }; */
 
   // handle getFinalJobDescription button click, call getFinalJobDescription and set the finalJobDescription state
   // this function gets the final job description from the document
   // this enhances the job description with the scope summary
-  const handleGetFinalJobDescription = async () => {
+  /* const handleGetFinalJobDescription = async () => {
     const response = await getFinalJobDescriptions(
       employerID,
       jobDescription,
@@ -127,7 +128,7 @@ export default function JDGenerator() {
     );
     setFinalJobDescription(response);
     console.log(response);
-  };
+  }; */
 
   return (
     <div>
@@ -157,22 +158,22 @@ export default function JDGenerator() {
           <button onClick={handleIdentifyDocument}>
             <div className="font-bold">Identify PWS/SOW</div>
           </button>
-          <button onClick={handleGetKeyPersonnel}>
+   {/*        <button onClick={handleGetKeyPersonnel}>
             <div className="font-bold">Get Key Personnel</div>
           </button>
           <button onClick={handleGetRoles} className="font-bold">
             Get Roles
-          </button>
-          <button onClick={handleGetScopeSummary} className="font-bold">
+          </button> */}
+       {/*    <button onClick={handleGetScopeSummary} className="font-bold">
             Get Scope Summary
-          </button>
-          <button
+          </button> */}
+          {/* <button
             disabled={!jobDescription && !scopeSummary}
             onClick={handleGetFinalJobDescription}
             className="font-bold"
           >
             Get Final Job Description
-          </button>
+          </button> */}
           <button onClick={handleParse} className="font-bold">
             Parse SOW
           </button>

@@ -1,6 +1,6 @@
-import AddReusme from "./candidate/add-resume";
-import MainLanding from "./candidate/hero";
-import JDGenerator from "./dashboard/wizard/page";
+import AddReusme from "../candidate/add-resume";
+import MainLanding from "../candidate/hero";
+import JDGenerator from "../dev-dashboard/wizard/page";
 
 export default function Main() {
   return (

@@ -15,14 +15,13 @@ interface ContextItem {
 
 export async function getJobDescription(
   owner: string,
-  /* role_name: string, */
+  role_name: string,
   sowId: string
 ) {
   const jdSchema = zodToJsonSchema(
     jobDescriptionBuilderSchema,
     "jobDescription"
   );
-  const role_name = "Program Analyst, Informatics Senior";
 
   // Generate UUID for the job description
   const jobDescriptionUUID = uuidv4();
@@ -169,8 +168,6 @@ export async function getJobDescription(
 
   const finalOutput = finalExtract.choices[0].message.content!;
 
-  console.log("Pre JSON: ", finalOutput);
-
   // Convert the final output to a JSON object
   const convertToJSONPrompt = `You are a helpful AI assistant. Convert the following job description into a JSON object according to the provided schema. Ensure that all sections of the job description are accurately represented in the JSON object without altering the content. Do not add any HTML or Markdown formatting.
   
@@ -202,7 +199,6 @@ export async function getJobDescription(
   });
 
   const output = JSON.parse(jdJSON.choices[0].message.content!);
-  console.log("Final Output:", output);
 
   // Add output to the database by updating the entry's 'generated_jd' column
   const { error: updateError } = await supabase

@@ -1,0 +1,88 @@
+"use client";
+import useStore from "@/app/state/useStore";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  UserRoundPlus,
+  Book,
+  Send,
+  LifeBuoy,
+  Settings2,
+  Home,
+  SquareUser,
+  UsersRound,
+  LucideIcon,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+// Define the props type for TooltipButton
+interface TooltipButtonProps {
+  item: string;
+  label: string;
+  icon: LucideIcon;
+}
+
+// Reusable TooltipButton component with typed props
+const TooltipButton: React.FC<TooltipButtonProps> = ({ item, label, icon: Icon }) => {
+  const { selectedMenuItem, setSelectedMenuItem } = useStore();
+
+  const handleSelect = () => {
+    setSelectedMenuItem(item);
+  };
+
+  const getButtonClass = () => {
+    return selectedMenuItem === item ? "rounded-lg bg-muted" : "rounded-lg";
+  };
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className={getButtonClass()}
+          aria-label={label}
+          onClick={handleSelect}
+        >
+          <Icon className="size-5" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="right" sideOffset={5}>
+        {label}
+      </TooltipContent>
+    </Tooltip>
+  );
+};
+
+export default function EmployerDashboardNavigation() {
+  const { setSelectedMenuItem } = useStore(); // Correctly access setSelectedMenuItem
+
+  return (
+    <aside className="inset-y fixed left-0 z-20 flex h-full flex-col border-r">
+      <div className="border-b p-2">
+        <Button
+          variant="outline"
+          size="icon"
+          aria-label="Home"
+          onClick={() => setSelectedMenuItem("home")}
+        >
+          <UsersRound className="size-5" />
+        </Button>
+      </div>
+      <nav className="grid gap-1 p-2">
+        <TooltipButton item="playground" label="Playground" icon={Home} />
+        <TooltipButton item="models" label="Models" icon={UserRoundPlus} />
+        <TooltipButton item="api" label="API" icon={Send} />
+        <TooltipButton item="documentation" label="Documentation" icon={Book} />
+        <TooltipButton item="settings" label="Settings" icon={Settings2} />
+      </nav>
+      <nav className="mt-auto grid gap-1 p-2">
+        <TooltipButton item="help" label="Help" icon={LifeBuoy} />
+        <TooltipButton item="account" label="Account" icon={SquareUser} />
+      </nav>
+    </aside>
+  );
+}

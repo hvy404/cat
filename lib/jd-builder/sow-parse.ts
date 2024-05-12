@@ -1,4 +1,11 @@
-// Should be step 2 -- called by Inngest
+/**
+ * Parses the SOW (Statement of Work) document and stores the parsed data in a database.
+ * @param sowUUID - The UUID of the SOW.
+ * @param employerID - The ID of the employer.
+ * @param sowFilename - The filename of the SOW document.
+ * @returns An object containing a success message and a boolean indicating the success status.
+ * @throws Error if there is an error during the parsing or storing process.
+ */
 
 "use server";
 import pdf from "pdf-parse";
@@ -17,8 +24,6 @@ export async function sowParser(
 ) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
-
-  console.log("Parsing SOW:", sowFilename);
 
   const openai = new OpenAI({
     apiKey: process.env.TOGETHER_API_KEY,
@@ -45,6 +50,7 @@ export async function sowParser(
     throw new Error("Could not determine file type or unsupported file type");
   }
 
+  // Get the MIME type
   const mimeType = fileTypeResult.mime;
 
   let pageContent = "";
