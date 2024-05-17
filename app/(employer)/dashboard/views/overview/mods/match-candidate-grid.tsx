@@ -39,7 +39,7 @@ const candidates = [
     name: "Jane Doe",
     role: "Software Engineer",
     location: "New York City, NY",
-    matchingScore: 72,
+    matchingScore: 32,
     keyResponsibilitiesMatch: [
       "Designing and implementing software",
       "Maintaining and improving code quality",
@@ -90,7 +90,7 @@ const candidates = [
     name: "Jane Doe",
     role: "Software Engineer",
     location: "New York City, NY",
-    matchingScore: 72,
+    matchingScore: 48,
     keyResponsibilitiesMatch: [
       "Designing and implementing software",
       "Maintaining and improving code quality",
@@ -183,8 +183,8 @@ export default function AIMatchCandidateOverview() {
             <CircularProgress value={candidate.matchingScore} />
           </CardHeader>
           <CardContent className="space-y-2">
-            <p className="text-sm text-gray-700">{candidate.location}</p>
-            <p className="text-sm text-gray-700">
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">{candidate.location}</p>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">
               {candidate.keyResponsibilitiesMatch.join(", ")}
             </p>
           </CardContent>

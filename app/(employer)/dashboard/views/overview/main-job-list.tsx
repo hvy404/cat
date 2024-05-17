@@ -96,7 +96,7 @@ export default function OverviewJobList() {
                 <span className="absolute inset-x-0 -top-px bottom-0" />
                 {jobs.roleTitle}
               </p>
-              <p className="mt-1 flex text-xs leading-5 text-gray-500 space-x-2">
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500 space-x-2">
                 {jobs.department} &bull; Added: {jobs.datePosted}
               </p>
             </div>

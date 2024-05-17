@@ -1,5 +1,5 @@
 "use client";
-import EmployerDashboardOverview from "@/app/(employer)/dashboard/views/add-job/main";
+import EmployerDashboardAddJob from "@/app/(employer)/dashboard/views/add-job/main";
 import EmployerDashboardMain from "@/app/(employer)/dashboard/views/overview/main";
 import useStore from "@/app/state/useStore";
 
@@ -20,7 +20,7 @@ const activeApp = () => {
     case "playground":
       return <EmployerDashboardMain />;
     case "models":
-      return <EmployerDashboardOverview />;
+      return <EmployerDashboardAddJob />;
     // Add more cases as needed for other components
     default:
       return <EmployerDashboardMain />;

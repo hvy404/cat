@@ -41,14 +41,14 @@ export default function EmployerDashboardOverviewRoles() {
         <div className="grid md:grid-cols-1">
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Role Name</CardTitle>
+              <CardTitle className="tmt-1 max-w-2xl text-sm leading-6 text-gray-900">Role Name</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm">Role description lorem ipsum</p>
+              <p className="tmt-1 max-w-2xl text-sm leading-6 text-gray-500">Role description lorem ipsum</p>
             </CardContent>
           </Card>
         </div>
-        <h2 className="font-bold text-gray-900 leading-6">Strong Candidates</h2>
+        <h2 className="text-base font-semibold leading-7 text-gray-900">Strong Candidates</h2>
         <div className="grid grids-col-2 lg:grid-cols-3 gap-4">
             <AIMatchCandidateOverview />
         </div>

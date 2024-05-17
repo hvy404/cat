@@ -5,7 +5,8 @@ export type JobDescription = {
   skills: string[];
   jobType: string;
   benefits: string[];
-  location: string;
+  locationType?: string;
+  location: { city?: string; state?: string; zipcode?: string }[];
   experience: string;
   description: string;
   salaryRange: {
@@ -34,7 +35,7 @@ function formatArrayForCypher(array: number[]) {
 
 // Helper function to escape double quotes in strings
 function escapeString(str: string) {
-  return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  return str.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }
 
 export function generateJobCypherQuery(
@@ -50,24 +51,27 @@ export function generateJobCypherQuery(
       embedding: ${jd.embedding ? formatArrayForCypher(jd.embedding) : "[]"},
       client: "${escapeString(jd.client || "")}",  
       company: "${escapeString(jd.company)}",      
-      job_type: "${escapeString(jd.jobType)}",      
-      location: "${escapeString(jd.location)}",    
+      job_type: "${escapeString(jd.jobType)}",   
+      location_type: "${escapeString(
+        jd.locationType || "unspecified"
+      )}", // Added locationType handling   
+      location: "${escapeString(JSON.stringify(jd.location))}",    
       experience: "${escapeString(jd.experience || "")}", 
       description: "${escapeString(jd.description)}",      
-      maximum_salary: ${jd.salaryRange?.maximumSalary || ""}, 
-      starting_salary: ${jd.salaryRange?.startingSalary || ""}, 
+      maximum_salary: ${jd.salaryRange?.maximumSalary || "null"}, 
+      starting_salary: ${jd.salaryRange?.startingSalary || "null"}, 
       company_overview: "${escapeString(jd.companyOverview || "")}", 
-      security_clearance: "${escapeString(jd.securityClearance || "")}", 
+      security_clearance: "${escapeString(jd.securityClearance || "none")}", 
       application_deadline: "${escapeString(jd.applicationDeadline || "")}", 
       technical_demand: "${escapeString(jd.technicalDemand || "")}", 
       client_interaction: ${
-        jd.clientInteraction !== undefined ? jd.clientInteraction : ""
+        jd.clientInteraction !== undefined ? jd.clientInteraction : "null"
       }, 
       remote_flexibility: ${
-        jd.remoteFlexibility !== undefined ? jd.remoteFlexibility : ""
+        jd.remoteFlexibility !== undefined ? jd.remoteFlexibility : "null"
       }, 
       advancement_potential: ${
-        jd.advancementPotential !== undefined ? jd.advancementPotential : ""
+        jd.advancementPotential !== undefined ? jd.advancementPotential : "null"
       }, 
       leadership_opportunity: ${
         jd.leadershipOpportunity !== undefined

@@ -1,7 +1,7 @@
 "use client";
 import Dropzone from "react-dropzone";
 import { jobDescriptionUpload } from "@/lib/dashboard/jd-upload";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { JDAddDatabaseEntry } from "@/lib/dashboard/jd-add-new-entry";
 import { jobDescriptionStartOnboard } from "@/lib/dashboard/start-onboard";
 
@@ -29,8 +29,8 @@ export default function JDUploadBox() {
     try {
       const uploadJD = await jobDescriptionUpload(fileData);
       if (uploadJD && uploadJD.success) {
-        setUploadedFilename(uploadJD.filename ?? "");
-        return uploadJD.filename; // uploaded filename
+        setUploadedFilename(uploadJD.filename ?? ""); // Provide a default value of an empty string
+        return uploadJD.filename ?? ""; // uploaded filename
       }
       throw new Error("File upload failed.");
     } catch (error) {
@@ -74,7 +74,7 @@ export default function JDUploadBox() {
   useEffect(() => {
     if (jobDescriptionID && uploadedFilename) {
       console.log("Starting job description onboarding");
-      jobDescriptionStartOnboard(jobDescriptionID, employerID, uploadedFilename);
+      jobDescriptionStartOnboard(jobDescriptionID, employerID, uploadedFilename, "X");
     }
   }, [jobDescriptionID, uploadedFilename]);
 

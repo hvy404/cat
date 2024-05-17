@@ -3,13 +3,9 @@ import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { inngest } from "@/lib/inngest/client";
 
-export async function jobDescriptionStartOnboard(jdUUID: string, employerId: string, filename: string) {
+export async function jobDescriptionStartOnboard(jdUUID: string, employerId: string, filename: string, sessionID: string) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
-
-  console.log("Starting job description onboarding");
-  console.log("JD UUID: ", jdUUID);
-  console.log("Employer ID: ", employerId);
 
   // Send an event to Inngest
   const { ids } = await inngest.send({
@@ -19,6 +15,7 @@ export async function jobDescriptionStartOnboard(jdUUID: string, employerId: str
         employer: employerId,
         id: jdUUID,
         filename: filename,
+        session: sessionID,
       },
     },
   });
@@ -32,6 +29,7 @@ export async function jobDescriptionStartOnboard(jdUUID: string, employerId: str
 
   return {
     message: "Success",
+    success: true,
     event: ids,
   };
 }

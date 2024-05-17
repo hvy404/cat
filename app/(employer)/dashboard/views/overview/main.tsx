@@ -5,7 +5,6 @@ import EmployerDashboardOverviewRoles from "@/app/(employer)/dashboard/views/ove
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function EmployerDashboardMain() {
-  // Get dashboard_role_overview from the store
   const { dashboard_role_overview } = useStore();
 
   return (

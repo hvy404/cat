@@ -10,20 +10,27 @@ export const jobDescriptionStaticSchema = z
       .string()
       .optional()
       .describe("The client company where the applicant might be placed."),
+    locationType: z
+      .enum(["remote", "onsite", "hybrid"])
+      .optional()
+      .describe(
+        "The type of location for the job, e.g., Remote, Onsite, Hybrid."
+      ),
     location: z
-      .string()
-      .describe("The geographic location where the job is based or remote."),
+      .array(
+        z.object({
+          city: z.string().optional(),
+          state: z.string().optional(),
+          zipcode: z.string().optional(),
+        })
+      )
+      .optional()
+      .describe("The geographic location if applicable. If applicable, there is only one location."),
     jobType: z
-      .string()
+      .enum(["full-time", "part-time", "contract", "temporary"])
       .describe(
         "Type of employment, e.g., Full-time, Part-time, Contract, Temporary."
       ),
-    description: z
-      .string()
-      .describe("Detailed description of the job role and responsibilities."),
-    companyOverview: z
-      .string()
-      .describe("Overview of the company, its mission, and its commitment."),
     salaryRange: z
       .object({
         startingSalary: z
@@ -46,9 +53,9 @@ export const jobDescriptionStaticSchema = z
       .optional()
       .describe("Deadline for application submissions, if applicable."),
     securityClearance: z
-      .string()
+      .enum(["none", "basic", "secret", "top-secret"])
       .optional()
-      .describe("Security clearance required for the job, if applicable."),
+      .describe("The level of security clearance required for the job."),
   })
   .describe("Job Description");
 
@@ -80,5 +87,16 @@ export const jobDescriptionStaticSecondarySchema = z
       .describe(
         "List of preferred skills and experience that are not required but beneficial for the job."
       ),
+  })
+  .describe("Job Description");
+
+export const jobDescriptionStaticThirdSchema = z
+  .object({
+    description: z
+      .string()
+      .describe("Detailed description of the job role and responsibilities."),
+    companyOverview: z
+      .string()
+      .describe("Overview of the company, its mission, and its commitment."),
   })
   .describe("Job Description");

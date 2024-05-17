@@ -9,6 +9,8 @@ import { type jobDescriptionGenerateStatic } from "@/inngest/job-description-sta
 import { type jobDescriptionGenerateInferred } from "@/inngest/job-description-inferred";
 import { type generateJobDescriptionCypher } from "@/inngest/job-description-gen-cypher";
 import { type jobDescriptionEmbeddings } from "@/inngest/job-generate-embeddings";
+import { jobDescriptionAddStructured } from "@/inngest/job-description-sql";
+import { type jobDescriptionGenerateCompleted } from "@/inngest/job-description-completed";
 
 export const jobDescriptionOnboard = inngest.createFunction(
   { id: "job-description-start-onboard" },
@@ -21,6 +23,7 @@ export const jobDescriptionOnboard = inngest.createFunction(
     const employerID = event.data.job_description.employer;
     const jobDescriptionID = event.data.job_description.id;
     const filename = event.data.job_description.filename;
+    const session = event.data.job_description.session;
 
     const rawExtract = await jdParserUpload(filename);
 
@@ -121,8 +124,45 @@ export const jobDescriptionOnboard = inngest.createFunction(
       console.error("Error generating embeddings.", error);
     }
 
-    // TODO: Add database entry that JD has been added
-    
+    // Add data points to SQL database
+    try {
+      const addStructuredData = await step.invoke(
+        "job-description-add-structured-datapoints",
+        {
+          function: referenceFunction<typeof jobDescriptionAddStructured>({
+            functionId: "job-description-add-structured-datapoints",
+          }),
+          data: {
+            job_description: {
+              id: jobDescriptionID,
+            },
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Error adding structured data.", error);
+    }
+
+    // Mark job description as onboarded
+    try {
+      const generateCompleted = await step.invoke(
+        "job-description-onboard-complete",
+        {
+          function: referenceFunction<typeof jobDescriptionGenerateCompleted>({
+            functionId: "job-description-onboard-complete",
+          }),
+          data: {
+            job_description: {
+              id: jobDescriptionID,
+              employer: employerID,
+              session: session,
+            },
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Error generating embeddings.", error);
+    }
 
     return { message: "Successfully onboarded job description." };
   }

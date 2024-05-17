@@ -4,6 +4,7 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import {
   jobDescriptionStaticSchema,
   jobDescriptionStaticSecondarySchema,
+  jobDescriptionStaticThirdSchema,
 } from "./schema/static-schema";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
@@ -15,6 +16,11 @@ const jsonSchemaPrimary = zodToJsonSchema(
 const jsonSchemaSecondary = zodToJsonSchema(
   jobDescriptionStaticSecondarySchema,
   "JDSchemaSecondary"
+);
+
+const jsonSchemaThird = zodToJsonSchema(
+  jobDescriptionStaticThirdSchema,
+  "JDSchemaThird"
 );
 
 const togetherai = new OpenAI({
@@ -73,8 +79,31 @@ export async function generateJDStatic(jdRaw: string, jobDescriptionID: string) 
 
   console.log(secondaryOutput);
 
+  const extractThird = await togetherai.chat.completions.create({
+    messages: [
+      {
+        role: "system",
+        content: systemPrompt,
+      },
+      {
+        role: "user",
+        content: JSON.stringify(jdRaw),
+      },
+    ],
+    model: "mistralai/Mistral-7B-Instruct-v0.1",
+    temperature: 0.3,
+    // @ts-ignore – Together.ai supports schema while OpenAI does not
+    response_format: { type: "json_object", schema: jsonSchemaThird },
+  });
+
+  const thirdOutput = JSON.parse(
+    extractThird.choices[0].message.content!
+  );
+
+  //console.log(thirdOutput);
+
   // Merge the two outputs
-  const mergedOutputs = { ...primaryOutput, ...secondaryOutput };
+  const mergedOutputs = { ...primaryOutput, ...secondaryOutput, ...thirdOutput };
 
   const { error } = await supabase
     .from("job_postings")

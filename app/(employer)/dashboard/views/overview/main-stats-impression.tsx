@@ -6,7 +6,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import StatsImpressionsChart from "@/app/(employer)/dashboard/views/overview/mods/stats-impression-chart";
+//import StatsImpressionsChart from "@/app/(employer)/dashboard/views/overview/mods/stats-impression-chart";
+
+import dynamic from 'next/dynamic';
+
+const StatsImpressionsChart = dynamic(() => import('@/app/(employer)/dashboard/views/overview/mods/stats-impression-chart'), {
+  ssr: false
+});
+
 
 export default function EmployerDashboardOverviewStats() {
   return (
