@@ -26,6 +26,9 @@ export type JobDescription = {
   suitablePastRoles: string[];
   advancementPotential: boolean;
   leadershipOpportunity: boolean;
+  commissionPay: boolean;
+  commissionPercent: number;
+  oteSalary: number;
 };
 
 // Helper function to format the embedding array
@@ -77,7 +80,14 @@ export function generateJobCypherQuery(
         jd.leadershipOpportunity !== undefined
           ? jd.leadershipOpportunity
           : "null"
-      } 
+      },
+      commission_pay: ${
+        jd.commissionPay !== undefined ? jd.commissionPay : "null"
+      },
+      commission_percent: ${
+        jd.commissionPercent !== undefined ? jd.commissionPercent : "null"
+      },
+      ote_salary: ${jd.oteSalary !== undefined ? jd.oteSalary : "null"} 
     })
     WITH j`;
 

@@ -13,7 +13,7 @@ export async function AddJDGetDataPoints(jdUUID: string, employer: string) {
   const { data, error } = await supabase
     .from("job_postings")
     .select(
-      "title, location, location_type, min_salary, max_salary, security_clearance"
+      "title, location, location_type, min_salary, max_salary, security_clearance, salary_disclose, commission_pay, commission_percent, private_employer, ote_salary"
     )
     .eq("jd_uuid", jdUUID);
 

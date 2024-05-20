@@ -22,7 +22,12 @@ interface JobDetails {
   location_type: string;
   min_salary: number;
   max_salary: number;
+  salary_ote?: number;
+  commission_percent?: number;
   security_clearance: string;
+  salary_disclose?: boolean;
+  commission_pay?: boolean;
+  private_employer?: boolean;
 }
 
 interface JobDescriptionTitles {

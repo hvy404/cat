@@ -8,7 +8,7 @@ export default function AddJDStepTwo() {
 
   return (
     <>
-        <Card className="w-full">
+{/*         <Card className="w-full">
           <CardHeader>
             <CardTitle className="text-semibold text-base leading-7 text-gray-900">
               Details
@@ -19,7 +19,7 @@ export default function AddJDStepTwo() {
               Let us know a bit more about the job you're looking to fill.
             </p>
           </CardContent>
-        </Card>
+        </Card> */}
         <AddJDStep2Form />
     </>
   );

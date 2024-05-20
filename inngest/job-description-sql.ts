@@ -49,6 +49,10 @@ export const jobDescriptionAddStructured = inngest.createFunction(
     const jobType = structuredData.jobType;
     const salaryRange = structuredData.salaryRange;
     const securityClearance = structuredData.securityClearance;
+    const commissionPay = structuredData.commissionPay;
+    const commissionPercent = structuredData.commissionPercent;
+    const oteSalary = structuredData.ote_salary;
+
 
     // Update the supabase row with the corresponding structured data points in the row that .eq is the jobDescriptionID
     const { error: updateError } = await supabase
@@ -62,6 +66,9 @@ export const jobDescriptionAddStructured = inngest.createFunction(
         min_salary: salaryRange.startingSalary,
         max_salary: salaryRange.maximumSalary,
         security_clearance: securityClearance,
+        commission_pay: commissionPay,
+        commission_percent: commissionPercent,
+        ote_salary: oteSalary,
       })
       .eq("jd_uuid", jobDescriptionID);
 

@@ -25,7 +25,9 @@ export const jobDescriptionStaticSchema = z
         })
       )
       .optional()
-      .describe("The geographic location if applicable. If applicable, there is only one location."),
+      .describe(
+        "The geographic location if applicable. If applicable, there is only one location."
+      ),
     jobType: z
       .enum(["full-time", "part-time", "contract", "temporary"])
       .describe(
@@ -42,6 +44,24 @@ export const jobDescriptionStaticSchema = z
       })
       .optional()
       .describe("The salary range for the job."),
+    commissionPay: z
+      .boolean()
+      .optional()
+      .describe(
+        "Whether the job offers commission pay such as OTE (On Target Earnings)."
+      ),
+    commissionPercent: z
+      .number()
+      .optional()
+      .describe(
+        "If commission pay is offered, specify the commission percentage for the job."
+      ),
+      oteSalary: z
+      .number()
+      .optional()
+      .describe(
+        "If commission pay is offered, specify the OTE (On Target Earnings) salary for the job."
+      ),
     benefits: z
       .array(z.string())
       .optional()
