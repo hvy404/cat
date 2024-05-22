@@ -4,8 +4,10 @@ import { ThemeProvider } from "@/components/themeProvider";
 //import { GoogleAnalytics } from "@next/third-parties/google";
 //import { GoogleTagManager } from "@next/third-parties/google";
 import "../../globals.css";
+import "./style.css";
 //import MainFooter from "./footer";
 import { TooltipProvider } from "@/components/ui/tooltip";
+
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -32,7 +34,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <div>
-            <TooltipProvider>{children}</TooltipProvider>
+            <TooltipProvider delayDuration={350}>{children}</TooltipProvider>
           </div>
         </ThemeProvider>
       </body>

@@ -10,6 +10,7 @@ import {
   Book,
   Send,
   LifeBuoy,
+  Folder,
   Settings2,
   Home,
   SquareUser,
@@ -50,7 +51,7 @@ const TooltipButton: React.FC<TooltipButtonProps> = ({ item, label, icon: Icon }
           <Icon className="size-5" />
         </Button>
       </TooltipTrigger>
-      <TooltipContent side="right" sideOffset={5}>
+      <TooltipContent side="right" sideOffset={5} className="bg-black text-white border-black">
         {label}
       </TooltipContent>
     </Tooltip>
@@ -73,9 +74,9 @@ export default function EmployerDashboardNavigation() {
         </Button>
       </div>
       <nav className="grid gap-1 p-2">
-        <TooltipButton item="playground" label="Playground" icon={Home} />
-        <TooltipButton item="models" label="Models" icon={UserRoundPlus} />
-        <TooltipButton item="api" label="API" icon={Send} />
+        <TooltipButton item="dashboard" label="Dashboard" icon={Home} />
+        <TooltipButton item="add-job" label="Add Job" icon={UserRoundPlus} />
+        <TooltipButton item="jd-builder" label="JD Builder" icon={Folder} />
         <TooltipButton item="documentation" label="Documentation" icon={Book} />
         <TooltipButton item="settings" label="Settings" icon={Settings2} />
       </nav>

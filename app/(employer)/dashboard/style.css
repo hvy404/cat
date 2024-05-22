@@ -1,0 +1,69 @@
+/* Tiptap Editor */
+/* Placeholder (at the top) */
+.tiptap p.is-editor-empty:first-child::before {
+    color: #adb5bd;
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+  }
+  
+  /* Custom CSS Needed for TipTap PlaceHolder */
+  .tiptap p.is-empty::before {
+    color: #adb5bd;
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+  }
+  
+  /* Overwrite tippy-box original max-width */
+  
+  .tippy-box {
+    max-width: 400px !important;
+  }
+  
+  .ProseMirror:not(.dragging) .ProseMirror-selectednode {
+    outline: none !important;
+    border-radius: 0.2rem;
+    background-color: var(--novel-highlight-blue);
+    transition: background-color 0.2s;
+    box-shadow: none;
+  }
+  
+  .drag-handle {
+    position: fixed;
+    opacity: 1;
+    transition: opacity ease-in 0.2s;
+    border-radius: 0.25rem;
+  
+    background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWdyaXAtdmVydGljYWwiPjxjaXJjbGUgY3g9IjkiIGN5PSIxMiIgcj0iMSIvPjxjaXJjbGUgY3g9IjkiIGN5PSI1IiByPSIxIi8+PGNpcmNsZSBjeD0iOSIgY3k9IjE5IiByPSIxIi8+PGNpcmNsZSBjeD0iMTUiIGN5PSIxMiIgcj0iMSIvPjxjaXJjbGUgY3g9IjE1IiBjeT0iNSIgcj0iMSIvPjxjaXJjbGUgY3g9IjE1IiBjeT0iMTkiIHI9IjEiLz48L3N2Zz4=");
+    background-size: calc(0.5em + 0.375rem) calc(0.5em + 0.375rem);
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 1.2rem;
+    height: 1.5rem;
+    z-index: 50;
+    cursor: grab;
+  
+    &:hover {
+      background-color: var(--novel-stone-100);
+      transition: background-color 0.2s;
+    }
+  
+    &:active {
+      background-color: var(--novel-stone-200);
+      transition: background-color 0.2s;
+    }
+  
+    &.hide {
+      opacity: 0;
+      pointer-events: none;
+    }
+  
+    @media screen and (max-width: 600px) {
+      display: none;
+      pointer-events: none;
+    }
+  }
+  /* End of Tiptap Editor */

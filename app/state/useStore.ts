@@ -46,6 +46,12 @@ interface AddJobDescription {
   activeField?: string | null; // Store which form field user is currently editing
 }
 
+interface JDBuilderWizard {
+  step: number;
+  sowID: string | null;
+  personnelRoles: string[];
+}
+
 interface StoreState {
   selectedMenuItem: string | null;
   user: User | null;
@@ -55,7 +61,13 @@ interface StoreState {
   setUser: (user: User) => void;
   setDashboardRoleOverview: (overview: Partial<DashboardRoleOverview>) => void;
   setAddJD: (addJD: Partial<AddJobDescription>) => void;
-  updateStep: (newStep: number) => void; 
+  updateAddJDStep: (newStep: number) => void;
+  isExpanded: boolean;
+  setExpanded: (value: boolean) => void;
+  toggleExpansion: () => void;
+  jdBuilderWizard: JDBuilderWizard;
+  setJDBuilderWizard: (wizard: Partial<JDBuilderWizard>) => void;
+  updateJDBuilderWizardStep: (newStep: number) => void;
 }
 
 const useStore = create<StoreState>((set) => ({
@@ -80,6 +92,7 @@ const useStore = create<StoreState>((set) => ({
   setSelectedMenuItem: (item) => set({ selectedMenuItem: item }),
   // Set the current user
   setUser: (user) => set({ user }),
+
   // Use in Dashboard - Overview page - Set the active role being viewed
   setDashboardRoleOverview: (overview) =>
     set((state) => ({
@@ -88,6 +101,7 @@ const useStore = create<StoreState>((set) => ({
         ...overview,
       },
     })),
+
   // Set the add-jd state
   setAddJD: (addJD) =>
     set((state) => ({
@@ -98,10 +112,40 @@ const useStore = create<StoreState>((set) => ({
     })),
 
   // Update the step in the add-jd process
-  updateStep: (newStep: number) =>
+  updateAddJDStep: (newStep: number) =>
     set((state) => ({
       addJD: { ...state.addJD, step: newStep },
     })),
+
+  // State for the expansion panel
+  isExpanded: false,
+  toggleExpansion: () => set((state) => ({ isExpanded: !state.isExpanded })),
+  setExpanded: (value: boolean) => set({ isExpanded: value }),
+
+  // JD Builder Wizard
+  jdBuilderWizard: {
+    step: 1,
+    sowID: null,
+    personnelRoles: [],
+  },
+
+  // Set the JD Builder Wizard state
+  setJDBuilderWizard: (jdBuilderWizard) =>
+    set((state) => ({
+      jdBuilderWizard: {
+        ...state.jdBuilderWizard,
+        ...jdBuilderWizard,
+      },
+    })),
+
+  // Update the step in the JD Builder Wizard
+  updateJDBuilderWizardStep: (newStep: number) =>
+    set((state) => ({
+      jdBuilderWizard: { ...state.jdBuilderWizard, step: newStep, personnelRoles: []},
+    }),
+  ),
+
+  // End of store
 }));
 
 export default useStore;

@@ -13,6 +13,17 @@ interface ContextItem {
   similarity?: number;
 }
 
+/**
+ * Retrieves the job description for a specific role and generates a comprehensive and compelling job description.
+ * The generated job description is stored in the database and returned as a success response.
+ *
+ * @param owner - The owner of the job description.
+ * @param role_name - The name of the role.
+ * @param sowId - The ID of the Statement of Work (SOW).
+ * @returns An object indicating the success of the operation and the ID of the generated job description.
+ * @throws An error if there is an issue with retrieving or generating the job description.
+ */
+
 export async function getJobDescription(
   owner: string,
   role_name: string,
@@ -110,6 +121,7 @@ export async function getJobDescription(
 
     //console.log("Intermediate Output:", item.key, output);
 
+    // Store the output based on the key
     if (item.key === "role_job_description") {
       role_job_description = output;
     } else if (item.key === "role_responsibilities") {
@@ -169,6 +181,7 @@ export async function getJobDescription(
   const finalOutput = finalExtract.choices[0].message.content!;
 
   // Convert the final output to a JSON object
+  // We use two LLM because the first model is better at generating the job description and the second model is better at converting it to JSON
   const convertToJSONPrompt = `You are a helpful AI assistant. Convert the following job description into a JSON object according to the provided schema. Ensure that all sections of the job description are accurately represented in the JSON object without altering the content. Do not add any HTML or Markdown formatting.
   
   Use the following as a guide to map the job description to the JSON schema:

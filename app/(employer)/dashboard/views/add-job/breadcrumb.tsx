@@ -1,9 +1,9 @@
 import useStore from "@/app/state/useStore";
 
 export default function AddJobBreadcrumb() {
-  const { addJD, updateStep } = useStore(state => ({
+  const { addJD, updateAddJDStep } = useStore(state => ({
     addJD: state.addJD,
-    updateStep: state.updateStep
+    updateAddJDStep: state.updateAddJDStep
   }));
 
   // Define the steps and their initial statuses
@@ -37,7 +37,7 @@ export default function AddJobBreadcrumb() {
           <li key={step.name} onClick={() => {
             // Only allow navigation if the step is unlocked and it's not the first step
             if (step.unlocked && index !== 0) {
-              updateStep(index + 1);
+              updateAddJDStep(index + 1);
             }
           }}>
             {step.status === 'complete' ? (

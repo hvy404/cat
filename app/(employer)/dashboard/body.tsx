@@ -1,6 +1,7 @@
 "use client";
 import EmployerDashboardAddJob from "@/app/(employer)/dashboard/views/add-job/main";
 import EmployerDashboardMain from "@/app/(employer)/dashboard/views/overview/main";
+import EmployerDashboardJDBuilder from "@/app/(employer)/dashboard/views/jd-builder/main";
 import useStore from "@/app/state/useStore";
 
 /**
@@ -14,18 +15,20 @@ export default function EmployerDashboardBody() {
    * Returns the active sub-component based on the selected menu item.
    * @returns The active sub-component to render.
    */
-  
-const activeApp = () => {
-  switch (selectedMenuItem) {
-    case "playground":
-      return <EmployerDashboardMain />;
-    case "models":
-      return <EmployerDashboardAddJob />;
-    // Add more cases as needed for other components
-    default:
-      return <EmployerDashboardMain />;
-  }
-};
+
+  const activeApp = () => {
+    switch (selectedMenuItem) {
+      case "dashboard":
+        return <EmployerDashboardMain />;
+      case "add-job":
+        return <EmployerDashboardAddJob />;
+      case "jd-builder":
+        return <EmployerDashboardJDBuilder />;
+      // Add more cases as needed for other components
+      default:
+        return <EmployerDashboardMain />;
+    }
+  };
 
   return <>{activeApp()}</>;
 }
