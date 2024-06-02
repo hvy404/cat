@@ -28,13 +28,15 @@ export interface BubbleMenuItem {
 interface EditorBubbleMenuProps extends Omit<BubbleMenuProps, "children"> {
   editor: Editor;
   /* expandDetail: (text: string) => void; */
-  commandContext: (text: string) => void;
+ /*  commandContext: (text: string) => void; */
   setSelectionRange: (range: { from: number; to: number }) => void;
 }
 
 /* type EditorBubbleMenuProps = Omit<BubbleMenuProps, "children">;
  */
 export const EditorBubbleMenu: FC<EditorBubbleMenuProps> = (props) => {
+  const [isNodeSelectorOpen, setIsNodeSelectorOpen] = useState(false);
+  
   if (!props.editor) {
     // Handle the case where props.editor is undefined.
     return null; // or some other fallback behavior
@@ -86,8 +88,6 @@ export const EditorBubbleMenu: FC<EditorBubbleMenuProps> = (props) => {
     },
   };
 
-  const [isNodeSelectorOpen, setIsNodeSelectorOpen] = useState(false);
-
   return (
     <BubbleMenu
       {...bubbleMenuProps}
@@ -96,7 +96,7 @@ export const EditorBubbleMenu: FC<EditorBubbleMenuProps> = (props) => {
       {/*  <ScopeDetail editor={props.editor} expandDetail={props.expandDetail} /> */}
       <CommandCenterToggle
         editor={props.editor}
-        commandContext={props.commandContext}
+       /*  commandContext={props.commandContext} */
         setSelectionRange={props.setSelectionRange}
       />
       <NodeSelector

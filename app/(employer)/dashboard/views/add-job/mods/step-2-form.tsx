@@ -1,3 +1,4 @@
+"use client";
 import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { z } from "zod";
@@ -25,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { AddJDGetDataPoints } from "@/lib/dashboard/ingest-jd/get-data-points";
+import { SaveJobDetails } from "@/lib/dashboard/ingest-jd/save-data-points";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -38,30 +40,92 @@ import {
   LabelList,
 } from "recharts";
 
-const jobDetailsSchema = z.object({
-  jobTitle: z.string().min(4), // Required
-  minSalary: z.number().int().min(0).optional(), // Optional
-  maxSalary: z.number().int().min(0).optional(), // Optional
-  commissionPercent: z.number().int().min(0).optional(), // Optional
-  locationType: z.enum(["remote", "onsite", "hybrid"]).optional(), // Required
-  privateEmployer: z.boolean().optional(), // Optional
-  salaryOte: z.number().int().min(0).optional(), // Optional
-  securityClearance: z
-    .enum(["none", "basic", "secret", "top-secret"])
-    .optional(), // Optional
-  pocName: z.string().min(2).optional(), // Optional
-  pocEmail: z.string().email().optional(), // Optional
-  discloseSalary: z.boolean().optional(), // Optional
-  commissionPay: z.boolean().optional(), // Optional
-  baseCommissionRatio: z.string().optional(), // Optional
-  basePercent: z.number().min(0).max(100).optional(),
-});
+const jobDetailsSchema = z
+  .object({
+    jobTitle: z
+      .string()
+      .min(5, "The job title must consist of at least five characters."), // Required
+    minSalary: z.number().int().min(0).nullable().optional(),
+    maxSalary: z.number().int().min(0).nullable().optional(),
+    locationType: z
+      .string()
+      .optional()
+      .refine((val) => ["remote", "onsite", "hybrid"].includes(val ?? ""), {
+        message: "Please select a valid location type.",
+      }),
+    privateEmployer: z.boolean().optional(), // Optional
+    salaryOte: z
+      .number()
+      .int()
+      .min(0, "OTE must be at least 0")
+      .nullable()
+      .optional(),
+    commissionPercent: z
+      .number()
+      .int()
+      .min(0)
+      .transform((value) => (isNaN(value) ? undefined : value))
+      .optional(),
+    securityClearance: z
+      .string()
+      .optional()
+      .refine(
+        (val) => ["none", "basic", "secret", "top-secret"].includes(val ?? ""),
+        {
+          message: "Please select a clearance type.",
+        }
+      ),
+    pocName: z.string().min(2).optional(), // Optional
+    pocEmail: z.string().email().optional(), // Optional
+    discloseSalary: z.boolean().optional(), // Optional
+    commissionPay: z.boolean().optional(), // Optional
+    baseCommissionRatio: z.string().optional(), // Optional
+    basePercent: z.number().min(0).max(100).optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.commissionPay) {
+        return data.salaryOte !== null && data.salaryOte !== undefined;
+      } else {
+        return (
+          data.minSalary !== null &&
+          data.minSalary !== undefined &&
+          data.maxSalary !== null &&
+          data.maxSalary !== undefined
+        );
+      }
+    },
+    {
+      message:
+        "On-target earnings (OTE) must be specified if commission pay is selected.",
+      path: ["salaryOte"],
+    }
+  )
+  .superRefine((data, ctx) => {
+    if (!data.commissionPay) {
+      if (data.minSalary === null || data.minSalary === undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Please enter a minimum salary",
+          path: ["minSalary"],
+        });
+      }
+      if (data.maxSalary === null || data.maxSalary === undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Please enter a maximum salary",
+          path: ["maxSalary"],
+        });
+      }
+    }
+  });
 
 export default function AddJDStep2Form() {
-  const { addJD, setAddJD, user } = useStore((state) => ({
+  const { addJD, setAddJD, user, setSelectedMenuItem } = useStore((state) => ({
     addJD: state.addJD,
     setAddJD: state.setAddJD,
     user: state.user,
+    setSelectedMenuItem: state.setSelectedMenuItem,
   }));
 
   // Initilaize the form
@@ -115,21 +179,23 @@ export default function AddJDStep2Form() {
     }
   }, [commissionPay]); // Only re-run the effect if commissionPay changes
 
-  // TODO: Fix the double fetch issue
   // TODO: Remove the hardcoded UUIDs
   useEffect(() => {
-    console.log("useEffect triggered with user UUID:", user?.uuid);
     let isMounted = true;
 
-    if (!user || !user.uuid) {
+    if (!user || !user.uuid || !addJD || !addJD.jdEntryID) {
       //console.log("User or user UUID not set yet.");
       return;
     }
 
     async function fetchJobDetails() {
-      //console.log("Fetching job details");
+      if (!addJD || !addJD.jdEntryID) {
+        console.error("Job Description ID not found");
+        return;
+      }
+      // TODO - Remove hardcoded UUIDs
       const result = await AddJDGetDataPoints(
-        "db5aeeb9-c7c4-485d-bbb1-a1d7d64b04d5",
+        addJD.jdEntryID,
         "f5246ce0-da92-4916-b1c8-dedf415a8dd2"
       );
 
@@ -146,7 +212,7 @@ export default function AddJDStep2Form() {
               location_type: jdTopLevelDetails.location_type,
               min_salary: parseInt(jdTopLevelDetails.min_salary, 10),
               max_salary: parseInt(jdTopLevelDetails.max_salary, 10),
-              salary_ote: parseFloat(jdTopLevelDetails.ote_salary),
+              salary_ote: parseInt(jdTopLevelDetails.ote_salary, 10),
               commission_percent: parseFloat(
                 jdTopLevelDetails.commission_percent
               ),
@@ -163,7 +229,7 @@ export default function AddJDStep2Form() {
 
     return () => {
       isMounted = false;
-      console.log("Component unmounting");
+      //console.log("Component unmounting");
     };
   }, [user?.uuid]);
 
@@ -172,8 +238,8 @@ export default function AddJDStep2Form() {
     if (addJD.jobDetails[0]) {
       form.reset({
         jobTitle: addJD.jobDetails[0].title,
-        minSalary: addJD.jobDetails[0].min_salary,
-        maxSalary: addJD.jobDetails[0].max_salary,
+        minSalary: addJD.jobDetails[0].min_salary || null,
+        maxSalary: addJD.jobDetails[0].max_salary || null,
         locationType: addJD.jobDetails[0].location_type as
           | "remote"
           | "onsite"
@@ -188,15 +254,45 @@ export default function AddJDStep2Form() {
         discloseSalary: addJD.jobDetails[0].salary_disclose,
         commissionPay: addJD.jobDetails[0].commission_pay,
         commissionPercent: addJD.jobDetails[0].commission_percent,
-        salaryOte: addJD.jobDetails[0].salary_ote,
+        salaryOte: addJD.jobDetails[0].salary_ote || null,
       });
     }
   }, [form, addJD.jobDetails[0]]);
 
   // Function to handle form submission by updating the store
-  function onSubmit(values: z.infer<typeof jobDetailsSchema>) {
-    console.log("Value submited: ", values);
-    setAddJD({
+  const onSubmit = (
+    values: z.infer<typeof jobDetailsSchema>,
+    event?: React.BaseSyntheticEvent
+  ) => {
+    //event?.preventDefault();
+    console.log("Value submitted: ", values);
+
+    const jdUUID = addJD.jdEntryID; // Ensure this is the correct UUID from your state
+
+    // check for jdUUID is not empty
+    if (!jdUUID) {
+      console.error("Job Description UUID is empty.");
+      return;
+    }
+
+    /* SaveJobDetails(values, jdUUID)
+      .then((response) => {
+        if (response.error) {
+          console.error("Failed to update job details:", response.error);
+        } else if (response.success) {
+          // Check if the success property is true
+          console.log("Job details updated successfully!");
+          // TODO: add switch to next step
+          //setAddJD({ step: 3 });
+        } else {
+          console.log("Job details update was not successful");
+        }
+      })
+      .catch((error) => {
+        console.error("Error in saving job details:", error);
+      }); */
+
+    /* setAddJD({
       jobDetails: [
         {
           title: values.jobTitle,
@@ -209,20 +305,14 @@ export default function AddJDStep2Form() {
           commission_percent: values.commissionPercent ?? 0,
         },
       ],
-    });
-  }
+    }); */
+  };
 
   // Broadcast the active field to panel
   const handleFocus = (fieldName: string) => {
     setAddJD({ activeField: fieldName });
   };
 
-  // Broadcast the unfocus action field to panel
-  /*   const handleBlur = () => {
-    setAddJD({ activeField: null });
-  }; */
-
-  // Updated useMemo hook to prepare data for the chart
   // Updated useMemo hook to prepare data for the chart
   const oteChartData = useMemo(() => {
     if (!commissionPay) return null;
@@ -234,13 +324,29 @@ export default function AddJDStep2Form() {
 
     return [
       {
-        name: "OTE",
+        name: "OTE Split",
         baseSalary,
         commission,
         total: ote,
       },
     ];
   }, [form.watch("salaryOte"), form.watch("commissionPercent"), commissionPay]);
+
+  const tooltipFormatter = (
+    value: number | string,
+    name: string
+  ): [string | null, string | null] => {
+    if (value === 0 || value === undefined) {
+      return [null, null];
+    }
+
+    if (name === "baseSalary") {
+      return [`$${value.toLocaleString()}`, "Base"];
+    } else if (name === "commission") {
+      return [`$${value.toLocaleString()}`, "Commission"];
+    }
+    return [value.toString(), name];
+  };
 
   // Function to render bar chart
   const renderBarChart = () => {
@@ -251,7 +357,7 @@ export default function AddJDStep2Form() {
         <BarChart data={oteChartData} layout="vertical">
           <XAxis type="number" hide={true} />
           <YAxis type="category" dataKey="name" hide={true} />
-          <Tooltip cursor={false} />
+          <Tooltip cursor={false} formatter={tooltipFormatter} />
           <Bar
             dataKey="baseSalary"
             fill="#35404e"
@@ -263,7 +369,7 @@ export default function AddJDStep2Form() {
               dataKey="baseSalary"
               position="insideLeft"
               style={{ fill: "#fff" }}
-              formatter={(value: any) => `$${value.toLocaleString()} Base`}
+              formatter={(value: number) => `$${value.toLocaleString()} Base`}
             />
           </Bar>
           <Bar
@@ -277,7 +383,7 @@ export default function AddJDStep2Form() {
               dataKey="commission"
               position="insideRight"
               style={{ fill: "#fff" }}
-              formatter={(value: any) =>
+              formatter={(value: number) =>
                 `$${value.toLocaleString()} Commission`
               }
             />
@@ -397,7 +503,6 @@ export default function AddJDStep2Form() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Minimum Salary</FormLabel>
-
                       <FormControl>
                         <Controller
                           control={form.control}
@@ -407,20 +512,13 @@ export default function AddJDStep2Form() {
                               $
                               <Input
                                 disabled={!discloseSalary}
-                                type="number"
-                                value={field.value ?? ""} // Use empty string if value is undefined
+                                type="text"
+                                value={field.value ?? ""}
                                 onChange={(e) => {
                                   const value = e.target.value;
-                                  if (
-                                    value.length <= 3 &&
-                                    parseInt(value) <= 100
-                                  ) {
-                                    field.onChange(
-                                      value === ""
-                                        ? undefined
-                                        : parseInt(value, 10)
-                                    );
-                                  }
+                                  field.onChange(
+                                    value === "" ? null : parseInt(value, 10)
+                                  );
                                 }}
                                 onFocus={() => handleFocus("minSalary")}
                               />
@@ -437,7 +535,6 @@ export default function AddJDStep2Form() {
               {/* Hide field if commission */}
               {!commissionPay && (
                 <FormField
-                  key="maxSalary" // Adding a key to force re-render on condition change
                   control={form.control}
                   name="maxSalary"
                   render={({ field }) => (
@@ -452,15 +549,14 @@ export default function AddJDStep2Form() {
                               $
                               <Input
                                 disabled={!discloseSalary}
-                                type="number"
-                                value={field.value ?? ""} // Use empty string if value is undefined
-                                onChange={(e) =>
+                                type="text"
+                                value={field.value ?? ""}
+                                onChange={(e) => {
+                                  const value = e.target.value;
                                   field.onChange(
-                                    e.target.value === ""
-                                      ? undefined
-                                      : parseInt(e.target.value, 10)
-                                  )
-                                }
+                                    value === "" ? null : parseInt(value, 10)
+                                  );
+                                }}
                                 onFocus={() => handleFocus("maxSalary")}
                               />
                             </div>
@@ -476,36 +572,32 @@ export default function AddJDStep2Form() {
               {/* OTE Salary */}
               {commissionPay && (
                 <FormField
-                  key="salaryOte" // Adding a key to force re-render on condition change
                   control={form.control}
                   name="salaryOte"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>OTE (On-target Earnings)</FormLabel>
-                      <FormControl>
-                        <Controller
-                          control={form.control}
-                          name="salaryOte"
-                          render={({ field }) => (
-                            <div className="flex items-center gap-2 font-medium">
-                              $
-                              <Input
-                                disabled={!discloseSalary}
-                                type="number"
-                                value={field.value ?? ""} // Use empty string if value is undefined
-                                onChange={(e) =>
-                                  field.onChange(
-                                    e.target.value === ""
-                                      ? undefined
-                                      : parseInt(e.target.value, 10)
-                                  )
-                                }
-                                onFocus={() => handleFocus("maxSalary")}
-                              />
-                            </div>
-                          )}
-                        />
-                      </FormControl>
+                      <div className="flex flex-row items-center gap-2">
+                        ${" "}
+                        <FormControl>
+                          <Input
+                            disabled={!discloseSalary}
+                            type="text"
+                            value={
+                              field.value === null || field.value === undefined
+                                ? ""
+                                : field.value.toString()
+                            }
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              field.onChange(
+                                value === "" ? null : parseInt(value, 10)
+                              );
+                            }}
+                            onFocus={() => handleFocus("salaryOte")}
+                          />
+                        </FormControl>{" "}
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -524,17 +616,24 @@ export default function AddJDStep2Form() {
                         <div className="flex flex-row items-center gap-2">
                           <FormControl>
                             <Input
-                              {...field}
-                              type="number"
-                              min="0"
-                              max="100"
-                              step="1"
+                              type="text"
+                              value={
+                                field.value === undefined ? "" : field.value
+                              } // Ensure the value is a string
                               onFocus={() => handleFocus("commissionPercent")}
-                              onChange={(e) =>
-                                field.onChange(
-                                  parseInt(e.target.value, 10) || 0
-                                )
-                              }
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                // Handle the field update based on the input value
+                                if (value === "") {
+                                  field.onChange(undefined); // Allow empty value
+                                } else {
+                                  const numValue = parseFloat(value);
+                                  // Update only if the value is a number
+                                  if (!isNaN(numValue)) {
+                                    field.onChange(numValue);
+                                  }
+                                }
+                              }}
                             />
                           </FormControl>
                           %
@@ -544,10 +643,7 @@ export default function AddJDStep2Form() {
                     )}
                   />
 
-                  <div className="flex flex-row w-full">
-                    {/*  <strong>OTE:</strong> {oteDisplay} */}
-                    {renderBarChart()}
-                  </div>
+                  <div className="flex flex-row w-full">{renderBarChart()}</div>
                 </>
               )}
 
@@ -603,6 +699,7 @@ export default function AddJDStep2Form() {
                     <FormControl>
                       <div className="flex items-center gap-4">
                         <Switch
+                          id="discloseSalary"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
@@ -618,6 +715,7 @@ export default function AddJDStep2Form() {
                               <Checkbox
                                 checked={value}
                                 onCheckedChange={onChange}
+                                disabled={!form.watch("discloseSalary")}
                               />
                               <span className="ml-2 text-muted-foreground font-light">
                                 Commission Split
@@ -632,8 +730,9 @@ export default function AddJDStep2Form() {
               />
             </div>
 
-            {/* Submit button */}
-            <Button type="submit">Review</Button>
+            <div className="flex flex-row justify-end">
+              <Button type="submit">Post</Button>
+            </div>
           </form>
         </Form>
       </CardContent>

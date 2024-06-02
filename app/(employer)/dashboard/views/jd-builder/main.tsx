@@ -1,8 +1,16 @@
 import useStore from "@/app/state/useStore";
 import { useEffect } from "react";
-import JDBuilderRightUpload from "./right-panel-upload";
-import JDBuilderDetectedRoles from "./main-panel-detected-roles";
-import JDBuilderEditor from "./main-panel-jd-writer";
+import JDBuilderNewStart from "@/app/(employer)/dashboard/views/jd-builder/main-panel-step-1"; // Step 1 - Left Panel
+import JDBuilderRightUpload from "./right-panel-upload"; // Step 1 - Right Panel
+import JDBuilderDetectedRoles from "./main-panel-step-3"; // Step 2.A
+import JDBuilderRightStep2 from "./right-panel-step-2"; // Step 2 - Right Panel
+import JDBuilderEditor from "./main-panel-step-4"; // Step 4
+import JDBuilderRightStep4 from "./right-panel-step-4";
+import JDBuilderRightStep3 from "./right-panel-step-3";
+import { ChevronsRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import JDBuilderStartProcessing from "@/app/(employer)/dashboard/views/jd-builder/main-panel-step-2"; // Step 2
+
 
 export default function EmployerDashboardJDBuilder() {
   const { jdBuilderWizard, setJDBuilderWizard, updateJDBuilderWizardStep } =
@@ -10,9 +18,9 @@ export default function EmployerDashboardJDBuilder() {
 
   const { isExpanded, setExpanded, toggleExpansion } = useStore();
 
-  // useeffect to set jdBuilderWizard sowid to page load. sowid = ec3350f7-cba8-4b1f-a11c-cf042844a603
+  // TODO: Remove this done with development
   useEffect(() => {
-    setJDBuilderWizard({ sowID: "ec3350f7-cba8-4b1f-a11c-cf042844a603" });
+    setJDBuilderWizard({ sowID: "4c61fbe8-1808-4f6c-806a-948abe8c1a46" });
   }, [setJDBuilderWizard]);
 
   // Reset expanded state when component unmounts
@@ -22,33 +30,72 @@ export default function EmployerDashboardJDBuilder() {
     };
   }, [setExpanded]);
 
+  const renderMainComponent = () => {
+    switch (jdBuilderWizard.step) {
+      case 1:
+        return <JDBuilderNewStart />;
+      case 2:
+        return <JDBuilderStartProcessing />;
+      case 3:
+        return <JDBuilderDetectedRoles />;
+      case 4:
+        return <JDBuilderEditor />;
+      default:
+        return <JDBuilderDetectedRoles />;
+    }
+  };
+
+  const renderRightPanelComponent = () => {
+    switch (jdBuilderWizard.step) {
+      case 1:
+        return <JDBuilderRightUpload />;
+      case 2:
+        return <JDBuilderRightStep2 />;
+      case 3:
+        return <JDBuilderRightStep3 />;
+      case 4:
+        return <JDBuilderRightStep4 />;
+      default:
+        return <JDBuilderRightUpload />;
+    }
+  };
+
   return (
-    <main className="flex flex-1 gap-4 p-4 max-h-screen overflow-hidden h-screen">
+    <main className="flex flex-1 gap-4 p-4 max-h-screen overflow-auto h-screen">
       <div
         className={`flex flex-col gap-4 transition-all duration-700 ease-in-out w-full md:w-full ${
           isExpanded ? "lg:w-3/4" : "lg:w-1/2"
         }`}
       >
-        <div className="flex justify-between gap-6 rounded-lg border p-4">
-          <h2 className="font-bold leading-6 text-gray-900">Section Title</h2>
-          <button
+        <div className="flex justify-between items-center gap-6 rounded-lg border p-4">
+          <h2 className="font-bold leading-6 text-gray-900">
+            Job Description Copilot
+          </h2>
+          <Button
+            size="icon"
+            variant={"ghost"}
             onClick={toggleExpansion}
-            className="p-1 bg-slate-600 text-white text-sm rounded"
+            className="p-1 text-sm rounded"
           >
-            Toggle Expand
-          </button>
+            <ChevronsRight
+              size={18}
+              className={`transition-transform duration-500 ease-in-out transform ${
+                isExpanded ? "rotate-180" : ""
+              }`}
+            />{" "}
+          </Button>
         </div>
         <div className="text-xs text-gray-300 flex flex-row gap-4">
           <p>SOW ID: {jdBuilderWizard.sowID}</p>
           <p>Step: {jdBuilderWizard.step}</p>
+          <p>JD ID: {jdBuilderWizard.jobDescriptionId}</p>
+          <p>Runner: {jdBuilderWizard.sowParseRunnerID}</p>
+          <p>Step Completion: {jdBuilderWizard.pollingStatus ? "True" : "False"}</p>
         </div>
         <div className="flex flex-col gap-6">
           <div className="rounded-lg border p-4">
             <div className="flex items-center gap-2">
-              {/* Step 2  - Load the detected roles*/}
-              {/*  <JDBuilderDetectedRoles />  */}
-              {/* Step 3 - Load editor to edit the JD generate */}
-              <JDBuilderEditor />
+              {renderMainComponent()}
             </div>
           </div>
         </div>
@@ -60,8 +107,7 @@ export default function EmployerDashboardJDBuilder() {
       >
         <div className="min-h-[90vh] rounded-xl bg-muted/50 p-4 overflow-auto flex items-center justify-center">
           <div className="flex flex-col items-center justify-center w-full">
-            {/* Upload buttons */}
-            <JDBuilderRightUpload />
+            {renderRightPanelComponent()}
           </div>
         </div>
       </div>

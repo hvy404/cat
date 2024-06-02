@@ -4,7 +4,6 @@ import { inngest } from "@/lib/inngest/client";
 import { referenceFunction } from "inngest";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
-import { jdParserUpload } from "@/lib/dashboard/ingest-jd/retreiveJD";
 import { type jobDescriptionGenerateStatic } from "@/inngest/job-description-static";
 import { type jobDescriptionGenerateInferred } from "@/inngest/job-description-inferred";
 import { type generateJobDescriptionCypher } from "@/inngest/job-description-gen-cypher";
@@ -22,12 +21,10 @@ export const jobDescriptionOnboard = inngest.createFunction(
     // Data from the event
     const employerID = event.data.job_description.employer;
     const jobDescriptionID = event.data.job_description.id;
-    const filename = event.data.job_description.filename;
     const session = event.data.job_description.session;
+    const rawExtract = event.data.job_description.rawExtract;
 
-    const rawExtract = await jdParserUpload(filename);
-
-    // Insert the extracted job posting into the database, job_postings table, rawExtract in the raw column, where the row .eq is the jobDescriptionID
+    // Insert the extracted job posting into the database, s table, rawExtract in the raw column, where the row .eq is the jobDescriptionID
     const { error } = await supabase
       .from("job_postings")
       .update({
@@ -42,10 +39,6 @@ export const jobDescriptionOnboard = inngest.createFunction(
         error: error,
       };
     }
-
-    console.log("Step 0 Started");
-
-    // Generate static and inferred points from the raw resume text
 
     // Generate static points
     try {
@@ -62,6 +55,7 @@ export const jobDescriptionOnboard = inngest.createFunction(
           },
         }
       );
+
     } catch (error) {
       console.error("Error generating static points", error);
     }
@@ -85,7 +79,28 @@ export const jobDescriptionOnboard = inngest.createFunction(
       console.error("Error generating inferred points.", error);
     }
 
-    // Build cypher and send cypher query to Neo
+    // Add data points to SQL database
+    try {
+      const addStructuredData = await step.invoke(
+        "job-description-add-structured-datapoints",
+        {
+          function: referenceFunction<typeof jobDescriptionAddStructured>({
+            functionId: "job-description-add-structured-datapoints",
+          }),
+          data: {
+            job_description: {
+              id: jobDescriptionID,
+            },
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Error adding structured data.", error);
+    }
+
+    // Should subsequent steps after this be in a seperate file? because user should be able to confirm before adding to Neo4j
+
+    /* // Build cypher and send cypher query to Neo
     try {
       const buildCypherForNeo = await step.invoke(
         "job-description-add-to-neo-workflow",
@@ -124,25 +139,6 @@ export const jobDescriptionOnboard = inngest.createFunction(
       console.error("Error generating embeddings.", error);
     }
 
-    // Add data points to SQL database
-    try {
-      const addStructuredData = await step.invoke(
-        "job-description-add-structured-datapoints",
-        {
-          function: referenceFunction<typeof jobDescriptionAddStructured>({
-            functionId: "job-description-add-structured-datapoints",
-          }),
-          data: {
-            job_description: {
-              id: jobDescriptionID,
-            },
-          },
-        }
-      );
-    } catch (error) {
-      console.error("Error adding structured data.", error);
-    }
-
     // Mark job description as onboarded
     try {
       const generateCompleted = await step.invoke(
@@ -162,7 +158,7 @@ export const jobDescriptionOnboard = inngest.createFunction(
       );
     } catch (error) {
       console.error("Error generating embeddings.", error);
-    }
+    } */
 
     return { message: "Successfully onboarded job description." };
   }

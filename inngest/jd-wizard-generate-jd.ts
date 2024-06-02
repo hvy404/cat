@@ -1,6 +1,13 @@
 import { inngest } from "@/lib/inngest/client";
 import { getJobDescription } from "@/lib/jd-builder/generate-job-description";
 
+/**
+ * Generates a job description based on the provided event data.
+ * @param event - The event data containing the SOW UUID, employer ID, and role name.
+ * @param step - The step data.
+ * @returns The generated job description ID.
+ * @throws Error if any required data is missing or if the job description generation fails.
+ */
 export const jdGenerateDescription = inngest.createFunction(
   { id: "jd-wizard-generate-job-description" },
   { event: "app/jd-wizard-generate-job-description" },

@@ -5,13 +5,13 @@ import { ChevronRightSquareIcon } from "lucide-react";
 
 interface CommandCenterToggleProps {
   editor: Editor;
-  commandContext: (text: string) => void;
+  /* commandContext: (text: string) => void; */
   setSelectionRange: (range: { from: number; to: number }) => void;
 }
 
 export const CommandCenterToggle: FC<CommandCenterToggleProps> = ({
   editor,
-  commandContext,
+  /* commandContext, */
   setSelectionRange,
 }) => {
   const setCommandContextText = () => {
@@ -22,7 +22,7 @@ export const CommandCenterToggle: FC<CommandCenterToggleProps> = ({
       text += node.textContent;
     });
 
-    commandContext(text); // Set the command context text
+   /*  commandContext(text); // Set the command context text */
 
     // Store the current selection range
     setSelectionRange({ from, to });

@@ -18,8 +18,6 @@ export const jobDescriptionGenerateStatic = inngest.createFunction(
     const supabase = createClient(cookieStore);
     const jobDescriptionID = event.data.job_description.id;
 
-    console.log("job-description-generate-static-info function activated");
-
     const { data, error } = await supabase
       .from("job_postings")
       .select("raw")

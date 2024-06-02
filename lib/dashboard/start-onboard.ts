@@ -2,11 +2,40 @@
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { inngest } from "@/lib/inngest/client";
+import { jdParserUpload } from "@/lib/dashboard/ingest-jd/retreiveJD";
 
-export async function jobDescriptionStartOnboard(jdUUID: string, employerId: string, filename: string, sessionID: string) {
+/**
+ * Starts the onboarding process for a job description.
+ * This is used in the job description upload process (not the JD wizard).
+ * 
+ * @param jdUUID - The UUID of the job description.
+ * @param employerId - The ID of the employer.
+ * @param filename - The name of the file containing the job description.
+ * @param sessionID - The ID of the session.
+ * @returns An object with the result of the onboarding process.
+ */
+export async function jobDescriptionStartOnboard(
+  jdUUID: string,
+  employerId: string,
+  filename: string,
+  sessionID: string
+) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
+  let rawExtract;
+
+  try {
+    rawExtract = await jdParserUpload(filename);
+    if (rawExtract == null) {
+      throw new Error("Extracted content is null");
+    }
+  } catch (error) {
+    return {
+      message: "Failed to process the job description",
+    };
+  }
+  
   // Send an event to Inngest
   const { ids } = await inngest.send({
     name: "app/job-description-start-onboard",
@@ -14,7 +43,7 @@ export async function jobDescriptionStartOnboard(jdUUID: string, employerId: str
       job_description: {
         employer: employerId,
         id: jdUUID,
-        filename: filename,
+        rawExtract: rawExtract,
         session: sessionID,
       },
     },

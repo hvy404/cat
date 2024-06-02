@@ -17,6 +17,8 @@ export const jdWizardProcessSow = inngest.createFunction(
     const employerID = event.data.sow.employerID;
     const sowFilename = event.data.sow.filename;
 
+    console.log("Processing SOW", { sowUUID, employerID, sowFilename });
+
     if (!sowUUID || !employerID || !sowFilename) {
       throw new Error("Missing required data to chunk SOW");
     }

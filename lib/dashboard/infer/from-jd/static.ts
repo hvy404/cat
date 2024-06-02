@@ -28,13 +28,18 @@ const togetherai = new OpenAI({
   baseURL: "https://api.together.xyz/v1",
 });
 
-export async function generateJDStatic(jdRaw: string, jobDescriptionID: string) {
+export async function generateJDStatic(
+  jdRaw: string,
+  jobDescriptionID: string
+) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  console.log("Generating static points from JD");
+  //console.log("Generating static points from JD");
 
-  const systemPrompt = `The following is a job description. Use the job description data to extrapolate details about the job opportunity, and return answer in JSON. If key values are not relevant, leave it empty. Do not make anything up.`;
+  const systemPrompt = `The following context is a job description. Use the job description to extrapolate details about the job opportunity. If the job description does not provide information for a specific key required by the schema, leave the value blank. Only include details in your response for which there is relevant information available in the job description provided. Do not make up any details. Your answer must be in JSON format.`;
+  const systemPrompt3 = `The following context is a job description. Use the job description to infer details about the job opportunity. If the JD does not provide information for a specific key required by the schema, leave the value blank. Only include details in your response for which there is relevant information available in the job description provided. Do not make up any details. Your answer must be in JSON format.`;
+
 
   const extract = await togetherai.chat.completions.create({
     messages: [
@@ -48,13 +53,13 @@ export async function generateJDStatic(jdRaw: string, jobDescriptionID: string) 
       },
     ],
     model: "mistralai/Mistral-7B-Instruct-v0.1",
-    temperature: 0.3,
+    temperature: 0.4,
     // @ts-ignore – Together.ai supports schema while OpenAI does not
     response_format: { type: "json_object", schema: jsonSchemaPrimary },
   });
 
   const primaryOutput = JSON.parse(extract.choices[0].message.content!);
-  console.log(primaryOutput);
+  console.log("Primary output: ", primaryOutput);
 
   const extractSecondary = await togetherai.chat.completions.create({
     messages: [
@@ -68,7 +73,7 @@ export async function generateJDStatic(jdRaw: string, jobDescriptionID: string) 
       },
     ],
     model: "mistralai/Mistral-7B-Instruct-v0.1",
-    temperature: 0.3,
+    temperature: 0.4,
     // @ts-ignore – Together.ai supports schema while OpenAI does not
     response_format: { type: "json_object", schema: jsonSchemaSecondary },
   });
@@ -77,33 +82,36 @@ export async function generateJDStatic(jdRaw: string, jobDescriptionID: string) 
     extractSecondary.choices[0].message.content!
   );
 
-  console.log(secondaryOutput);
+  console.log("Secondary output: ", secondaryOutput);
 
   const extractThird = await togetherai.chat.completions.create({
     messages: [
       {
         role: "system",
-        content: systemPrompt,
+        content: systemPrompt3,
       },
       {
         role: "user",
         content: JSON.stringify(jdRaw),
       },
     ],
-    model: "mistralai/Mistral-7B-Instruct-v0.1",
-    temperature: 0.3,
+    model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
+    temperature: 0.45,
+    max_tokens: 4000,
     // @ts-ignore – Together.ai supports schema while OpenAI does not
     response_format: { type: "json_object", schema: jsonSchemaThird },
   });
 
-  const thirdOutput = JSON.parse(
-    extractThird.choices[0].message.content!
-  );
+  const thirdOutput = JSON.parse(extractThird.choices[0].message.content!);
 
-  //console.log(thirdOutput);
+  console.log("Third output :", thirdOutput);
 
   // Merge the two outputs
-  const mergedOutputs = { ...primaryOutput, ...secondaryOutput, ...thirdOutput };
+  const mergedOutputs = {
+    ...primaryOutput,
+    ...secondaryOutput,
+    ...thirdOutput,
+  };
 
   const { error } = await supabase
     .from("job_postings")

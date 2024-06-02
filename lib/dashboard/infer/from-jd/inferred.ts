@@ -16,9 +16,7 @@ export async function generateJDInferred(jdRaw: string, jobDescriptionID: string
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  console.log("Generating inferred points from JD");
-
-  const systemPrompt = `The following is a job description. Use the job description data to extrapolate details about the job opportunity, and return answer in JSON. If key values are not relevant, leave it empty. Do not make anything up.`;
+  const systemPrompt = `The following context is a job description. Use the job description to extrapolate details about the job opportunity. If the job description does not provide information for a specific key required by the schema, leave the value blank. Only include details in your response for which there is relevant information available in the job description provided. Do not make any details up. Your answer must be in JSON format.`;
 
   const extract = await togetherai.chat.completions.create({
     messages: [

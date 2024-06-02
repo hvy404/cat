@@ -79,7 +79,5 @@ export async function sowUpload(
     return { success: false, message: "Error updating database." };
   }
 
-  // Call the Inngest to parse the SOW and extract the required information
-
   return { success: true, files: uploadedFiles };
 }

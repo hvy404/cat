@@ -8,6 +8,7 @@ import { resumeGenerateEmbeddings } from "@/inngest/resume-embeddings";
 import { generateJobDescriptionCypher } from "@/inngest/job-description-gen-cypher";
 import { jobDescriptionEmbeddings } from "@/inngest/job-generate-embeddings";
 import { jobDescriptionOnboard } from "@/inngest/job-description-start-loading";
+import { jobDescriptionOnboardStage2 } from "@/inngest/job-description-load-stage-2";
 import { jobDescriptionGenerateStatic } from "@/inngest/job-description-static";
 import { jobDescriptionGenerateInferred } from "@/inngest/job-description-inferred";
 import { jobDescriptionAddStructured } from "@/inngest/job-description-sql";
@@ -18,7 +19,8 @@ import { jdWizardProcessSow } from "@/inngest/jd-wizard-chunk";
 import { jdWizardFindDocType } from "@/inngest/jd-wizard-doc-identify"; 
 import { jdWizardGetKeyPersonnel } from "@/inngest/jd-wizard-get-key-personnel"; 
 import { jdWizardGetPersonnel } from "@/inngest/jd-wizard-get-personnel"; 
-import { jdGenerateDescription } from "@/inngest/jd-wizard-generate-jd"; // JD Wizard - Generate JD function
+import { jdGenerateDescription } from "@/inngest/jd-wizard-generate-jd";
+import { jdWizardWriteDraft } from "@/inngest/jd-wizard-write-draft"; // JD Wizard - Write draft function starter
 
 /**
  * Represents the serve function for handling HTTP requests.
@@ -39,6 +41,7 @@ export const { GET, POST, PUT } = serve({
     generateJobDescriptionCypher,
     jobDescriptionEmbeddings,
     jobDescriptionOnboard,
+    jobDescriptionOnboardStage2,
     jobDescriptionGenerateStatic,
     jobDescriptionGenerateInferred,
     jobDescriptionAddStructured,
@@ -50,5 +53,6 @@ export const { GET, POST, PUT } = serve({
     jdWizardGetKeyPersonnel,
     jdWizardGetPersonnel,
     jdGenerateDescription,
+    jdWizardWriteDraft,
   ],
 });

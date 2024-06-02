@@ -8,9 +8,6 @@ export async function JDAddDatabaseEntry(employerID: string, filename: string) {
   const supabase = createClient(cookieStore);
   let jobID = uuidv4();
 
-  console.log("Employer ID: ", employerID);
-  console.log("Filename: ", filename);
-
   try {
     const { error } = await supabase.from("job_postings").upsert([
       {

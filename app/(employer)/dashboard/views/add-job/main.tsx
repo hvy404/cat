@@ -10,10 +10,18 @@ import AddJDStepOne from "@/app/(employer)/dashboard/views/add-job/steps/step-1"
 import AddJDStepTwo from "@/app/(employer)/dashboard/views/add-job/steps/step-2";
 import AddJDStepThree from "@/app/(employer)/dashboard/views/add-job/steps/step-3";
 import SidePanelStep2 from "@/app/(employer)/dashboard/views/add-job/mods/panel-step-2";
+import { set } from "zod";
 
 export default function EmployerDashboardAddJob() {
   // Get AddJD state from the store
   const { user, addJD, setAddJD } = useStore();
+
+  // TOOD: Remove after development
+  useEffect(() => {
+    setAddJD({ step: 2, 
+      jdEntryID: "6d98e834-6513-4736-8cc8-b190a473ed3b",
+     });
+  }, []);
 
   // Check the session on load and set it if it doesn't exist
   useEffect(() => {

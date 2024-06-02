@@ -6,6 +6,15 @@ import { cookies } from "next/headers";
 import { fileTypeFromBuffer } from "file-type";
 import { Buffer } from "buffer";
 
+/**
+ * Downloads a job description file from the Supabase storage and processes it based on its MIME type.
+ * Supports PDF and DOCX file types.
+ * The final output is raw text extracted from the job description file.
+ * 
+ * @param jdFilename - The name of the job description file to be processed.
+ * @returns The extracted text content from the job description file.
+ * @throws Error if there is an error downloading the file, if the file type is unsupported, or if the file type cannot be determined.
+ */
 export async function jdParserUpload(jdFilename: string) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);

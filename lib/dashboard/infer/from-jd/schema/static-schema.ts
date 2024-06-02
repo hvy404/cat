@@ -56,7 +56,7 @@ export const jobDescriptionStaticSchema = z
       .describe(
         "If commission pay is offered, specify the commission percentage for the job."
       ),
-      oteSalary: z
+    oteSalary: z
       .number()
       .optional()
       .describe(
@@ -114,9 +114,17 @@ export const jobDescriptionStaticThirdSchema = z
   .object({
     description: z
       .string()
-      .describe("Detailed description of the job role and responsibilities."),
+      .optional()
+      .describe(
+        "A concise summary of the job role, including main responsibilities and tasks. This field is intended to provide potential candidates with a clear idea of what the position entails and what will be expected of them."
+      ),
     companyOverview: z
       .string()
-      .describe("Overview of the company, its mission, and its commitment."),
+      .optional()
+      .describe(
+        "A brief overview of the company, highlighting its mission, values, and key commitments."
+      ),
   })
-  .describe("Job Description");
+  .describe(
+    "Detailed schema for the job description section, focusing on providing an insightful summary of the job and an overview of the company."
+  );
