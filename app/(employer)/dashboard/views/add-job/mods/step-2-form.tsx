@@ -274,7 +274,7 @@ export default function AddJDStep2Form() {
           // Check if the success property is true
           console.log("Job details updated successfully!");
           // TODO: add switch to next step
-          //setAddJD({ step: 3 });
+          setAddJD({ step: 3 });
         } else {
           console.log("Job details update was not successful");
         }
