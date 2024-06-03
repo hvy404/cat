@@ -11,14 +11,12 @@ const togetherai = new OpenAI({
   baseURL: "https://api.together.xyz/v1",
 });
 
-export async function TitleOptions() {
+export async function TitleOptions(
+  jobID: string
+) {
   console.log("TitleOptions function called");
   const cookiesStore = cookies();
   const client = createClient(cookiesStore);
-
-
-// TODO: Replace this with the actual job ID dynamically
-  const jobID = "db5aeeb9-c7c4-485d-bbb1-a1d7d64b04d5";
 
   const jsonSchema = zodToJsonSchema(titleChoicesSchema, "JobTitleChoices");
 

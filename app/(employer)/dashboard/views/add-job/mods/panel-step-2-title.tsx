@@ -21,11 +21,15 @@ export default function Step2SubPanelTitle() {
   }, [addJD.jobDetails]);
 
   // click handler to call TitleOptions function and console log the result
-  const handleTitleOptions = async () => {
-    const result = await TitleOptions();
+const handleTitleOptions = async () => {
+  if (addJD.jdEntryID !== null) {
+    const result = await TitleOptions(addJD.jdEntryID);
     // set the jobDetails in the store
     setAddJD({ jobDescriptionTitles: result });
-  };
+  } else {
+    // TODO: This could be setting a default value, throwing an error, etc.
+  }
+};
 
   // Fetch job title suggestions on page load if not already set
   useEffect(() => {
@@ -60,12 +64,12 @@ export default function Step2SubPanelTitle() {
               >
                 <p
                   onClick={() => {
-                    const updatedJobDetails = addJD.jobDetails.map(
-                      (detail, index) =>
-                        index === 0 ? { ...detail, title: title.title } : detail
+                    const updatedJobDetails = addJD.jobDetails.map((detail, idx) =>
+                      idx === 0 ? { ...detail, title: title.title } : detail
                     );
                     setAddJD({ jobDetails: updatedJobDetails });
                   }}
+                  
                 >
                   {title.title}
                 </p>

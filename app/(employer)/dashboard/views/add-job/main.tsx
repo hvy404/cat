@@ -17,11 +17,11 @@ export default function EmployerDashboardAddJob() {
   const { user, addJD, setAddJD } = useStore();
 
   // TOOD: Remove after development
-  useEffect(() => {
+   useEffect(() => {
     setAddJD({ step: 2, 
       jdEntryID: "6d98e834-6513-4736-8cc8-b190a473ed3b",
      });
-  }, []);
+  }, []); 
 
   // Check the session on load and set it if it doesn't exist
   useEffect(() => {

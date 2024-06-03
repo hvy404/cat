@@ -44,22 +44,16 @@ const jobDetailsSchema = z
   .object({
     jobTitle: z
       .string()
-      .min(5, "The job title must consist of at least five characters."), // Required
-    minSalary: z.number().int().min(0).nullable().optional(),
-    maxSalary: z.number().int().min(0).nullable().optional(),
+      .min(5, "The job title must consist of at least five characters."),
+    minSalary: z.number().int().min(0).optional(),
+    maxSalary: z.number().int().min(0).optional(),
     locationType: z
-      .string()
-      .optional()
-      .refine((val) => ["remote", "onsite", "hybrid"].includes(val ?? ""), {
+      .union([z.enum(["remote", "onsite", "hybrid"]), z.literal("")])
+      .refine((val) => val !== "", {
         message: "Please select a valid location type.",
       }),
-    privateEmployer: z.boolean().optional(), // Optional
-    salaryOte: z
-      .number()
-      .int()
-      .min(0, "OTE must be at least 0")
-      .nullable()
-      .optional(),
+    privateEmployer: z.boolean().optional(),
+    salaryOte: z.number().int().min(0, "OTE must be at least 0").optional(),
     commissionPercent: z
       .number()
       .int()
@@ -67,19 +61,15 @@ const jobDetailsSchema = z
       .transform((value) => (isNaN(value) ? undefined : value))
       .optional(),
     securityClearance: z
-      .string()
-      .optional()
-      .refine(
-        (val) => ["none", "basic", "secret", "top-secret"].includes(val ?? ""),
-        {
-          message: "Please select a clearance type.",
-        }
-      ),
-    pocName: z.string().min(2).optional(), // Optional
-    pocEmail: z.string().email().optional(), // Optional
-    discloseSalary: z.boolean().optional(), // Optional
-    commissionPay: z.boolean().optional(), // Optional
-    baseCommissionRatio: z.string().optional(), // Optional
+      .union([z.enum(["none", "basic", "secret", "top-secret"]), z.literal("")])
+      .refine((val) => val !== "", {
+        message: "Please select a clearance type.",
+      }),
+    pocName: z.string().min(2).optional(),
+    pocEmail: z.string().email().optional(),
+    discloseSalary: z.boolean().optional(),
+    commissionPay: z.boolean().optional(),
+    baseCommissionRatio: z.string().optional(),
     basePercent: z.number().min(0).max(100).optional(),
   })
   .refine(
@@ -87,12 +77,7 @@ const jobDetailsSchema = z
       if (data.commissionPay) {
         return data.salaryOte !== null && data.salaryOte !== undefined;
       } else {
-        return (
-          data.minSalary !== null &&
-          data.minSalary !== undefined &&
-          data.maxSalary !== null &&
-          data.maxSalary !== undefined
-        );
+        return data.minSalary !== undefined && data.maxSalary !== undefined;
       }
     },
     {
@@ -103,14 +88,14 @@ const jobDetailsSchema = z
   )
   .superRefine((data, ctx) => {
     if (!data.commissionPay) {
-      if (data.minSalary === null || data.minSalary === undefined) {
+      if (data.minSalary === undefined) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Please enter a minimum salary",
           path: ["minSalary"],
         });
       }
-      if (data.maxSalary === null || data.maxSalary === undefined) {
+      if (data.maxSalary === undefined) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Please enter a maximum salary",
@@ -238,8 +223,8 @@ export default function AddJDStep2Form() {
     if (addJD.jobDetails[0]) {
       form.reset({
         jobTitle: addJD.jobDetails[0].title,
-        minSalary: addJD.jobDetails[0].min_salary || null,
-        maxSalary: addJD.jobDetails[0].max_salary || null,
+        minSalary: addJD.jobDetails[0].min_salary || undefined,
+        maxSalary: addJD.jobDetails[0].max_salary || undefined,
         locationType: addJD.jobDetails[0].location_type as
           | "remote"
           | "onsite"
@@ -254,7 +239,7 @@ export default function AddJDStep2Form() {
         discloseSalary: addJD.jobDetails[0].salary_disclose,
         commissionPay: addJD.jobDetails[0].commission_pay,
         commissionPercent: addJD.jobDetails[0].commission_percent,
-        salaryOte: addJD.jobDetails[0].salary_ote || null,
+        salaryOte: addJD.jobDetails[0].salary_ote || undefined,
       });
     }
   }, [form, addJD.jobDetails[0]]);
@@ -269,13 +254,19 @@ export default function AddJDStep2Form() {
 
     const jdUUID = addJD.jdEntryID; // Ensure this is the correct UUID from your state
 
+    const normalizedValues = {
+      ...values,
+      locationType: values.locationType || undefined, // Replace empty string with undefined, if empty
+      securityClearance: values.securityClearance || undefined,
+    };
+
     // check for jdUUID is not empty
     if (!jdUUID) {
       console.error("Job Description UUID is empty.");
       return;
     }
 
-    /* SaveJobDetails(values, jdUUID)
+    SaveJobDetails(normalizedValues, jdUUID)
       .then((response) => {
         if (response.error) {
           console.error("Failed to update job details:", response.error);
@@ -290,7 +281,7 @@ export default function AddJDStep2Form() {
       })
       .catch((error) => {
         console.error("Error in saving job details:", error);
-      }); */
+      });
 
     /* setAddJD({
       jobDetails: [
