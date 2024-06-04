@@ -7,6 +7,7 @@ import { Wand, Loader, KeyRound } from "lucide-react";
 import { StartJDGeneration } from "@/app/(employer)/dashboard/views/jd-builder/lib/runners/starting-jd-generation";
 import { QueryEventStatus } from "@/lib/dashboard/query-runner-status";
 import { QueryJDGenerationStatus } from "@/lib/dashboard/query-role-jd-generation"; // Get the SOW ID from the generated JD
+import { set } from "zod";
 
 export default function JDBuilderDetectedRoles() {
   // Get state from the store
@@ -28,10 +29,16 @@ export default function JDBuilderDetectedRoles() {
   const roleToGenerate = jdBuilderWizard.roleToGenerate;
   const jdGenerationRunnerID = jdBuilderWizard.jdGenerationRunnerID;
 
-  const fetchRolesAndKeyPersonnel = async () => {
-    const { roles, keyPersonnel } = await grabRolesAndPersonnel(sowID);
-    setJDBuilderWizard({ personnelRoles: { roles, keyPersonnel } });
-  };
+  useEffect(() => {
+    const fetchRolesAndKeyPersonnel = async () => {
+      if (sowID) {
+        const { roles, keyPersonnel } = await grabRolesAndPersonnel(sowID);
+        setJDBuilderWizard({ personnelRoles: { roles, keyPersonnel } });
+      }
+    };
+  
+    fetchRolesAndKeyPersonnel();
+  }, []); 
 
   // onclick handler to set the role to generate
   // Handler to set the role to generate
@@ -85,6 +92,7 @@ export default function JDBuilderDetectedRoles() {
     } 
   }
  */
+
   // useffect to poll checkJDGenerationStatus
   useEffect(() => {
     console.log("Polling useEffect called");
@@ -105,21 +113,42 @@ export default function JDBuilderDetectedRoles() {
         if (status === "Completed" && jdID) {
             console.log("JD Generation completed with draft ID", jdID);
             isPollingActive = false;
+            setJDBuilderWizard({ jobDescriptionId: jdID, step: 4 });
+            // Handle the completion, e.g., update state or perform other actions
         } else if (status === "Running") {
             setTimeout(polling, 2500); // Continue polling if still running
-        } else {
-            console.log(`JD Generation ended with status: ${status}`);
+        } else if (status === "Failed") {
+            console.log("JD Generation failed");
             isPollingActive = false;
+            // TODO: Handle the failure, e.g., show error message
+        } else if (status === "Cancelled") {
+            console.log("JD Generation cancelled");
+            isPollingActive = false;
+            // Handle the cancellation, e.g., show notification
+        } else if (status === "No data") {
+            console.log("No data available for the JD Generation status");
+            isPollingActive = false;
+            // Handle the no data case, e.g., show warning
+        } else if (status === "Error fetching data") {
+            console.log("Error fetching JD Generation status");
+            isPollingActive = false;
+            // Handle the error, e.g., show error message
+        } else {
+            console.log(`Unknown status: ${status}`);
+            isPollingActive = false;
+            // Handle unknown status, e.g., show warning or error
         }
     };
 
-    polling();
+    // Start polling after 2.5 seconds
+    setTimeout(polling, 2500);
 
     // Cleanup function to stop polling when component unmounts
     return () => {
         isPollingActive = false;
     };
 }, [jdBuilderWizard.jdGenerationRunnerID]);
+
 
 
   return (
@@ -206,11 +235,9 @@ export default function JDBuilderDetectedRoles() {
         </div>
       </div>
       <div className="flex flex-row gap-2 text-sm">
-        <button onClick={onClickBack}>Back</button>
-        <button onClick={fetchRolesAndKeyPersonnel}>Fetch</button>
-        <button onClick={onClickNext}>Next</button>
-        {/*         <button onClick={checkJDGenerationStatus}>Check JD Generation</button>
-         */}
+      {/*   <button onClick={onClickBack}>Back</button> */}
+{/*         <button onClick={fetchRolesAndKeyPersonnel}>Fetch</button> */}
+{/*         <button onClick={onClickNext}>Next</button> */}
       </div>
     </div>
   );

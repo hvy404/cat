@@ -61,14 +61,25 @@ export async function QueryJDGenerationStatus(
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    const data = await response.json();
+    const data: EventResponse = await response.json();
 
     if (data.data && data.data.length > 0) {
       const firstEvent = data.data[0];
-      if (firstEvent.status === "Completed" && firstEvent.output?.draftID) {
-        return { status: "Completed", jdID: firstEvent.output.draftID };
-      } else {
-        return { status: firstEvent.status };
+      switch (firstEvent.status) {
+        case "Completed":
+          if (firstEvent.output?.draftID) {
+            return { status: "Completed", jdID: firstEvent.output.draftID };
+          } else {
+            return { status: "Completed" };
+          }
+        case "Running":
+          return { status: "Running" };
+        case "Failed":
+          return { status: "Failed" };
+        case "Cancelled":
+          return { status: "Cancelled" };
+        default:
+          return { status: "Unknown status" };
       }
     } else {
       return { status: "No data" };

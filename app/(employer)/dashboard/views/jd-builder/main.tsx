@@ -19,9 +19,9 @@ export default function EmployerDashboardJDBuilder() {
   const { isExpanded, setExpanded, toggleExpansion } = useStore();
 
   // TODO: Remove this done with development
-  useEffect(() => {
+/*   useEffect(() => {
     setJDBuilderWizard({ sowID: "4c61fbe8-1808-4f6c-806a-948abe8c1a46" });
-  }, [setJDBuilderWizard]);
+  }, [setJDBuilderWizard]); */
 
   // Reset expanded state when component unmounts
   useEffect(() => {
@@ -29,6 +29,19 @@ export default function EmployerDashboardJDBuilder() {
       setExpanded(false);
     };
   }, [setExpanded]);
+
+  // Start over function
+  const startOver = () => {
+    setJDBuilderWizard({
+      sowID: "",
+      sowFile: [],
+      sowParseRunnerID: "",
+      jobDescriptionId: "",
+      jdGenerationRunnerID: "",
+      roleToGenerate: "",
+      step: 1,
+    });
+  };
 
   const renderMainComponent = () => {
     switch (jdBuilderWizard.step) {
@@ -71,19 +84,24 @@ export default function EmployerDashboardJDBuilder() {
           <h2 className="font-bold leading-6 text-gray-900">
             Job Description Copilot
           </h2>
-          <Button
-            size="icon"
-            variant={"ghost"}
-            onClick={toggleExpansion}
-            className="p-1 text-sm rounded"
-          >
-            <ChevronsRight
-              size={18}
-              className={`transition-transform duration-500 ease-in-out transform ${
-                isExpanded ? "rotate-180" : ""
-              }`}
-            />{" "}
-          </Button>
+          <div className="flex flex-row items-center">
+            {jdBuilderWizard.step !== 1 && (
+            <Button onClick={startOver} variant={"ghost"}>Start Over</Button>
+            )}
+            <Button
+              size="icon"
+              variant={"ghost"}
+              onClick={toggleExpansion}
+              className="p-1 text-sm rounded"
+            >
+              <ChevronsRight
+                size={18}
+                className={`transition-transform duration-500 ease-in-out transform ${
+                  isExpanded ? "rotate-180" : ""
+                }`}
+              />{" "}
+            </Button>
+          </div>
         </div>
         <div className="text-xs text-gray-300 flex flex-row gap-4">
           <p>SOW ID: {jdBuilderWizard.sowID}</p>

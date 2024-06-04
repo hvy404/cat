@@ -9,6 +9,7 @@ interface User {
 interface DashboardRoleOverview {
   active: boolean;
   active_role_id: string | null;
+  active_role_name: string | null;
 }
 
 interface JobLocation {
@@ -81,10 +82,10 @@ interface JDBuilderWizard {
 interface StoreState {
   selectedMenuItem: string | null;
   user: User | null;
-  dashboard_role_overview: DashboardRoleOverview;
   addJD: AddJobDescription;
   setSelectedMenuItem: (item: string) => void;
   setUser: (user: User) => void;
+  dashboard_role_overview: DashboardRoleOverview;
   setDashboardRoleOverview: (overview: Partial<DashboardRoleOverview>) => void;
   setAddJD: (addJD: Partial<AddJobDescription>) => void;
   updateAddJDStep: (newStep: number) => void;
@@ -102,7 +103,7 @@ const useStore = create<StoreState>((set) => ({
   // Current user aka employer id
   user: null,
   // Use in Dashboard - Overview page - Set the active role being viewed
-  dashboard_role_overview: { active: false, active_role_id: null },
+  dashboard_role_overview: { active: false, active_role_id: null, active_role_name: null},
   // State for add-jd
   addJD: {
     filename: null,
@@ -151,7 +152,7 @@ const useStore = create<StoreState>((set) => ({
 
   // JD Builder Wizard
   jdBuilderWizard: {
-    step: 2, // TODO: Change this to 1 after development
+    step: 1, // TODO: Change this to 1 after development
     sowID: null,
     jobDescriptionId: null,
     personnelRoles: {

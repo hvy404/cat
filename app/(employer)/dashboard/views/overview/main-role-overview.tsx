@@ -16,7 +16,7 @@ export default function EmployerDashboardOverviewRoles() {
   const { setDashboardRoleOverview, dashboard_role_overview } = useStore();
 
   const handleReturnToDashboard = () => {
-    setDashboardRoleOverview({ active: false, active_role_id: null });
+    setDashboardRoleOverview({ active: false, active_role_id: null, active_role_name: null});
   };
 
   return (
@@ -41,7 +41,9 @@ export default function EmployerDashboardOverviewRoles() {
         <div className="grid md:grid-cols-1">
           <Card>
             <CardHeader>
-              <CardTitle className="tmt-1 max-w-2xl text-sm leading-6 text-gray-900">Role Name</CardTitle>
+              <CardTitle className="tmt-1 max-w-2xl text-sm leading-6 text-gray-900">
+                {dashboard_role_overview.active_role_name}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="tmt-1 max-w-2xl text-sm leading-6 text-gray-500">Role description lorem ipsum</p>

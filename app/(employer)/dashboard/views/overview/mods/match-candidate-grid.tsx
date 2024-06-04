@@ -175,7 +175,7 @@ export default function AIMatchCandidateOverview() {
   return (
     <>
       {candidates.map((candidate, index) => (
-        <Card key={index} onClick={() => handleOpenResume(candidate)}>
+        <Card key={index} onClick={() => handleOpenResume(candidate)} className="cursor-pointer">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">
               {candidate.name}

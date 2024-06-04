@@ -7,12 +7,12 @@ export default function JDBuilderEditor() {
   const { jdBuilderWizard, setJDBuilderWizard, updateJDBuilderWizardStep } =
     useStore();
 
-  // TODO: Remove this done with development
+/*   // TODO: Remove this done with development
   useEffect(() => {
     setJDBuilderWizard({
       jobDescriptionId: "f3a7e075-8cf6-4e9e-81a8-6fe910f22df3",
     });
-  }, [setJDBuilderWizard]);
+  }, [setJDBuilderWizard]); */
 
   return (
     <div className="w-full">
