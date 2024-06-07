@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 
 interface JobPosting {
   jobTitle?: string;
+  companyIntroduction?: string;
   whatWeOffer?: string[];
   jobDescription?: string;
   responsibilities?: string[];
@@ -17,92 +18,144 @@ const jobPostingToEditorJson = (jobPosting: JobPosting): any => {
 
   if (jobPosting.jobTitle) {
     content.push({
-      type: 'heading',
+      type: "heading",
       attrs: { level: 1 },
-      content: [{ type: 'text', text: jobPosting.jobTitle }]
+      content: [{ type: "text", text: jobPosting.jobTitle }],
     });
   }
 
-  if (jobPosting.whatWeOffer && jobPosting.whatWeOffer.length > 0) {
+  if (jobPosting.companyIntroduction) {
     content.push({
-      type: 'heading',
+      type: "heading",
       attrs: { level: 2 },
-      content: [{ type: 'text', text: 'What We Offer' }]
+      content: [{ type: "text", text: "Our Company" }],
     });
-    const offerItems = jobPosting.whatWeOffer.map(offer => ({
-      type: 'listItem',
-      content: [{ type: 'paragraph', content: [{ type: 'text', text: offer }] }]
-    }));
-    content.push({ type: 'bulletList', content: offerItems });
+    content.push({
+      type: "paragraph",
+      content: [{ type: "text", text: jobPosting.companyIntroduction }],
+    });
   }
 
   if (jobPosting.jobDescription) {
     content.push({
-      type: 'heading',
+      type: "heading",
       attrs: { level: 2 },
-      content: [{ type: 'text', text: 'Job Description' }]
+      content: [{ type: "text", text: "Job Description" }],
     });
     content.push({
-      type: 'paragraph',
-      content: [{ type: 'text', text: jobPosting.jobDescription }]
+      type: "paragraph",
+      content: [{ type: "text", text: jobPosting.jobDescription }],
     });
   }
 
   if (jobPosting.responsibilities && jobPosting.responsibilities.length > 0) {
     content.push({
-      type: 'heading',
+      type: "heading",
       attrs: { level: 2 },
-      content: [{ type: 'text', text: 'Responsibilities' }]
+      content: [{ type: "text", text: "Responsibilities" }],
     });
-    const responsibilityItems = jobPosting.responsibilities.map(responsibility => ({
-      type: 'listItem',
-      content: [{ type: 'paragraph', content: [{ type: 'text', text: responsibility }] }]
-    }));
-    content.push({ type: 'bulletList', content: responsibilityItems });
+    const responsibilityItems = jobPosting.responsibilities.map(
+      (responsibility) => ({
+        type: "listItem",
+        content: [
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: responsibility }],
+          },
+        ],
+      })
+    );
+    content.push({ type: "bulletList", content: responsibilityItems });
   }
 
-  if (jobPosting.requiredQualifications && jobPosting.requiredQualifications.length > 0) {
+  if (
+    jobPosting.requiredQualifications &&
+    jobPosting.requiredQualifications.length > 0
+  ) {
     content.push({
-      type: 'heading',
+      type: "heading",
       attrs: { level: 2 },
-      content: [{ type: 'text', text: 'Required Qualifications' }]
+      content: [{ type: "text", text: "Required Qualifications" }],
     });
-    const qualificationItems = jobPosting.requiredQualifications.map(qualification => ({
-      type: 'listItem',
-      content: [{ type: 'paragraph', content: [{ type: 'text', text: qualification }] }]
-    }));
-    content.push({ type: 'bulletList', content: qualificationItems });
+    const qualificationItems = jobPosting.requiredQualifications.map(
+      (qualification) => ({
+        type: "listItem",
+        content: [
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: qualification }],
+          },
+        ],
+      })
+    );
+    content.push({ type: "bulletList", content: qualificationItems });
   }
 
-  if (jobPosting.preferredQualifications && jobPosting.preferredQualifications.length > 0) {
+  if (
+    jobPosting.preferredQualifications &&
+    jobPosting.preferredQualifications.length > 0
+  ) {
     content.push({
-      type: 'heading',
+      type: "heading",
       attrs: { level: 2 },
-      content: [{ type: 'text', text: 'Preferred Qualifications' }]
+      content: [{ type: "text", text: "Preferred Qualifications" }],
     });
-    const prefQualificationItems = jobPosting.preferredQualifications.map(qualification => ({
-      type: 'listItem',
-      content: [{ type: 'paragraph', content: [{ type: 'text', text: qualification }] }]
-    }));
-    content.push({ type: 'bulletList', content: prefQualificationItems });
+    const prefQualificationItems = jobPosting.preferredQualifications.map(
+      (qualification) => ({
+        type: "listItem",
+        content: [
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: qualification }],
+          },
+        ],
+      })
+    );
+    content.push({ type: "bulletList", content: prefQualificationItems });
   }
 
-  if (jobPosting.additionalResponsibilities && jobPosting.additionalResponsibilities.length > 0) {
+  if (
+    jobPosting.additionalResponsibilities &&
+    jobPosting.additionalResponsibilities.length > 0
+  ) {
     content.push({
-      type: 'heading',
+      type: "heading",
       attrs: { level: 2 },
-      content: [{ type: 'text', text: 'Additional Responsibilities' }]
+      content: [{ type: "text", text: "Additional Responsibilities" }],
     });
-    const additionalResponsibilityItems = jobPosting.additionalResponsibilities.map(responsibility => ({
-      type: 'listItem',
-      content: [{ type: 'paragraph', content: [{ type: 'text', text: responsibility }] }]
-    }));
-    content.push({ type: 'bulletList', content: additionalResponsibilityItems });
+    const additionalResponsibilityItems =
+      jobPosting.additionalResponsibilities.map((responsibility) => ({
+        type: "listItem",
+        content: [
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: responsibility }],
+          },
+        ],
+      }));
+    content.push({
+      type: "bulletList",
+      content: additionalResponsibilityItems,
+    });
   }
 
-  return { type: 'doc', content };
+  if (jobPosting.whatWeOffer && jobPosting.whatWeOffer.length > 0) {
+    content.push({
+      type: "heading",
+      attrs: { level: 2 },
+      content: [{ type: "text", text: "What We Offer" }],
+    });
+    const offerItems = jobPosting.whatWeOffer.map((offer) => ({
+      type: "listItem",
+      content: [
+        { type: "paragraph", content: [{ type: "text", text: offer }] },
+      ],
+    }));
+    content.push({ type: "bulletList", content: offerItems });
+  }
+
+  return { type: "doc", content };
 };
-
 
 export async function RetreiveGeneratedJD(generatedJobDescriptionId: string) {
   const cookieStore = cookies();

@@ -62,6 +62,40 @@ export async function getJobDescription(
   let role_job_description = "";
   let role_responsibilities = "";
   let role_required_qualifications = "";
+  let company_introduction = "";
+  let company_benefits = "";
+
+  /* Fetch preset introduction and employee benefits from database if available */
+  const { data: intro, error: introError } = await supabase
+    .from("collection")
+    .select("content")
+    .eq("type", "company_intro")
+    .eq("owner", owner)
+    .eq("primary", true);
+
+  if (introError) {
+    throw new Error(introError.message);
+  }
+
+  if (intro && intro.length > 0) {
+    company_introduction = intro[0].content;
+  }
+
+  const { data: benefits, error: benefitError } = await supabase
+    .from("collection")
+    .select("content")
+    .eq("type", "benefits")
+    .eq("owner", owner)
+    .eq("primary", true);
+
+  if (benefitError) {
+    throw new Error(benefitError.message);
+  }
+
+  if (benefits && benefits.length > 0) {
+    company_benefits = benefits[0].content;
+  }
+  /* End fetch preset introduction and employee benefits from database if available */
 
   const jdBuilderLookup = [
     {
@@ -136,18 +170,24 @@ export async function getJobDescription(
   This job description will be used to attract and recruit top candidates for the role. Ensure that the job description is clear, 
   complete, and written in a professional and engaging manner. Include the following sections:
   
-  1. **Job Title**: Clearly state the job title.
+  **Job Title**: Clearly state the job title.
+
+  ${
+    company_introduction
+      ? `**Company Introduction**: Provide a brief introduction to the company. Only include the Company Introduction if its provided in the context otherwise do not include it.`
+      : ""
+  }
   
-  2. **Job Description**: Provide a detailed overview of the role, including its purpose, primary functions, and how it fits 
+  **Job Description**: Provide a detailed overview of the role, including its purpose, primary functions, and how it fits 
      within the organization.
   
-  3. **Responsibilities**: List the key responsibilities and duties associated with the role. Be specific and use bullet points 
+  **Responsibilities**: List the key responsibilities and duties associated with the role. Be specific and use bullet points 
      to ensure clarity.
   
-  4. **Required Qualifications**: Outline the essential qualifications, skills, and experience required for the role. Include 
+  **Required Qualifications**: Outline the essential qualifications, skills, and experience required for the role. Include 
      educational requirements, technical skills, and any certifications needed.
   
-  5. **Preferred Qualifications**: Based on your experience, list any additional qualifications, skills, or experience that would be advantageous but 
+  **Preferred Qualifications**: Based on your experience, list any additional qualifications, skills, or experience that would be advantageous but 
      are not strictly necessary. This may not be directly given in the context therefore you can use your own judgement.
   
   Use persuasive language to highlight the opportunities and benefits of the role, and ensure the tone is aligned with the 
@@ -157,6 +197,28 @@ export async function getJobDescription(
   The context provided includes information from the SOW/PWS given to the user for writing the job description. However, the job description should be written generically to recruit for the role without revealing the client's identity or specific tasks.
   `;
 
+  // Ternary to include Company Introduction and Benefits if available
+  const finalContextPrompt = `Context: 
+
+  ${
+    company_introduction
+      ? `Company Introduction: ${company_introduction}\n`
+      : ""
+  }
+
+  Job Description: ${role_job_description} 
+
+  Responsibilities: ${role_responsibilities} 
+
+  Requirements: ${role_required_qualifications}
+  
+  ${company_benefits ? `Benefits: ${company_benefits}` : ""}`;
+
+  console.log("Final Context Prompt:", finalContextPrompt);
+  console.log("Final System Prompt:", finalSysPrompt);
+
+  // Generate the final job description
+
   const finalExtract = await togetherAi.chat.completions.create({
     messages: [
       {
@@ -165,13 +227,7 @@ export async function getJobDescription(
       },
       {
         role: "user",
-        content: `Context: 
-
-        Job Description: ${role_job_description} 
-
-        Responsibilities: ${role_responsibilities} 
-
-        Requirements: ${role_required_qualifications}`,
+        content: finalContextPrompt,
       },
     ],
     model: "meta-llama/Llama-3-70b-chat-hf",
@@ -182,17 +238,27 @@ export async function getJobDescription(
 
   // Convert the final output to a JSON object
   // We use two LLM because the first model is better at generating the job description and the second model is better at converting it to JSON
+  // TOOD: Update to use a single model when the API supports it
   const convertToJSONPrompt = `You are a helpful AI assistant. Convert the following job description into a JSON object according to the provided schema. Ensure that all sections of the job description are accurately represented in the JSON object without altering the content. Do not add any HTML or Markdown formatting.
   
   Use the following as a guide to map the job description to the JSON schema:
 
 - jobTitle: A string representing the job title of the position.
+${
+  company_introduction
+    ? `- companyIntroduction: A string providing an introduction to the company. This should be verbatim from **Company Introduction** and nothing else.`
+    : ""
+}
 - jobDescription: A string providing an introduction to the job opportunity. This should be verbatim from **Job Description** and nothing else.
 - responsibilities: An array of strings listing the responsibilities for the position.
 - additionalResponsibilities: An optional array of strings listing any additional responsibilities for the position.
 - requiredQualifications: An array of strings listing the required qualifications for the position.
 - preferredQualifications: An optional array of strings listing the preferred qualifications for the position.
-- whatWeOffer: An array of strings detailing the benefits and offerings of the position.`;
+${
+  company_benefits
+    ? `- whatWeOffer: An array of strings detailing the benefits and offerings of the position.`
+    : ""
+}`;
 
   const jdJSON = await togetherAi.chat.completions.create({
     messages: [

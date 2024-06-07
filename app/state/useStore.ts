@@ -10,6 +10,18 @@ interface DashboardRoleOverview {
   active: boolean;
   active_role_id: string | null;
   active_role_name: string | null;
+  active_role_description: string | null;
+  active_role_job_type: string | null;
+  active_role_active: boolean | null;
+  active_role_private_employer: boolean | null;
+  active_role_min_salary: number | null;
+  active_role_max_salary: number | null;
+  active_role_location_type: string | null;
+  active_role_security_clearance: string | null;
+  active_role_salary_disclose: boolean | null;
+  active_role_commission_pay: boolean | null;
+  active_role_commission_percent: number | null;
+  active_role_salary_ote: number | null;
 }
 
 interface JobLocation {
@@ -103,7 +115,23 @@ const useStore = create<StoreState>((set) => ({
   // Current user aka employer id
   user: null,
   // Use in Dashboard - Overview page - Set the active role being viewed
-  dashboard_role_overview: { active: false, active_role_id: null, active_role_name: null},
+  dashboard_role_overview: {
+    active: false,
+    active_role_id: null,
+    active_role_name: null,
+    active_role_description: null,
+    active_role_job_type: null,
+    active_role_active: null,
+    active_role_private_employer: null,
+    active_role_min_salary: null,
+    active_role_max_salary: null,
+    active_role_location_type: null,
+    active_role_security_clearance: null,
+    active_role_salary_disclose: null,
+    active_role_commission_pay: null,
+    active_role_commission_percent: null,
+    active_role_salary_ote: null,
+  },
   // State for add-jd
   addJD: {
     filename: null,

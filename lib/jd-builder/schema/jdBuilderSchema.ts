@@ -3,6 +3,10 @@ import { z } from "zod";
 export const jobDescriptionBuilderSchema = z
   .object({
     jobTitle: z.string().describe("Job title of the position."),
+    companyIntroduction: z
+      .string()
+      .optional()
+      .describe("Introduction of the company."),
     jobDescription: z.string().describe("Introduction of the job opportunity."),
     responsibilities: z
       .array(z.string())
@@ -22,4 +26,4 @@ export const jobDescriptionBuilderSchema = z
       .array(z.string())
       .describe("Benefits and offerings of the position."),
   })
-  .describe("Schema for job descriptions.");
+  .describe("Schema for a job descriptions.");

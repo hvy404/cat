@@ -1,7 +1,7 @@
 import { useState, useEffect, use } from "react";
 import { ChevronRightIcon } from "@heroicons/react/20/solid";
 import useStore from "@/app/state/useStore";
-import { fetchActiveJobPosts } from "@/app/(employer)/dashboard/views/overview/lib/fetchActiveRoles";
+import { fetchActiveJobPosts } from "@/app/(employer)/dashboard/views/overview/lib/fetchRoles";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Job {

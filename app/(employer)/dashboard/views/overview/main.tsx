@@ -22,13 +22,13 @@ export default function EmployerDashboardMain() {
               <Tabs defaultValue="active" className="w-full">
                 <TabsList>
                   <TabsTrigger value="active">Active</TabsTrigger>
-                  <TabsTrigger value="archived">Archived</TabsTrigger>
+                  <TabsTrigger value="paused">Paused</TabsTrigger>
                 </TabsList>
                 <TabsContent value="active">
                   
                   <OverviewJobList />
                 </TabsContent>
-                <TabsContent value="archived">
+                <TabsContent value="paused">
                   ...
                 </TabsContent>
               </Tabs>

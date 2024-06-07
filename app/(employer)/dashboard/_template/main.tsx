@@ -29,7 +29,7 @@ export default function EmployerDashboardJDBuilder() {
                 </div>
             </div>
             <div className={`hidden md:flex flex-col gap-4 transition-all duration-700 ease-in-out ${isExpanded ? 'lg:w-1/4' : 'lg:w-1/2'}`}>
-                <div className="min-h-[50vh] rounded-xl bg-muted/50 p-4 overflow-auto">
+                <div className="min-h-[90vh] rounded-xl bg-muted/50 p-4 overflow-auto">
                     <div className="grid gap-6">Right Column</div>
                 </div>
             </div>
