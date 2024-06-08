@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import useStore from "@/app/state/useStore";
-import CollectionPanelMain from "@/app/(employer)/dashboard/views/collection/panel";
 import {
   fetchPresets,
   updatePrimaryPreset,
@@ -137,8 +136,16 @@ export default function EmployerDashboardDocuments() {
                   <h2 className="text-sm font-bold">Company Introduction</h2>
                   <div className="grid md:grid-cols-1 lg:grid-cols-2 text-sm gap-4">
                     <div
-                      onClick={() => handleCreateNew(PanelType.Intro)}
-                      className="rounded-md border p-4 flex flex-row justify-between items-center transition-all duration-300 ease-in-out border-1 border-gray-200 hover:border-2 hover:border-gray-800"
+                      onClick={() => {
+                        if (!editingID) {
+                          handleCreateNew(PanelType.Intro);
+                        }
+                      }}
+                      className={`rounded-md border p-4 flex flex-row justify-between items-center transition-all duration-300 ease-in-out border-1 ${
+                        editingID
+                          ? "cursor-default opacity-50"
+                          : "cursor-pointer border-gray-200 hover:border-2 hover:border-gray-800"
+                      }`}
                     >
                       <div className="flex flex-row gap-2 items-center">
                         <span className="font-medium text-md text-gray-800">
@@ -154,12 +161,24 @@ export default function EmployerDashboardDocuments() {
                             intro.snippet_id === editingID
                               ? "border-2 border-slate-800"
                               : "border-1 border-gray-200"
+                          } ${
+                            editingID && intro.snippet_id !== editingID
+                              ? "opacity-50 pointer-events-none"
+                              : ""
                           }`}
                         >
                           <div className="flex flex-row gap-2 items-center">
                             <div
-                              onClick={() => handleEdit(intro.snippet_id)}
-                              className="cursor-pointer p-2 rounded-full bg-gray-50 hover:bg-gray-200 transition-colors duration-300 ease-in-out"
+                              onClick={() => {
+                                if (editingID !== intro.snippet_id) {
+                                  handleEdit(intro.snippet_id);
+                                }
+                              }}
+                              className={`cursor-pointer p-2 rounded-full bg-gray-50 hover:bg-gray-200 transition-colors duration-300 ease-in-out ${
+                                editingID && intro.snippet_id !== editingID
+                                  ? "cursor-default"
+                                  : ""
+                              }`}
                             >
                               <Pencil size={12} className="text-gray-800" />
                             </div>
@@ -192,8 +211,16 @@ export default function EmployerDashboardDocuments() {
                   <h2 className="text-sm font-bold">Benefits</h2>
                   <div className="grid md:grid-cols-1 lg:grid-cols-2 text-sm gap-4">
                     <div
-                      onClick={() => handleCreateNew(PanelType.Benefits)}
-                      className="rounded-md border p-4 flex flex-row justify-between items-center transition-all duration-300 ease-in-out border-1 border-gray-200 hover:border-2 hover:border-gray-800"
+                      onClick={() => {
+                        if (!editingID) {
+                          handleCreateNew(PanelType.Benefits);
+                        }
+                      }}
+                      className={`rounded-md border p-4 flex flex-row justify-between items-center transition-all duration-300 ease-in-out border-1 ${
+                        editingID
+                          ? "cursor-default opacity-50"
+                          : "cursor-pointer border-gray-200 hover:border-2 hover:border-gray-800"
+                      }`}
                     >
                       <div className="flex flex-row gap-2 items-center">
                         <span className="font-medium text-md text-gray-800">
@@ -209,12 +236,24 @@ export default function EmployerDashboardDocuments() {
                             benefit.snippet_id === editingID
                               ? "border-2 border-slate-800"
                               : "border-1 border-gray-200"
+                          } ${
+                            editingID && benefit.snippet_id !== editingID
+                              ? "opacity-50 pointer-events-none"
+                              : ""
                           }`}
                         >
                           <div className="flex flex-row gap-2 items-center">
                             <div
-                              onClick={() => handleEdit(benefit.snippet_id)}
-                              className="cursor-pointer p-2 rounded-full bg-gray-50 hover:bg-gray-200 transition-colors duration-300 ease-in-out"
+                              onClick={() => {
+                                if (editingID !== benefit.snippet_id) {
+                                  handleEdit(benefit.snippet_id);
+                                }
+                              }}
+                              className={`cursor-pointer p-2 rounded-full bg-gray-50 hover:bg-gray-200 transition-colors duration-300 ease-in-out ${
+                                editingID && benefit.snippet_id !== editingID
+                                  ? "cursor-default"
+                                  : ""
+                              }`}
                             >
                               <Pencil size={12} className="text-gray-800" />
                             </div>
