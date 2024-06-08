@@ -53,6 +53,30 @@ export async function savePresetEntry(
   };
 }
 
+export async function deletePresetEntry(
+  owner: string,
+  entryID: string,
+) {
+  const cookieStore = cookies();
+  const supabase = createClient(cookieStore);
+
+  const { data, error: deleteError } = await supabase
+    .from("collections")
+    .delete()
+    .eq("snippet_id", entryID)
+    .eq("owner", owner);
+
+  if (deleteError) {
+    return {
+      success: false,
+    };
+  }
+
+  return {
+    success: true,
+  };
+}
+
 export async function createPresetEntry(
   owner: string,
   title: string,

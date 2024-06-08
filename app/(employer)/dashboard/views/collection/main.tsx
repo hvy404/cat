@@ -8,7 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Pencil } from "lucide-react";
 import CollectRightPanelEditor from "@/app/(employer)/dashboard/views/collection/right-panel-editor";
+import { CollectRightPanelStart } from "@/app/(employer)/dashboard/views/collection/right-panel-help";
 import { CollectionLoading } from "@/app/(employer)/dashboard/views/collection/loading";
+
 
 interface Preset {
   title: string;
@@ -113,7 +115,7 @@ export default function EmployerDashboardDocuments() {
       onUpdate={getPresets}
     />
   ) : (
-    <div>Placeholder</div>
+    <CollectRightPanelStart />
   );
 
   return (

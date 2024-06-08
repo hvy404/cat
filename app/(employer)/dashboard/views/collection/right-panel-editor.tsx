@@ -7,6 +7,7 @@ import {
   fetchPresetEntry,
   savePresetEntry,
   createPresetEntry,
+  deletePresetEntry,
 } from "@/lib/collection/presetEntry";
 
 enum PanelType {
@@ -129,6 +130,22 @@ export default function CollectRightPanelEditor({
     }
   };
 
+  // Handle delete click
+  const handleDelete = async () => {
+    if (!userID || !editingID) {
+      console.error("userID or editingID is null or undefined");
+      return;
+    }
+
+    const result = await deletePresetEntry(userID, editingID);
+    if (result.success) {
+      setEditingID(null);
+      onUpdate();
+    } else {
+      console.error("Failed to delete entry");
+    }
+  };
+
   return (
     <div className="grid gap-4">
       <div className="grid w-full max-w-sm items-center gap-1.5">
@@ -145,21 +162,26 @@ export default function CollectRightPanelEditor({
       <div className="gap-0">
         <RichTextEditor value={content} onChange={setWriterContent} />
       </div>
-      <div className="flex justify-end gap-2">
-        <Button
-          onClick={handleCancel}
-          variant={"ghost"}
-          className="btn btn-secondary"
-        >
-          Cancel
-        </Button>
-        <Button
-          onClick={addNew ? handleCreate : handleSave}
-          variant={"outline"}
-          className="btn btn-primary"
-        >
-          Save
-        </Button>
+      <div className="flex justify-between gap-2">
+        <div>
+          <Button onClick={handleDelete} variant={"link"} className="text-red-900">Delete</Button>
+        </div>
+        <div>
+          <Button
+            onClick={handleCancel}
+            variant={"ghost"}
+            className="btn btn-secondary"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={addNew ? handleCreate : handleSave}
+            variant={"outline"}
+            className="btn btn-primary"
+          >
+            Save
+          </Button>
+        </div>
       </div>
     </div>
   );
