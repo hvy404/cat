@@ -2,7 +2,7 @@
 import EmployerDashboardAddJob from "@/app/(employer)/dashboard/views/add-job/main";
 import EmployerDashboardMain from "@/app/(employer)/dashboard/views/overview/main";
 import EmployerDashboardJDBuilder from "@/app/(employer)/dashboard/views/jd-builder/main";
-import EmployerDashboardDocuments from "@/app/(employer)/dashboard/views/profile/main";
+import EmployerDashboardDocuments from "@/app/(employer)/dashboard/views/collection/main";
 import useStore from "@/app/state/useStore";
 
 /**

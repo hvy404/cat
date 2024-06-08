@@ -67,9 +67,9 @@ export async function getJobDescription(
 
   /* Fetch preset introduction and employee benefits from database if available */
   const { data: intro, error: introError } = await supabase
-    .from("collection")
+    .from("collections")
     .select("content")
-    .eq("type", "company_intro")
+    .eq("type", "intro")
     .eq("owner", owner)
     .eq("primary", true);
 
@@ -82,7 +82,7 @@ export async function getJobDescription(
   }
 
   const { data: benefits, error: benefitError } = await supabase
-    .from("collection")
+    .from("collections")
     .select("content")
     .eq("type", "benefits")
     .eq("owner", owner)
