@@ -1,8 +1,22 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { MatchWideJobToRole, getJobEmbedding } from "@/lib/engine/wide_job_to_role";
 
 export function MyProfileForm() {
+  const handleClick = async () => {
+    const jobID = "6d98e834-6513-4736-8cc8-b190a473ed3b";
+    try {
+      const embedding = await getJobEmbedding(jobID);
+      console.log("Job Embedding:", embedding);
+      // Handle the retrieved embedding data as needed
+    } catch (error) {
+      console.error("Error retrieving job embedding:", error);
+      // Handle the error appropriately (e.g., display an error message)
+    }
+  };
+
+
   return (
     <div className="flex flex-col gap-6">
       {/* Personal */}
@@ -40,8 +54,26 @@ export function MyProfileForm() {
               <Switch id="airplane-mode" />
             </div>
           </div>
-
         </div>
+      </div>
+      <div>
+        <button
+          onClick={() => {
+            MatchWideJobToRole().catch((error) => {
+              console.error("Error in MatchWideJobToRole:", error);
+              // Handle the error appropriately (e.g., display an error message)
+            });
+          }}
+          className="bg-blue-500 text-white rounded-md p-2"
+        >
+          Fetch Job
+        </button>{" "}
+        <button
+      onClick={handleClick}
+      className="bg-blue-500 text-white rounded-md p-2"
+    >
+      Get Job Embedding
+    </button>
       </div>
     </div>
   );

@@ -16,41 +16,20 @@ const driver = neo4j.driver(
 
 // lib/neo4j.js
 export async function read(cypher: string, params = {}) {
-  // 1. Open a session
   const session = driver.session();
-
   try {
-    // 2. Execute a Cypher Statement
     const res = await session.executeRead((tx) => tx.run(cypher, params));
+    return res.records.map((record) => record.toObject());
+  } catch (error) {
+    // Handle or log the error
+    console.error("Error executing read operation in Neo4j:", error);
 
-    // 3. Process the Results
-    const values = res.records.map((record) => record.toObject());
-
-    return values;
+    // Optionally rethrow or return an error object
+    throw error;  // or return { success: false, error: error.message };
   } finally {
-    // 4. Close the session
     await session.close();
   }
 }
-
-/* export async function write(cypher: string, params = {}) {
-  // 1. Open a session
-  const session = driver.session();
-
-  try {
-    // 2. Execute a Cypher Statement
-    const res = await session.executeWrite((tx) => tx.run(cypher, params));
-
-    // 3. Process the Results
-    const values = res.records.map((record) => record.toObject());
-
-    return values;
-  } finally {
-    // 4. Close the session
-    await session.close();
-  }
-}
- */
 
 // Better errror propagation
 export async function write(cypher: string, params = {}) {
