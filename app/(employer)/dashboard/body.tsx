@@ -3,6 +3,7 @@ import EmployerDashboardAddJob from "@/app/(employer)/dashboard/views/add-job/ma
 import EmployerDashboardMain from "@/app/(employer)/dashboard/views/overview/main";
 import EmployerDashboardJDBuilder from "@/app/(employer)/dashboard/views/jd-builder/main";
 import EmployerDashboardDocuments from "@/app/(employer)/dashboard/views/collection/main";
+import EmployerDashboardProfile from "@/app/(employer)/dashboard/views/profile/main";
 import useStore from "@/app/state/useStore";
 
 /**
@@ -27,6 +28,8 @@ export default function EmployerDashboardBody() {
         return <EmployerDashboardJDBuilder />;
       case "documents":
         return <EmployerDashboardDocuments />;
+      case "settings":
+        return <EmployerDashboardProfile />;
       // Add more cases as needed for other components
       default:
         return <EmployerDashboardMain />;
