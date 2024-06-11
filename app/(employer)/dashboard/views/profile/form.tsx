@@ -1,8 +1,19 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { getJobEmbedding, findSimilarTalents, getTalentProperties, getTalentRelationships, getTalentRelationshipDetails } from "@/lib/engine/retreive-talent";
-import { getJobByJobID, getJobRelationships, getJobRelationshipDetails } from "@/lib/engine/retrieve-job";
+import {
+  getJobEmbedding,
+  findSimilarTalents,
+  getTalentProperties,
+  getTalentRelationships,
+  getTalentRelationshipDetails,
+} from "@/lib/engine/retreive-talent";
+import {
+  getJobByJobID,
+  getJobRelationships,
+  getJobRelationshipDetails,
+} from "@/lib/engine/retrieve-job";
+import { evaluateTalentMatch } from "@/lib/engine/evaluate-talent-match";
 
 export function MyProfileForm() {
   const handleClick = async () => {
@@ -35,7 +46,7 @@ export function MyProfileForm() {
       console.error("Error retrieving talent properties:", error);
       // Handle the error appropriately (e.g., display an error message)
     }
-  }
+  };
 
   const grabTalentRelationships = async () => {
     const applicantID = "96eda40b-5fd1-4378-a4dd-e2ef63dc7a75";
@@ -47,7 +58,7 @@ export function MyProfileForm() {
       console.error("Error retrieving talent relationships:", error);
       // Handle the error appropriately (e.g., display an error message)
     }
-  }
+  };
 
   const getJobByID = async () => {
     const jobID = "6d98e834-6513-4736-8cc8-b190a473ed3b";
@@ -59,7 +70,7 @@ export function MyProfileForm() {
       console.error("Error retrieving job:", error);
       // Handle the error appropriately (e.g., display an error message)
     }
-  }
+  };
 
   const getJobRelationshipsProps = async () => {
     const jobID = "6d98e834-6513-4736-8cc8-b190a473ed3b";
@@ -71,36 +82,51 @@ export function MyProfileForm() {
       console.error("Error retrieving job relationships:", error);
       // Handle the error appropriately (e.g., display an error message)
     }
-  }
+  };
 
   // getJobResponsibilities
   const getJobResponsibilitiesProps = async () => {
     const jobID = "6d98e834-6513-4736-8cc8-b190a473ed3b";
     const relationshipType = "REQUIRES_QUALIFICATION";
     try {
-      const jobResponsibilities = await getJobRelationshipDetails(jobID, relationshipType);
+      const jobResponsibilities = await getJobRelationshipDetails(
+        jobID,
+        relationshipType
+      );
       console.log("Job Responsibilities:", jobResponsibilities);
       // Handle the retrieved job responsibilities data as needed
     } catch (error) {
       console.error("Error retrieving job responsibilities:", error);
       // Handle the error appropriately (e.g., display an error message)
     }
-  }
+  };
 
   const getTalentRelationshipDeets = async () => {
     const applicantID = "70689ca0-ea2c-4a92-ac06-84ecfcd0a08e";
     const relationshipType = "WORKED_AT";
     try {
-      const talentRelationshipDetails = await getTalentRelationshipDetails(applicantID, relationshipType);
+      const talentRelationshipDetails = await getTalentRelationshipDetails(
+        applicantID,
+        relationshipType
+      );
       console.log("Talent Relationship Details:", talentRelationshipDetails);
       // Handle the retrieved talent relationship details data as needed
     } catch (error) {
       console.error("Error retrieving talent relationship details:", error);
       // Handle the error appropriately (e.g., display an error message)
     }
-  }
+  };
 
-
+  const evaluateTalent = async () => {
+    const applicantID = "70689ca0-ea2c-4a92-ac06-84ecfcd0a08e";
+    try {
+      const combo = "B"; // or "B" or "C"
+      evaluateTalentMatch(applicantID, "6d98e834-6513-4736-8cc8-b190a473ed3b", combo);
+    } catch (error) {
+      console.error("Error evaluating talent match:", error);
+      // Handle the error appropriately (e.g., display an error message)
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -141,31 +167,55 @@ export function MyProfileForm() {
           </div>
         </div>
       </div>
-      <div>
+      <div className="flex flex-col">
         <button
-      onClick={handleClick}
-      className="bg-blue-500 text-white rounded-md p-2"
-    >
-      Get Talent Matches
-    </button>
-    <button onClick={grabTalentProperties} className="bg-blue-500 text-white rounded-md p-2">
-      Get Talent Properties
-    </button>
-    <button onClick={grabTalentRelationships} className="bg-blue-500 text-white rounded-md p-2">
-      Get Talent Relationships
-    </button>
-    <button onClick={getJobByID} className="bg-blue-500 text-white rounded-md p-2">
-      Get Job By ID
-    </button>
-    <button onClick={getJobRelationshipsProps} className="bg-blue-500 text-white rounded-md p-2">
-      Get Job Relationships
-    </button>
-    <button onClick={getJobResponsibilitiesProps} className="bg-blue-500 text-white rounded-md p-2">
-      Get Job Relationship - Responsibilities
-    </button>
-    <button onClick={getTalentRelationshipDeets} className="bg-blue-500 text-white rounded-md p-2">
-      Get Talent Relationship Details
-    </button>
+          onClick={handleClick}
+          className="bg-blue-500 text-white rounded-md p-2"
+        >
+          Get Talent Matches
+        </button>
+        <button
+          onClick={grabTalentProperties}
+          className="bg-blue-500 text-white rounded-md p-2"
+        >
+          Get Talent Properties
+        </button>
+        <button
+          onClick={grabTalentRelationships}
+          className="bg-blue-500 text-white rounded-md p-2"
+        >
+          Get Talent Relationships
+        </button>
+        <button
+          onClick={getJobByID}
+          className="bg-blue-500 text-white rounded-md p-2"
+        >
+          Get Job By ID
+        </button>
+        <button
+          onClick={getJobRelationshipsProps}
+          className="bg-blue-500 text-white rounded-md p-2"
+        >
+          Get Job Relationships
+        </button>
+        <button
+          onClick={getJobResponsibilitiesProps}
+          className="bg-blue-500 text-white rounded-md p-2"
+        >
+          Get Job Relationship - Responsibilities
+        </button>
+        <button
+          onClick={getTalentRelationshipDeets}
+          className="bg-blue-500 text-white rounded-md p-2"
+        >
+          Get Talent Relationship Details
+        </button>
+        <button
+          onClick={evaluateTalent}
+          className="bg-blue-500 text-white rounded-md p-2"
+        >
+          Evaluate Talent Match
+        </button>
       </div>
     </div>
   );

@@ -172,54 +172,45 @@ export async function getTalentRelationshipDetails(
 
   try {
     const result = await read(query, params);
-    const relationships = result.map((record) => {
-      const { type, properties, node } = record;
+    let relationships;
 
-      switch (type) {
-        case "STUDIED_AT":
-          return {
-            type,
-            node: {
-              degree: node.degree,
-              institution: node.institution,
-              start_date: node.start_date,
-              end_date: node.end_date,
-            },
-          };
-        case "WORKED_AT":
-          return {
-            type,
-            node: {
-              job_title: node.job_title,
-              organization: node.organization,
-              start_date: node.start_date,
-              end_date: node.end_date,
-              responsibilities: node.responsibilities,
-            },
-          };
-        case "HAS_SKILL":
-        case "HAS_CERTIFICATION":
-        case "HAS_INDUSTRY_EXPERIENCE":
-        case "HAS_SOFT_SKILL":
-        case "HAS_POTENTIAL_ROLE":
-        case "HAS_MENTOR":
-        case "HAS_REFERENCE":
-        case "HAS_COLLEAGUE":
-          return {
-            type,
-            node: {
-              name: node.name,
-            },
-          };
-        default:
-          return {
-            type,
-            node: node,
-          };
-      }
-    });
+    switch (relationshipType) {
+      case "STUDIED_AT":
+        relationships = result.map((record) => ({
+          degree: record.node.degree,
+          institution: record.node.institution,
+          start_date: record.node.start_date,
+          end_date: record.node.end_date,
+        }));
+        break;
+      case "WORKED_AT":
+        relationships = result.map((record) => ({
+          job_title: record.node.job_title,
+          organization: record.node.organization,
+          start_date: record.node.start_date,
+          end_date: record.node.end_date,
+          responsibilities: record.node.responsibilities,
+        }));
+        break;
+      case "HAS_SKILL":
+      case "HAS_CERTIFICATION":
+      case "HAS_INDUSTRY_EXPERIENCE":
+      case "HAS_SOFT_SKILL":
+      case "HAS_POTENTIAL_ROLE":
+      case "HAS_MENTOR":
+      case "HAS_REFERENCE":
+      case "HAS_COLLEAGUE":
+        relationships = result.map((record) => record.node.name);
+        break;
+      default:
+        relationships = result.map((record) => ({
+          type: record.type,
+          node: record.node,
+        }));
+        break;
+    }
 
-    console.log(`Talent ${relationshipType}:`, relationships);
+    //console.log(`Talent ${relationshipType}:`, relationships);
     return relationships;
   } catch (error) {
     console.error("Error executing Neo4j query:", error);

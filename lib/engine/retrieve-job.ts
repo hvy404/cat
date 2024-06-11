@@ -76,7 +76,7 @@ export async function getJobRelationshipDetails(
   try {
     const result = await read(query, params);
     const responsibilities = result.map((record) => record.n.properties.name);
-    console.log(`Job ${relationshipType}:`, responsibilities);
+    //console.log(`Job ${relationshipType}:`, responsibilities);
     return responsibilities;
   } catch (error) {
     console.error("Error executing Neo4j query:", error);
