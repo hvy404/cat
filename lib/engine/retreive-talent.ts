@@ -172,25 +172,18 @@ export async function getTalentRelationshipDetails(
 
   try {
     const result = await read(query, params);
-    let relationships;
+    let relationships: string[] = [];
 
     switch (relationshipType) {
       case "STUDIED_AT":
-        relationships = result.map((record) => ({
-          degree: record.node.degree,
-          institution: record.node.institution,
-          start_date: record.node.start_date,
-          end_date: record.node.end_date,
-        }));
+        relationships = result.map((record) => (
+          `Degree: ${record.node.degree} at ${record.node.institution} from ${record.node.start_date} to ${record.node.end_date}`
+        ));
         break;
       case "WORKED_AT":
-        relationships = result.map((record) => ({
-          job_title: record.node.job_title,
-          organization: record.node.organization,
-          start_date: record.node.start_date,
-          end_date: record.node.end_date,
-          responsibilities: record.node.responsibilities,
-        }));
+        relationships = result.map((record) => (
+          `Job Title: ${record.node.job_title} at Organization: ${record.node.organization} from ${record.node.start_date} to ${record.node.end_date}. Responsibilities: ${record.node.responsibilities}`
+        ));
         break;
       case "HAS_SKILL":
       case "HAS_CERTIFICATION":
@@ -203,17 +196,15 @@ export async function getTalentRelationshipDetails(
         relationships = result.map((record) => record.node.name);
         break;
       default:
-        relationships = result.map((record) => ({
-          type: record.type,
-          node: record.node,
-        }));
+        relationships = result.map((record) => (
+          `Type: ${record.type}, Node: ${JSON.stringify(record.node)}`
+        ));
         break;
     }
 
-    //console.log(`Talent ${relationshipType}:`, relationships);
     return relationships;
   } catch (error) {
-    console.error("Error executing Neo4j query:", error);
+    console.error("Error retrieving talent relationship details:", error);
     throw error;
   }
 }
