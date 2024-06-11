@@ -11,6 +11,7 @@ export default function Main() {
       <div className="relative isolate px-6 pt-14 lg:px-8">
         <MainLanding />
         <JDGenerator />
+        <AddReusme />
     
       </div>
 

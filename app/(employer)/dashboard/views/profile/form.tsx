@@ -1,20 +1,105 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { MatchWideJobToRole, getJobEmbedding } from "@/lib/engine/wide_job_to_role";
+import { getJobEmbedding, findSimilarTalents, getTalentProperties, getTalentRelationships, getTalentRelationshipDetails } from "@/lib/engine/retreive-talent";
+import { getJobByJobID, getJobRelationships, getJobRelationshipDetails } from "@/lib/engine/retrieve-job";
 
 export function MyProfileForm() {
   const handleClick = async () => {
     const jobID = "6d98e834-6513-4736-8cc8-b190a473ed3b";
     try {
       const embedding = await getJobEmbedding(jobID);
-      console.log("Job Embedding:", embedding);
-      // Handle the retrieved embedding data as needed
+      if (!embedding) {
+        console.log("No embedding found for the specified job.");
+        return;
+      }
+
+      const threshold = 0.695;
+
+      const similarTalents = await findSimilarTalents(embedding, threshold);
+      console.log("Similar Talents:", similarTalents);
+      // Handle the retrieved similar talents data as needed
     } catch (error) {
-      console.error("Error retrieving job embedding:", error);
+      console.error("Error retrieving similar talents:", error);
       // Handle the error appropriately (e.g., display an error message)
     }
   };
+
+  const grabTalentProperties = async () => {
+    const applicantID = "96eda40b-5fd1-4378-a4dd-e2ef63dc7a75";
+    try {
+      const talentProperties = await getTalentProperties(applicantID);
+      console.log("Talent Properties:", talentProperties);
+      // Handle the retrieved talent properties data as needed
+    } catch (error) {
+      console.error("Error retrieving talent properties:", error);
+      // Handle the error appropriately (e.g., display an error message)
+    }
+  }
+
+  const grabTalentRelationships = async () => {
+    const applicantID = "96eda40b-5fd1-4378-a4dd-e2ef63dc7a75";
+    try {
+      const talentRelationships = await getTalentRelationships(applicantID);
+      console.log("Talent Relationships:", talentRelationships);
+      // Handle the retrieved talent relationships data as needed
+    } catch (error) {
+      console.error("Error retrieving talent relationships:", error);
+      // Handle the error appropriately (e.g., display an error message)
+    }
+  }
+
+  const getJobByID = async () => {
+    const jobID = "6d98e834-6513-4736-8cc8-b190a473ed3b";
+    try {
+      const job = await getJobByJobID(jobID);
+      console.log("Job:", job);
+      // Handle the retrieved job data as needed
+    } catch (error) {
+      console.error("Error retrieving job:", error);
+      // Handle the error appropriately (e.g., display an error message)
+    }
+  }
+
+  const getJobRelationshipsProps = async () => {
+    const jobID = "6d98e834-6513-4736-8cc8-b190a473ed3b";
+    try {
+      const jobRelationships = await getJobRelationships(jobID);
+      console.log("Job Relationships:", jobRelationships);
+      // Handle the retrieved job relationships data as needed
+    } catch (error) {
+      console.error("Error retrieving job relationships:", error);
+      // Handle the error appropriately (e.g., display an error message)
+    }
+  }
+
+  // getJobResponsibilities
+  const getJobResponsibilitiesProps = async () => {
+    const jobID = "6d98e834-6513-4736-8cc8-b190a473ed3b";
+    const relationshipType = "REQUIRES_QUALIFICATION";
+    try {
+      const jobResponsibilities = await getJobRelationshipDetails(jobID, relationshipType);
+      console.log("Job Responsibilities:", jobResponsibilities);
+      // Handle the retrieved job responsibilities data as needed
+    } catch (error) {
+      console.error("Error retrieving job responsibilities:", error);
+      // Handle the error appropriately (e.g., display an error message)
+    }
+  }
+
+  const getTalentRelationshipDeets = async () => {
+    const applicantID = "70689ca0-ea2c-4a92-ac06-84ecfcd0a08e";
+    const relationshipType = "WORKED_AT";
+    try {
+      const talentRelationshipDetails = await getTalentRelationshipDetails(applicantID, relationshipType);
+      console.log("Talent Relationship Details:", talentRelationshipDetails);
+      // Handle the retrieved talent relationship details data as needed
+    } catch (error) {
+      console.error("Error retrieving talent relationship details:", error);
+      // Handle the error appropriately (e.g., display an error message)
+    }
+  }
+
 
 
   return (
@@ -58,21 +143,28 @@ export function MyProfileForm() {
       </div>
       <div>
         <button
-          onClick={() => {
-            MatchWideJobToRole().catch((error) => {
-              console.error("Error in MatchWideJobToRole:", error);
-              // Handle the error appropriately (e.g., display an error message)
-            });
-          }}
-          className="bg-blue-500 text-white rounded-md p-2"
-        >
-          Fetch Job
-        </button>{" "}
-        <button
       onClick={handleClick}
       className="bg-blue-500 text-white rounded-md p-2"
     >
-      Get Job Embedding
+      Get Talent Matches
+    </button>
+    <button onClick={grabTalentProperties} className="bg-blue-500 text-white rounded-md p-2">
+      Get Talent Properties
+    </button>
+    <button onClick={grabTalentRelationships} className="bg-blue-500 text-white rounded-md p-2">
+      Get Talent Relationships
+    </button>
+    <button onClick={getJobByID} className="bg-blue-500 text-white rounded-md p-2">
+      Get Job By ID
+    </button>
+    <button onClick={getJobRelationshipsProps} className="bg-blue-500 text-white rounded-md p-2">
+      Get Job Relationships
+    </button>
+    <button onClick={getJobResponsibilitiesProps} className="bg-blue-500 text-white rounded-md p-2">
+      Get Job Relationship - Responsibilities
+    </button>
+    <button onClick={getTalentRelationshipDeets} className="bg-blue-500 text-white rounded-md p-2">
+      Get Talent Relationship Details
     </button>
       </div>
     </div>

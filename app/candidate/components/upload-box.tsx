@@ -39,6 +39,7 @@ export default function ResumeUploadBox() {
   // Run the file upload process only after email is submitted
   useEffect(() => {
     if (candidateEmail && file && emailSubmitted) {
+      console.log("Uploading file...");
       handleFileUpload([file]);
     }
   }, [candidateEmail, file, emailSubmitted]);
@@ -72,6 +73,8 @@ export default function ResumeUploadBox() {
         let signature = candidateGate;
         let email = candidateEmail;
         let uuid = candidateID;
+
+        console.log("Upload result:", uploadResult);
 
         const addResult = await resumeUnconfirmedAddToDatabase(
           uuid,
