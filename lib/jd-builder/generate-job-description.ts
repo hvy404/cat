@@ -174,7 +174,7 @@ export async function getJobDescription(
 
   ${
     company_introduction
-      ? `**Company Introduction**: Provide a brief introduction to the company. Only include the Company Introduction if its provided in the context otherwise do not include it.`
+      ? `**Company Introduction**: Provides a brief introduction to the company. Only include the Company Introduction if its provided in the context otherwise do not include it. You may summarize the statement given in the context but you may not add any additional information.`
       : ""
   }
   
@@ -214,8 +214,8 @@ export async function getJobDescription(
   
   ${company_benefits ? `Benefits: ${company_benefits}` : ""}`;
 
-  console.log("Final Context Prompt:", finalContextPrompt);
-  console.log("Final System Prompt:", finalSysPrompt);
+  //console.log("Final Context Prompt:", finalContextPrompt);
+  //console.log("Final System Prompt:", finalSysPrompt);
 
   // Generate the final job description
 

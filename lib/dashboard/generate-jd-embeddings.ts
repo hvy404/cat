@@ -28,7 +28,7 @@ interface JobDescription {
   salaryRange?: SalaryRange;
   benefits?: string[];
   applicationDeadline?: string;
-  securityClearance?: string;
+  clearanceLevel?: string;
 
   responsibilities?: string[];
   qualifications?: string[];

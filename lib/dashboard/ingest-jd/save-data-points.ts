@@ -14,7 +14,7 @@ interface JobDetails {
   locationType?: "remote" | "onsite" | "hybrid" | undefined;
   minSalary?: number;
   maxSalary?: number;
-  securityClearance?: "none" | "basic" | "secret" | "top-secret" | undefined;
+  clearanceLevel?: "none" | "basic" | "elevated" | "high" | undefined;
   discloseSalary?: boolean;
   commissionPay?: boolean;
   commissionPercent?: number;
@@ -35,7 +35,7 @@ export async function SaveJobDetails(jobDetails: JobDetails, jdUUID: string) {
       location_type: jobDetails.locationType,
       min_salary: jobDetails.minSalary,
       max_salary: jobDetails.maxSalary,
-      security_clearance: jobDetails.securityClearance,
+      security_clearance: jobDetails.clearanceLevel,
       salary_disclose: jobDetails.discloseSalary,
       commission_pay: jobDetails.commissionPay,
       commission_percent: jobDetails.commissionPercent,

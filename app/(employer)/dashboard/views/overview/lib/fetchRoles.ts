@@ -49,11 +49,11 @@ const locationTypeMap: Record<string, string> = {
   hybrid: "Hybrid",
 };
 
-const securityClearanceMap: Record<string, string> = {
+const clearanceLevelMap: Record<string, string> = {
   none: "None",
   basic: "Basic",
-  secret: "Secret",
-  "top-secret": "Top Secret",
+  elevated: "Elevated",
+  high: "High",
 };
 
 interface JobPost {
@@ -64,7 +64,7 @@ interface JobPost {
   min_salary: number;
   max_salary: number;
   location_type: keyof typeof locationTypeMap;
-  security_clearance: keyof typeof securityClearanceMap;
+  security_clearance: keyof typeof clearanceLevelMap;
   salary_disclose: boolean;
   commission_pay: boolean;
   commission_percent: number;
@@ -102,7 +102,7 @@ export async function fetchJobPostSpecifics(userId: string, jobId: string) {
     job_type: jobTypeMap[item.job_type] || item.job_type,
     location_type: locationTypeMap[item.location_type] || item.location_type,
     security_clearance:
-      securityClearanceMap[item.security_clearance] || item.security_clearance,
+      clearanceLevelMap[item.security_clearance] || item.security_clearance,
     description: item.description || "No description provided.",
   }));
 

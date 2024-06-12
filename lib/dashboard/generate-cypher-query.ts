@@ -16,7 +16,7 @@ export type JobDescription = {
   locationType?: "remote" | "onsite" | "hybrid";
   location?: { city?: string; state?: string; zipcode?: string }[];
   experience?: string;
-  description?: string;
+  summary?: string;
   salaryRange?: {
     maximumSalary: number;
     startingSalary: number;
@@ -25,7 +25,7 @@ export type JobDescription = {
   companyOverview?: string;
   preferredSkills: string[];
   responsibilities: string[];
-  securityClearance?: "none" | "basic" | "secret" | "top-secret";
+  clearanceLevel?: "none" | "basic" | "elevated" | "high";
   applicationDeadline?: string;
   technicalDemand?: string;
   clientInteraction?: boolean;
@@ -68,11 +68,11 @@ export function generateJobCypherQuery(
       location_type: "${escapeString(jd.locationType || "unspecified")}", 
       location: "${escapeString(JSON.stringify(jd.location || []))}",    
       experience: "${escapeString(jd.experience || "")}", 
-      description: "${escapeString(jd.description || "")}",      
+      summary: "${escapeString(jd.summary || "")}",      
       maximum_salary: ${jd.salaryRange?.maximumSalary ?? "null"}, 
       starting_salary: ${jd.salaryRange?.startingSalary ?? "null"}, 
       company_overview: "${escapeString(jd.companyOverview || "")}", 
-      security_clearance: "${escapeString(jd.securityClearance || "none")}", 
+      security_clearance: "${escapeString(jd.clearanceLevel || "none")}", 
       application_deadline: "${escapeString(jd.applicationDeadline || "")}", 
       technical_demand: "${escapeString(jd.technicalDemand || "")}", 
       client_interaction: ${jd.clientInteraction ?? "null"}, 

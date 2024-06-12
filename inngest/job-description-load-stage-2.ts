@@ -2,8 +2,6 @@
 
 import { inngest } from "@/lib/inngest/client";
 import { referenceFunction } from "inngest";
-import { createClient } from "@/lib/supabase/server";
-import { cookies } from "next/headers";
 import { type generateJobDescriptionCypher } from "@/inngest/job-description-gen-cypher";
 import { type jobDescriptionEmbeddings } from "@/inngest/job-generate-embeddings";
 import { type jobDescriptionGenerateCompleted } from "@/inngest/job-description-completed";
@@ -12,8 +10,6 @@ export const jobDescriptionOnboardStage2 = inngest.createFunction(
   { id: "job-description-onboard-stage-2" },
   { event: "app/job-description-onboard-stage-2" },
   async ({ event, step }) => {
-    const cookieStore = cookies();
-    const supabase = createClient(cookieStore);
 
     // Data from the event
     const employerID = event.data.job_description.employer;

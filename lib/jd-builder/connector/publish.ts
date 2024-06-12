@@ -1,5 +1,4 @@
 "use server";
-import { cookies } from "next/headers";
 import { inngest } from "@/lib/inngest/client";
 import { JDAddDatabaseEntry } from "@/lib/dashboard/jd-add-new-entry";
 import { v4 as uuidv4 } from "uuid";
@@ -15,12 +14,7 @@ import { v4 as uuidv4 } from "uuid";
  * @param draftText - The text of the draft job description.
  * @returns An object containing the result of the publishing operation.
  */
-export async function publishDraftJD(
-  employerId: string,
-  draftText: string
-) {
-  const cookieStore = cookies();
-
+export async function publishDraftJD(employerId: string, draftText: string) {
   const rawExtract = draftText;
   const sessionID = uuidv4();
   const filename = "jd-wizard-generator";

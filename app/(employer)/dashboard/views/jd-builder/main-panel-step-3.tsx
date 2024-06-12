@@ -5,9 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Wand, Loader, KeyRound } from "lucide-react";
 import { StartJDGeneration } from "@/app/(employer)/dashboard/views/jd-builder/lib/runners/starting-jd-generation";
-import { QueryEventStatus } from "@/lib/dashboard/query-runner-status";
 import { QueryJDGenerationStatus } from "@/lib/dashboard/query-role-jd-generation"; // Get the SOW ID from the generated JD
-import { set } from "zod";
 
 export default function JDBuilderDetectedRoles() {
   // Get state from the store
@@ -111,30 +109,30 @@ export default function JDBuilderDetectedRoles() {
         const { status, jdID } = await QueryJDGenerationStatus(jdBuilderWizard.jdGenerationRunnerID);
 
         if (status === "Completed" && jdID) {
-            console.log("JD Generation completed with draft ID", jdID);
+            //console.log("JD Generation completed with draft ID", jdID);
             isPollingActive = false;
             setJDBuilderWizard({ jobDescriptionId: jdID, step: 4 });
             // Handle the completion, e.g., update state or perform other actions
         } else if (status === "Running") {
             setTimeout(polling, 2500); // Continue polling if still running
         } else if (status === "Failed") {
-            console.log("JD Generation failed");
+            //console.log("JD Generation failed");
             isPollingActive = false;
             // TODO: Handle the failure, e.g., show error message
         } else if (status === "Cancelled") {
-            console.log("JD Generation cancelled");
+            //console.log("JD Generation cancelled");
             isPollingActive = false;
             // Handle the cancellation, e.g., show notification
         } else if (status === "No data") {
-            console.log("No data available for the JD Generation status");
+            //console.log("No data available for the JD Generation status");
             isPollingActive = false;
             // Handle the no data case, e.g., show warning
         } else if (status === "Error fetching data") {
-            console.log("Error fetching JD Generation status");
+            //console.log("Error fetching JD Generation status");
             isPollingActive = false;
             // Handle the error, e.g., show error message
         } else {
-            console.log(`Unknown status: ${status}`);
+            //console.log(`Unknown status: ${status}`);
             isPollingActive = false;
             // Handle unknown status, e.g., show warning or error
         }

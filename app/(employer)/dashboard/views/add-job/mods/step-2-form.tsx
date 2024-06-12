@@ -59,8 +59,8 @@ const jobDetailsSchema = z
       .min(0)
       .transform((value) => (isNaN(value) ? undefined : value))
       .optional(),
-    securityClearance: z
-      .union([z.enum(["none", "basic", "secret", "top-secret"]), z.literal("")])
+    clearanceLevel: z
+      .union([z.enum(["none", "basic", "elevated", "high"]), z.literal("")])
       .refine((val) => val !== "", {
         message: "Please select a clearance type.",
       }),
@@ -123,7 +123,7 @@ export default function AddJDStep2Form() {
       salaryOte: undefined,
       locationType: undefined,
       privateEmployer: false,
-      securityClearance: undefined,
+      clearanceLevel: undefined,
       discloseSalary: undefined,
       commissionPay: false,
       baseCommissionRatio: undefined,
@@ -229,11 +229,11 @@ export default function AddJDStep2Form() {
           | "onsite"
           | "hybrid"
           | undefined,
-        securityClearance: addJD.jobDetails[0].security_clearance as
+        clearanceLevel: addJD.jobDetails[0].security_clearance as
           | "none"
           | "basic"
-          | "secret"
-          | "top-secret"
+          | "elevated"
+          | "high"
           | undefined,
         discloseSalary: addJD.jobDetails[0].salary_disclose,
         commissionPay: addJD.jobDetails[0].commission_pay,
@@ -256,7 +256,7 @@ export default function AddJDStep2Form() {
     const normalizedValues = {
       ...values,
       locationType: values.locationType || undefined, // Replace empty string with undefined, if empty
-      securityClearance: values.securityClearance || undefined,
+      clearanceLevel: values.clearanceLevel || undefined,
     };
 
     // check for jdUUID is not empty
@@ -289,7 +289,7 @@ export default function AddJDStep2Form() {
           location_type: values.locationType ?? "",
           min_salary: values.minSalary ?? 0,
           max_salary: values.maxSalary ?? 0,
-          security_clearance: values.securityClearance ?? "",
+          security_clearance: values.clearanceLevel ?? "",
           salary_disclose: values.discloseSalary ?? false,
           commission_pay: values.commissionPay ?? false,
           commission_percent: values.commissionPercent ?? 0,
@@ -446,13 +446,13 @@ export default function AddJDStep2Form() {
 
               <FormField
                 control={form.control}
-                name="securityClearance"
+                name="clearanceLevel"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Security Clearance</FormLabel>
                     <Controller
                       control={form.control}
-                      name="securityClearance"
+                      name="clearanceLevel"
                       render={({ field }) => (
                         <Select
                           onValueChange={field.onChange}
@@ -461,7 +461,7 @@ export default function AddJDStep2Form() {
                         >
                           <FormControl>
                             <SelectTrigger
-                              onFocus={() => handleFocus("securityClearance")}
+                              onFocus={() => handleFocus("clearanceLevel")}
                             >
                               <SelectValue placeholder="Choose the security clearance." />
                             </SelectTrigger>

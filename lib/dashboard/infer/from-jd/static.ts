@@ -11,7 +11,7 @@ import { cookies } from "next/headers";
 
 const jsonSchemaPrimary = zodToJsonSchema(
   jobDescriptionStaticSchema,
-  "JDSchema"
+  "JDSchemaPrimary"
 );
 const jsonSchemaSecondary = zodToJsonSchema(
   jobDescriptionStaticSecondarySchema,
@@ -35,89 +35,115 @@ export async function generateJDStatic(
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  //console.log("Generating static points from JD");
-
   const systemPrompt = `The following context is a job description. Your task is to extract details about the job opportunity. Only include details in your response for which there is relevant information available in the job description provided. Do not make up any details. Your answer must be in JSON format.`;
   const systemPrompt3 = `The following context is a job description. Your task is to extract details about the job opportunity. Only include details in your response for which there is relevant information available in the job description provided. Do not make up any details. You will respond in JSON format.`;
 
-  const extract = await togetherai.chat.completions.create({
-    messages: [
-      {
-        role: "system",
-        content: systemPrompt,
-      },
-      {
-        role: "user",
-        content: JSON.stringify(jdRaw),
-      },
-    ],
-    model: "mistralai/Mistral-7B-Instruct-v0.1",
-    temperature: 0.4,
-    // @ts-ignore – Together.ai supports schema while OpenAI does not
-    response_format: { type: "json_object", schema: jsonSchemaPrimary },
-  });
+  let primaryOutput, secondaryOutput, thirdOutput;
 
-  const primaryOutput = JSON.parse(extract.choices[0].message.content!);
-  console.log("Primary output: ", primaryOutput);
+  try {
+    console.log("Extracting primary details...");
+    const extract = await togetherai.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt,
+        },
+        {
+          role: "user",
+          content: JSON.stringify(jdRaw),
+        },
+      ],
+      model: "mistralai/Mistral-7B-Instruct-v0.1",
+      temperature: 0.4,
+      // @ts-ignore – Together.ai supports schema while OpenAI does not
+      response_format: { type: "json_object", schema: jsonSchemaPrimary },
+    });
 
-  const extractSecondary = await togetherai.chat.completions.create({
-    messages: [
-      {
-        role: "system",
-        content: systemPrompt,
-      },
-      {
-        role: "user",
-        content: JSON.stringify(jdRaw),
-      },
-    ],
-    model: "mistralai/Mistral-7B-Instruct-v0.1",
-    temperature: 0.4,
-    // @ts-ignore – Together.ai supports schema while OpenAI does not
-    response_format: { type: "json_object", schema: jsonSchemaSecondary },
-  });
+    primaryOutput = JSON.parse(extract.choices[0].message.content!);
 
-  const secondaryOutput = JSON.parse(
-    extractSecondary.choices[0].message.content!
-  );
+    //console.log("Primary output: ", primaryOutput);
+  } catch (error) {
+    console.error("Error in primary extraction:", error);
+    return {
+      message: "Failed to extract primary details.",
+      success: false,
+    };
+  }
 
-  console.log("Secondary output: ", secondaryOutput);
+  try {
+    const extractSecondary = await togetherai.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt,
+        },
+        {
+          role: "user",
+          content: JSON.stringify(jdRaw),
+        },
+      ],
+      model: "mistralai/Mistral-7B-Instruct-v0.1",
+      temperature: 0.4,
+      // @ts-ignore – Together.ai supports schema while OpenAI does not
+      response_format: { type: "json_object", schema: jsonSchemaSecondary },
+    });
 
-  const extractThird = await togetherai.chat.completions.create({
-    messages: [
-      {
-        role: "system",
-        content: systemPrompt3,
-      },
-      {
-        role: "user",
-        content: JSON.stringify(jdRaw),
-      },
-    ],
-    model: "mistralai/Mistral-7B-Instruct-v0.1",
-    temperature: 0.45,
-    // @ts-ignore – Together.ai supports schema while OpenAI does not
-    response_format: { type: "json_object", schema: jsonSchemaThird },
-  });
+    secondaryOutput = JSON.parse(extractSecondary.choices[0].message.content!);
+    //console.log("Secondary output: ", secondaryOutput);
+  } catch (error) {
+    console.error("Error in secondary extraction:", error);
+    return {
+      message: "Failed to extract secondary details.",
+      success: false,
+    };
+  }
 
-  const thirdOutput = JSON.parse(extractThird.choices[0].message.content!);
+  try {
+    const extractThird = await togetherai.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt3,
+        },
+        {
+          role: "user",
+          content: JSON.stringify(jdRaw),
+        },
+      ],
+      model: "mistralai/Mistral-7B-Instruct-v0.1",
+      temperature: 0.45,
+      // @ts-ignore – Together.ai supports schema while OpenAI does not
+      response_format: { type: "json_object", schema: jsonSchemaThird },
+    });
 
-  console.log("Third output :", thirdOutput);
+    thirdOutput = JSON.parse(extractThird.choices[0].message.content!);
+    //console.log("Third output :", thirdOutput);
+  } catch (error) {
+    console.error("Error in third extraction:", error);
+    return {
+      message: "Failed to extract third details.",
+      success: false,
+    };
+  }
 
-  // Merge the two outputs
+  // Merge the outputs
   const mergedOutputs = {
     ...primaryOutput,
     ...secondaryOutput,
     ...thirdOutput,
   };
 
-  const { error } = await supabase
-    .from("job_postings")
-    .update({ static: mergedOutputs }) // Only updating the 'static' column
-    .match({ jd_uuid: jobDescriptionID });
+  try {
+    const { error } = await supabase
+      .from("job_postings")
+      .update({ static: mergedOutputs }) // Only updating the 'static' column
+      .match({ jd_uuid: jobDescriptionID });
 
-  if (error) {
-    console.error(error);
+    if (error) {
+      throw error;
+    }
+  } catch (error) {
+    console.error("Error updating job posting:", error);
     return {
       message: "Failed to update static points.",
       success: false,

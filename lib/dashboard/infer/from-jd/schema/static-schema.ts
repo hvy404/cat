@@ -5,7 +5,7 @@ export const jobDescriptionStaticSchema = z
     jobTitle: z.string().describe("The title or name of the job opportunity."),
     company: z
       .string()
-      .describe("The company posting the job and doing the hiring."),
+      .describe("Name of company posting the job and doing the hiring."),
     client: z
       .string()
       .optional()
@@ -72,10 +72,10 @@ export const jobDescriptionStaticSchema = z
       .string()
       .optional()
       .describe("Deadline for application submissions, if applicable."),
-    securityClearance: z
-      .enum(["none", "basic", "secret", "top-secret"])
+    clearanceLevel: z
+      .enum(["none", "basic", "elevated", "high"])
       .optional()
-      .describe("The level of security clearance required for the job."),
+      .describe("The required clearance level."),
   })
   .describe("Job Description");
 
@@ -118,19 +118,9 @@ export const jobDescriptionStaticSecondarySchema = z
 
 export const jobDescriptionStaticThirdSchema = z
   .object({
-    description: z
+    summary: z
       .string()
       .optional()
-      .describe(
-        "A short summary of the job role, including main responsibilities and tasks. This field is intended to provide potential candidates with a clear idea of what the position entails and what will be expected of them."
-      ),
-    companyOverview: z
-      .string()
-      .optional()
-      .describe(
-        "A brief overview of the company if it's included in the job description."
-      ),
+      .describe("A concise summary of the job role and main responsibilities."),
   })
-  .describe(
-    "Detailed schema for the job description section, focusing on providing an insightful summary of the job."
-  );
+  .describe("Job Description");

@@ -55,7 +55,7 @@ export async function QueryEventStatus(runId: string): Promise<string> {
       throw new Error(`HTTP error! status: ${response.status}`); // Throw if response is not OK
     }
     const data: EventResponse = await response.json(); // Parse and assert to EventResponse
-    console.log(data);
+    //console.log("Querying Status", data);
 
     // Check if data has entries and return the status of the event
     if (data.data && data.data.length > 0) {

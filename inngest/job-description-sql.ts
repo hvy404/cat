@@ -43,12 +43,12 @@ export const jobDescriptionAddStructured = inngest.createFunction(
     // Data type for location: location: "location": [{"city": "Remote"}],
 
     const title = structuredData.jobTitle;
-    const description = structuredData.description;
+    const description = structuredData.summary;
     const location = structuredData.location;
     const locationType = structuredData.locationType;
     const jobType = structuredData.jobType;
     const salaryRange = structuredData.salaryRange;
-    const securityClearance = structuredData.securityClearance;
+    const clearanceLevel = structuredData.clearanceLevel;
     const commissionPay = structuredData.commissionPay;
     const commissionPercent = structuredData.commissionPercent;
     const oteSalary = structuredData.ote_salary;
@@ -65,7 +65,7 @@ export const jobDescriptionAddStructured = inngest.createFunction(
         job_type: jobType,
         min_salary: salaryRange.startingSalary,
         max_salary: salaryRange.maximumSalary,
-        security_clearance: securityClearance,
+        security_clearance: clearanceLevel,
         commission_pay: commissionPay,
         commission_percent: commissionPercent,
         ote_salary: oteSalary,
