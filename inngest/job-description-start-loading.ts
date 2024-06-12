@@ -98,68 +98,6 @@ export const jobDescriptionOnboard = inngest.createFunction(
       console.error("Error adding structured data.", error);
     }
 
-    // Should subsequent steps after this be in a seperate file? because user should be able to confirm before adding to Neo4j
-
-    /* // Build cypher and send cypher query to Neo
-    try {
-      const buildCypherForNeo = await step.invoke(
-        "job-description-add-to-neo-workflow",
-        {
-          function: referenceFunction<typeof generateJobDescriptionCypher>({
-            functionId: "job-description-add-to-neo-workflow",
-          }),
-          data: {
-            job_description: {
-              id: jobDescriptionID,
-              employer: employerID,
-            },
-          },
-        }
-      );
-    } catch (error) {
-      console.error("Error building cypher for Neo.", error);
-    }
-
-    // Generate embeddings and add to Neo Node
-    try {
-      const generateEmbeddings = await step.invoke(
-        "job-description-generate-neo-embeddings",
-        {
-          function: referenceFunction<typeof jobDescriptionEmbeddings>({
-            functionId: "job-description-generate-neo-embeddings",
-          }),
-          data: {
-            job_description: {
-              id: jobDescriptionID,
-            },
-          },
-        }
-      );
-    } catch (error) {
-      console.error("Error generating embeddings.", error);
-    }
-
-    // Mark job description as onboarded
-    try {
-      const generateCompleted = await step.invoke(
-        "job-description-onboard-complete",
-        {
-          function: referenceFunction<typeof jobDescriptionGenerateCompleted>({
-            functionId: "job-description-onboard-complete",
-          }),
-          data: {
-            job_description: {
-              id: jobDescriptionID,
-              employer: employerID,
-              session: session,
-            },
-          },
-        }
-      );
-    } catch (error) {
-      console.error("Error generating embeddings.", error);
-    } */
-
     return { message: "Successfully onboarded job description." };
   }
 );

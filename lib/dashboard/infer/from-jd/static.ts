@@ -37,9 +37,8 @@ export async function generateJDStatic(
 
   //console.log("Generating static points from JD");
 
-  const systemPrompt = `The following context is a job description. Use the job description to extrapolate details about the job opportunity. If the job description does not provide information for a specific key required by the schema, leave the value blank. Only include details in your response for which there is relevant information available in the job description provided. Do not make up any details. Your answer must be in JSON format.`;
-  const systemPrompt3 = `The following context is a job description. Use the job description to infer details about the job opportunity. If the JD does not provide information for a specific key required by the schema, leave the value blank. Only include details in your response for which there is relevant information available in the job description provided. Do not make up any details. Your answer must be in JSON format.`;
-
+  const systemPrompt = `The following context is a job description. Your task is to extract details about the job opportunity. Only include details in your response for which there is relevant information available in the job description provided. Do not make up any details. Your answer must be in JSON format.`;
+  const systemPrompt3 = `The following context is a job description. Your task is to extract details about the job opportunity. Only include details in your response for which there is relevant information available in the job description provided. Do not make up any details. Ensure your response is in JSON format and adheres to the schema structure provided. Only include details in your response for which there is relevant information available in the job description.`;
 
   const extract = await togetherai.chat.completions.create({
     messages: [
@@ -95,9 +94,8 @@ export async function generateJDStatic(
         content: JSON.stringify(jdRaw),
       },
     ],
-    model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
+    model: "mistralai/Mistral-7B-Instruct-v0.1",
     temperature: 0.45,
-    max_tokens: 4000,
     // @ts-ignore – Together.ai supports schema while OpenAI does not
     response_format: { type: "json_object", schema: jsonSchemaThird },
   });

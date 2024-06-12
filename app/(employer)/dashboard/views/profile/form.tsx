@@ -120,8 +120,12 @@ export function MyProfileForm() {
   const evaluateTalent = async () => {
     const applicantID = "70689ca0-ea2c-4a92-ac06-84ecfcd0a08e";
     try {
-      const combo = "B"; // or "B" or "C"
-      evaluateTalentMatch(applicantID, "6d98e834-6513-4736-8cc8-b190a473ed3b", combo);
+      const combo = "D"; // or "B" or "C"
+      evaluateTalentMatch(
+        applicantID,
+        "6d98e834-6513-4736-8cc8-b190a473ed3b",
+        combo
+      );
     } catch (error) {
       console.error("Error evaluating talent match:", error);
       // Handle the error appropriately (e.g., display an error message)

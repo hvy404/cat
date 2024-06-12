@@ -4,7 +4,6 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import { staticSchema } from "./data/staticSchema";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
-import { SubContent } from "@radix-ui/react-dropdown-menu";
 
 const jsonSchema = zodToJsonSchema(staticSchema, "ResumeSchema");
 
@@ -17,12 +16,13 @@ export async function generateLiftedStatic(resume: string, id: string) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
+  const systemPrompt = `The following context is resume data. Your task is to extract details about the resume. Only include details in your response for which there is relevant information available in the job description provided. Do not make up any details. Your answer must be in JSON format.`;
+
   const extract = await togetherai.chat.completions.create({
     messages: [
       {
         role: "system",
-        content:
-          "The following is resume data. Use the resume data to populate relevant fields the resume schema, and answer in JSON. If key values are not relevant, leave it empty. Do not make anything up.",
+        content: systemPrompt,
       },
       {
         role: "user",
@@ -30,7 +30,7 @@ export async function generateLiftedStatic(resume: string, id: string) {
       },
     ],
     model: "mistralai/Mistral-7B-Instruct-v0.1",
-    temperature: 0.3,
+    temperature: 0.4,
     // @ts-ignore – Together.ai supports schema while OpenAI does not
     response_format: { type: "json_object", schema: jsonSchema },
   });

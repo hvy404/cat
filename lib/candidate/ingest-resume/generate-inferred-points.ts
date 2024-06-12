@@ -13,7 +13,7 @@ const togetherai = new OpenAI({
 });
 
 const systemPrompt =
-  "Use the following resume data to populate relevant fields the resume schema and answer in JSON. If key values are not relevant, leave it empty. Do not make anything up.";
+  "The following context is resume data. Your task is to extract details about the resume. Only include details in your response for which there is relevant information available in the job description provided. Do not make up any details. Your answer must be in JSON format.";
 
 export async function generateLiftedInferred(resume: string, id: string) {
   const cookieStore = cookies();
@@ -34,7 +34,7 @@ export async function generateLiftedInferred(resume: string, id: string) {
     ],
     model: "mistralai/Mistral-7B-Instruct-v0.1",
     max_tokens: 4000,
-    temperature: 0.3,
+    temperature: 0.4,
     // @ts-ignore – Together.ai supports schema while OpenAI does not
     response_format: { type: "json_object", schema: jsonSchema },
   });

@@ -68,6 +68,11 @@ function escapeString(str: string) {
   return str.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }
 
+/* // Helper function to escape double quotes in strings -- TODO: Possible fix for the escapeString function
+function escapeString(str: string = ""): string {
+  return str.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+} */
+
 // TODO: jds_viewed, interviewed_by should be matched to jds by relationship and not used as properties
 export function generateCandidateCypherQuery(data: Data, userId: string) {
   let cypher = `

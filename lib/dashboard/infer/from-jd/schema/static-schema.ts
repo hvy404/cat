@@ -26,7 +26,7 @@ export const jobDescriptionStaticSchema = z
       )
       .optional()
       .describe(
-        "The geographic location if applicable. If applicable, there is only one location."
+        "The city, state and zip code of the job location if applicable and an onsite job."
       ),
     jobType: z
       .enum(["full-time", "part-time", "contract", "temporary"])
@@ -83,14 +83,21 @@ export const jobDescriptionStaticSecondarySchema = z
   .object({
     responsibilities: z
       .array(z.string())
-      .describe(
-        "List of specific responsibilities and tasks associated with the job."
-      ),
+      .describe("List of responsibilities and tasks associated with the job."),
     qualifications: z
       .array(z.string())
+      .optional()
       .describe(
-        "List of required qualifications such as degrees, certifications, or specific knowledge areas."
+        "List of required qualifications such specific knowledge areas."
       ),
+    education: z
+      .array(z.string())
+      .optional()
+      .describe("List of required education levels or degrees for the job."),
+    certifications: z
+      .array(z.string())
+      .optional()
+      .describe("List of required certifications or licenses for the job."),
     skills: z
       .array(z.string())
       .describe(
@@ -116,15 +123,15 @@ export const jobDescriptionStaticThirdSchema = z
       .string()
       .optional()
       .describe(
-        "A concise summary of the job role, including main responsibilities and tasks. This field is intended to provide potential candidates with a clear idea of what the position entails and what will be expected of them."
+        "A short summary of the job role, including main responsibilities and tasks. This field is intended to provide potential candidates with a clear idea of what the position entails and what will be expected of them."
       ),
     companyOverview: z
       .string()
       .optional()
       .describe(
-        "A brief overview of the company, highlighting its mission, values, and key commitments."
+        "A brief overview of the company if it's included in the job description."
       ),
   })
   .describe(
-    "Detailed schema for the job description section, focusing on providing an insightful summary of the job and an overview of the company."
+    "Detailed schema for the job description section, focusing on providing an insightful summary of the job."
   );

@@ -8,7 +8,8 @@ import { getJobRelationshipDetails } from "@/lib/engine/retrieve-job";
 const relationshipCombos = {
   A: { job: "REQUIRES_SKILL", talent: "HAS_SKILL" },
   B: { job: "REQUIRES_SKILL", talent: "HAS_SOFT_SKILL" },
-  C: { job: "REQUIRES_QUALIFICATION", talent: "WORKED_AT" }
+  C: { job: "REQUIRES_QUALIFICATION", talent: "WORKED_AT" },
+  D: { job: "REQUIRES_QUALIFICATION", talent: "STUDIED_AT" }
 };
 
 /**

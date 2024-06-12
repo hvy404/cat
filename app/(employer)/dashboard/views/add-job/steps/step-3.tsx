@@ -1,5 +1,5 @@
 import useStore from "@/app/state/useStore";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,11 +10,14 @@ export default function AddJDStepThree() {
 
   // Get AddJD state from the store
   const { user, addJD, setAddJD, selectedMenuItem, setSelectedMenuItem } = useStore();
+  const hasRun = useRef(false);
+
 
   // Start the publishing runner (final step of onboarding process)
   useEffect(() => {
     const finishOnboard = async () => {
-      if (addJD.jdEntryID && user) {
+      if (addJD.jdEntryID && user && !addJD.publishingRunnerID && !hasRun.current) {
+        hasRun.current = true;
         const result = await jobDescriptionFinishOnboard(
           addJD.jdEntryID,
           user.uuid,
@@ -32,7 +35,7 @@ export default function AddJDStepThree() {
     };
   
     finishOnboard();
-  }, []);
+  }, [addJD.jdEntryID, user]);
 
   // Poll status of publishing runner
   useEffect(() => {

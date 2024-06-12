@@ -164,9 +164,9 @@ export async function getTalentRelationshipDetails(
   relationshipType: string
 ) {
   const query = `
-      MATCH (t:Talent {applicant_id: $applicantId})-[r:${relationshipType}]->(n)
-      RETURN type(r) AS type, properties(r) AS properties, properties(n) AS node
-    `;
+    MATCH (t:Talent {applicant_id: $applicantId})-[r:${relationshipType}]->(n)
+    RETURN type(r) AS type, properties(r) AS properties, properties(n) AS node
+  `;
 
   const params = { applicantId };
 
@@ -177,7 +177,7 @@ export async function getTalentRelationshipDetails(
     switch (relationshipType) {
       case "STUDIED_AT":
         relationships = result.map((record) => (
-          `Degree: ${record.node.degree} at ${record.node.institution} from ${record.node.start_date} to ${record.node.end_date}`
+          `Degree: ${record.node.degree} at ${record.node.institution}`
         ));
         break;
       case "WORKED_AT":

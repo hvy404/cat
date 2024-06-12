@@ -8,9 +8,8 @@
 import { inngest } from "@/lib/inngest/client";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
-//import { generateCandidateCypherQuery } from "@/lib/candidate/ingest-resume/generate-cypher-query";
 import { generateJobCypherQuery } from "@/lib/dashboard/generate-cypher-query";
-import { read, write } from "@/lib/neo4j/utils";
+import { write } from "@/lib/neo4j/utils";
 
 export const generateJobDescriptionCypher = inngest.createFunction(
   { id: "job-description-add-to-neo-workflow" },

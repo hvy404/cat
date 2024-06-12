@@ -1,34 +1,36 @@
 export type JobDescription = {
   jobTitle: string;
   company: string;
-  client: string;
+  client?: string;
   skills: string[];
   jobType: string;
-  benefits: string[];
-  locationType?: string;
-  location: { city?: string; state?: string; zipcode?: string }[];
-  experience: string;
-  description: string;
-  salaryRange: {
+  benefits?: string[];
+  locationType?: "remote" | "onsite" | "hybrid";
+  location?: { city?: string; state?: string; zipcode?: string }[];
+  experience?: string;
+  description?: string;
+  salaryRange?: {
     maximumSalary: number;
     startingSalary: number;
   };
-  qualifications: string[];
-  companyOverview: string;
+  qualifications?: string[];
+  companyOverview?: string;
   preferredSkills: string[];
   responsibilities: string[];
-  securityClearance: string;
-  applicationDeadline: string;
-  technicalDemand: string;
-  clientInteraction: boolean;
+  securityClearance?: "none" | "basic" | "secret" | "top-secret";
+  applicationDeadline?: string;
+  technicalDemand?: string;
+  clientInteraction?: boolean;
   embedding?: number[];
-  remoteFlexibility: boolean;
-  suitablePastRoles: string[];
-  advancementPotential: boolean;
-  leadershipOpportunity: boolean;
-  commissionPay: boolean;
-  commissionPercent: number;
-  oteSalary: number;
+  remoteFlexibility?: boolean;
+  suitablePastRoles?: string[];
+  advancementPotential?: boolean;
+  leadershipOpportunity?: boolean;
+  commissionPay?: boolean;
+  commissionPercent?: number;
+  oteSalary?: number;
+  education?: string[];
+  certifications?: string[];
 };
 
 // Helper function to format the embedding array
@@ -37,7 +39,7 @@ function formatArrayForCypher(array: number[]) {
 }
 
 // Helper function to escape double quotes in strings
-function escapeString(str: string) {
+function escapeString(str: string = ""): string { 
   return str.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }
 
@@ -45,7 +47,7 @@ export function generateJobCypherQuery(
   jd: JobDescription,
   jobDescriptionId: string,
   employerId: string
-) {
+): string {
   let cypher = `
     CREATE (j:Job {
       job_title: "${escapeString(jd.jobTitle)}",  
@@ -55,68 +57,35 @@ export function generateJobCypherQuery(
       client: "${escapeString(jd.client || "")}",  
       company: "${escapeString(jd.company)}",      
       job_type: "${escapeString(jd.jobType)}",   
-      location_type: "${escapeString(
-        jd.locationType || "unspecified"
-      )}", // Added locationType handling   
-      location: "${escapeString(JSON.stringify(jd.location))}",    
+      location_type: "${escapeString(jd.locationType || "unspecified")}", 
+      location: "${escapeString(JSON.stringify(jd.location || []))}",    
       experience: "${escapeString(jd.experience || "")}", 
-      description: "${escapeString(jd.description)}",      
-      maximum_salary: ${jd.salaryRange?.maximumSalary || "null"}, 
-      starting_salary: ${jd.salaryRange?.startingSalary || "null"}, 
+      description: "${escapeString(jd.description || "")}",      
+      maximum_salary: ${jd.salaryRange?.maximumSalary ?? "null"}, 
+      starting_salary: ${jd.salaryRange?.startingSalary ?? "null"}, 
       company_overview: "${escapeString(jd.companyOverview || "")}", 
       security_clearance: "${escapeString(jd.securityClearance || "none")}", 
       application_deadline: "${escapeString(jd.applicationDeadline || "")}", 
       technical_demand: "${escapeString(jd.technicalDemand || "")}", 
-      client_interaction: ${
-        jd.clientInteraction !== undefined ? jd.clientInteraction : "null"
-      }, 
-      remote_flexibility: ${
-        jd.remoteFlexibility !== undefined ? jd.remoteFlexibility : "null"
-      }, 
-      advancement_potential: ${
-        jd.advancementPotential !== undefined ? jd.advancementPotential : "null"
-      }, 
-      leadership_opportunity: ${
-        jd.leadershipOpportunity !== undefined
-          ? jd.leadershipOpportunity
-          : "null"
-      },
-      commission_pay: ${
-        jd.commissionPay !== undefined ? jd.commissionPay : "null"
-      },
-      commission_percent: ${
-        jd.commissionPercent !== undefined ? jd.commissionPercent : "null"
-      },
-      ote_salary: ${jd.oteSalary !== undefined ? jd.oteSalary : "null"} 
+      client_interaction: ${jd.clientInteraction ?? "null"}, 
+      remote_flexibility: ${jd.remoteFlexibility ?? "null"}, 
+      advancement_potential: ${jd.advancementPotential ?? "null"}, 
+      leadership_opportunity: ${jd.leadershipOpportunity ?? "null"},
+      commission_pay: ${jd.commissionPay ?? "null"},
+      commission_percent: ${jd.commissionPercent ?? "null"},
+      ote_salary: ${jd.oteSalary ?? "null"}
     })
     WITH j`;
 
+  // Append relationships for arrays
   cypher += appendArrayNodes(jd.skills, "Skill", "REQUIRES_SKILL", true);
   cypher += appendArrayNodes(jd.benefits, "Benefit", "OFFERS_BENEFIT", true);
-  cypher += appendArrayNodes(
-    jd.qualifications,
-    "Qualification",
-    "REQUIRES_QUALIFICATION",
-    true
-  );
-  cypher += appendArrayNodes(
-    jd.preferredSkills,
-    "Skill",
-    "PREFERS_SKILL",
-    true
-  );
-  cypher += appendArrayNodes(
-    jd.responsibilities,
-    "Responsibility",
-    "HAS_RESPONSIBILITY",
-    true
-  );
-  cypher += appendArrayNodes(
-    jd.suitablePastRoles,
-    "Role",
-    "SUITABLE_FOR_ROLE",
-    true
-  );
+  cypher += appendArrayNodes(jd.qualifications, "Qualification", "REQUIRES_QUALIFICATION", true);
+  cypher += appendArrayNodes(jd.preferredSkills, "Skill", "PREFERS_SKILL", true);
+  cypher += appendArrayNodes(jd.responsibilities, "Responsibility", "HAS_RESPONSIBILITY", true);
+  cypher += appendArrayNodes(jd.suitablePastRoles, "Role", "SUITABLE_FOR_ROLE", true);
+  cypher += appendArrayNodes(jd.education, "Education", "REQUIRES_EDUCATION", false);
+  cypher += appendArrayNodes(jd.certifications, "Certification", "REQUIRES_CERTIFICATION", false);
 
   cypher += `\nRETURN j;`;
 
