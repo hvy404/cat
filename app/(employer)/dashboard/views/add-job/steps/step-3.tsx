@@ -9,7 +9,7 @@ import { QueryEventStatus } from "@/lib/dashboard/query-runner-status";
 export default function AddJDStepThree() {
 
   // Get AddJD state from the store
-  const { user, addJD, setAddJD, selectedMenuItem, setSelectedMenuItem } = useStore();
+  const { user, addJD, setAddJD, setSelectedMenuItem } = useStore();
   const hasRun = useRef(false);
 
 
@@ -88,6 +88,7 @@ export default function AddJDStepThree() {
       isFinalizing: false,
       publishingRunnerID: null,
     });
+    
     setSelectedMenuItem("dashboard");
   }
   

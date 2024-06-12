@@ -249,7 +249,6 @@ export default function AddJDStep2Form() {
     event?: React.BaseSyntheticEvent
   ) => {
     //event?.preventDefault();
-    console.log("Value submitted: ", values);
 
     const jdUUID = addJD.jdEntryID; // Ensure this is the correct UUID from your state
 
@@ -471,10 +470,8 @@ export default function AddJDStep2Form() {
                             <SelectItem value="basic">
                               Basic / Public Trust
                             </SelectItem>
-                            <SelectItem value="secret">Secret</SelectItem>
-                            <SelectItem value="top-secret">
-                              Top Secret
-                            </SelectItem>
+                            <SelectItem value="elevated">Secret</SelectItem>
+                            <SelectItem value="high">Top Secret</SelectItem>
                           </SelectContent>
                         </Select>
                       )}
