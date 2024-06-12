@@ -13,6 +13,7 @@ import {
   getJobRelationshipDetails,
 } from "@/lib/engine/retrieve-job";
 import { evaluateTalentMatch } from "@/lib/engine/evaluate-talent-match";
+import { calculateEnhancedScore } from "@/lib/engine/final-calculation";
 
 export function MyProfileForm() {
   const handleClick = async () => {
@@ -134,6 +135,27 @@ export function MyProfileForm() {
     }
   };
 
+  const scores = {
+       original: 0.8,       // Example original cosine similarity score
+       A: 0.7,              // Example REQUIRES_SKILL - HAS_SKILL match score
+       B: 0.6,              // Example REQUIRES_SKILL - HAS_SOFT_SKILL match score
+       C: 0.9,              // Example REQUIRES_QUALIFICATION - WORKED_AT match score
+       D: 0.8,              // Example REQUIRES_QUALIFICATION - STUDIED_AT match score
+       E: 0.75,             // Example REQUIRED_EDUCATION - STUDIED_AT match score
+       F: 0.85,             // Example REQUIRED_CERTIFICATION - HAS_CERTIFICATION match score
+       G: 0.6,              // Example PREFERS_SKILL - HAS_SOFT_SKILL match score
+       H: 0.7,              // Example REQUIRES_QUALIFICATION - HAS_INDUSTRY_EXPERIENCE match score
+       I: 0.65              // Example SUITABLE_FOR_ROLE - HAS_POTENTIAL_ROLE match score
+     };
+
+
+  const handleGetFinalScore = async () => {
+    const finalScore = calculateEnhancedScore(scores);
+    console.log("Final Score:", finalScore);
+  }
+
+  
+
   return (
     <div className="flex flex-col gap-6">
       {/* Personal */}
@@ -185,6 +207,10 @@ export function MyProfileForm() {
           className="bg-blue-500 text-white rounded-md p-2"
         >
           Evaluate Talent Match
+        </button>
+        <button 
+          onClick={handleGetFinalScore}>
+          Get Final Score
         </button>
       </div>
     </div>

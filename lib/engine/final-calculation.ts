@@ -88,7 +88,7 @@ function validateWeights(weights: Weights): void {
  * @param config - (Optional) Configuration object to control the calculation process. Defaults to preprogrammed config.
  * @returns The final match score as a weighted average.
  */
-function calculateEnhancedScore(
+export function calculateEnhancedScore(
   scores: Partial<Scores>,
   weights: Weights = defaultWeights,
   config: Config = defaultConfig
