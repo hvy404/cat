@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const jobDescriptionStaticSchema = z
   .object({
-    jobTitle: z.string().describe("The title or name of the job position."),
+    jobTitle: z.string().describe("The title or name of the job opportunity."),
     company: z
       .string()
       .describe("The company posting the job and doing the hiring."),
@@ -86,7 +86,6 @@ export const jobDescriptionStaticSecondarySchema = z
       .describe("List of responsibilities and tasks associated with the job."),
     qualifications: z
       .array(z.string())
-      .optional()
       .describe(
         "List of required qualifications such specific knowledge areas."
       ),

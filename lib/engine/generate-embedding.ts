@@ -8,9 +8,14 @@ const togetherai = new OpenAI({
 
 const embeddingModel = "togethercomputer/m2-bert-80M-8k-retrieval";
 
-export async function generateEmbedding(
-    query: string
-): Promise<number[]> {  // Assuming the embeddings are an array of numbers
+/**
+ * Generates an embedding for the given query.
+ * @param query - The query string to generate the embedding for.
+ * @returns A promise that resolves to an array of numbers representing the embedding.
+ */
+
+export async function generateEmbedding(query: string): Promise<number[]> {
+  // Assuming the embeddings are an array of numbers
   const embeddingsResponse = await togetherai.embeddings.create({
     model: embeddingModel,
     input: query,

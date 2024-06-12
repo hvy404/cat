@@ -1,3 +1,10 @@
+/**
+ * Generates a Cypher query to create a Talent node in the graph database.
+ * @param data - The data object containing the candidate information.
+ * @param userId - The ID of the user creating the candidate.
+ * @returns The Cypher query string.
+ */
+
 export type ContactInfo = {
   phone: string;
   email: string;

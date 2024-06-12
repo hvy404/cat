@@ -38,7 +38,7 @@ export async function generateJDStatic(
   //console.log("Generating static points from JD");
 
   const systemPrompt = `The following context is a job description. Your task is to extract details about the job opportunity. Only include details in your response for which there is relevant information available in the job description provided. Do not make up any details. Your answer must be in JSON format.`;
-  const systemPrompt3 = `The following context is a job description. Your task is to extract details about the job opportunity. Only include details in your response for which there is relevant information available in the job description provided. Do not make up any details. Ensure your response is in JSON format and adheres to the schema structure provided. Only include details in your response for which there is relevant information available in the job description.`;
+  const systemPrompt3 = `The following context is a job description. Your task is to extract details about the job opportunity. Only include details in your response for which there is relevant information available in the job description provided. Do not make up any details. You will respond in JSON format.`;
 
   const extract = await togetherai.chat.completions.create({
     messages: [

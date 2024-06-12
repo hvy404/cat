@@ -1,5 +1,4 @@
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
   getJobEmbedding,
@@ -61,7 +60,7 @@ export function MyProfileForm() {
   };
 
   const getJobByID = async () => {
-    const jobID = "6d98e834-6513-4736-8cc8-b190a473ed3b";
+    const jobID = "6540e175-f9d4-48d9-acac-76f24917f16d";
     try {
       const job = await getJobByJobID(jobID);
       console.log("Job:", job);
@@ -73,7 +72,7 @@ export function MyProfileForm() {
   };
 
   const getJobRelationshipsProps = async () => {
-    const jobID = "6d98e834-6513-4736-8cc8-b190a473ed3b";
+    const jobID = "6540e175-f9d4-48d9-acac-76f24917f16d";
     try {
       const jobRelationships = await getJobRelationships(jobID);
       console.log("Job Relationships:", jobRelationships);
@@ -86,7 +85,7 @@ export function MyProfileForm() {
 
   // getJobResponsibilities
   const getJobResponsibilitiesProps = async () => {
-    const jobID = "6d98e834-6513-4736-8cc8-b190a473ed3b";
+    const jobID = "6540e175-f9d4-48d9-acac-76f24917f16d";
     const relationshipType = "REQUIRES_QUALIFICATION";
     try {
       const jobResponsibilities = await getJobRelationshipDetails(
@@ -120,12 +119,15 @@ export function MyProfileForm() {
   const evaluateTalent = async () => {
     const applicantID = "70689ca0-ea2c-4a92-ac06-84ecfcd0a08e";
     try {
-      const combo = "D"; // or "B" or "C"
-      evaluateTalentMatch(
+      const combo = "E"; // or "B" or "C"
+
+      const evals = await evaluateTalentMatch(
         applicantID,
-        "6d98e834-6513-4736-8cc8-b190a473ed3b",
+        "6540e175-f9d4-48d9-acac-76f24917f16d",
         combo
       );
+
+      console.log("Score", evals.evaluated, evals.score);
     } catch (error) {
       console.error("Error evaluating talent match:", error);
       // Handle the error appropriately (e.g., display an error message)
@@ -177,42 +179,6 @@ export function MyProfileForm() {
           className="bg-blue-500 text-white rounded-md p-2"
         >
           Get Talent Matches
-        </button>
-        <button
-          onClick={grabTalentProperties}
-          className="bg-blue-500 text-white rounded-md p-2"
-        >
-          Get Talent Properties
-        </button>
-        <button
-          onClick={grabTalentRelationships}
-          className="bg-blue-500 text-white rounded-md p-2"
-        >
-          Get Talent Relationships
-        </button>
-        <button
-          onClick={getJobByID}
-          className="bg-blue-500 text-white rounded-md p-2"
-        >
-          Get Job By ID
-        </button>
-        <button
-          onClick={getJobRelationshipsProps}
-          className="bg-blue-500 text-white rounded-md p-2"
-        >
-          Get Job Relationships
-        </button>
-        <button
-          onClick={getJobResponsibilitiesProps}
-          className="bg-blue-500 text-white rounded-md p-2"
-        >
-          Get Job Relationship - Responsibilities
-        </button>
-        <button
-          onClick={getTalentRelationshipDeets}
-          className="bg-blue-500 text-white rounded-md p-2"
-        >
-          Get Talent Relationship Details
         </button>
         <button
           onClick={evaluateTalent}

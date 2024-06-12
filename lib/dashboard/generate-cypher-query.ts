@@ -1,3 +1,11 @@
+/**
+ * Generates a Cypher query string for creating a Job node in the database.
+ * @param jd - The JobDescription object containing the job details.
+ * @param jobDescriptionId - The ID of the job description.
+ * @param employerId - The ID of the employer.
+ * @returns The Cypher query string.
+ */
+
 export type JobDescription = {
   jobTitle: string;
   company: string;
@@ -39,7 +47,7 @@ function formatArrayForCypher(array: number[]) {
 }
 
 // Helper function to escape double quotes in strings
-function escapeString(str: string = ""): string { 
+function escapeString(str: string = ""): string {
   return str.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }
 
@@ -80,12 +88,42 @@ export function generateJobCypherQuery(
   // Append relationships for arrays
   cypher += appendArrayNodes(jd.skills, "Skill", "REQUIRES_SKILL", true);
   cypher += appendArrayNodes(jd.benefits, "Benefit", "OFFERS_BENEFIT", true);
-  cypher += appendArrayNodes(jd.qualifications, "Qualification", "REQUIRES_QUALIFICATION", true);
-  cypher += appendArrayNodes(jd.preferredSkills, "Skill", "PREFERS_SKILL", true);
-  cypher += appendArrayNodes(jd.responsibilities, "Responsibility", "HAS_RESPONSIBILITY", true);
-  cypher += appendArrayNodes(jd.suitablePastRoles, "Role", "SUITABLE_FOR_ROLE", true);
-  cypher += appendArrayNodes(jd.education, "Education", "REQUIRES_EDUCATION", false);
-  cypher += appendArrayNodes(jd.certifications, "Certification", "REQUIRES_CERTIFICATION", false);
+  cypher += appendArrayNodes(
+    jd.qualifications,
+    "Qualification",
+    "REQUIRES_QUALIFICATION",
+    true
+  );
+  cypher += appendArrayNodes(
+    jd.preferredSkills,
+    "Skill",
+    "PREFERS_SKILL",
+    true
+  );
+  cypher += appendArrayNodes(
+    jd.responsibilities,
+    "Responsibility",
+    "HAS_RESPONSIBILITY",
+    true
+  );
+  cypher += appendArrayNodes(
+    jd.suitablePastRoles,
+    "Role",
+    "SUITABLE_FOR_ROLE",
+    true
+  );
+  cypher += appendArrayNodes(
+    jd.education,
+    "Education",
+    "REQUIRED_EDUCATION",
+    true
+  );
+  cypher += appendArrayNodes(
+    jd.certifications,
+    "Certification",
+    "REQUIRED_CERTIFICATION",
+    true
+  );
 
   cypher += `\nRETURN j;`;
 
