@@ -1,6 +1,5 @@
 "use client";
 import { candidateStartOnboard } from "@/lib/candidate/onboard/extractResume";
-import { generateTestSearch } from "@/lib/candidate/onboard/test";
 import { useCallback } from "react";
 
 /* export function startOnboard(candidateID: string) {
@@ -10,7 +9,7 @@ import { useCallback } from "react";
 
 function Careers() {
   const resume = useCallback(async () => {
-    const candidateID = "97ac9015-3fae-421d-844d-e0e44032f793";
+    const candidateID = "60515f58-2239-4c9e-abeb-cf2431c3f593";
     const startEvent = await candidateStartOnboard(candidateID);
     console.log(startEvent);
   }, []); // Dependencies array is empty, so this memoizes the function until the component unmounts

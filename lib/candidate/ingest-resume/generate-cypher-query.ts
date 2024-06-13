@@ -47,7 +47,7 @@ export type Data = {
   industry_experience: string[];
   company: string;
   title: string;
-  security_clearance: string[];
+  clearance_level: string;
   manager_trait: ManagerTrait;
   applicant_id: string;
   embedding?: number[];
@@ -91,9 +91,9 @@ export function generateCandidateCypherQuery(data: Data, userId: string) {
     applicant_id: "${userId}",
     company: "${escapeString(data.company || "")}",
     title: "${escapeString(data.title || "")}",
-    security_clearance: "${escapeString(
-      (data.security_clearance || []).join(", ")
-    )}",
+
+clearance_level: "${escapeString(data.clearance_level || "")}",
+
     fedcon_experience: "${escapeString(
       (data.fedcon_experience || []).join(", ")
     )}",

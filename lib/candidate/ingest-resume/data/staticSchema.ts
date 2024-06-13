@@ -35,27 +35,23 @@ export const staticSchema = z
       .describe("Applicant past job history."),
     technical_skills: z
       .array(z.string())
-      .optional()
-      .describe("Detailed list hard skills, tools, and technologies from previous roles."),
-    soft_skills: z
-      .array(z.string())
-      .optional()
-      .describe("List of non-technical or soft skills."),
+      .describe(
+        "List of hard skills, tools, and technologies from previous work experience."
+      ),
     industry_experience: z
       .array(z.string())
       .optional()
-      .describe("Experience in specific industries."),
-    security_clearance: z
-      .array(z.string())
+      .describe("List of specific knowledge areas in which the candidate has experience."),
+    clearance_level: z
+      .enum(["none", "basic", "elevated", "high"])
       .optional()
-      .describe("Security clearance or certifications."),
+      .describe("Clearance level, if applicable."),
     fedcon_experience: z
       .array(z.string())
       .optional()
-      .describe("Experience in Federal contracting if applicable."),
+      .describe("Experience in Federal government contracting if applicable."),
     professional_certifications: z
       .array(z.string())
       .optional()
       .describe("List of professional certifications if applicable."),
   })
-  .describe("Resume");

@@ -42,8 +42,6 @@ export const resumeExtract = inngest.createFunction(
 
     console.log("Step 0 Started");
 
-    // Generate static and inferred points from the raw resume text
-
     // Generate static points
     try {
       const generateStatic = await step.invoke(

@@ -19,9 +19,9 @@ export const jobDescriptionStaticSchema = z
     location: z
       .array(
         z.object({
-          city: z.string().optional(),
-          state: z.string().optional(),
-          zipcode: z.string().optional(),
+          city: z.string().optional().describe("The city of the job location."),
+          state: z.string().optional().describe("The state of the job location."),
+          zipcode: z.string().optional().describe("The zip code of the job location."),
         })
       )
       .optional()

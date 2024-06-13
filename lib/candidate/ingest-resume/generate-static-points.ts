@@ -16,43 +16,69 @@ export async function generateLiftedStatic(resume: string, id: string) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  const systemPrompt = `The following context is resume data. Your task is to extract details about the resume. Only include details in your response for which there is relevant information available in the job description provided. Do not make up any details. Your answer must be in JSON format.`;
+  const systemPrompt = `The following context is a resume. Your task is to extract details about the resume and provide the information in JSON format, strictly adhering to the provided JSON schema. If a field is not present or applicable based on the resume, do not include it in the JSON output. 
 
-  const extract = await togetherai.chat.completions.create({
-    messages: [
-      {
-        role: "system",
-        content: systemPrompt,
-      },
-      {
-        role: "user",
-        content: JSON.stringify(resume),
-      },
-    ],
-    model: "mistralai/Mistral-7B-Instruct-v0.1",
-    temperature: 0.4,
-    // @ts-ignore – Together.ai supports schema while OpenAI does not
-    response_format: { type: "json_object", schema: jsonSchema },
-  });
+Guidelines:
+-name: full name of the candidate
+-title: current title or role
+-company: name of the current or most recent company
+-contact: (optional) phone, location, email
+-education: institution name with degree, start_date, end_date as properties
+-work_experience: organization name with job_title, responsibilities, start_date, end_date as properties
+-technical_skills: list of hard skills, tools, and technologies from previous work experience
+-industry_experience: (optional) you will need to review the candidate's resume to determine a list of specific knowledge areas in which they have experience
+-clearance_level: (optional) some candidates may have a clearance level if they are a Government contractor, if applicable
+-fedcon_experience: (optional) some candidates may have experience in Federal government contracting, list the experience if applicable
+-professional_certifications: (optional) list of professional certifications if applicable
 
-  const output = JSON.parse(extract.choices[0].message.content!);
+Do not make up any details or include fields that are not specified in the schema. Be concise and only include relevant information from the provided resume. Omit any fields for which no information is available.`;
 
-  const { error } = await supabase
-    .from("candidate_resume")
-    .upsert([{ static: output, user: id }], {
-      onConflict: "user",
+  const userPrompt = `Context: ${JSON.stringify(resume)}`;
+
+  try {
+    const extract = await togetherai.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt,
+        },
+        {
+          role: "user",
+          content: userPrompt,
+        },
+      ],
+      model: "togethercomputer/CodeLlama-34b-Instruct",
+      temperature: 0.4,
+      max_tokens: 7000,
+      // @ts-ignore – Together.ai supports schema while OpenAI does not
+      response_format: { type: "json_object", schema: jsonSchema },
     });
 
-  if (error) {
-    console.error(error);
+    const output = JSON.parse(extract.choices[0].message.content!);
+
+    const { error } = await supabase
+      .from("candidate_resume")
+      .upsert([{ static: output, user: id }], {
+        onConflict: "user",
+      });
+
+    if (error) {
+      console.error("Error upserting data:", error);
+      return {
+        message: "Failed to insert static points.",
+        success: false,
+      };
+    }
+
     return {
-      message: "Failed to insert static points.",
+      message: "Success",
+      success: true,
+    };
+  } catch (error) {
+    console.error("Error generating lifted static:", error);
+    return {
+      message: "Failed to generate lifted static.",
       success: false,
     };
   }
-
-  return {
-    message: "Success",
-    success: true,
-  };
 }

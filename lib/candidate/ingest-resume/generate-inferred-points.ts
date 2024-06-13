@@ -12,51 +12,66 @@ const togetherai = new OpenAI({
   baseURL: "https://api.together.xyz/v1",
 });
 
-const systemPrompt =
-  "The following context is resume data. Your task is to extract details about the resume. Only include details in your response for which there is relevant information available in the job description provided. Do not make up any details. Your answer must be in JSON format.";
-
 export async function generateLiftedInferred(resume: string, id: string) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  console.log("generateLiftedInferred function is running")
+  const systemPrompt =
+    `The following context is a resume. Your task is to use your knowlege to infer details about the resume and provide the information in JSON format, strictly adhering to the provided JSON schema. If a field cannot be inferred or is not applicable based on the resume, do not include it in the JSON output. Do not make up any details or include fields that are not specified in the schema. 
+    
+    Guidelines:
+    -soft_skills: you need to review all the past job history to determine soft skills that can be inferred from the candidate's work experience. List the soft skill, do not include a description. Max of 10 soft skills.
+    -manager_trait: provide a boolean value and a concise explanation. You need to review all the past job history to determine if the applicant can perform a supervisor and management role based on previous experience and tenure.
+    -potential_roles: you need to review all the past job history to determine potential roles the candidate would be a good fit for based on past experience and industry experience. List the role only, do not include a description. Max of 10 potential roles.
 
-  const extract = await togetherai.chat.completions.create({
-    messages: [
-      {
-        role: "system",
-        content: systemPrompt,
-      },
-      {
-        role: "user",
-        content: JSON.stringify(resume),
-      },
-    ],
-    model: "mistralai/Mistral-7B-Instruct-v0.1",
-    max_tokens: 4000,
-    temperature: 0.4,
-    // @ts-ignore – Together.ai supports schema while OpenAI does not
-    response_format: { type: "json_object", schema: jsonSchema },
-  });
+    Be concise and only include relevant information from the provided resume. Omit any fields for which no information is available.`;
 
-  const output = JSON.parse(extract.choices[0].message.content!);
+  const userPrompt = `Context: ${JSON.stringify(resume)}`;
 
-  const { error } = await supabase
-    .from("candidate_resume")
-    .upsert([{ inferred: output, user: id }], {
-      onConflict: "user",
+  try {
+    const extract = await togetherai.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt,
+        },
+        {
+          role: "user",
+          content: userPrompt,
+        },
+      ],
+      model: "togethercomputer/CodeLlama-34b-Instruct",
+      temperature: 0.6,
+      max_tokens: 3900,
+      // @ts-ignore – Together.ai supports schema while OpenAI does not
+      response_format: { type: "json_object", schema: jsonSchema },
     });
 
-  if (error) {
-    console.error(error);
+    const output = JSON.parse(extract.choices[0].message.content!);
+
+    const { error } = await supabase
+      .from("candidate_resume")
+      .upsert([{ inferred: output, user: id }], {
+        onConflict: "user",
+      });
+
+    if (error) {
+      console.error("Error upserting data:", error);
+      return {
+        message: "Failed to insert inferred points.",
+        success: false,
+      };
+    }
+
     return {
-      message: "Failed to insert inferred points.",
+      message: "Success",
+      success: true,
+    };
+  } catch (error) {
+    console.error("Error generating lifted inferred:", error);
+    return {
+      message: "Failed to generate lifted inferred.",
       success: false,
     };
   }
-
-  return {
-    message: "Success",
-    success: true,
-  };
 }
