@@ -167,35 +167,36 @@ export async function getJobDescription(
 
   const finalSysPrompt = `
   Using the provided context, create a comprehensive and compelling job description for the role of ${role_name}. 
-  This job description will be used to attract and recruit top candidates for the role. Ensure that the job description is clear, 
-  complete, and written in a professional and engaging manner. Include the following sections:
+  This job description will be used to attract and recruit top candidates for the role. Ensure that the job description is clear, complete, and written in a professional and engaging manner. 
   
+  Include the following sections:
   **Job Title**: Clearly state the job title.
 
-  ${
-    company_introduction
-      ? `**Company Introduction**: Provides a brief introduction to the company. Only include the Company Introduction if its provided in the context otherwise do not include it. You may summarize the statement given in the context but you may not add any additional information.`
-      : ""
-  }
-  
-  **Job Description**: Provide a detailed overview of the role, including its purpose, primary functions, and how it fits 
-     within the organization.
-  
-  **Responsibilities**: List the key responsibilities and duties associated with the role. Be specific and use bullet points 
-     to ensure clarity.
-  
-  **Required Qualifications**: Outline the essential qualifications, skills, and experience required for the role. Include 
-     educational requirements, technical skills, and any certifications needed.
-  
-  **Preferred Qualifications**: Based on your experience, list any additional qualifications, skills, or experience that would be advantageous but 
-     are not strictly necessary. This may not be directly given in the context therefore you can use your own judgement.
-  
-  Use persuasive language to highlight the opportunities and benefits of the role, and ensure the tone is aligned with the 
-  company's culture and values. The job description should be structured to be easily readable and should encourage potential 
-  candidates to apply.
+${
+  company_introduction
+    ? `**Company Introduction**: (optional) Provide a brief introduction to the company. Only include the Company Introduction if it's provided in the context; otherwise, do not include it. This should be verbatim from the context.`
+    : ""
+}
 
-  The context provided includes information from the SOW/PWS given to the user for writing the job description. However, the job description should be written generically to recruit for the role without revealing the client's identity or specific tasks.
-  `;
+**Job Description**: Provide a detailed overview of the role, including its purpose, primary functions, and how it fits within the organization.
+
+**Responsibilities**: List the key responsibilities and duties associated with the role. Be specific and use bullet points to ensure clarity.
+
+**Additional Responsibilities**: (optional) List any additional responsibilities or duties that may be required for the role, if applicable.
+
+**Required Qualifications**: Outline the essential qualifications, skills, and experience required for the role. Include educational requirements, technical skills, and any certifications needed.
+
+**Preferred Qualifications**: (optional) Based on your experience, list any additional qualifications, skills, or experience that would be advantageous but are not strictly necessary. This may not be directly given in the context; therefore, you can use your own judgment.
+
+${
+  company_benefits
+    ? `**What We Offer**: List the benefits and offerings provided by the company for this position.`
+    : ""
+}
+
+Use persuasive language to highlight the opportunity and ensure the tone is aligned with the company's culture and values. The job description should be structured to be easily readable and should encourage potential candidates to apply.
+
+The context provided includes information from the SOW/PWS given to the user for writing the job description. However, the job description should be written generically to recruit for the role without revealing the client's identity or specific tasks.`;
 
   // Ternary to include Company Introduction and Benefits if available
   const finalContextPrompt = `Context: 
@@ -231,6 +232,7 @@ export async function getJobDescription(
       },
     ],
     model: "meta-llama/Llama-3-70b-chat-hf",
+    max_tokens: 4500,
     temperature: 0.5,
   });
 
@@ -239,26 +241,25 @@ export async function getJobDescription(
   // Convert the final output to a JSON object
   // We use two LLM because the first model is better at generating the job description and the second model is better at converting it to JSON
   // TOOD: Update to use a single model when the API supports it
-  const convertToJSONPrompt = `You are a helpful AI assistant. Convert the following job description into a JSON object according to the provided schema. Ensure that all sections of the job description are accurately represented in the JSON object without altering the content. Do not add any HTML or Markdown formatting.
+  const convertToJSONPrompt = `Your task is to convert the following job description into a JSON object according to the provided schema. Ensure that all sections of the job description are accurately represented in the JSON object without altering the content. Do not add any HTML or Markdown formatting.
   
-  Use the following as a guide to map the job description to the JSON schema:
-
-- jobTitle: A string representing the job title of the position.
-${
-  company_introduction
-    ? `- companyIntroduction: A string providing an introduction to the company. This should be verbatim from **Company Introduction** and nothing else.`
-    : ""
-}
-- jobDescription: A string providing an introduction to the job opportunity. This should be verbatim from **Job Description** and nothing else.
-- responsibilities: An array of strings listing the responsibilities for the position.
-- additionalResponsibilities: An optional array of strings listing any additional responsibilities for the position.
-- requiredQualifications: An array of strings listing the required qualifications for the position.
-- preferredQualifications: An optional array of strings listing the preferred qualifications for the position.
-${
-  company_benefits
-    ? `- whatWeOffer: An array of strings detailing the benefits and offerings of the position.`
-    : ""
-}`;
+  Guidelines:
+  - jobTitle: A string representing the job title of the position.
+  ${
+    company_introduction
+      ? `- companyIntroduction: (optional) A string providing an introduction to the company. This should be verbatim from **Company Introduction** and nothing else.`
+      : ""
+  }
+  - jobDescription: A string providing an introduction to the job opportunity. This should be verbatim from **Job Description** and nothing else.
+  - responsibilities: An array of strings listing the responsibilities for the position.
+  - additionalResponsibilities: (optional) An array of strings listing any additional responsibilities for the position.
+  - requiredQualifications: An array of strings listing the required qualifications for the position.
+  - preferredQualifications: (optional) An array of strings listing the preferred qualifications for the position.
+  ${
+    company_benefits
+      ? `- whatWeOffer: An array of strings detailing the benefits and offerings of the position.`
+      : ""
+  }`;
 
   const jdJSON = await togetherAi.chat.completions.create({
     messages: [
@@ -271,8 +272,8 @@ ${
         content: `Job Description: ${finalOutput}`,
       },
     ],
-    model: "mistralai/Mistral-7B-Instruct-v0.1",
-    temperature: 0.01,
+    model: "togethercomputer/CodeLlama-34b-Instruct",
+    temperature: 0.1,
     // @ts-ignore – Together.ai supports schema while OpenAI does not
     response_format: { type: "json_object", schema: jdSchema },
   });
