@@ -16,12 +16,13 @@ export default function EmployerDashboardAddJob() {
   const { user, addJD, setAddJD } = useStore();
 
   // TOOD: Remove after development
-/*    useEffect(() => {
+   useEffect(() => {
     setAddJD({ step: 2, 
-      jdEntryID: "6d98e834-6513-4736-8cc8-b190a473ed3b",
+      jdEntryID: "86bf93cc-8c45-4f7c-9d66-bea577a6cf7e",
      });
   }, []); 
- */
+ 
+
   // Check the session on load and set it if it doesn't exist
   useEffect(() => {
     const checkSession = async () => {

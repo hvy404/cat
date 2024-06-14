@@ -1,5 +1,5 @@
 /**
- * Generates a Cypher query to add a candidate to Neo4j and start embeddings generation.
+ * Generates a Cypher query to add a JD to Neo4j and start embeddings generation.
  *
  * @param event - The event object containing the data for the candidate.
  * @param step - The step object containing additional information about the workflow step.
@@ -28,6 +28,9 @@ export const generateJobDescriptionCypher = inngest.createFunction(
         .eq("jd_uuid", jobDescriptionID);
 
       if (error) throw new Error(error.message);
+
+      // TODO: This doesnt take in account of the any changes the user may have made to the job description. 
+      // We will need to update with any new values the user may have added to the job description.
 
       const staticData = data[0].static;
       const inferredData = data[0].inferred;

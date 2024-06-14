@@ -7,23 +7,32 @@ import { jobDescriptionFinishOnboard } from "@/lib/dashboard/finish-onboard";
 import { QueryEventStatus } from "@/lib/dashboard/query-runner-status";
 
 export default function AddJDStepThree() {
-
   // Get AddJD state from the store
-  const { user, addJD, setAddJD, setSelectedMenuItem } = useStore();
-  const hasRun = useRef(false);
+  const { addJD, setAddJD, user, setSelectedMenuItem } = useStore((state) => ({
+    addJD: state.addJD,
+    setAddJD: state.setAddJD,
+    user: state.user,
+    setSelectedMenuItem: state.setSelectedMenuItem,
+  }));
 
+  const hasRun = useRef(false);
 
   // Start the publishing runner (final step of onboarding process)
   useEffect(() => {
     const finishOnboard = async () => {
-      if (addJD.jdEntryID && user && !addJD.publishingRunnerID && !hasRun.current) {
+      if (
+        addJD.jdEntryID &&
+        user &&
+        !addJD.publishingRunnerID &&
+        !hasRun.current
+      ) {
         hasRun.current = true;
         const result = await jobDescriptionFinishOnboard(
           addJD.jdEntryID,
           user.uuid,
           user.session
         );
-  
+
         if (result.success) {
           setTimeout(() => {
             setAddJD({
@@ -33,7 +42,7 @@ export default function AddJDStepThree() {
         }
       }
     };
-  
+
     finishOnboard();
   }, [addJD.jdEntryID, user]);
 
@@ -42,20 +51,24 @@ export default function AddJDStepThree() {
     if (!addJD.publishingRunnerID || addJD.isFinalizing) {
       return;
     }
-  
+
     let isPollingActive = true;
-  
+
     // Function to handle the polling logic
     const pollEventStatus = async () => {
       if (addJD.publishingRunnerID !== null) {
         const status = await QueryEventStatus(addJD.publishingRunnerID);
-  
+
         if (status === "Completed") {
           setAddJD({
             isFinalizing: false,
           });
           isPollingActive = false; // Stop polling
-        } else if (status === "Running" || status === "Failed" || status === "Cancelled") {
+        } else if (
+          status === "Running" ||
+          status === "Failed" ||
+          status === "Cancelled"
+        ) {
           if (isPollingActive) {
             setTimeout(pollEventStatus, 1000); // Continue polling every 1 second
           }
@@ -68,10 +81,10 @@ export default function AddJDStepThree() {
         isPollingActive = false; // Stop polling since we don't have a valid ID
       }
     };
-  
+
     // Start the polling
     pollEventStatus();
-  
+
     // Cleanup function to stop polling when component unmounts or addJD.isFinalizing changes
     return () => {
       isPollingActive = false; // This will stop any scheduled polling operations
@@ -83,15 +96,36 @@ export default function AddJDStepThree() {
   const goToDashboard = () => {
     // Clean up the state
     setAddJD({
-      step: 1,
+      filename: null,
       jdEntryID: null,
+      session: null,
+      isProcessing: false,
       isFinalizing: false,
+      file: null,
+      step: 1,
+      jobDetails: [
+        {
+          jobTitle: "",
+          location_type: "",
+          min_salary: 0,
+          max_salary: 0,
+          salary_ote: 0,
+          commission_percent: 0,
+          security_clearance: "",
+          salary_disclose: false,
+          commission_pay: false,
+        },
+      ],
+      jobDescriptionTitles: [],
+      activeField: null,
       publishingRunnerID: null,
     });
-    
+
+    console.log("After cleaning up state:", addJD);
+
     setSelectedMenuItem("dashboard");
-  }
-  
+  };
+
   return (
     <>
       <Card className="w-full">

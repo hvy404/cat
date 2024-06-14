@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { CheckedState } from "@radix-ui/react-checkbox"; // Import CheckedState type
 
 interface User {
   email: string;
@@ -25,23 +26,26 @@ interface DashboardRoleOverview {
 }
 
 interface JobLocation {
-  city: string;
-  state: string;
+  city?: string;
+  state?: string;
+  zipcode?: string;
 }
 
 interface JobDetails {
-  title: string;
+  jobTitle: string;
   location?: JobLocation[];
   location_type: string;
   min_salary: number;
   max_salary: number;
-  salary_ote?: number;
+  salary_ote?: number | null;
   commission_percent?: number;
   security_clearance: string;
   salary_disclose?: boolean;
-  commission_pay?: boolean;
+  commission_pay?: CheckedState;
   private_employer?: boolean;
+  ote_salary?: number | null;
 }
+
 
 interface JobDescriptionTitles {
   title: string;

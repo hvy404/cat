@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { v4 as uuidv4 } from "uuid";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { jobDescriptionBuilderSchema } from "@/lib/jd-builder/schema/jdBuilderSchema";
+import { Parser } from "htmlparser2";
 
 interface ContextItem {
   id: number;
@@ -172,13 +173,7 @@ export async function getJobDescription(
   Include the following sections:
   **Job Title**: Clearly state the job title.
 
-${
-  company_introduction
-    ? `**Company Introduction**: (optional) Provide a brief introduction to the company. Only include the Company Introduction if it's provided in the context; otherwise, do not include it. This should be verbatim from the context.`
-    : ""
-}
-
-**Job Description**: Provide a detailed overview of the role, including its purpose, primary functions, and how it fits within the organization.
+**Job Description**: Provide an overview of the role, including its purpose, primary functions, and how it fits within the organization.
 
 **Responsibilities**: List the key responsibilities and duties associated with the role. Be specific and use bullet points to ensure clarity.
 
@@ -201,12 +196,6 @@ The context provided includes information from the SOW/PWS given to the user for
   // Ternary to include Company Introduction and Benefits if available
   const finalContextPrompt = `Context: 
 
-  ${
-    company_introduction
-      ? `Company Introduction: ${company_introduction}\n`
-      : ""
-  }
-
   Job Description: ${role_job_description} 
 
   Responsibilities: ${role_responsibilities} 
@@ -214,9 +203,6 @@ The context provided includes information from the SOW/PWS given to the user for
   Requirements: ${role_required_qualifications}
   
   ${company_benefits ? `Benefits: ${company_benefits}` : ""}`;
-
-  //console.log("Final Context Prompt:", finalContextPrompt);
-  //console.log("Final System Prompt:", finalSysPrompt);
 
   // Generate the final job description
 
@@ -245,12 +231,6 @@ The context provided includes information from the SOW/PWS given to the user for
   
   Guidelines:
   - jobTitle: A string representing the job title of the position.
-  ${
-    company_introduction
-      ? `- companyIntroduction: (optional) A string providing an introduction to the company. This should be verbatim from **Company Introduction** and nothing else.`
-      : ""
-  }
-  - jobDescription: A string providing an introduction to the job opportunity. This should be verbatim from **Job Description** and nothing else.
   - responsibilities: An array of strings listing the responsibilities for the position.
   - additionalResponsibilities: (optional) An array of strings listing any additional responsibilities for the position.
   - requiredQualifications: An array of strings listing the required qualifications for the position.
@@ -280,6 +260,12 @@ The context provided includes information from the SOW/PWS given to the user for
 
   const output = JSON.parse(jdJSON.choices[0].message.content!);
 
+  // Convert the company introduction to plain text
+  const plainCompanyIntroductionText = htmlToPlainText(company_introduction);
+
+  // Add plainCompanyIntroductionText to the output with the key 'companyIntroduction'
+  output.companyIntroduction = plainCompanyIntroductionText;
+
   // Add output to the database by updating the entry's 'generated_jd' column
   const { error: updateError } = await supabase
     .from("sow_jd_builder")
@@ -294,4 +280,42 @@ The context provided includes information from the SOW/PWS given to the user for
     success: true,
     jd_id: jobDescriptionUUID,
   };
+}
+
+function htmlToPlainText(html: string): string {
+  let text = "";
+  let inList = false;
+
+  const parser = new Parser(
+    {
+      ontext(data) {
+        text += data;
+      },
+      onopentag(name) {
+        if (name === "br") {
+          text += "\n";
+        } else if (name === "ul" || name === "ol") {
+          inList = true;
+        } else if (name === "li") {
+          if (inList) {
+            text += "\n- ";
+          }
+        }
+      },
+      onclosetag(name) {
+        if (name === "p") {
+          text += "\n";
+        } else if (name === "ul" || name === "ol") {
+          inList = false;
+          text += "\n";
+        }
+      },
+    },
+    { decodeEntities: true }
+  );
+
+  parser.write(html);
+  parser.end();
+
+  return text.trim();
 }

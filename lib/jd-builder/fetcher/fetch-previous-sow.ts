@@ -24,8 +24,6 @@ export async function LoadPreviousJDSessions(userId: string) {
   // Filter out the JDs that have not been completed
   const previousSessions = previous.filter((row) => row.completed_onboard === true);
 
-  console.log("Previous JD Sessions", previousSessions);
-
   // Return the data
   return previousSessions;
 }

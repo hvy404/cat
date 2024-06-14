@@ -1,4 +1,4 @@
-// Job onboarding stage - final step when user confirms details
+// Job onboarding stage - final step after user confirms details
 
 import { inngest } from "@/lib/inngest/client";
 import { referenceFunction } from "inngest";

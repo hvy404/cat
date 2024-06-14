@@ -17,7 +17,7 @@ export async function AddJDGetDataPoints(jdUUID: string, employer: string) {
     )
     .eq("jd_uuid", jdUUID);
 
-    console.log(data);
+    //console.log(data);
 
   if (error) {
     console.error("Error fetching data: ", error);

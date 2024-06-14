@@ -23,7 +23,6 @@ export default function OverviewJobList() {
   const [jobs, setJobs] = useState<Job[]>([]);
 
   const handleClick = (job_id: string, title: string) => {
-    console.log(job_id);
     setDashboardRoleOverview({ active: true, active_role_id: String(job_id), active_role_name: title});
   };
 
@@ -35,10 +34,9 @@ export default function OverviewJobList() {
         // Only proceed if user is not null
         const result = await fetchActiveJobPosts(user.uuid);
         if (result && result.data) {
-          console.log(result.data);
           setJobs(result.data);
         } else {
-          console.log("No data returned");
+          //console.log("No data returned");
           setJobs([]);
         }
       }

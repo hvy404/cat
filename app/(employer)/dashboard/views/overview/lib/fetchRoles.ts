@@ -22,8 +22,6 @@ export async function fetchActiveJobPosts(userID: string) {
     .eq("employer_id", userID)
     .eq("processed", true);
 
-  console.log(data);
-
   if (error) {
     console.error(error);
     return {

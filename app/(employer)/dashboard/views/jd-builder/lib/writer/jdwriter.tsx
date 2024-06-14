@@ -7,7 +7,6 @@ import { useCompletion } from "ai/react";
 import { Button } from "@/components/ui/button";
 import { useDebouncedCallback } from "use-debounce";
 import { EditorBubbleMenu } from "./mod/bubble-menu";
-//import useLocalStorage from "./hooks/use-local-storage";
 import { getPrevText } from "./mod/get-prev-text";
 import { getTextAroundCursor } from "./mod/cursor-surrounding";
 import { RetreiveGeneratedJD } from "./hooks/retreive-generated-jd";
@@ -51,8 +50,6 @@ const JDWriter = () => {
     setSelectedMenuItem,
     setAddJD,
   } = useStore();
-
-  // Store dynamically published job description ID
 
   // useState to manage the default value
   const [isBackingUp, setIsBackingUp] = useState<boolean>(false);
@@ -425,6 +422,17 @@ const JDWriter = () => {
           step: 2,
           jdEntryID: generatedJobDescriptionID,
           publishingRunnerID: null, // Ensure no background runner is active
+        });
+
+        // Clean up the wizard state
+        setJDBuilderWizard({
+          sowID: "",
+          sowFile: [],
+          sowParseRunnerID: "",
+          jobDescriptionId: "",
+          jdGenerationRunnerID: "",
+          roleToGenerate: "",
+          step: 1,
         });
 
         setSelectedMenuItem("add-job")
