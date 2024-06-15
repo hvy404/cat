@@ -161,6 +161,12 @@ export default function AddJDStep2Form() {
       // Save the job details if validation passes
       const result = await SaveJobDetails(addJD.jobDetails[0], addJD.jdEntryID!);
 
+      // if result.error cosole.log error
+      if (result.error) {
+        console.error("Error saving job details: ", result.error);
+        return;
+      }
+
       console.log(addJD.jobDetails[0]);
       setValidationErrors({}); // Clear validation errors on successful submission
     } catch (error) {

@@ -35,7 +35,7 @@ function generateVariations(word: string): string[] {
 
 const baseWords: string[] = [
   "anal",
-  "anus" ,
+  "anus",
   "arse",
   "ass",
   "asshole",
@@ -56,11 +56,13 @@ const baseWords: string[] = [
   "cunt",
   "damn",
   "dick",
+  "dckk",
   "dildo",
   "dyke",
   "fag",
   "faggot",
   "fuck",
+  "fck",
   "fucker",
   "fucking",
   "goddamn",
@@ -69,6 +71,7 @@ const baseWords: string[] = [
   "jerk",
   "jizz",
   "knob",
+  "kkk",
   "labia",
   "muff",
   "nigga",
@@ -109,7 +112,9 @@ const badWordsRegex: RegExp = new RegExp(
  * @param {string} text - The input text to check
  * @returns {boolean} - Returns true if bad words are found, otherwise false
  */
-export async function contentModerationWordFilter(text: string): Promise<boolean> {
+export async function contentModerationWordFilter(
+  text: string
+): Promise<boolean> {
   if (!text) {
     throw new Error("No text provided");
   }

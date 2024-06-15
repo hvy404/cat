@@ -2,6 +2,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { unstable_noStore as noStore } from "next/cache";
+import { contentModerationWordFilter } from "@/lib/content-moderation/explicit_word_filter"
 
 /**
  * Save edited job details to the database.
@@ -37,6 +38,15 @@ export async function SaveJobDetails(jobDetails: JobDetails, jdUUID: string) {
   noStore();
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
+
+   // Check if the job title contains any bad words
+   const contentFilter = await contentModerationWordFilter(jobDetails.jobTitle);
+
+   if (contentFilter) {
+     return {
+       error: "Inappropriate language detected",
+     };
+   }
 
   // Map your form fields to your database columns correctly
   const { error } = await supabase
