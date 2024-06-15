@@ -160,6 +160,11 @@ export default function AddJDStep2Form() {
     }
   };
 
+  const handleFocus = 
+    (fieldName: string) => {
+      setAddJD({ activeField: fieldName });
+    };
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -168,7 +173,7 @@ export default function AddJDStep2Form() {
         </CardTitle>
       </CardHeader>
       <div className="grid grid-cols-1 gap-8 p-4">
-        <div>
+        <div onMouseOver={() => handleFocus("jobTitle")}>
           <div>
             <Label htmlFor="title">Job Title</Label>
             <Input
@@ -339,7 +344,7 @@ export default function AddJDStep2Form() {
           </div>
         )}
         {/* Default show salary - but hide if commission is true */}
-        <div className="flex flex-col bg-gray-100/50 rounded-md p-4 gap-8">
+        <div onMouseOver={() => handleFocus("discloseSalary")} className="flex flex-col bg-gray-100/50 rounded-md p-4 gap-8">
           <div className="flex items-center space-x-4">
             <div className="flex items-center gap-2">
               <Switch
@@ -574,20 +579,27 @@ export default function AddJDStep2Form() {
         </div>
 
         {/* Preferences */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center space-x-2 bg-gray-100/50 p-4 rounded-md">
-            <Switch
-              id="private-hire"
-              checked={addJD.jobDetails[0]?.private_employer || false}
-              onCheckedChange={(checked) =>
-                setAddJD({
-                  jobDetails: [
-                    { ...addJD.jobDetails[0], private_employer: checked },
-                  ],
-                })
-              }
-            />
-            <Label htmlFor="private-hire">Private Post</Label>
+        <div onMouseOver={() => handleFocus("privateEmployer")} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-4 bg-gray-100/50 p-4 rounded-md">
+            <div className="flex flex-row items-center gap-4">
+              <Switch
+                id="private-hire"
+                checked={addJD.jobDetails[0]?.private_employer || false}
+                onCheckedChange={(checked) =>
+                  setAddJD({
+                    jobDetails: [
+                      { ...addJD.jobDetails[0], private_employer: checked },
+                    ],
+                  })
+                }
+              />
+              <Label htmlFor="private-hire">Incognito</Label>
+            </div>
+            <div 
+            className="text-sm text-gray-500">
+              "Incognito" allows you to keep your company name confidential
+              when posting job opportunities.
+            </div>
           </div>
         </div>
         {/* Submit button */}

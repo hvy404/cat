@@ -16,7 +16,7 @@ export default function Step2SubPanelTitle() {
   // Local state to manage input value (useState)
   useEffect(() => {
     if (addJD.jobDetails.length > 0) {
-      setJobTitle(addJD.jobDetails[0].title);
+      setJobTitle(addJD.jobDetails[0].jobTitle);
     }
   }, [addJD.jobDetails]);
 
@@ -47,9 +47,9 @@ const handleTitleOptions = async () => {
       )}
 
       {addJD.jobDescriptionTitles.length > 0 && (
-        <>
+        <div className="flex flex-col p-4">
           <div className="space-y-2 flex flex-col">
-            <p className="leading-7 text-sm font-medium text-gray-700 text-center">
+            <p className="leading-7 text-sm font-medium text-gray-700 my-4">
               Some suggestions to get you started
             </p>
           </div>
@@ -65,7 +65,7 @@ const handleTitleOptions = async () => {
                 <p
                   onClick={() => {
                     const updatedJobDetails = addJD.jobDetails.map((detail, idx) =>
-                      idx === 0 ? { ...detail, title: title.title } : detail
+                      idx === 0 ? { ...detail, jobTitle: title.title } : detail
                     );
                     setAddJD({ jobDetails: updatedJobDetails });
                   }}
@@ -76,7 +76,7 @@ const handleTitleOptions = async () => {
               </motion.div>
             ))}
           </div>
-        </>
+        </div>
       )}
     </>
   );

@@ -14,9 +14,7 @@ export default function Step2SubPanelPrivateMode() {
       <div className="flex flex-col gap-4 items-center justify-center p-4 lg:p-8 text-gray-700 text-sm">
         <ShieldPlus className="h-8 w-8 text-gray-600" />
         <div>
-          <h3 className="text-gray-700 font-medium">
-            Private mode
-          </h3>
+          <h3 className="text-gray-700 font-medium">Private mode</h3>
           <p>
             When you post a job in private mode, your company name and logo will
             not be visible to job seekers. This is a great option if you want to
@@ -24,11 +22,19 @@ export default function Step2SubPanelPrivateMode() {
           </p>
         </div>
         <div>
+          <h3 className="text-gray-700 font-medium">Use sparingly.</h3>
+          <p>
+            While this feature is helpful, consider that candidates often
+            appreciate knowing the employer's identity.{" "}
+          </p>
+        </div>
+        <div>
           <h3 className="text-gray-700 font-medium">
             When does my company name appear?
           </h3>
           <p>
-            Your company name will be visible to candidates who you have invited to interview.
+            Your company name will be visible to candidates who you have invited
+            to interview.
           </p>
         </div>
       </div>
