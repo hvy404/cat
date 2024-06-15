@@ -44,7 +44,7 @@ export async function generateJDStatic(
   - locationType: (optional) the type of location for the job, e.g., Remote, Onsite, Hybrid
   - location: (optional) the city, state, and zip code of the job location if applicable and an onsite job
     - city: the city of the job location
-    - state: the state of the job location
+    - state: the state of the job location. e.g., CA
     - zipcode: the zip code of the job location
   - jobType: type of employment, e.g., Full-time, Part-time, Contract, Temporary
   - salaryRange: (optional) the salary range for the job

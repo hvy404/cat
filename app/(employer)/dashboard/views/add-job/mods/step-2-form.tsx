@@ -1,5 +1,21 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { Check, ChevronsUpDown } from "lucide-react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
 import useStore from "@/app/state/useStore";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,11 +27,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { AddJDGetDataPoints } from "@/lib/dashboard/ingest-jd/get-data-points";
 import { SaveJobDetails } from "@/lib/dashboard/ingest-jd/save-data-points";
+import { states } from "./form-value-states";
 import { z } from "zod";
 
 interface ValidationErrors {
@@ -69,6 +87,10 @@ export default function AddJDStep2Form() {
     user: state.user,
   }));
 
+  // State dropdown
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("");
+
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({
     jobTitle: "",
     location_type: "",
@@ -106,6 +128,7 @@ export default function AddJDStep2Form() {
           jobDetails: [
             {
               jobTitle: jdTopLevelDetails.title,
+              location: jdTopLevelDetails.location,
               location_type: jdTopLevelDetails.location_type,
               min_salary: parseInt(jdTopLevelDetails.min_salary, 10),
               max_salary: parseInt(jdTopLevelDetails.max_salary, 10),
@@ -160,10 +183,9 @@ export default function AddJDStep2Form() {
     }
   };
 
-  const handleFocus = 
-    (fieldName: string) => {
-      setAddJD({ activeField: fieldName });
-    };
+  const handleFocus = (fieldName: string) => {
+    setAddJD({ activeField: fieldName });
+  };
 
   return (
     <Card className="w-full">
@@ -290,29 +312,63 @@ export default function AddJDStep2Form() {
               </div>
             </div>
             <div>
-              <div>
+              <div className="flex flex-col gap-2">
                 <Label htmlFor="state">State</Label>
-                <Input
-                  type="text"
-                  id="state"
-                  placeholder="State"
-                  value={addJD.jobDetails[0]?.location?.[0]?.state || ""}
-                  onChange={(e) =>
-                    setAddJD({
-                      jobDetails: [
-                        {
-                          ...addJD.jobDetails[0],
-                          location: [
-                            {
-                              ...addJD.jobDetails[0]?.location?.[0],
-                              state: e.target.value,
-                            },
-                          ],
-                        },
-                      ],
-                    })
-                  }
-                />
+                <Popover open={open} onOpenChange={setOpen}>
+                  <PopoverTrigger asChild className="mt-0.5">
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={open}
+                      className="justify-between"
+                    >
+                      {addJD.jobDetails[0]?.location?.[0]?.state || "Select state"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0">
+                    <Command>
+                      <CommandInput placeholder="Search state..." />
+                      <CommandList>
+                        <CommandEmpty>Not found.</CommandEmpty>
+                        <CommandGroup>
+                          {states.map((state) => (
+                            <CommandItem
+                              key={state.value}
+                              onSelect={() => {
+                                setValue(state.value);
+                                setAddJD({
+                                  jobDetails: [
+                                    {
+                                      ...addJD.jobDetails[0],
+                                      location: [
+                                        {
+                                          ...addJD.jobDetails[0]?.location?.[0],
+                                          state: state.value,
+                                        },
+                                      ],
+                                    },
+                                  ],
+                                });
+                                setOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  value === state.value
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                              {state.label}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
             <div>
@@ -344,7 +400,10 @@ export default function AddJDStep2Form() {
           </div>
         )}
         {/* Default show salary - but hide if commission is true */}
-        <div onMouseOver={() => handleFocus("discloseSalary")} className="flex flex-col bg-gray-100/50 rounded-md p-4 gap-8">
+        <div
+          onMouseOver={() => handleFocus("discloseSalary")}
+          className="flex flex-col bg-gray-100/50 rounded-md p-4 gap-8"
+        >
           <div className="flex items-center space-x-4">
             <div className="flex items-center gap-2">
               <Switch
@@ -579,7 +638,10 @@ export default function AddJDStep2Form() {
         </div>
 
         {/* Preferences */}
-        <div onMouseOver={() => handleFocus("privateEmployer")} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div
+          onMouseOver={() => handleFocus("privateEmployer")}
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
           <div className="flex flex-col gap-4 bg-gray-100/50 p-4 rounded-md">
             <div className="flex flex-row items-center gap-4">
               <Switch
@@ -595,10 +657,9 @@ export default function AddJDStep2Form() {
               />
               <Label htmlFor="private-hire">Incognito</Label>
             </div>
-            <div 
-            className="text-sm text-gray-500">
-              "Incognito" allows you to keep your company name confidential
-              when posting job opportunities.
+            <div className="text-sm text-gray-500">
+              "Incognito" allows you to keep your company name confidential when
+              posting job opportunities.
             </div>
           </div>
         </div>
