@@ -130,14 +130,10 @@ export default function AddJDStep2Form() {
               jobTitle: jdTopLevelDetails.title,
               location: jdTopLevelDetails.location,
               location_type: jdTopLevelDetails.location_type,
-              min_salary: parseInt(jdTopLevelDetails.min_salary, 10),
-              max_salary: parseInt(jdTopLevelDetails.max_salary, 10),
-              ote_salary: jdTopLevelDetails.ote_salary
-                ? parseInt(jdTopLevelDetails.ote_salary, 10)
-                : null,
-              commission_percent: parseFloat(
-                jdTopLevelDetails.commission_percent
-              ),
+              min_salary: jdTopLevelDetails.min_salary !== null ? parseInt(jdTopLevelDetails.min_salary, 10) : null,
+              max_salary: jdTopLevelDetails.max_salary !== null ? parseInt(jdTopLevelDetails.max_salary, 10) : null,
+              ote_salary: jdTopLevelDetails.ote_salary !== null ? parseInt(jdTopLevelDetails.ote_salary, 10) : null,
+              commission_percent: jdTopLevelDetails.commission_percent !== null ? parseFloat(jdTopLevelDetails.commission_percent) : null,
               security_clearance: jdTopLevelDetails.security_clearance,
               salary_disclose: jdTopLevelDetails.salary_disclose,
               commission_pay: jdTopLevelDetails.commission_pay,
@@ -163,7 +159,7 @@ export default function AddJDStep2Form() {
     try {
       schema.parse(addJD.jobDetails[0]);
       // Save the job details if validation passes
-      //const result = await SaveJobDetails(addJD.jobDetails[0], addJD.jdEntryID);
+      const result = await SaveJobDetails(addJD.jobDetails[0], addJD.jdEntryID!);
 
       console.log(addJD.jobDetails[0]);
       setValidationErrors({}); // Clear validation errors on successful submission
@@ -322,7 +318,8 @@ export default function AddJDStep2Form() {
                       aria-expanded={open}
                       className="justify-between"
                     >
-                      {addJD.jobDetails[0]?.location?.[0]?.state || "Select state"}
+                      {addJD.jobDetails[0]?.location?.[0]?.state ||
+                        "Select state"}
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>

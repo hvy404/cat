@@ -11,15 +11,26 @@ import { unstable_noStore as noStore } from "next/cache";
 
 interface JobDetails {
   jobTitle: string;
-  locationType?: "remote" | "onsite" | "hybrid" | undefined;
-  minSalary?: number;
-  maxSalary?: number;
-  clearanceLevel?: "none" | "basic" | "elevated" | "high" | undefined;
-  discloseSalary?: boolean;
-  commissionPay?: boolean;
-  commissionPercent?: number;
-  privateEmployer?: boolean;
-  salaryOte?: number;
+  location?: JobLocation[];
+  location_type: string;
+  min_salary?: number | null;
+  max_salary?: number | null;
+  salary_ote?: number | null;
+  commission_percent?: number | null;
+  security_clearance: string;
+  salary_disclose?: boolean;
+  commission_pay?: boolean;
+  private_employer?: boolean;
+  ote_salary?: number | null;
+  compensation_type?: string;
+  hourly_comp_min?: number | null;
+  hourly_comp_max?: number | null;
+}
+
+interface JobLocation {
+  city?: string;
+  state?: string;
+  zipcode?: string;
 }
 
 export async function SaveJobDetails(jobDetails: JobDetails, jdUUID: string) {
@@ -32,15 +43,26 @@ export async function SaveJobDetails(jobDetails: JobDetails, jdUUID: string) {
     .from("job_postings")
     .update({
       title: jobDetails.jobTitle,
-      location_type: jobDetails.locationType,
-      min_salary: jobDetails.minSalary,
-      max_salary: jobDetails.maxSalary,
-      security_clearance: jobDetails.clearanceLevel,
-      salary_disclose: jobDetails.discloseSalary,
-      commission_pay: jobDetails.commissionPay,
-      commission_percent: jobDetails.commissionPercent,
-      private_employer: jobDetails.privateEmployer,
-      ote_salary: jobDetails.salaryOte,
+      location_type: jobDetails.location_type,
+      min_salary: jobDetails.min_salary,
+      max_salary: jobDetails.max_salary,
+      security_clearance: jobDetails.security_clearance,
+      salary_disclose: jobDetails.salary_disclose,
+      commission_pay: jobDetails.commission_pay,
+      commission_percent: jobDetails.commission_percent,
+      private_employer: jobDetails.private_employer,
+      ote_salary: jobDetails.ote_salary,
+      compensation_type: jobDetails.compensation_type,
+      hourly_comp_min: jobDetails.hourly_comp_min,
+      hourly_comp_max: jobDetails.hourly_comp_max,
+      // Do not stringy the location array
+      location: jobDetails.location
+        ? jobDetails.location.map((loc) => ({
+            city: loc.city,
+            state: loc.state,
+            zipcode: loc.zipcode,
+          }))
+        : null,
     })
     .eq("jd_uuid", jdUUID);
 

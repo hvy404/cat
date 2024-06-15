@@ -35,7 +35,7 @@ function generateVariations(word: string): string[] {
 
 const baseWords: string[] = [
   "anal",
-  "anus",
+  "anus" ,
   "arse",
   "ass",
   "asshole",
@@ -109,10 +109,10 @@ const badWordsRegex: RegExp = new RegExp(
  * @param {string} text - The input text to check
  * @returns {boolean} - Returns true if bad words are found, otherwise false
  */
-export function containsBadWords(text: string): boolean {
+export async function contentModerationWordFilter(text: string): Promise<boolean> {
   if (!text) {
     throw new Error("No text provided");
   }
 
-  return badWordsRegex.test(text);
+  return Promise.resolve(badWordsRegex.test(text));
 }
