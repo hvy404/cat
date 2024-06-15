@@ -16,6 +16,44 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { AddJDGetDataPoints } from "@/lib/dashboard/ingest-jd/get-data-points";
 import { SaveJobDetails } from "@/lib/dashboard/ingest-jd/save-data-points";
+import { z } from "zod";
+
+interface ValidationErrors {
+  [key: string]: string;
+}
+
+const schema = z
+  .object({
+    jobTitle: z.string().min(1, "Job title is required"),
+    location_type: z.string().min(1, "Location type is required"),
+    security_clearance: z.string().min(1, "Clearance is required"),
+    salary_disclose: z.boolean(),
+    compensation_type: z.string(),
+    min_salary: z.number().optional().nullable(),
+    max_salary: z.number().optional().nullable(),
+    hourly_comp_min: z.number().optional().nullable(),
+    hourly_comp_max: z.number().optional().nullable(),
+    ote_salary: z.number().optional().nullable(),
+    commission_percent: z.number().optional().nullable(),
+  })
+  .refine(
+    (data) =>
+      !data.salary_disclose ||
+      (data.compensation_type === "salary" &&
+        data.min_salary !== null &&
+        data.max_salary !== null) ||
+      (data.compensation_type === "hourly" &&
+        data.hourly_comp_min !== null &&
+        data.hourly_comp_max !== null) ||
+      (data.compensation_type === "commission" &&
+        data.ote_salary !== null &&
+        data.commission_percent !== null),
+    {
+      message:
+        "Please provide the required salary information based on the selected compensation type",
+      path: ["compensation"],
+    }
+  );
 
 export default function AddJDStep2Form() {
   const { addJD, setAddJD, user } = useStore((state) => ({
@@ -23,6 +61,14 @@ export default function AddJDStep2Form() {
     setAddJD: state.setAddJD,
     user: state.user,
   }));
+
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({
+    jobTitle: "",
+    location_type: "",
+    security_clearance: "",
+    compensation: "",
+    // Add other fields as needed
+  });
 
   useEffect(() => {
     let isMounted = true;
@@ -83,9 +129,27 @@ export default function AddJDStep2Form() {
   }, []);
 
   const handleSubmit = async () => {
-    //const result = await SaveJobDetails(addJD.jobDetails[0], addJD.jdEntryID);
-    console.log(addJD.jobDetails[0]);
-    // Handle the result (success or error)
+    try {
+      schema.parse(addJD.jobDetails[0]);
+      // Save the job details if validation passes
+      //const result = await SaveJobDetails(addJD.jobDetails[0], addJD.jdEntryID);
+  
+      console.log(addJD.jobDetails[0]);
+      setValidationErrors({}); // Clear validation errors on successful submission
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        // Handle validation errors
+        const errors = error.errors.reduce((acc: ValidationErrors, err) => {
+          acc[err.path[0]] = err.message;
+          return acc;
+        }, {} as ValidationErrors);
+        setValidationErrors(errors);
+        console.log(errors);
+      } else {
+        // Handle other errors
+        console.log(error);
+      }
+    }
   };
 
   return (
@@ -98,6 +162,11 @@ export default function AddJDStep2Form() {
       <div className="grid grid-cols-1 gap-8 p-4">
         <div>
           <Label htmlFor="title">Job Title</Label>
+          {validationErrors.jobTitle && (
+            <p className="text-red-500 text-sm mt-1">
+              {validationErrors.jobTitle}
+            </p>
+          )}
           <Input
             type="text"
             id="title"
@@ -115,6 +184,11 @@ export default function AddJDStep2Form() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="location-type">Location Type</Label>
+            {validationErrors.location_type && (
+              <p className="text-red-500 text-sm mt-1">
+                {validationErrors.location_type}
+              </p>
+            )}
             <Select
               value={addJD.jobDetails[0]?.location_type || ""}
               onValueChange={(value) =>
@@ -140,6 +214,11 @@ export default function AddJDStep2Form() {
           </div>
           <div>
             <Label htmlFor="clearance-type">Clearance</Label>
+            {validationErrors.security_clearance && (
+              <p className="text-red-500 text-sm mt-1">
+                {validationErrors.security_clearance}
+              </p>
+            )}
             <Select
               value={addJD.jobDetails[0]?.security_clearance || ""}
               onValueChange={(value) =>
@@ -293,6 +372,11 @@ export default function AddJDStep2Form() {
               </Select>
             </div>
           </div>
+          {validationErrors.compensation && (
+            <p className="text-red-500 text-sm mt-1">
+              {validationErrors.compensation}
+            </p>
+          )}
 
           {addJD.jobDetails[0]?.salary_disclose && (
             <>
@@ -308,16 +392,18 @@ export default function AddJDStep2Form() {
                           id="min-salary"
                           placeholder="Starting Salary"
                           value={addJD.jobDetails[0]?.min_salary || ""}
-                          onChange={(e) =>
+                          onChange={(e) => {
+                            const value = e.target.value.trim();
                             setAddJD({
                               jobDetails: [
                                 {
                                   ...addJD.jobDetails[0],
-                                  min_salary: parseInt(e.target.value, 10),
+                                  min_salary:
+                                    value === "" ? null : parseInt(value, 10),
                                 },
                               ],
-                            })
-                          }
+                            });
+                          }}
                         />
                       </div>
                     </div>
@@ -333,16 +419,18 @@ export default function AddJDStep2Form() {
                             id="max-salary"
                             placeholder="Max Salary"
                             value={addJD.jobDetails[0]?.max_salary || ""}
-                            onChange={(e) =>
+                            onChange={(e) => {
+                              const value = e.target.value.trim();
                               setAddJD({
                                 jobDetails: [
                                   {
                                     ...addJD.jobDetails[0],
-                                    max_salary: parseInt(e.target.value, 10),
+                                    max_salary:
+                                      value === "" ? null : parseInt(value, 10),
                                   },
                                 ],
-                              })
-                            }
+                              });
+                            }}
                           />
                         </div>
                       </div>
@@ -363,16 +451,18 @@ export default function AddJDStep2Form() {
                             id="ote-salary"
                             placeholder="OTE Salary"
                             value={addJD.jobDetails[0]?.ote_salary || ""}
-                            onChange={(e) =>
+                            onChange={(e) => {
+                              const value = e.target.value.trim();
                               setAddJD({
                                 jobDetails: [
                                   {
                                     ...addJD.jobDetails[0],
-                                    ote_salary: parseInt(e.target.value, 10),
+                                    ote_salary:
+                                      value === "" ? null : parseInt(value, 10),
                                   },
                                 ],
-                              })
-                            }
+                              });
+                            }}
                           />
                         </div>
                       </div>
@@ -382,6 +472,7 @@ export default function AddJDStep2Form() {
                         <Label htmlFor="commission-percentage">
                           Commission Split
                         </Label>
+
                         <div className="flex flex-row items-center gap-2">
                           <Input
                             type="text"
@@ -390,18 +481,18 @@ export default function AddJDStep2Form() {
                             value={
                               addJD.jobDetails[0]?.commission_percent || ""
                             }
-                            onChange={(e) =>
+                            onChange={(e) => {
+                              const value = e.target.value.trim();
                               setAddJD({
                                 jobDetails: [
                                   {
                                     ...addJD.jobDetails[0],
-                                    commission_percent: parseFloat(
-                                      e.target.value
-                                    ),
+                                    commission_percent:
+                                      value === "" ? null : parseFloat(value),
                                   },
                                 ],
-                              })
-                            }
+                              });
+                            }}
                           />
                           <span className="text-sm font-medium">%</span>
                         </div>
@@ -413,8 +504,7 @@ export default function AddJDStep2Form() {
               {addJD.jobDetails[0]?.compensation_type === "hourly" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="state">Starting Rate</Label>
-
+                    <Label htmlFor="starting-hourly">Starting Rate</Label>
                     <div className="flex flex-row items-center gap-2">
                       <span className="text-sm font-medium">$</span>
                       <Input
@@ -422,21 +512,23 @@ export default function AddJDStep2Form() {
                         id="starting-hourly"
                         placeholder="Starting Rate"
                         value={addJD.jobDetails[0]?.hourly_comp_min || ""}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          const value = e.target.value.trim();
                           setAddJD({
                             jobDetails: [
                               {
                                 ...addJD.jobDetails[0],
-                                hourly_comp_min: parseInt(e.target.value, 10),
+                                hourly_comp_min:
+                                  value === "" ? null : parseInt(value, 10),
                               },
                             ],
-                          })
-                        }
+                          });
+                        }}
                       />
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="state">Maximum Rate</Label>
+                    <Label htmlFor="max-hourly">Maximum Rate</Label>
                     <div className="flex flex-row items-center gap-2">
                       <span className="text-sm font-medium">$</span>
                       <Input
@@ -444,16 +536,18 @@ export default function AddJDStep2Form() {
                         id="max-hourly"
                         placeholder="Maximum Rate"
                         value={addJD.jobDetails[0]?.hourly_comp_max || ""}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          const value = e.target.value.trim();
                           setAddJD({
                             jobDetails: [
                               {
                                 ...addJD.jobDetails[0],
-                                hourly_comp_max: parseInt(e.target.value, 10),
+                                hourly_comp_max:
+                                  value === "" ? null : parseInt(value, 10),
                               },
                             ],
-                          })
-                        }
+                          });
+                        }}
                       />
                     </div>
                   </div>

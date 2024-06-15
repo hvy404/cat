@@ -35,10 +35,10 @@ interface JobDetails {
   jobTitle: string;
   location?: JobLocation[];
   location_type: string;
-  min_salary: number;
-  max_salary: number;
+  min_salary?: number | null;
+  max_salary?: number | null;
   salary_ote?: number | null;
-  commission_percent?: number;
+  commission_percent?: number | null;
   security_clearance: string;
   salary_disclose?: boolean;
   commission_pay?: CheckedState; // TODO: deprecate this
