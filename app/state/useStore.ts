@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { CheckedState } from "@radix-ui/react-checkbox"; // Import CheckedState type
+import { CheckedState } from "@radix-ui/react-checkbox"; // type for the checkbox state
 
 interface User {
   email: string;
@@ -41,9 +41,12 @@ interface JobDetails {
   commission_percent?: number;
   security_clearance: string;
   salary_disclose?: boolean;
-  commission_pay?: CheckedState;
+  commission_pay?: CheckedState; // TODO: deprecate this
   private_employer?: boolean;
   ote_salary?: number | null;
+  compensation_type?: string;
+  hourly_comp_min?: number | null;
+  hourly_comp_max?: number | null;
 }
 
 

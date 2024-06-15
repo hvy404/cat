@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import useStore from "@/app/state/useStore";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,6 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { AddJDGetDataPoints } from "@/lib/dashboard/ingest-jd/get-data-points";
 import { SaveJobDetails } from "@/lib/dashboard/ingest-jd/save-data-points";
-import { Checkbox } from "@/components/ui/checkbox";
 
 export default function AddJDStep2Form() {
   const { addJD, setAddJD, user } = useStore((state) => ({
@@ -56,12 +55,19 @@ export default function AddJDStep2Form() {
               location_type: jdTopLevelDetails.location_type,
               min_salary: parseInt(jdTopLevelDetails.min_salary, 10),
               max_salary: parseInt(jdTopLevelDetails.max_salary, 10),
-              ote_salary: jdTopLevelDetails.ote_salary ? parseInt(jdTopLevelDetails.ote_salary, 10) : null,
-              commission_percent: parseFloat(jdTopLevelDetails.commission_percent),
+              ote_salary: jdTopLevelDetails.ote_salary
+                ? parseInt(jdTopLevelDetails.ote_salary, 10)
+                : null,
+              commission_percent: parseFloat(
+                jdTopLevelDetails.commission_percent
+              ),
               security_clearance: jdTopLevelDetails.security_clearance,
               salary_disclose: jdTopLevelDetails.salary_disclose,
               commission_pay: jdTopLevelDetails.commission_pay,
               private_employer: jdTopLevelDetails.private_employer,
+              compensation_type: jdTopLevelDetails.compensation_type,
+              hourly_comp_min: jdTopLevelDetails.hourly_comp_min,
+              hourly_comp_max: jdTopLevelDetails.hourly_comp_max,
             },
           ],
         });
@@ -78,7 +84,7 @@ export default function AddJDStep2Form() {
 
   const handleSubmit = async () => {
     //const result = await SaveJobDetails(addJD.jobDetails[0], addJD.jdEntryID);
-    console.log(addJD.jobDetails[0])
+    console.log(addJD.jobDetails[0]);
     // Handle the result (success or error)
   };
 
@@ -89,7 +95,7 @@ export default function AddJDStep2Form() {
           Details
         </CardTitle>
       </CardHeader>
-      <div className="grid grid-cols-1 gap-4 p-4">
+      <div className="grid grid-cols-1 gap-8 p-4">
         <div>
           <Label htmlFor="title">Job Title</Label>
           <Input
@@ -133,7 +139,7 @@ export default function AddJDStep2Form() {
             </Select>
           </div>
           <div>
-            <Label htmlFor="clearance-type">Clearance Type</Label>
+            <Label htmlFor="clearance-type">Clearance</Label>
             <Select
               value={addJD.jobDetails[0]?.security_clearance || ""}
               onValueChange={(value) =>
@@ -149,7 +155,7 @@ export default function AddJDStep2Form() {
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectLabel>Clearance</SelectLabel>
+                  <SelectLabel>Clearance Level</SelectLabel>
                   <SelectItem value="none">None</SelectItem>
                   <SelectItem value="basic">Public Trust</SelectItem>
                   <SelectItem value="elevated">Secret</SelectItem>
@@ -243,115 +249,7 @@ export default function AddJDStep2Form() {
           </div>
         )}
         {/* Default show salary - but hide if commission is true */}
-        {!addJD.jobDetails[0]?.commission_pay && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <div>
-                <Label htmlFor="min-salary">Minimum Salary</Label>
-                <Input
-                  type="text"
-                  id="min-salary"
-                  placeholder="Starting Salary"
-                  value={addJD.jobDetails[0]?.min_salary || ""}
-                  onChange={(e) =>
-                    setAddJD({
-                      jobDetails: [
-                        {
-                          ...addJD.jobDetails[0],
-                          min_salary: parseInt(e.target.value, 10),
-                        },
-                      ],
-                    })
-                  }
-                />
-              </div>
-            </div>
-            <div>
-              <div>
-                <Label htmlFor="max-salary">Maximum Salary</Label>
-                <Input
-                  type="text"
-                  id="max-salary"
-                  placeholder="Max Salary"
-                  value={addJD.jobDetails[0]?.max_salary || ""}
-                  onChange={(e) =>
-                    setAddJD({
-                      jobDetails: [
-                        {
-                          ...addJD.jobDetails[0],
-                          max_salary: parseInt(e.target.value, 10),
-                        },
-                      ],
-                    })
-                  }
-                />
-              </div>
-            </div>
-          </div>
-        )}
-        {/* Only show if commission is true */}
-        {addJD.jobDetails[0]?.commission_pay && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <div>
-                <Label htmlFor="ote-salary">OTE Salary</Label>
-                <Input
-                  type="text"
-                  id="ote-salary"
-                  placeholder="OTE Salary"
-                  value={addJD.jobDetails[0]?.ote_salary || ""}
-                  onChange={(e) =>
-                    setAddJD({
-                      jobDetails: [
-                        {
-                          ...addJD.jobDetails[0],
-                          ote_salary: parseInt(e.target.value, 10),
-                        },
-                      ],
-                    })
-                  }
-                />
-              </div>
-            </div>
-            <div>
-              <div>
-                <Label htmlFor="commission-percentage">Commission</Label>
-                <Input
-                  type="text"
-                  id="commission-percentage"
-                  placeholder="Commission Percentage"
-                  value={addJD.jobDetails[0]?.commission_percent || ""}
-                  onChange={(e) =>
-                    setAddJD({
-                      jobDetails: [
-                        {
-                          ...addJD.jobDetails[0],
-                          commission_percent: parseFloat(e.target.value),
-                        },
-                      ],
-                    })
-                  }
-                />
-              </div>
-            </div>
-          </div>
-        )}
-        {/* Preferences */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="private-hire"
-              checked={addJD.jobDetails[0]?.private_employer || false}
-              onCheckedChange={(checked) =>
-                setAddJD({
-                  jobDetails: [
-                    { ...addJD.jobDetails[0], private_employer: checked },
-                  ],
-                })
-              }
-            />
-            <Label htmlFor="private-hire">Private Hire</Label>
-          </div>
+        <div className="flex flex-col bg-gray-100/50 rounded-md p-4 gap-8">
           <div className="flex items-center space-x-4">
             <div className="flex items-center gap-2">
               <Switch
@@ -367,26 +265,219 @@ export default function AddJDStep2Form() {
               />
               <Label htmlFor="disclose-salary">Disclose Salary</Label>
             </div>
-
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="commission"
-                checked={addJD.jobDetails[0]?.commission_pay || false}
-                onCheckedChange={(checked) =>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="compensation-type">Compensation</Label>
+              <Select
+                value={addJD.jobDetails[0]?.compensation_type || ""}
+                onValueChange={(value) =>
                   setAddJD({
                     jobDetails: [
-                      { ...addJD.jobDetails[0], commission_pay: checked },
+                      { ...addJD.jobDetails[0], compensation_type: value },
                     ],
                   })
                 }
-              />
-              <label
-                htmlFor="commission"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
-                On-Target Earnings
-              </label>
+                <SelectTrigger id="compensation-type">
+                  <SelectValue placeholder="Select compensation type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Compensation</SelectLabel>
+                    <SelectItem value="salary">Salary</SelectItem>
+                    <SelectItem value="hourly">Hourly</SelectItem>
+                    <SelectItem value="commission">Commission Based</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             </div>
+          </div>
+
+          {addJD.jobDetails[0]?.salary_disclose && (
+            <>
+              {addJD.jobDetails[0]?.compensation_type === "salary" && (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="min-salary">Minimum Salary</Label>
+                      <div className="flex flex-row items-center gap-2">
+                        <span className="text-sm font-medium">$</span>
+                        <Input
+                          type="text"
+                          id="min-salary"
+                          placeholder="Starting Salary"
+                          value={addJD.jobDetails[0]?.min_salary || ""}
+                          onChange={(e) =>
+                            setAddJD({
+                              jobDetails: [
+                                {
+                                  ...addJD.jobDetails[0],
+                                  min_salary: parseInt(e.target.value, 10),
+                                },
+                              ],
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div>
+                        <Label htmlFor="max-salary">Maximum Salary</Label>
+
+                        <div className="flex flex-row items-center gap-2">
+                          <span className="text-sm font-medium">$</span>
+                          <Input
+                            type="text"
+                            id="max-salary"
+                            placeholder="Max Salary"
+                            value={addJD.jobDetails[0]?.max_salary || ""}
+                            onChange={(e) =>
+                              setAddJD({
+                                jobDetails: [
+                                  {
+                                    ...addJD.jobDetails[0],
+                                    max_salary: parseInt(e.target.value, 10),
+                                  },
+                                ],
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+              {addJD.jobDetails[0]?.compensation_type === "commission" && (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <div>
+                        <Label htmlFor="ote-salary">On-Target Earnings</Label>
+                        <div className="flex flex-row items-center gap-2">
+                          <span className="text-sm font-medium">$</span>
+                          <Input
+                            type="text"
+                            id="ote-salary"
+                            placeholder="OTE Salary"
+                            value={addJD.jobDetails[0]?.ote_salary || ""}
+                            onChange={(e) =>
+                              setAddJD({
+                                jobDetails: [
+                                  {
+                                    ...addJD.jobDetails[0],
+                                    ote_salary: parseInt(e.target.value, 10),
+                                  },
+                                ],
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <div>
+                        <Label htmlFor="commission-percentage">
+                          Commission Split
+                        </Label>
+                        <div className="flex flex-row items-center gap-2">
+                          <Input
+                            type="text"
+                            id="commission-percentage"
+                            placeholder="Percentage"
+                            value={
+                              addJD.jobDetails[0]?.commission_percent || ""
+                            }
+                            onChange={(e) =>
+                              setAddJD({
+                                jobDetails: [
+                                  {
+                                    ...addJD.jobDetails[0],
+                                    commission_percent: parseFloat(
+                                      e.target.value
+                                    ),
+                                  },
+                                ],
+                              })
+                            }
+                          />
+                          <span className="text-sm font-medium">%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+              {addJD.jobDetails[0]?.compensation_type === "hourly" && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="state">Starting Rate</Label>
+
+                    <div className="flex flex-row items-center gap-2">
+                      <span className="text-sm font-medium">$</span>
+                      <Input
+                        type="text"
+                        id="starting-hourly"
+                        placeholder="Starting Rate"
+                        value={addJD.jobDetails[0]?.hourly_comp_min || ""}
+                        onChange={(e) =>
+                          setAddJD({
+                            jobDetails: [
+                              {
+                                ...addJD.jobDetails[0],
+                                hourly_comp_min: parseInt(e.target.value, 10),
+                              },
+                            ],
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="state">Maximum Rate</Label>
+                    <div className="flex flex-row items-center gap-2">
+                      <span className="text-sm font-medium">$</span>
+                      <Input
+                        type="text"
+                        id="max-hourly"
+                        placeholder="Maximum Rate"
+                        value={addJD.jobDetails[0]?.hourly_comp_max || ""}
+                        onChange={(e) =>
+                          setAddJD({
+                            jobDetails: [
+                              {
+                                ...addJD.jobDetails[0],
+                                hourly_comp_max: parseInt(e.target.value, 10),
+                              },
+                            ],
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Preferences */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex items-center space-x-2 bg-gray-100/50 p-4 rounded-md">
+            <Switch
+              id="private-hire"
+              checked={addJD.jobDetails[0]?.private_employer || false}
+              onCheckedChange={(checked) =>
+                setAddJD({
+                  jobDetails: [
+                    { ...addJD.jobDetails[0], private_employer: checked },
+                  ],
+                })
+              }
+            />
+            <Label htmlFor="private-hire">Private Post</Label>
           </div>
         </div>
         {/* Submit button */}
