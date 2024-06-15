@@ -34,9 +34,15 @@ const schema = z
     hourly_comp_min: z.number().optional().nullable(),
     hourly_comp_max: z.number().optional().nullable(),
     ote_salary: z.number().optional().nullable(),
-commission_percent: z.number().max(99).refine(value => value <= 99, {
-  message: "Commission percent cannot be more than 99%",
-}).optional().nullable(),  })
+    commission_percent: z
+      .number()
+      .max(99)
+      .refine((value) => value <= 99, {
+        message: "Commission percent cannot be more than 99%",
+      })
+      .optional()
+      .nullable(),
+  })
   .refine(
     (data) =>
       !data.salary_disclose ||
@@ -135,7 +141,7 @@ export default function AddJDStep2Form() {
       schema.parse(addJD.jobDetails[0]);
       // Save the job details if validation passes
       //const result = await SaveJobDetails(addJD.jobDetails[0], addJD.jdEntryID);
-  
+
       console.log(addJD.jobDetails[0]);
       setValidationErrors({}); // Clear validation errors on successful submission
     } catch (error) {
@@ -178,14 +184,14 @@ export default function AddJDStep2Form() {
                 })
               }
             />
-        </div>
-        {validationErrors.jobTitle && (
+          </div>
+          {validationErrors.jobTitle && (
             <p className="text-red-500 text-sm mt-1">
               {validationErrors.jobTitle}
             </p>
           )}
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="location-type">Location Type</Label>
@@ -502,8 +508,10 @@ export default function AddJDStep2Form() {
                           <span className="text-sm font-medium">%</span>
                         </div>
                         {validationErrors.commission_percent && (
-          <div className="text-sm text-red-500">{validationErrors.commission_percent}</div>
-        )}
+                          <div className="text-sm text-red-500">
+                            {validationErrors.commission_percent}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
