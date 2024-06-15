@@ -34,8 +34,9 @@ const schema = z
     hourly_comp_min: z.number().optional().nullable(),
     hourly_comp_max: z.number().optional().nullable(),
     ote_salary: z.number().optional().nullable(),
-    commission_percent: z.number().optional().nullable(),
-  })
+commission_percent: z.number().max(99).refine(value => value <= 99, {
+  message: "Commission percent cannot be more than 99%",
+}).optional().nullable(),  })
   .refine(
     (data) =>
       !data.salary_disclose ||
@@ -67,6 +68,7 @@ export default function AddJDStep2Form() {
     location_type: "",
     security_clearance: "",
     compensation: "",
+    commission_percent: "",
     // Add other fields as needed
   });
 
@@ -161,26 +163,29 @@ export default function AddJDStep2Form() {
       </CardHeader>
       <div className="grid grid-cols-1 gap-8 p-4">
         <div>
-          <Label htmlFor="title">Job Title</Label>
-          {validationErrors.jobTitle && (
+          <div>
+            <Label htmlFor="title">Job Title</Label>
+            <Input
+              type="text"
+              id="title"
+              placeholder="Job Title"
+              value={addJD.jobDetails[0]?.jobTitle || ""}
+              onChange={(e) =>
+                setAddJD({
+                  jobDetails: [
+                    { ...addJD.jobDetails[0], jobTitle: e.target.value },
+                  ],
+                })
+              }
+            />
+        </div>
+        {validationErrors.jobTitle && (
             <p className="text-red-500 text-sm mt-1">
               {validationErrors.jobTitle}
             </p>
           )}
-          <Input
-            type="text"
-            id="title"
-            placeholder="Job Title"
-            value={addJD.jobDetails[0]?.jobTitle || ""}
-            onChange={(e) =>
-              setAddJD({
-                jobDetails: [
-                  { ...addJD.jobDetails[0], jobTitle: e.target.value },
-                ],
-              })
-            }
-          />
         </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="location-type">Location Type</Label>
@@ -496,6 +501,9 @@ export default function AddJDStep2Form() {
                           />
                           <span className="text-sm font-medium">%</span>
                         </div>
+                        {validationErrors.commission_percent && (
+          <div className="text-sm text-red-500">{validationErrors.commission_percent}</div>
+        )}
                       </div>
                     </div>
                   </div>
@@ -504,7 +512,7 @@ export default function AddJDStep2Form() {
               {addJD.jobDetails[0]?.compensation_type === "hourly" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="starting-hourly">Starting Rate</Label>
+                    <Label htmlFor="starting-hourly">Starting Hourly</Label>
                     <div className="flex flex-row items-center gap-2">
                       <span className="text-sm font-medium">$</span>
                       <Input
@@ -528,7 +536,7 @@ export default function AddJDStep2Form() {
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="max-hourly">Maximum Rate</Label>
+                    <Label htmlFor="max-hourly">Max Hourly</Label>
                     <div className="flex flex-row items-center gap-2">
                       <span className="text-sm font-medium">$</span>
                       <Input
