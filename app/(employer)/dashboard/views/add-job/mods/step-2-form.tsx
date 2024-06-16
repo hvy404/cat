@@ -130,10 +130,22 @@ export default function AddJDStep2Form() {
               jobTitle: jdTopLevelDetails.title,
               location: jdTopLevelDetails.location,
               location_type: jdTopLevelDetails.location_type,
-              min_salary: jdTopLevelDetails.min_salary !== null ? parseInt(jdTopLevelDetails.min_salary, 10) : null,
-              max_salary: jdTopLevelDetails.max_salary !== null ? parseInt(jdTopLevelDetails.max_salary, 10) : null,
-              ote_salary: jdTopLevelDetails.ote_salary !== null ? parseInt(jdTopLevelDetails.ote_salary, 10) : null,
-              commission_percent: jdTopLevelDetails.commission_percent !== null ? parseFloat(jdTopLevelDetails.commission_percent) : null,
+              min_salary:
+                jdTopLevelDetails.min_salary !== null
+                  ? parseInt(jdTopLevelDetails.min_salary, 10)
+                  : null,
+              max_salary:
+                jdTopLevelDetails.max_salary !== null
+                  ? parseInt(jdTopLevelDetails.max_salary, 10)
+                  : null,
+              ote_salary:
+                jdTopLevelDetails.ote_salary !== null
+                  ? parseInt(jdTopLevelDetails.ote_salary, 10)
+                  : null,
+              commission_percent:
+                jdTopLevelDetails.commission_percent !== null
+                  ? parseFloat(jdTopLevelDetails.commission_percent)
+                  : null,
               security_clearance: jdTopLevelDetails.security_clearance,
               salary_disclose: jdTopLevelDetails.salary_disclose,
               commission_pay: jdTopLevelDetails.commission_pay,
@@ -159,7 +171,10 @@ export default function AddJDStep2Form() {
     try {
       schema.parse(addJD.jobDetails[0]);
       // Save the job details if validation passes
-      const result = await SaveJobDetails(addJD.jobDetails[0], addJD.jdEntryID!);
+      const result = await SaveJobDetails(
+        addJD.jobDetails[0],
+        addJD.jdEntryID!
+      );
 
       // if result.error cosole.log error
       if (result.error) {
@@ -167,8 +182,13 @@ export default function AddJDStep2Form() {
         return;
       }
 
-      console.log(addJD.jobDetails[0]);
-      setValidationErrors({}); // Clear validation errors on successful submission
+      // if result.success is true then console.log success
+      if (result.success) {
+        console.log("Job details saved successfully");
+        console.log(addJD.jobDetails[0]);
+        setValidationErrors({}); // Clear validation errors on successful submission
+        //setAddJD({ step: 3 });
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
         // Handle validation errors

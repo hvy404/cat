@@ -8,6 +8,11 @@
 
 export type JobDescription = {
   jobTitle: string;
+  salaryDisclose?: boolean; 
+  compensationType?: string; 
+  hourlyCompMin?: number; 
+  hourlyCompMax?: number; 
+  privateEmployer?: boolean; 
   company: string;
   client?: string;
   skills: string[];
@@ -82,6 +87,11 @@ export function generateJobCypherQuery(
       commission_pay: ${jd.commissionPay ?? "null"},
       commission_percent: ${jd.commissionPercent ?? "null"},
       ote_salary: ${jd.oteSalary ?? "null"}
+      salary_disclose: ${jd.salaryDisclose ?? "null"},
+      compensation_type: "${escapeString(jd.compensationType || "")}",
+      hourly_comp_min: ${jd.hourlyCompMin ?? "null"},
+      hourly_comp_max: ${jd.hourlyCompMax ?? "null"},
+      private_employer: ${jd.privateEmployer ?? "null"}
     })
     WITH j`;
 

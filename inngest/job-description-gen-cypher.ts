@@ -24,19 +24,34 @@ export const generateJobDescriptionCypher = inngest.createFunction(
     try {
       const { data, error } = await supabase
         .from("job_postings")
-        .select("static, inferred")
+        .select(
+          "static, inferred, salary_disclose, compensation_type, hourly_comp_min, hourly_comp_max, private_employer"
+        )
         .eq("jd_uuid", jobDescriptionID);
 
       if (error) throw new Error(error.message);
 
-      // TODO: This doesnt take in account of the any changes the user may have made to the job description. 
-      // We will need to update with any new values the user may have added to the job description.
+      if (data.length === 0) {
+        throw new Error("No job description found with the given ID.");
+      }
 
+      // Static and inferred data is AI generated data from the JD ingestion process
+      // We need to merge this data with the user edited data to get the final job description data
       const staticData = data[0].static;
       const inferredData = data[0].inferred;
       const jobDescriptionData = { ...staticData, ...inferredData };
 
-      console.log(JSON.stringify(jobDescriptionData));
+      // Update jobDescriptionData with newer data that user may have edited
+      jobDescriptionData.salaryDisclose = data[0].salary_disclose;
+      jobDescriptionData.compensationType = data[0].compensation_type;
+      jobDescriptionData.hourlyCompMin = data[0].hourly_comp_min;
+      jobDescriptionData.hourlyCompMax = data[0].hourly_comp_max;
+      jobDescriptionData.privateEmployer = data[0].private_employer;
+
+      // TODO: Remove this console.log statement after testing
+      console.log(
+        JSON.stringify("Merged JD with user edits:", jobDescriptionData)
+      );
 
       const cypherQuery = generateJobCypherQuery(
         jobDescriptionData,
