@@ -86,7 +86,7 @@ export function generateJobCypherQuery(
       leadership_opportunity: ${jd.leadershipOpportunity ?? "null"},
       commission_pay: ${jd.commissionPay ?? "null"},
       commission_percent: ${jd.commissionPercent ?? "null"},
-      ote_salary: ${jd.oteSalary ?? "null"}
+      ote_salary: ${jd.oteSalary ?? "null"},
       salary_disclose: ${jd.salaryDisclose ?? "null"},
       compensation_type: "${escapeString(jd.compensationType || "")}",
       hourly_comp_min: ${jd.hourlyCompMin ?? "null"},

@@ -16,8 +16,12 @@ export default function Step2SubPanelDisplaySalary() {
           <Lightbulb className="h-8 w-8 text-gray-600" />
           <h3>
             We recognize the sensitivity around disclosing salary information.
-            Job seekers are generally more inclined to apply for positions when
-            salary details are provided.
+            You have the choice to not disclose the salary if you prefer.
+            However, if redacting the salary is not strictly necessary for your
+            hiring process, it's worth considering that candidates often prefer
+            to see the compensation range upfront. Job seekers are generally
+            more inclined to apply for positions when salary details are
+            provided.
           </h3>
           <p>
             Rest assured, your decision to disclose or withhold this information

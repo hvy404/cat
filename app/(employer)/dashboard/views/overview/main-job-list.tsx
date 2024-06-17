@@ -19,37 +19,41 @@ export default function OverviewJobList() {
   const { setDashboardRoleOverview, dashboard_role_overview, user } =
     useStore();
 
-  // Useeffect
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [loadingJobs, setLoadingJobs] = useState<boolean>(true);
+  const [noJobs, setNoJobs] = useState<boolean>(false);
 
   const handleClick = (job_id: string, title: string) => {
-    setDashboardRoleOverview({ active: true, active_role_id: String(job_id), active_role_name: title});
+    setDashboardRoleOverview({
+      active: true,
+      active_role_id: String(job_id),
+      active_role_name: title,
+    });
   };
 
-  // Development only
-  // On click handler call to fetchActiveJobPosts and log the result and store to setJobs usestate
+  // Fetch jobs
   useEffect(() => {
     const fetchJobs = async () => {
       if (user) {
         // Only proceed if user is not null
         const result = await fetchActiveJobPosts(user.uuid);
-        if (result && result.data) {
+        setLoadingJobs(false);
+        if (result && Array.isArray(result.data) && result.data.length > 0) {
           setJobs(result.data);
         } else {
-          //console.log("No data returned");
-          setJobs([]);
+          setNoJobs(true);
         }
       }
     };
 
     fetchJobs();
-  }, [user]); // Depend on user itself, not just user.uuid
+  }, [user]);
 
   return (
     <>
-    {jobs.length === 0 && (
-      <OverviewJobListSkeleton />
-    )}
+      {loadingJobs && <OverviewJobListSkeleton />}
+
+      {noJobs && noJobsFound()}
       {jobs.length > 0 && (
         <ul
           role="list"
@@ -123,7 +127,14 @@ export function OverviewJobListSkeleton() {
         <Skeleton className="w-[250px] h-[25px] rounded-md" />
         <Skeleton className="w-[90px] h-[25px] rounded-md" />
       </div>
+    </div>
+  );
+}
 
+export function noJobsFound() {
+  return (
+    <div className="flex flex-col justify-start text-left w-full h-full">
+      <p className="text-sm font-semibold text-gray-800 py-4">You have not added any job opportunities. <span className="text-gray-500">Click here to get started.</span></p>
     </div>
   );
 }

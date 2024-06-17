@@ -17,13 +17,13 @@ export async function fetchActiveJobPosts(userID: string) {
   const { data, error } = await supabase
     .from("job_postings")
     .select(
-      "jd_uuid, title, location, location_type, security_clearance, posted_date, private_employer"
+      "jd_uuid, title, location, location_type, security_clearance, posted_date, private_employer, active"
     )
     .eq("employer_id", userID)
-    .eq("processed", true);
+    .eq("processed", true) // only fetch processed job postings
+    .eq("active", true); // only fetch active job postings
 
   if (error) {
-    console.error(error);
     return {
       message: "Failed to fetch active job posts.",
       error: error,

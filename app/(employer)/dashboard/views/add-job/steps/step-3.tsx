@@ -19,21 +19,30 @@ export default function AddJDStepThree() {
 
   // Start the publishing runner (final step of onboarding process)
   useEffect(() => {
+    let isMounted = true;
+
     const finishOnboard = async () => {
       if (
         addJD.jdEntryID &&
         user &&
         !addJD.publishingRunnerID &&
-        !hasRun.current
+        !hasRun.current &&
+        isMounted &&
+        addJD.step === 3
       ) {
         hasRun.current = true;
+
+        console.log("Finishing onboard for", addJD.jdEntryID);
+
         const result = await jobDescriptionFinishOnboard(
           addJD.jdEntryID,
           user.uuid,
           user.session
         );
 
-        if (result.success) {
+        console.log("Finish onboard result", result);
+
+        if (result.success && isMounted) {
           setTimeout(() => {
             setAddJD({
               publishingRunnerID: result.event[0],
@@ -44,10 +53,16 @@ export default function AddJDStepThree() {
     };
 
     finishOnboard();
-  }, [addJD.jdEntryID, user]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [addJD.jdEntryID, user, addJD.step]);
 
   // Poll status of publishing runner
   useEffect(() => {
+    let isMounted = true;
+
     if (!addJD.publishingRunnerID || addJD.isFinalizing) {
       return;
     }
@@ -64,6 +79,9 @@ export default function AddJDStepThree() {
             isFinalizing: false,
           });
           isPollingActive = false; // Stop polling
+
+          goToDashboard();
+
         } else if (
           status === "Running" ||
           status === "Failed" ||
@@ -88,11 +106,11 @@ export default function AddJDStepThree() {
     // Cleanup function to stop polling when component unmounts or addJD.isFinalizing changes
     return () => {
       isPollingActive = false; // This will stop any scheduled polling operations
+      isMounted = false;
     };
   }, [addJD.publishingRunnerID]);
 
   // Return to dashboard after completed
-  // TODO: Clean up the state after returning to the dashboard
   const goToDashboard = () => {
     // Clean up the state
     setAddJD({
@@ -120,8 +138,6 @@ export default function AddJDStepThree() {
       activeField: null,
       publishingRunnerID: null,
     });
-
-    console.log("After cleaning up state:", addJD);
 
     setSelectedMenuItem("dashboard");
   };

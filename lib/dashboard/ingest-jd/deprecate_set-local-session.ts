@@ -1,3 +1,4 @@
+// TODO: Deprecate this file and delete
 /**
  * Sets the upload session ID in the session storage.
  * If a session already exists, it returns an error message.

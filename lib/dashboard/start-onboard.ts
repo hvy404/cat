@@ -1,12 +1,11 @@
 "use server";
-import { createClient } from "@/lib/supabase/server";
-import { cookies } from "next/headers";
 import { inngest } from "@/lib/inngest/client";
 import { jdParserUpload } from "@/lib/dashboard/ingest-jd/retreiveJD";
 
 /**
  * Starts the onboarding process for a job description.
  * This is used in the job description upload process (not the JD wizard).
+ * Returns ID of the event that was sent to Inngest.
  * 
  * @param jdUUID - The UUID of the job description.
  * @param employerId - The ID of the employer.
@@ -14,14 +13,13 @@ import { jdParserUpload } from "@/lib/dashboard/ingest-jd/retreiveJD";
  * @param sessionID - The ID of the session.
  * @returns An object with the result of the onboarding process.
  */
+
 export async function jobDescriptionStartOnboard(
   jdUUID: string,
   employerId: string,
   filename: string,
   sessionID: string
 ) {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
 
   let rawExtract;
 
@@ -48,6 +46,8 @@ export async function jobDescriptionStartOnboard(
       },
     },
   });
+
+  console.log("Event sent to Inngest:", ids);
 
   // Check if the event was sent successfully by checking for ids
   if (!ids) {

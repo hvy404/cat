@@ -44,9 +44,8 @@ export default function JDBuilderRightStep4() {
           <div className="flex flex-row items-center bg-gray-100 m-1.5 rounded-md p-4 gap-4">
             <BotIcon className="w-8 h-8 text-gray-500 flex-shrink-0" />
             <p className="text-gray-700 leading-7 text-sm">
-              <span className="font-bold">Congratulations!</span> Your job
-              description draft is ready for review. Feel free to make any
-              edits. When you're satisfied, hit 'Publish' to proceed to the
+              Your job description draft is ready for review. Feel free to make
+              any edits. When you're satisfied, press 'Publish' to proceed to the
               final steps and get your job posted.
             </p>
           </div>

@@ -6,8 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { type jobDescriptionGenerateStatic } from "@/inngest/job-description-static";
 import { type jobDescriptionGenerateInferred } from "@/inngest/job-description-inferred";
-import { type generateJobDescriptionCypher } from "@/inngest/job-description-gen-cypher";
-import { type jobDescriptionEmbeddings } from "@/inngest/job-generate-embeddings";
+//import { type generateJobDescriptionCypher } from "@/inngest/job-description-gen-cypher";
+//import { type jobDescriptionEmbeddings } from "@/inngest/job-generate-embeddings";
 import { jobDescriptionAddStructured } from "@/inngest/job-description-sql";
 import { type jobDescriptionGenerateCompleted } from "@/inngest/job-description-completed";
 
@@ -19,9 +19,9 @@ export const jobDescriptionOnboard = inngest.createFunction(
     const supabase = createClient(cookieStore);
 
     // Data from the event
-    const employerID = event.data.job_description.employer;
+    //const employerID = event.data.job_description.employer;
     const jobDescriptionID = event.data.job_description.id;
-    const session = event.data.job_description.session;
+    //const session = event.data.job_description.session;
     const rawExtract = event.data.job_description.rawExtract;
 
     // Insert the extracted job posting into the database, s table, rawExtract in the raw column, where the row .eq is the jobDescriptionID

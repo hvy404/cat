@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown } from "lucide-react";
 import {
@@ -187,7 +187,10 @@ export default function AddJDStep2Form() {
         console.log("Job details saved successfully");
         console.log(addJD.jobDetails[0]);
         setValidationErrors({}); // Clear validation errors on successful submission
-        //setAddJD({ step: 3 });
+        setAddJD({
+          step: 3,
+          publishingRunnerID: null,
+        });
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -690,9 +693,7 @@ export default function AddJDStep2Form() {
         <div className="flex flex-row justify-end">
           <Button onClick={handleSubmit}>Post</Button>
         </div>
-      </div>
-
-      <CardContent className="text-sm text-gray-700 leading-7"></CardContent>
+      </div>{" "}
     </Card>
   );
 }

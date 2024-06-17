@@ -75,6 +75,6 @@ export const jobDescriptionOnboardStage2 = inngest.createFunction(
       console.error("Error generating embeddings.", error);
     }
 
-    return { message: "Successfully onboarded job description." };
+    return { message: "Successfully onboarded job description stage 2." };
   }
 );

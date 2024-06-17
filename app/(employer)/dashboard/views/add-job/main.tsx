@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 import useStore from "@/app/state/useStore";
 import AddJobBreadcrumb from "@/app/(employer)/dashboard/views/add-job/breadcrumb";
-import AddNewJobStart from "@/app/(employer)/dashboard/views/add-job/mods/upload";
+import AddNewJobStart from "@/app/(employer)/dashboard/views/add-job/mods/panel-step-1";
 import { Separator } from "@/components/ui/separator";
 import { v4 as uuidv4 } from "uuid";
-import { checkUploadSession } from "@/lib/dashboard/ingest-jd/set-local-session";
+import { checkUploadSession } from "@/lib/dashboard/ingest-jd/deprecate_set-local-session";
 import { jdGetProcessStatus } from "@/lib/dashboard/ingest-jd/jd-process-status";
 import AddJDStepOne from "@/app/(employer)/dashboard/views/add-job/steps/step-1";
 import AddJDStepTwo from "@/app/(employer)/dashboard/views/add-job/steps/step-2";
@@ -16,15 +16,14 @@ export default function EmployerDashboardAddJob() {
   const { user, addJD, setAddJD } = useStore();
 
   // TOOD: Remove after development
-   useEffect(() => {
+  /*    useEffect(() => {
     setAddJD({ step: 2, 
       jdEntryID: "86bf93cc-8c45-4f7c-9d66-bea577a6cf7e",
      });
-  }, []); 
- 
+  }, []);  */
 
   // Check the session on load and set it if it doesn't exist
-  useEffect(() => {
+  /*   useEffect(() => {
     const checkSession = async () => {
       const session = await checkUploadSession();
       if (session.status) {
@@ -35,27 +34,12 @@ export default function EmployerDashboardAddJob() {
     };
 
     checkSession();
-  }, []);
+  }, []); */
 
-  // Create 10 second poll to jdGetProcessStatus. When it finnaly returns proccessing: false, console.log("Processing complete")
+  // Check the session on load and set it if it doesn't exist
   useEffect(() => {
-    if (!addJD.isProcessing) {
-      return;
-    }
-
-    const interval = setInterval(async () => {
-      // Check if user and addJD.session are not null
-      if (user && addJD.session) {
-        // Call jdGetProcessStatus
-        const status = await jdGetProcessStatus(user.uuid, addJD.session);
-        if (!status.proccessing) {
-          console.log("Processing complete");
-          clearInterval(interval);
-        }
-      }
-    }, 15000);
-    return () => clearInterval(interval);
-  }, [addJD.session, addJD.isProcessing]);
+    setAddJD({ session: uuidv4() });
+  }, []);
 
   // Render the appropriate step based on the current step in state
   const renderCurrentStep = () => {
@@ -96,6 +80,7 @@ export default function EmployerDashboardAddJob() {
             <p>Filename: {addJD.filename}</p>
             <p>JD Entry ID: {addJD.jdEntryID}</p>
             <p>JD Session: {addJD.session}</p>
+            <p>RunnerID: {addJD.publishingRunnerID}</p>
           </div>
         </div>
 
