@@ -19,20 +19,15 @@ export default function AddJDStepThree() {
 
   // Start the publishing runner (final step of onboarding process)
   useEffect(() => {
-    let isMounted = true;
-
     const finishOnboard = async () => {
       if (
         addJD.jdEntryID &&
         user &&
         !addJD.publishingRunnerID &&
         !hasRun.current &&
-        isMounted &&
         addJD.step === 3
       ) {
         hasRun.current = true;
-
-        console.log("Finishing onboard for", addJD.jdEntryID);
 
         const result = await jobDescriptionFinishOnboard(
           addJD.jdEntryID,
@@ -40,12 +35,13 @@ export default function AddJDStepThree() {
           user.session
         );
 
-        console.log("Finish onboard result", result);
+        if (result.success) {
+          console.log("Finish onboard result: ", result.event[0]);
 
-        if (result.success && isMounted) {
           setTimeout(() => {
             setAddJD({
               publishingRunnerID: result.event[0],
+              isFinalizing: true,
             });
           }, 2000);
         }
@@ -53,17 +49,13 @@ export default function AddJDStepThree() {
     };
 
     finishOnboard();
-
-    return () => {
-      isMounted = false;
-    };
   }, [addJD.jdEntryID, user, addJD.step]);
 
   // Poll status of publishing runner
   useEffect(() => {
-    let isMounted = true;
+    let isStep3Mounted = true;
 
-    if (!addJD.publishingRunnerID || addJD.isFinalizing) {
+    if (!addJD.publishingRunnerID || !addJD.isFinalizing) {
       return;
     }
 
@@ -81,7 +73,6 @@ export default function AddJDStepThree() {
           isPollingActive = false; // Stop polling
 
           goToDashboard();
-
         } else if (
           status === "Running" ||
           status === "Failed" ||
@@ -106,7 +97,7 @@ export default function AddJDStepThree() {
     // Cleanup function to stop polling when component unmounts or addJD.isFinalizing changes
     return () => {
       isPollingActive = false; // This will stop any scheduled polling operations
-      isMounted = false;
+      isStep3Mounted = false;
     };
   }, [addJD.publishingRunnerID]);
 
