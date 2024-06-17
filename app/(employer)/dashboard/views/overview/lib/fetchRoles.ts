@@ -54,6 +54,12 @@ const clearanceLevelMap: Record<string, string> = {
   high: "High",
 };
 
+const compensationTypeMap: Record<string, string> = {
+  salary: "Salary",
+  hourly: "Hourly",
+  commission: "Commission",
+};
+
 interface JobPost {
   description: string;
   job_type: keyof typeof jobTypeMap;
@@ -67,6 +73,9 @@ interface JobPost {
   commission_pay: boolean;
   commission_percent: number;
   ote_salary: number;
+  compensation_type: keyof typeof compensationTypeMap;
+  hourly_comp_min: number;
+  hourly_comp_max: number;
 }
 
 /**
@@ -81,7 +90,7 @@ export async function fetchJobPostSpecifics(userId: string, jobId: string) {
   const { data, error } = await supabase
     .from("job_postings")
     .select(
-      "description, job_type, active, private_employer, min_salary, max_salary, location_type, security_clearance, salary_disclose, commission_pay, commission_percent, ote_salary"
+      "description, job_type, active, private_employer, min_salary, max_salary, location_type, security_clearance, salary_disclose, commission_percent, ote_salary, compensation_type, hourly_comp_min, hourly_comp_max"
     )
     .eq("employer_id", userId)
     .eq("jd_uuid", jobId);
@@ -102,6 +111,8 @@ export async function fetchJobPostSpecifics(userId: string, jobId: string) {
     security_clearance:
       clearanceLevelMap[item.security_clearance] || item.security_clearance,
     description: item.description || "No description provided.",
+    compensation_type:
+      compensationTypeMap[item.compensation_type] || item.compensation_type,
   }));
 
   return { data: formattedData };

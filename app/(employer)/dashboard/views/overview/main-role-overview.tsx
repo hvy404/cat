@@ -2,8 +2,17 @@ import { useEffect, useState } from "react";
 import useStore from "@/app/state/useStore";
 import { Button } from "@/components/ui/button";
 import { fetchJobPostSpecifics } from "@/app/(employer)/dashboard/views/overview/lib/fetchRoles";
-import { ArrowLeft, Activity, ChevronRight } from "lucide-react";
+import { ArrowLeft, Settings } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 import {
   Tooltip,
   TooltipContent,
@@ -23,8 +32,20 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import AIMatchCandidateOverview from "@/app/(employer)/dashboard/views/overview/mods/match-candidate-grid";
 import { jobPostStatus } from "@/app/(employer)/dashboard/views/overview/lib/jobStatus";
+import { deleteJobPost } from "@/lib/gui/delete-job";
 
 interface JobDetails {
   description: string;
@@ -36,9 +57,11 @@ interface JobDetails {
   location_type: string;
   security_clearance: string;
   salary_disclose: boolean;
-  commission_pay: boolean;
   commission_percent: number;
   ote_salary: number | null;
+  compensation_type: string;
+  hourly_comp_min: number;
+  hourly_comp_max: number;
 }
 
 export default function EmployerDashboardOverviewRoles() {
@@ -46,6 +69,7 @@ export default function EmployerDashboardOverviewRoles() {
     useStore();
   const [jobDetails, setJobDetails] = useState<JobDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
 
   const handleReturnToDashboard = () => {
     setDashboardRoleOverview({
@@ -63,6 +87,9 @@ export default function EmployerDashboardOverviewRoles() {
             user.uuid,
             dashboard_role_overview.active_role_id
           );
+
+          console.log("Job Specific Data:", data);
+
           if (error) {
             console.error("Error fetching job specifics:", error);
             setError("Failed to load job details.");
@@ -89,7 +116,7 @@ export default function EmployerDashboardOverviewRoles() {
   if (error) return <p>{error}</p>; // Display error message if there's an error
   if (!jobDetails) return <p>Loading job details...</p>;
 
-  // onclick handler to update job status with jobPostStatus
+  // Update the job status
   const handleJobStatusUpdate = async (status: boolean) => {
     if (user && user.uuid && dashboard_role_overview.active_role_id) {
       try {
@@ -118,6 +145,33 @@ export default function EmployerDashboardOverviewRoles() {
     }
   };
 
+  // Onclick handler for deleting the job post
+  const handleDeleteJobPost = async () => {
+    if (user && user.uuid && dashboard_role_overview.active_role_id) {
+      try {
+        const { success } = await deleteJobPost(
+          dashboard_role_overview.active_role_id,
+          user.uuid
+        );
+        if (success) {
+          console.log("Job post deleted successfully");
+          // Redirect to dashboard
+          setDashboardRoleOverview({
+            active: false,
+            active_role_id: null,
+            active_role_name: null,
+          });
+        } else {
+          console.error("Failed to delete job post");
+        }
+      } catch (error) {
+        console.error("Error deleting job post:", error);
+      }
+    } else {
+      console.log("User, UUID or active role ID is missing");
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-row items-center justify-between">
@@ -125,9 +179,13 @@ export default function EmployerDashboardOverviewRoles() {
           <ArrowLeft className="h-4 w-4" />
           <span className="sr-only">Back to Dashboard</span>
         </Button>
-        <div className="flex flex-row items-center gap-2">
+        <div className="flex flex-row items-center">
           <div className="text-xs rounded-lg border border-gray-200/60 bg-gray-100/60 text-gray-500 px-2">
-            <p>{jobDetails.active ? "This job opportunity is active and visible publically" : "This job opportunity is paused and not visible"}</p>
+            <p>
+              {jobDetails.active
+                ? "This job opportunity is active and visible publically"
+                : "This job opportunity is paused and not visible"}
+            </p>
           </div>
 
           <Tooltip>
@@ -145,6 +203,20 @@ export default function EmployerDashboardOverviewRoles() {
                 : "Click here to resume job opportunity"}
             </TooltipContent>
           </Tooltip>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              {" "}
+              <Button variant={"ghost"}>
+                <Settings className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => setShowDeleteDialog(true)}>
+                Delete Job
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
       <Card>
@@ -163,6 +235,12 @@ export default function EmployerDashboardOverviewRoles() {
       <div className="grid grids-col-2 lg:grid-cols-3 gap-4">
         <AIMatchCandidateOverview />
       </div>
+      {showDeleteDialog && (
+        <DeleteJobPostDialog
+          onConfirm={handleDeleteJobPost}
+          onCancel={() => setShowDeleteDialog(false)}
+        />
+      )}
     </div>
   );
 }
@@ -193,28 +271,46 @@ export const JobDetailsView = ({ jobDetails }: { jobDetails: JobDetails }) => {
           </span>{" "}
           {jobDetails.security_clearance}
         </p>
-        {jobDetails.commission_pay ? (
-          <>
-            <p className="border-b-2 border-dotted border-gray-200 p-2">
-              <span className="font-medium text-gray-700 leading-6">
-                On-target Earnings:
-              </span>{" "}
-              {jobDetails.ote_salary}
-            </p>
-            <p className="border-b-2 border-dotted border-gray-200 p-2">
-              <span className="font-medium text-gray-700 leading-6">
-                Commision Split:
-              </span>{" "}
-              {jobDetails.commission_percent}%
-            </p>
-          </>
-        ) : (
+        <p className="border-b-2 border-dotted border-gray-200 p-2">
+          <span className="font-medium text-gray-700 leading-6">
+            Salary Disclosure:
+          </span>{" "}
+          {jobDetails.salary_disclose ? "Yes" : "No"}
+        </p>
+        <p className="border-b-2 border-dotted border-gray-200 p-2">
+          <span className="font-medium text-gray-700 leading-6">
+            Compensation Type:
+          </span>{" "}
+          {jobDetails.compensation_type}
+        </p>
+        {jobDetails.compensation_type === "Salary" && (
           <p className="border-b-2 border-dotted border-gray-200 p-2">
             <span className="font-medium text-gray-700 leading-6">Salary:</span>{" "}
             ${jobDetails.min_salary} - ${jobDetails.max_salary}
           </p>
         )}
+        {jobDetails.compensation_type === "Hourly" && (
+          <p className="border-b-2 border-dotted border-gray-200 p-2">
+            <span className="font-medium text-gray-700 leading-6">
+              Hourly Rate:
+            </span>{" "}
+            ${jobDetails.hourly_comp_min} - ${jobDetails.hourly_comp_max}
+          </p>
+        )}
+        {jobDetails.compensation_type === "Commission" && (
+          <p className="border-b-2 border-dotted border-gray-200 p-2">
+            <span className="font-medium text-gray-700 leading-6">
+              On-Target Salary:
+            </span>{" "}
+            ${jobDetails.ote_salary} -{" "}
+            <span className="font-medium text-gray-700 leading-6">
+              Commission Percentage:
+            </span>{" "}
+            {jobDetails.commission_percent}%
+          </p>
+        )}
       </div>
+
       {jobDetails.description && (
         <Accordion type="single" collapsible className="p-2">
           <AccordionItem value="item-1" className="border-b-0">
@@ -230,5 +326,32 @@ export const JobDetailsView = ({ jobDetails }: { jobDetails: JobDetails }) => {
         </Accordion>
       )}
     </div>
+  );
+};
+
+// Delete confirmation dialog
+export const DeleteJobPostDialog = ({
+  onConfirm,
+  onCancel,
+}: {
+  onConfirm: () => void;
+  onCancel: () => void;
+}) => {
+  return (
+    <AlertDialog open onOpenChange={() => onCancel()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete Job Post</AlertDialogTitle>
+        </AlertDialogHeader>
+        <AlertDialogDescription>
+          This is a permanent action and cannot be undone. Are you sure you want
+          to delete this job post?
+        </AlertDialogDescription>
+        <AlertDialogFooter>
+          <AlertDialogAction onClick={onConfirm}>Delete</AlertDialogAction>
+          <AlertDialogCancel onClick={onCancel}>Cancel</AlertDialogCancel>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };
