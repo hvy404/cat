@@ -7,6 +7,7 @@ import { jobDescriptionStartOnboard } from "@/lib/dashboard/start-onboard";
 import { QueryEventStatus } from "@/lib/dashboard/query-runner-status";
 import { Button } from "@/components/ui/button";
 import { Trash } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function AddNewJobStart() {
   // Define selectors for the specific parts of the store you need
@@ -17,6 +18,21 @@ export default function AddNewJobStart() {
   }));
 
   const [fileResponse, setFileResponse] = useState<string | null>(null); // Response after file upload
+
+  // Define the animation variants
+  const messageVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: {
+        delay: i * 0.5,
+        duration: 0.5,
+        type: "spring",
+        stiffness: 100,
+      },
+    }),
+  };
 
   const onFileAdded = (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) {
@@ -80,12 +96,12 @@ export default function AddNewJobStart() {
 
   useEffect(() => {
     let isMounted = true;
-  
+
     const startOnboardProcess = async () => {
       if (user && addJD.step === 1) {
         if (addJD.jdEntryID && addJD.filename && user.uuid && addJD.session) {
           console.log("Triggering onboarding process - step #1");
-  
+
           console.log(
             "Starting onboard for",
             addJD.jdEntryID,
@@ -93,17 +109,17 @@ export default function AddNewJobStart() {
             addJD.filename,
             addJD.session
           );
-  
+
           const startOnboard = await jobDescriptionStartOnboard(
             addJD.jdEntryID,
             user.uuid,
             addJD.filename,
             addJD.session
           );
-  
+
           if (startOnboard.success && startOnboard.event) {
             const eventID = startOnboard.event[0];
-  
+
             setAddJD({
               publishingRunnerID: eventID,
             });
@@ -111,9 +127,9 @@ export default function AddNewJobStart() {
         }
       }
     };
-  
+
     startOnboardProcess();
-  
+
     return () => {
       isMounted = false;
     };
@@ -152,7 +168,12 @@ export default function AddNewJobStart() {
   return (
     <div className="flex flex-col h-full items-center justify-center rounded-lg border border-dashed hover:border-slate-500 shadow-sm transition-colors duration-500 ease-in-out">
       {!addJD.isProcessing && (
-        <>
+        <motion.div
+        initial="hidden"
+          variants={messageVariants}
+          animate="visible"
+          custom={0} // No delay for the first message
+        >
           <Dropzone
             onDrop={onFileAdded}
             multiple={false}
@@ -215,7 +236,7 @@ export default function AddNewJobStart() {
               </div>
             )}
           </div>
-        </>
+        </motion.div>
       )}
 
       {addJD.isProcessing && (

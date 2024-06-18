@@ -1,7 +1,7 @@
 import { useState, useEffect, use } from "react";
 import { ChevronRightIcon } from "@heroicons/react/20/solid";
 import useStore from "@/app/state/useStore";
-import { fetchActiveJobPosts } from "@/app/(employer)/dashboard/views/overview/lib/fetchRoles";
+import { fetchDetailedJobPosts } from "@/app/(employer)/dashboard/views/overview/lib/fetchRoles";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Job {
@@ -15,7 +15,11 @@ interface Job {
   new_match?: boolean; // added this property to diagnose typescript error. Add actual data implementation
 }
 
-export default function OverviewJobList() {
+interface OverviewJobListProps {
+  filter: string;
+}
+
+export default function OverviewJobList({ filter }: OverviewJobListProps) {
   const { setDashboardRoleOverview, dashboard_role_overview, user } =
     useStore();
 
@@ -33,10 +37,11 @@ export default function OverviewJobList() {
 
   // Fetch jobs
   useEffect(() => {
+    let isMounted = true;
     const fetchJobs = async () => {
       if (user) {
         // Only proceed if user is not null
-        const result = await fetchActiveJobPosts(user.uuid);
+        const result = await fetchDetailedJobPosts(user.uuid, filter);
         setLoadingJobs(false);
         if (result && Array.isArray(result.data) && result.data.length > 0) {
           setJobs(result.data);
@@ -47,6 +52,10 @@ export default function OverviewJobList() {
     };
 
     fetchJobs();
+
+    return () => {
+      isMounted = false;
+    };
   }, [user]);
 
   return (
@@ -134,7 +143,10 @@ export function OverviewJobListSkeleton() {
 export function noJobsFound() {
   return (
     <div className="flex flex-col justify-start text-left w-full h-full">
-      <p className="text-sm font-semibold text-gray-800 py-4">You have not added any job opportunities. <span className="text-gray-500">Click here to get started.</span></p>
+      <p className="text-sm font-semibold text-gray-800 py-4">
+        You have not added any job opportunities.{" "}
+        <span className="text-gray-500">Click here to get started.</span>
+      </p>
     </div>
   );
 }

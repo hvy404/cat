@@ -80,6 +80,8 @@ export default function EmployerDashboardOverviewRoles() {
   };
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchData = async () => {
       if (user && user.uuid && dashboard_role_overview.active_role_id) {
         try {
@@ -87,8 +89,6 @@ export default function EmployerDashboardOverviewRoles() {
             user.uuid,
             dashboard_role_overview.active_role_id
           );
-
-          console.log("Job Specific Data:", data);
 
           if (error) {
             console.error("Error fetching job specifics:", error);
@@ -111,6 +111,10 @@ export default function EmployerDashboardOverviewRoles() {
     };
 
     fetchData();
+
+    return () => {
+      isMounted = false;
+    }
   }, [user, dashboard_role_overview.active_role_id]);
 
   if (error) return <p>{error}</p>; // Display error message if there's an error

@@ -12,7 +12,12 @@ import { cookies } from "next/headers";
 const cookieStore = cookies();
 const supabase = createClient(cookieStore);
 
-export async function fetchActiveJobPosts(userID: string) {
+export async function fetchDetailedJobPosts(userID: string, filter: string) {
+
+  // convert the filter string to a boolean
+  // if the filter is "active", set the boolean to true, otherwise set it to false
+  const filterBoolean = filter === "active" ? true : false;
+
   // fetch all rows under "job_postings" where the employer_id is equal to the userID and where 'active' is true
   const { data, error } = await supabase
     .from("job_postings")
@@ -21,7 +26,7 @@ export async function fetchActiveJobPosts(userID: string) {
     )
     .eq("employer_id", userID)
     .eq("processed", true) // only fetch processed job postings
-    .eq("active", true); // only fetch active job postings
+    .eq("active", filterBoolean); // only fetch active job postings
 
   if (error) {
     return {

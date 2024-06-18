@@ -25,11 +25,10 @@ export default function EmployerDashboardMain() {
                   <TabsTrigger value="paused">Paused</TabsTrigger>
                 </TabsList>
                 <TabsContent value="active">
-                  
-                  <OverviewJobList />
+                  <OverviewJobList filter="active" />
                 </TabsContent>
                 <TabsContent value="paused">
-                  ...
+                  <OverviewJobList filter="paused" />
                 </TabsContent>
               </Tabs>
             </div>

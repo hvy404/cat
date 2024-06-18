@@ -21,7 +21,8 @@ interface PanelEditorProps {
   userID: string | undefined;
   type?: PanelType;
   addNew?: boolean;
-  onUpdate: () => Promise<void>;}
+  onUpdate: () => Promise<void>;
+}
 
 const titleSchema = zod
   .string()
@@ -121,7 +122,12 @@ export default function CollectRightPanelEditor({
     const fallbackTitle = title || "Untitled";
     const fallbackWriterContent = writerContent || "";
 
-    const result = await createPresetEntry(userID, fallbackTitle, fallbackWriterContent, type);
+    const result = await createPresetEntry(
+      userID,
+      fallbackTitle,
+      fallbackWriterContent,
+      type
+    );
     if (result.success) {
       setEditingID(null);
       onUpdate();
@@ -162,10 +168,21 @@ export default function CollectRightPanelEditor({
       <div className="gap-0">
         <RichTextEditor value={content} onChange={setWriterContent} />
       </div>
-      <div className="flex justify-between gap-2">
-        <div>
-          <Button onClick={handleDelete} variant={"link"} className="text-red-900">Delete</Button>
-        </div>
+      <div
+        className={`flex gap-2 ${addNew ? "justify-end" : "justify-between"}`}
+      >
+        {!addNew && (
+          <div>
+            <Button
+              onClick={handleDelete}
+              variant={"link"}
+              className="text-red-900"
+            >
+              Delete
+            </Button>
+          </div>
+        )}
+
         <div>
           <Button
             onClick={handleCancel}
