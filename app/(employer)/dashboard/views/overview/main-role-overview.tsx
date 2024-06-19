@@ -114,11 +114,16 @@ export default function EmployerDashboardOverviewRoles() {
 
     return () => {
       isMounted = false;
-    }
+    };
   }, [user, dashboard_role_overview.active_role_id]);
 
   if (error) return <p>{error}</p>; // Display error message if there's an error
-  if (!jobDetails) return <p>Loading job details...</p>;
+  if (!jobDetails)
+    return (
+      <div className="flex flex-col items-center">
+        <p className="text-gray-800 text-sm">Loading job details...</p>
+      </div>
+    );
 
   // Update the job status
   const handleJobStatusUpdate = async (status: boolean) => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import { ChevronRightIcon } from "@heroicons/react/20/solid";
 import useStore from "@/app/state/useStore";
 import { fetchDetailedJobPosts } from "@/app/(employer)/dashboard/views/overview/lib/fetchRoles";

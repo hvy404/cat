@@ -20,7 +20,7 @@ export async function generateLiftedStatic(resume: string, id: string) {
 
 Guidelines:
 -name: full name of the candidate
--title: current title or role
+-title: A suitable role title for the candidate, either from their most recent position or based on their overall experience and qualifications.
 -company: name of the current or most recent company
 -contact: (optional) phone, location, email
 -education: institution name with degree, start_date, end_date as properties

@@ -7,8 +7,6 @@ import {
 } from "@/components/ui/tooltip";
 import {
   UserRoundPlus,
-  Book,
-  Send,
   LifeBuoy,
   Folder,
   Settings2,
@@ -17,6 +15,7 @@ import {
   UsersRound,
   LucideIcon,
   BookOpen,
+  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -79,6 +78,7 @@ export default function EmployerDashboardNavigation() {
         <TooltipButton item="add-job" label="Add Job" icon={UserRoundPlus} />
         <TooltipButton item="jd-builder" label="JD Builder" icon={Folder} />
         <TooltipButton item="documents" label="Collection" icon={BookOpen} />
+        <TooltipButton item="browse" label="Browse" icon={Search} />
         <TooltipButton item="settings" label="Settings" icon={Settings2} />
       </nav>
       <nav className="mt-auto grid gap-1 p-2">

@@ -3,7 +3,7 @@ import { z } from "zod";
 export const staticSchema = z
   .object({
     name: z.string().describe("Full name of the candidate."),
-    title: z.string().describe("Current title or role."),
+    title: z.string().describe("Role title of the candidate, either from their most recent position or based on their overall experience and qualifications."),
     company: z.string().describe("Name of the current or most recent company."),
     contact: z
       .object({

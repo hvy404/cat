@@ -64,7 +64,7 @@ export async function findSimilarTalents(
       applicant_id: similarTalent.properties.applicant_id,
       score,
     }));
-    console.log("Similar Talents:", similarTalentsPlain);
+
     return similarTalentsPlain;
   } catch (error) {
     console.error("Error executing Neo4j query:", error);
@@ -176,14 +176,16 @@ export async function getTalentRelationshipDetails(
 
     switch (relationshipType) {
       case "STUDIED_AT":
-        relationships = result.map((record) => (
-          `Degree: ${record.node.degree} at ${record.node.institution}`
-        ));
+        relationships = result.map(
+          (record) =>
+            `Degree: ${record.node.degree} at ${record.node.institution}`
+        );
         break;
       case "WORKED_AT":
-        relationships = result.map((record) => (
-          `Job Title: ${record.node.job_title} at Organization: ${record.node.organization} from ${record.node.start_date} to ${record.node.end_date}. Responsibilities: ${record.node.responsibilities}`
-        ));
+        relationships = result.map(
+          (record) =>
+            `Job Title: ${record.node.job_title} at Organization: ${record.node.organization} from ${record.node.start_date} to ${record.node.end_date}. Responsibilities: ${record.node.responsibilities}`
+        );
         break;
       case "HAS_SKILL":
       case "HAS_CERTIFICATION":
@@ -196,9 +198,10 @@ export async function getTalentRelationshipDetails(
         relationships = result.map((record) => record.node.name);
         break;
       default:
-        relationships = result.map((record) => (
-          `Type: ${record.type}, Node: ${JSON.stringify(record.node)}`
-        ));
+        relationships = result.map(
+          (record) =>
+            `Type: ${record.type}, Node: ${JSON.stringify(record.node)}`
+        );
         break;
     }
 
