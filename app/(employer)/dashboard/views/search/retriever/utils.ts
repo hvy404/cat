@@ -65,6 +65,12 @@ export async function getHighScoringRoles(potentialRolesWithScores: any[], score
   return filteredHighScoringRoles;
 }
   
+  /**
+   * Retrieves similar talents for the given high scoring roles.
+   *
+   * @param highScoringRoles - An array of high scoring roles.
+   * @returns An array of objects containing the potential role and its similar talents.
+   */
   export async function getSimilarTalentsForRoles(highScoringRoles: any[]) {
     const similarTalentsForRoles = await Promise.all(
       highScoringRoles.map(async (role) => {

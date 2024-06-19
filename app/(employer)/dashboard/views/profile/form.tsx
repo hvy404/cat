@@ -17,7 +17,7 @@ import { calculateEnhancedScore } from "@/lib/engine/final-calculation";
 
 export function MyProfileForm() {
   const handleClick = async () => {
-    const jobID = "6d98e834-6513-4736-8cc8-b190a473ed3b";
+    const jobID = "4634e82f-abb1-4058-ad6f-9df7bfb2ef2f";
     try {
       const embedding = await getJobEmbedding(jobID);
       if (!embedding) {
@@ -118,13 +118,13 @@ export function MyProfileForm() {
   };
 
   const evaluateTalent = async () => {
-    const applicantID = "70689ca0-ea2c-4a92-ac06-84ecfcd0a08e";
+    const applicantID = "60515f58-2239-4c9e-abeb-cf2431c3f593";
     try {
       const combo = "E"; // or "B" or "C"
 
       const evals = await evaluateTalentMatch(
         applicantID,
-        "6540e175-f9d4-48d9-acac-76f24917f16d",
+        "5114feed-285d-4dbb-9316-3d8e2ca9e4f7",
         combo
       );
 

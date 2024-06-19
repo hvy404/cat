@@ -18,7 +18,6 @@ export async function getJobEmbedding(jobID: string) {
   try {
     const result = await read(query, params);
     const embedding = result[0]?.embedding;
-    console.log(embedding);
     return embedding;
   } catch (error) {
     console.error("Error executing Neo4j query:", error);
@@ -38,8 +37,8 @@ const embedding = [0.1, 0.2, 0.3, ...];
 const similarTalents = await findSimilarTalents(embedding);
 console.log(similarTalents);
 // Output: [
-//   { applicant_id: '96eda40b-5fd1-4378-a4dd-e2ef63dc7a75', score: 0.8 },
-//   { applicant_id: '70689ca0-ea2c-4a92-ac06-84ecfcd0a08e', score: 0.7 },
+//   { applicant_id: '96eda40b-5fd1-4378-a4dd-e2ef63dc7a75', score: 0.8, title: 'Software Engineer', clearance_level: 'TS/SCI' },
+//   { applicant_id: '70689ca0-ea2c-4a92-ac06-84ecfcd0a08e', score: 0.7, title: 'Data Scientist', clearance_level: 'Secret' },
 //   ...
 // ]
 */
@@ -51,7 +50,7 @@ export async function findSimilarTalents(
     CALL db.index.vector.queryNodes('talent-embeddings', 5, $embedding)
     YIELD node AS similarTalent, score
     WHERE score >= $threshold
-    RETURN similarTalent, score
+    RETURN similarTalent { .applicant_id, .title, .clearance_level } AS similarTalent, score
   `;
 
   const params = { embedding, threshold };
@@ -59,9 +58,11 @@ export async function findSimilarTalents(
   try {
     const result = await read(query, params);
 
-    // Create new place text objects with only the properties we want to return
+    // Map the result to the desired structure
     const similarTalentsPlain = result.map(({ similarTalent, score }) => ({
-      applicant_id: similarTalent.properties.applicant_id,
+      applicant_id: similarTalent.applicant_id,
+      title: similarTalent.title,
+      clearance_level: similarTalent.clearance_level,
       score,
     }));
 

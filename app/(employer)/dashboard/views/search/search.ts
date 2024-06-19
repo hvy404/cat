@@ -46,7 +46,7 @@ export async function searchHandler(mainSearchQuery: string) {
     const embeddings = await generateEmbeddings(buildQuery);
     const threshold = 0.67;
     const similarTalents = await findSimilarTalents(embeddings, threshold);
-
+    
     // Get the top similar talents and their potential roles
     const { potentialRoles } = await getTopSimilarTalentsAndPotentialRoles(
       similarTalents

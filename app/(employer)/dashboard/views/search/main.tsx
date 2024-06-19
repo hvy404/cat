@@ -82,7 +82,7 @@ export default function EmployerDashboardCandidateSearch() {
         className={`hidden md:flex flex-col gap-4 transition-all duration-700 ease-in-out ${
           isExpanded ? "lg:w-2/4" : "lg:w-3/4"
         }`}
-        onMouseOver={() => setExpanded(false)}
+        /*  onMouseOver={() => setExpanded(false)} */
       >
         <div className="min-h-[90vh] rounded-xl bg-muted/50 p-4 overflow-auto">
           <div className="grid gap-6">
