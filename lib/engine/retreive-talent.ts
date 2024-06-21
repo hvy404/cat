@@ -50,7 +50,15 @@ export async function findSimilarTalents(
     CALL db.index.vector.queryNodes('talent-embeddings', 5, $embedding)
     YIELD node AS similarTalent, score
     WHERE score >= $threshold
-    RETURN similarTalent { .applicant_id, .title, .clearance_level } AS similarTalent, score
+    OPTIONAL MATCH (similarTalent)-[:WORKED_AT]->(company)
+    RETURN 
+      similarTalent { 
+        .applicant_id, 
+        .title, 
+        .clearance_level
+      } AS similarTalent,
+      score,
+      collect(company.job_title) AS worked_at
   `;
 
   const params = { embedding, threshold };
@@ -59,11 +67,12 @@ export async function findSimilarTalents(
     const result = await read(query, params);
 
     // Map the result to the desired structure
-    const similarTalentsPlain = result.map(({ similarTalent, score }) => ({
+    const similarTalentsPlain = result.map(({ similarTalent, score, worked_at }) => ({
       applicant_id: similarTalent.applicant_id,
       title: similarTalent.title,
       clearance_level: similarTalent.clearance_level,
       score,
+      previous_role: worked_at.filter(Boolean) // Remove any null or undefined values
     }));
 
     return similarTalentsPlain;

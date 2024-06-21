@@ -19,17 +19,17 @@ export async function generateLiftedStatic(resume: string, id: string) {
   const systemPrompt = `The following context is a resume. Your task is to extract details about the resume and provide the information in JSON format, strictly adhering to the provided JSON schema. If a field is not present or applicable based on the resume, do not include it in the JSON output. 
 
 Guidelines:
--name: full name of the candidate
--title: A suitable role title for the candidate, either from their most recent position or based on their overall experience and qualifications.
--company: name of the current or most recent company
--contact: (optional) phone, location, email
--education: institution name with degree, start_date, end_date as properties
--work_experience: organization name with job_title, responsibilities, start_date, end_date as properties
--technical_skills: list of hard skills, tools, and technologies from previous work experience
--industry_experience: (optional) you will need to review the candidate's resume to determine a list of specific knowledge areas in which they have experience
--clearance_level: (optional) some candidates may have a clearance level if they are a Government contractor, if applicable
--fedcon_experience: (optional) some candidates may have experience in Federal government contracting, list the experience if applicable
--professional_certifications: (optional) list of professional certifications if applicable
+- name: Full name of the candidate.
+- title: A suitable role name for the candidate, either from their most recent position or based on their overall former roles.
+- company: (optional) Name of the candidate's current or most recent company.
+- contact: (optional) An object containing phone (optional) and email.
+- education: An array of objects, each containing institution name, degree, start_date, and end_date (optional) as properties.
+- location: An object containing city (optional), state (two letter abbreviation) (optional), and zipcode (optional). Example values: city: "Atlanta", state: "GA", zipcode: "30363".
+- work_experience: An array of objects, each containing organization name, job_title, brief description of responsibilities, start_date (optional), and end_date (optional) as properties.
+- technical_skills: An array of strings listing hard skills, tools, and technologies from previous work experience.
+- industry_experience: (optional) An array of strings listing specific knowledge areas in which the candidate has experience.
+- clearance_level: (optional) If applicable, should be one of: "none", "basic", "elevated", or "high".
+- professional_certifications: (optional) An array of strings listing professional certifications.
 
 Do not make up any details or include fields that are not specified in the schema. Be concise and only include relevant information from the provided resume. Omit any fields for which no information is available.`;
 
@@ -47,7 +47,7 @@ Do not make up any details or include fields that are not specified in the schem
           content: userPrompt,
         },
       ],
-      model: "togethercomputer/CodeLlama-34b-Instruct",
+      model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
       temperature: 0.4,
       max_tokens: 7000,
       // @ts-ignore – Together.ai supports schema while OpenAI does not

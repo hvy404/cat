@@ -8,7 +8,12 @@
 export type ContactInfo = {
   phone: string;
   email: string;
-  location: string;
+};
+
+export type Location = {
+  city?: string | null;
+  state?: string | null;
+  zipcode?: string | null;
 };
 
 export type Education = {
@@ -26,11 +31,6 @@ export type WorkExperience = {
   responsibilities: string;
 };
 
-export type ManagerTrait = {
-  manager_trait_reason: string;
-  manager_boolean: boolean;
-};
-
 export type ProfessionalNetwork = {
   mentors: string[];
   references: string[];
@@ -44,17 +44,16 @@ export type Data = {
   professional_certifications: string[];
   work_experience: WorkExperience[];
   technical_skills: string[];
-  industry_experience: string[];
+  industry_experience?: string[];
   company: string;
+  location?: Location | null;
   title: string;
-  clearance_level: string;
-  manager_trait: ManagerTrait;
+  clearance_level?: "none" | "basic" | "elevated" | "high";
   applicant_id: string;
   embedding?: number[];
   matching_opt_in?: string;
   active_looking?: string;
   active_looking_confirmed_date?: string;
-  fedcon_experience: string[];
   soft_skills: string[];
   potential_roles: string[];
   applied_at: string[];
@@ -62,7 +61,7 @@ export type Data = {
   interviewed_by: string[];
   resume_matched_to_jd: string[];
   resume_requested_by_company: string[];
-  professional_network: ProfessionalNetwork;
+  professional_network?: ProfessionalNetwork;
 };
 
 // Helper function to format the embedding array
@@ -71,14 +70,9 @@ function formatArrayForCypher(array: number[]) {
 }
 
 // Helper function to escape double quotes in strings
-function escapeString(str: string) {
-  return str.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-}
-
-/* // Helper function to escape double quotes in strings -- TODO: Possible fix for the escapeString function
 function escapeString(str: string = ""): string {
   return str.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-} */
+}
 
 // TODO: jds_viewed, interviewed_by should be matched to jds by relationship and not used as properties
 export function generateCandidateCypherQuery(data: Data, userId: string) {
@@ -87,24 +81,13 @@ export function generateCandidateCypherQuery(data: Data, userId: string) {
     name: "${escapeString(data.name || "")}",
     phone: "${escapeString(data.contact.phone || "")}",
     email: "${escapeString(data.contact.email || "")}",
-    location: "${escapeString(data.contact.location || "")}",
     applicant_id: "${userId}",
     company: "${escapeString(data.company || "")}",
     title: "${escapeString(data.title || "")}",
-
-clearance_level: "${escapeString(data.clearance_level || "")}",
-
-    fedcon_experience: "${escapeString(
-      (data.fedcon_experience || []).join(", ")
-    )}",
-    manager_trait_reason: "${escapeString(
-      data.manager_trait.manager_trait_reason || ""
-    )}",
-    manager_boolean: ${
-      typeof data.manager_trait.manager_boolean === "boolean"
-        ? data.manager_trait.manager_boolean
-        : "false"
-    },
+    clearance_level: "${escapeString(data.clearance_level || "")}",
+    city: "${escapeString(data.location?.city || "")}",
+    state: "${escapeString(data.location?.state || "")}",
+    zipcode: "${escapeString(data.location?.zipcode || "")}",
     embedding: ${data.embedding ? formatArrayForCypher(data.embedding) : "[]"},
     matching_opt_in: "${escapeString(data.matching_opt_in || "")}",
     active_looking: "${escapeString(data.active_looking || "")}",

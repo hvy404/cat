@@ -20,9 +20,8 @@ export async function generateLiftedInferred(resume: string, id: string) {
     `The following context is a resume. Your task is to use your knowlege to infer details about the resume and provide the information in JSON format, strictly adhering to the provided JSON schema. If a field cannot be inferred or is not applicable based on the resume, do not include it in the JSON output. Do not make up any details or include fields that are not specified in the schema. 
     
     Guidelines:
-    -soft_skills: you need to review all the past job history to determine soft skills that can be inferred from the candidate's work experience. List the soft skill, do not include a description. Max of 10 soft skills.
-    -manager_trait: provide a boolean value and a concise explanation. You need to review all the past job history to determine if the applicant can perform a supervisor and management role based on previous experience and tenure.
-    -potential_roles: you need to review all the past job history to determine potential roles the candidate would be a good fit for based on past experience and industry experience. List the role only, do not include a description. Max of 10 potential roles.
+    - soft_skills: Review all past job history to determine soft skills that can be inferred from the candidate's work experience. List the soft skills without descriptions. Maximum of 10 soft skills.
+    - potential_roles: Review all past job history to determine potential roles the candidate would be a good fit for based on past experience and industry experience. List the roles only, without descriptions. Maximum of 10 potential roles.
 
     Be concise and only include relevant information from the provided resume. Omit any fields for which no information is available.`;
 
