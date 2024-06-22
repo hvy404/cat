@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import useStore from "@/app/state/useStore";
+import { Send } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -57,11 +58,17 @@ export default function InviteActionWithList() {
   return (
     <Popover open={popoverOpenState} onOpenChange={setPopoverOpenState}>
       <PopoverTrigger>
-        <Button variant={"secondary"}>{isExpanded ? 'Invite' : 'Invite to apply'}</Button>
+       <Button className="items-center" variant={"secondary"}>
+  <div className="flex items-center gap-2">
+  <Send size={12}/>
+    {isExpanded ? 'Invite' : 'Invite to apply'}
+
+  </div>
+</Button>
       </PopoverTrigger>
       <PopoverContent className="flex flex-col max-h-screen overflow-y-auto">
         <div className="flex flex-col gap-2">
-            <h3 className="text-sm font-normal text-gray-700">Select an opportunity</h3>
+            <h3 className="text-sm font-medium text-gray-700 px-2 border-b-2 border-b-secondary pb-2">Select an opportunity</h3>
           {/* Rendering job posting */}
           {jobPostings.map((jobPosting) => (
             <div
@@ -83,7 +90,7 @@ export default function InviteActionWithList() {
         </div>
         {jobToInvite && (
           <div className="flex flex-col gap-2 pt-4">
-            <Button variant={"secondary"} onClick={inviteToApply}>Invite to Apply</Button>
+            <Button variant={"secondary"} onClick={inviteToApply}>Send invite</Button>
           </div>
         )}
       </PopoverContent>

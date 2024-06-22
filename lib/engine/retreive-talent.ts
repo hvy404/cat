@@ -51,14 +51,19 @@ export async function findSimilarTalents(
     YIELD node AS similarTalent, score
     WHERE score >= $threshold
     OPTIONAL MATCH (similarTalent)-[:WORKED_AT]->(company)
+    OPTIONAL MATCH (similarTalent)-[:STUDIED_AT]->(education)
     RETURN 
       similarTalent { 
         .applicant_id, 
         .title, 
-        .clearance_level
+        .clearance_level,
+        .city,
+        .state,
+        .zipcode
       } AS similarTalent,
       score,
-      collect(company.job_title) AS worked_at
+      collect(DISTINCT company.job_title) AS worked_at,
+      collect(DISTINCT {degree: education.degree, institution: education.institution}) AS education
   `;
 
   const params = { embedding, threshold };
@@ -67,13 +72,19 @@ export async function findSimilarTalents(
     const result = await read(query, params);
 
     // Map the result to the desired structure
-    const similarTalentsPlain = result.map(({ similarTalent, score, worked_at }) => ({
+    const similarTalentsPlain = result.map(({ similarTalent, score, worked_at, education }) => ({
       applicant_id: similarTalent.applicant_id,
       title: similarTalent.title,
       clearance_level: similarTalent.clearance_level,
+      city: similarTalent.city,
+      state: similarTalent.state,
+      zipcode: similarTalent.zipcode,
       score,
-      previous_role: worked_at.filter(Boolean) // Remove any null or undefined values
+      previous_role: worked_at.filter(Boolean), // Remove any null or undefined values
+      education: education.filter(Boolean) // Remove any null or undefined values
     }));
+
+    console.log("Similar Talents:", similarTalentsPlain);
 
     return similarTalentsPlain;
   } catch (error) {

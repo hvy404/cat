@@ -7,7 +7,7 @@ import {
   getHighScoringRoles,
   getSimilarTalentsForRoles,
 } from "./retriever/utils";
-import { contentModerationWordFilter } from "@/lib/content-moderation/explicit_word_filter"
+import { contentModerationWordFilter } from "@/lib/content-moderation/explicit_word_filter";
 
 /**
  * The `searchHandler` function handles the search functionality based on the main search query.
@@ -56,7 +56,7 @@ export async function searchHandler(mainSearchQuery: string) {
     const embeddings = await generateEmbeddings(buildQuery);
     const threshold = 0.715;
     const similarTalents = await findSimilarTalents(embeddings, threshold);
-    
+
     // Get the top similar talents and their potential roles
     const { potentialRoles } = await getTopSimilarTalentsAndPotentialRoles(
       similarTalents
@@ -130,31 +130,62 @@ export async function searchHandler(mainSearchQuery: string) {
     const overlappingSimilarRoles = {
       possible_query: highScoringRoles,
     };
-    
+
     // Transform results for response
     // Returns array of similar talents with score
-    const overlappingSimilarRolesCondensed = overlappingSimilarRoles.possible_query.map(
-      (item) => {
+    const overlappingSimilarRolesCondensed =
+      overlappingSimilarRoles.possible_query.map((item) => {
         return {
           similar: item.potential_role,
           score: item.score,
         };
-      }
-    );
+      });
+
+    // Remap the values of talent.clearance_level
+    // .enum(["none", "basic", "elevated", "high"])
+    // then send the response
 
     return {
       match: uniqueSimilarTalents.length > 0, // return true or false if there is a match
-      similarTalents: uniqueSimilarTalents.map(talent => ({
+      similarTalents: uniqueSimilarTalents.map((talent) => ({
         applicant_id: talent.applicant_id,
         title: talent.title,
-        clearance_level: talent.clearance_level,
+        clearance_level: remapClearanceLevel(talent.clearance_level),
         score: talent.score,
         previous_role: talent.previous_role,
+        education: talent.education,
+        city: talent.city,
+        state: talent.state,
+        zipcode: talent.zipcode,
       })),
       overlappingRoles: overlappingSimilarRolesCondensed,
     };
   } catch (error) {
     console.error("Error in searchHandler:", error);
     throw error;
+  }
+}
+
+// Remap the values of talent.clearance_level before sending the response
+function remapClearanceLevel(level: string) {
+  switch (level) {
+    case "none":
+      return "Unclassified";
+    case "basic":
+      return "Public Trust";
+    case "confidential":
+      return "Secret";
+    case "critical":  // Alternative for "secret" or "top secret"
+      return "Top Secret";
+    case "crucial":  // Another alternative for "top secret"
+      return "Top Secret";
+    case "paramount":  // Alternative for "ts_sci"
+      return "Top Secret/SCI";
+    case "q_clearance":
+      return "Q Clearance";
+    case "l_clearance":
+      return "L Clearance";
+    default:
+      return level;
   }
 }
