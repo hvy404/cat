@@ -15,8 +15,6 @@ function remapClearanceLevel(level: string) {
       return "Secret";
     case "critical":
       return "Top Secret";
-    case "crucial":
-      return "Top Secret";
     case "paramount":
       return "Top Secret/SCI";
     case "q_clearance":

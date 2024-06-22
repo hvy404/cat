@@ -57,7 +57,7 @@ export const staticSchema = z.object({
       "List of specific knowledge areas in which the candidate has experience."
     ),
   clearance_level: z
-  .enum(["none", "basic", "confidential", "critical", "crucial", "paramount", "q_clearance", "l_clearance"])
+  .enum(["none", "basic", "confidential", "critical", "paramount", "q_clearance", "l_clearance"])
     .optional()
     .describe("Clearance level, if applicable."),
   professional_certifications: z

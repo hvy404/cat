@@ -28,7 +28,7 @@ Guidelines:
 - work_experience: An array of objects, each containing organization name, job_title, brief description of responsibilities, start_date (optional), and end_date (optional) as properties.
 - technical_skills: An array of strings listing hard skills, tools, and technologies from previous work experience.
 - industry_experience: (optional) An array of strings listing specific knowledge areas in which the candidate has experience.
-- clearance_level: (optional) If applicable, should be one of: "none", "basic", "confidential", "critical", "crucial", "paramount", "q_clearance", or "l_clearance".
+- clearance_level: (optional) If applicable, should be one of: "none", "basic", "confidential", "critical", "paramount", "q_clearance", or "l_clearance".
 - professional_certifications: (optional) An array of strings listing professional certifications.
 
 Do not make up any details or include fields that are not specified in the schema. Be concise and only include relevant information from the provided resume. Omit any fields for which no information is available.`;

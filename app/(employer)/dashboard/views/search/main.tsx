@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
+import { SearchingAnimation } from "@/app/(employer)/dashboard/views/search/assets/loading-animation";
 
 interface SearchResultsProps {
   searchResults: searchResults[];
@@ -65,7 +66,7 @@ export default function EmployerDashboardCandidateSearch() {
       searchInput
     );
 
-    console.log("Results", search);
+    console.log("Results:", search);
 
     if ("socket" in search && search.socket) {
       setIsSearching(false);
@@ -245,10 +246,10 @@ export default function EmployerDashboardCandidateSearch() {
             </h3>
             <p className="text-green-400 font-mono text-sm mb-2">
               Among the candidates that match your search, the following roles
-              were found to be shared by multiple candidates.
+              and experiences were found to be shared by multiple candidates.
             </p>
             <p className="text-green-400 font-mono text-sm mb-4">
-              The scores represent each role's alignment with the role you
+              The scores represent each area's alignment with the role you
               searched for.
             </p>
             <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-green-700 scrollbar-track-green-900">
@@ -304,14 +305,15 @@ export function SearchResults({
       {isSearching ? (
         <div className="grid gap-6 h-full">
           <div className="flex flex-col gap-4 items-center justify-center h-full">
-            <div className="text-center text-gray-400/70 text-2xl font-bold">
+            <SearchingAnimation />
+            {/*  <div className="text-center text-gray-400/70 text-2xl font-bold">
               Searching
               <span className="dots">
                 <span>.</span>
                 <span>.</span>
                 <span>.</span>
               </span>
-            </div>
+            </div> */}
           </div>
         </div>
       ) : searchResults.length === 0 ? (

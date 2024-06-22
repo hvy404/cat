@@ -25,6 +25,29 @@ export type SearchResult = {
   overlappingRoles?: { similar: any; score: any }[];
 };
 
+// Add remapping functions
+// Remap internal clearance levels to standard clearance levels
+function remapClearanceLevel(level: string) {
+  switch (level) {
+    case "none":
+      return "Unclassified";
+    case "basic":
+      return "Public Trust";
+    case "confidential":
+      return "Secret";
+    case "critical":
+      return "Top Secret";
+    case "paramount":
+      return "Top Secret/SCI";
+    case "q_clearance":
+      return "Q Clearance";
+    case "l_clearance":
+      return "L Clearance";
+    default:
+      return level;
+  }
+}
+
 /**
  * The `searchHandler` function handles the search functionality based on the main search query.
  * It performs the following steps:
@@ -187,16 +210,12 @@ export async function searchHandler(mainSearchQuery: string) {
         };
       });
 
-    // Remap the values of talent.clearance_level
-    // .enum(["none", "basic", "elevated", "high"])
-    // then send the response
-
     return {
       match: uniqueSimilarTalents.length > 0,
       similarTalents: uniqueSimilarTalents.map((talent) => ({
         applicant_id: talent.applicant_id,
         title: talent.title,
-        clearance_level: talent.clearance_level,
+        clearance_level: remapClearanceLevel(talent.clearance_level),
         score: talent.score,
         previous_role: talent.previous_role,
         education: talent.education,
