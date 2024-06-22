@@ -146,7 +146,7 @@ export function CandidateBrowseResults({
           </div>
           {/* Right */}
           <div className="flex flex-col h-full items-start justify-start">
-            <InviteActionWithList />
+          <InviteActionWithList applicantId={result.applicant_id} />
           </div>
         </div>
       ))}

@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import useStore from "@/app/state/useStore";
 import { Button } from "@/components/ui/button";
-import { fetchJobPostSpecifics } from "@/app/(employer)/dashboard/views/overview/lib/fetchRoles";
+import { fetchJobPostSpecifics, jobPostStatus } from "@/lib/overview/fetchRoles";
 import { ArrowLeft, Settings } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,7 +43,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import AIMatchCandidateOverview from "@/app/(employer)/dashboard/views/overview/mods/match-candidate-grid";
-import { jobPostStatus } from "@/app/(employer)/dashboard/views/overview/lib/jobStatus";
 import { deleteJobPost } from "@/lib/gui/delete-job";
 
 interface JobDetails {

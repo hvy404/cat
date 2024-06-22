@@ -150,7 +150,7 @@ export async function searchHandler(mainSearchQuery: string) {
       similarTalents: uniqueSimilarTalents.map((talent) => ({
         applicant_id: talent.applicant_id,
         title: talent.title,
-        clearance_level: remapClearanceLevel(talent.clearance_level),
+        clearance_level: talent.clearance_level,
         score: talent.score,
         previous_role: talent.previous_role,
         education: talent.education,
@@ -163,29 +163,5 @@ export async function searchHandler(mainSearchQuery: string) {
   } catch (error) {
     console.error("Error in searchHandler:", error);
     throw error;
-  }
-}
-
-// Remap the values of talent.clearance_level before sending the response
-function remapClearanceLevel(level: string) {
-  switch (level) {
-    case "none":
-      return "Unclassified";
-    case "basic":
-      return "Public Trust";
-    case "confidential":
-      return "Secret";
-    case "critical":  // Alternative for "secret" or "top secret"
-      return "Top Secret";
-    case "crucial":  // Another alternative for "top secret"
-      return "Top Secret";
-    case "paramount":  // Alternative for "ts_sci"
-      return "Top Secret/SCI";
-    case "q_clearance":
-      return "Q Clearance";
-    case "l_clearance":
-      return "L Clearance";
-    default:
-      return level;
   }
 }
