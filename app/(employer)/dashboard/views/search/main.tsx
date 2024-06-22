@@ -5,7 +5,10 @@ import {
   searchResults,
   FilterIndex,
 } from "@/app/(employer)/dashboard/views/search/results";
-import { searchHandler } from "@/app/(employer)/dashboard/views/search/search";
+import {
+  searchHandler,
+  SearchResult,
+} from "@/app/(employer)/dashboard/views/search/search";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
@@ -30,6 +33,9 @@ export default function EmployerDashboardCandidateSearch() {
     location: [],
     // Add more filter types here in the future
   });
+  const [overlappingRoles, setOverlappingRoles] = useState<
+    Array<{ similar: string; score: number }>
+  >([]);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -46,6 +52,7 @@ export default function EmployerDashboardCandidateSearch() {
       setResultFound(false);
       setIsSearching(false);
       setFilterIndex({});
+      setOverlappingRoles([]);
       return;
     }
 
@@ -54,16 +61,20 @@ export default function EmployerDashboardCandidateSearch() {
     setIsSearching(true);
 
     const searchInput = searchInputRef.current?.value || "";
-    const search = await searchHandler(searchInput);
+    const search: SearchResult | { socket: boolean } = await searchHandler(
+      searchInput
+    );
 
-    console.log(search);
+    console.log("Results", search);
 
-    if (search.socket) {
+    if ("socket" in search && search.socket) {
       setIsSearching(false);
       setResultFound(false);
       setSearchResults([]);
       setFilterIndex({});
+      setOverlappingRoles([]);
     } else if (
+      "match" in search &&
       search.match &&
       Array.isArray(search.similarTalents) &&
       search.similarTalents.length > 0
@@ -71,10 +82,21 @@ export default function EmployerDashboardCandidateSearch() {
       setSearchResults(search.similarTalents);
       setResultFound(true);
       setFilterIndex(createFilterIndex(search.similarTalents));
+
+      // Set overlappingRoles if present
+      if (
+        "overlappingRoles" in search &&
+        Array.isArray(search.overlappingRoles)
+      ) {
+        setOverlappingRoles(search.overlappingRoles);
+      } else {
+        setOverlappingRoles([]);
+      }
     } else {
       setSearchResults([]);
-      setResultFound(true);
+      setResultFound("match" in search ? search.match : false);
       setFilterIndex({});
+      setOverlappingRoles([]);
     }
 
     setIsSearching(false);
@@ -216,6 +238,42 @@ export default function EmployerDashboardCandidateSearch() {
             </div>
           )}
         </div>
+        {overlappingRoles.length > 0 && (
+          <div className="mt-4 border border-gray-800 rounded-md p-4 bg-black text-green-400 font-mono shadow-lg relative overflow-hidden scanline">
+            <h3 className="text-lg font-semibold mb-3 text-green-500 cursor-blink">
+              Eagle Eye Terminal_
+            </h3>
+            <p className="text-green-400 font-mono text-sm mb-2">
+              Among the candidates that match your search, the following roles
+              were found to be shared by multiple candidates.
+            </p>
+            <p className="text-green-400 font-mono text-sm mb-4">
+              The scores represent each role's alignment with the role you
+              searched for.
+            </p>
+            <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-green-700 scrollbar-track-green-900">
+              {overlappingRoles.map((role, index) => (
+                <div
+                  key={index}
+                  className="border border-green-700 p-3 rounded"
+                >
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">{role.similar}</span>
+                    <span className="text-sm">
+                      Score: {(role.score * 100).toFixed(2)}%
+                    </span>
+                  </div>
+                  <div className="mt-2 bg-green-900 rounded-full h-2">
+                    <div
+                      className="bg-green-400 h-2 rounded-full"
+                      style={{ width: `${role.score * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
       <div
         className={`hidden md:flex flex-col gap-4 transition-all duration-700 ease-in-out ${

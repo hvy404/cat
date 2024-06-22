@@ -9,6 +9,22 @@ import {
 } from "./retriever/utils";
 import { contentModerationWordFilter } from "@/lib/content-moderation/explicit_word_filter";
 
+export type SearchResult = {
+  match: boolean;
+  similarTalents: {
+    applicant_id: string;
+    title: string;
+    clearance_level: string;
+    score: number;
+    previous_role: string[];
+    education: Array<{ degree: string; institution: string }>;
+    city: string;
+    state: string;
+    zipcode: string;
+  }[];
+  overlappingRoles?: { similar: any; score: any }[];
+};
+
 /**
  * The `searchHandler` function handles the search functionality based on the main search query.
  * It performs the following steps:
@@ -42,6 +58,31 @@ import { contentModerationWordFilter } from "@/lib/content-moderation/explicit_w
  */
 
 export async function searchHandler(mainSearchQuery: string) {
+  // Power user flags
+  let eagleEyeDetected = false;
+
+  // Validate the mainSearchQuery
+  const isValid =
+    /^(?=.*[a-zA-Z0-9])(?:(?:!wildwildwest|!eagleeye|\s|[a-zA-Z0-9])+)$/.test(
+      mainSearchQuery
+    );
+  if (!isValid) {
+    return {
+      match: false,
+      similarTalents: [],
+      overlappingRoles: [],
+    };
+  }
+
+  // Check for easter eggs and log them
+  if (mainSearchQuery.includes("!wildwildwest")) {
+    console.log("Easter egg detected: Wild Wild West");
+  }
+  if (mainSearchQuery.includes("!eagleeye")) {
+    console.log("Easter egg detected: Eagle Eye");
+    eagleEyeDetected = true;
+  }
+
   // Check for explicit content in the main search query
   const explicitContent = await contentModerationWordFilter(mainSearchQuery);
   if (explicitContent) {
@@ -51,8 +92,13 @@ export async function searchHandler(mainSearchQuery: string) {
     };
   }
 
+  // Clean the query Remove easter egg flags
+  let cleanedSearchQuery = mainSearchQuery;
+  cleanedSearchQuery = cleanedSearchQuery.replace(/!wildwildwest/g, "").trim();
+  cleanedSearchQuery = cleanedSearchQuery.replace(/!eagleeye/g, "").trim();
+
   try {
-    const buildQuery = `I need candidate that has experience as a ${mainSearchQuery}`;
+    const buildQuery = `I need candidate that has experience as a ${cleanedSearchQuery}`;
     const embeddings = await generateEmbeddings(buildQuery);
     const threshold = 0.715;
     const similarTalents = await findSimilarTalents(embeddings, threshold);
@@ -63,7 +109,7 @@ export async function searchHandler(mainSearchQuery: string) {
     );
 
     const embedddingToMatchPotentialRoles = await generateEmbeddings(
-      `Candidate that has experience as a ${mainSearchQuery}`
+      `Candidate that has experience as a ${cleanedSearchQuery}`
     );
 
     // Calculate similarity between the main search query and the potential roles
@@ -146,7 +192,7 @@ export async function searchHandler(mainSearchQuery: string) {
     // then send the response
 
     return {
-      match: uniqueSimilarTalents.length > 0, // return true or false if there is a match
+      match: uniqueSimilarTalents.length > 0,
       similarTalents: uniqueSimilarTalents.map((talent) => ({
         applicant_id: talent.applicant_id,
         title: talent.title,
@@ -158,7 +204,9 @@ export async function searchHandler(mainSearchQuery: string) {
         state: talent.state,
         zipcode: talent.zipcode,
       })),
-      overlappingRoles: overlappingSimilarRolesCondensed,
+      ...(eagleEyeDetected
+        ? { overlappingRoles: overlappingSimilarRolesCondensed }
+        : {}),
     };
   } catch (error) {
     console.error("Error in searchHandler:", error);
