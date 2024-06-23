@@ -5,6 +5,7 @@ import EmployerDashboardJDBuilder from "@/app/(employer)/dashboard/views/jd-buil
 import EmployerDashboardDocuments from "@/app/(employer)/dashboard/views/collection/main";
 import EmployerDashboardProfile from "@/app/(employer)/dashboard/views/profile/main";
 import EmployerDashboardCandidateSearch from "@/app/(employer)/dashboard/views/search/main";
+import CandidateDashboardMain from "@/app/(employer)/dashboard/views/candidate/main";
 import useStore from "@/app/state/useStore";
 
 /**
@@ -31,8 +32,10 @@ export default function EmployerDashboardBody() {
         return <EmployerDashboardDocuments />;
       case "settings":
         return <EmployerDashboardProfile />;
-        case "browse": 
+      case "browse":
         return <EmployerDashboardCandidateSearch />;
+      case "talent-resume":
+        return <CandidateDashboardMain />;
       // Add more cases as needed for other components
       default:
         return <EmployerDashboardMain />;

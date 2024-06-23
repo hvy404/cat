@@ -1,10 +1,4 @@
 import type { Config } from "tailwindcss";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSeparator,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
 
 const config = {
   darkMode: ["class"],
@@ -63,6 +57,10 @@ const config = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      fontFamily: {
+        inter: ["Inter", "sans-serif"],
+        merriweather: ["Merriweather", "serif"],
       },
       keyframes: {
         "accordion-down": {

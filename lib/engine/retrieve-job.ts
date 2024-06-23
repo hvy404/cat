@@ -18,10 +18,10 @@ export async function getJobByJobID(jobID: string) {
   try {
     const result = await read(query, params);
     const job = result[0]?.j;
-    console.log(job);
+    //console.log(job);
     return job;
   } catch (error) {
-    console.error("Error executing Neo4j query:", error);
+    //console.error("Error executing Neo4j query:", error);
     throw error;
   }
 }

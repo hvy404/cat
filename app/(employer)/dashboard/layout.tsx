@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Merriweather, Source_Serif_4 } from "next/font/google";
 import { ThemeProvider } from "@/components/themeProvider";
 //import { GoogleAnalytics } from "@next/third-parties/google";
 //import { GoogleTagManager } from "@next/third-parties/google";
@@ -10,6 +10,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 
 const inter = Inter({ subsets: ["latin"] });
+
+const merriweather = Merriweather({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+});
 
 export const metadata: Metadata = {
   icons: {
@@ -26,7 +31,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       {/*       <GoogleAnalytics gaId="G-NZ56WBWWEQ" />
       <GoogleTagManager gtmId="GTM-K839NR2" /> */}
-      <body className={inter.className}>
+      <body className={`${inter.className}`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

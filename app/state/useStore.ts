@@ -4,6 +4,7 @@ interface User {
   email: string;
   uuid: string;
   session: string;
+  role: string; // TOOD: this should be an enum of employer-owner, employer-admin, employer-user, talent
 }
 
 interface DashboardRoleOverview {
@@ -47,7 +48,6 @@ interface JobDetails {
   hourly_comp_min?: number | null;
   hourly_comp_max?: number | null;
 }
-
 
 interface JobDescriptionTitles {
   title: string;
@@ -97,6 +97,10 @@ interface JDBuilderWizard {
   setJDGenerationRunnerID: (jdGenerationRunnerID: string) => void;
 }
 
+interface CandidateDashboard {
+  step: number;
+}
+
 interface StoreState {
   selectedMenuItem: string | null;
   user: User | null;
@@ -113,6 +117,8 @@ interface StoreState {
   jdBuilderWizard: JDBuilderWizard;
   setJDBuilderWizard: (wizard: Partial<JDBuilderWizard>) => void;
   updateJDBuilderWizardStep: (newStep: number) => void;
+  candidateDashboard: CandidateDashboard;
+  setCandidateDashboard: (dashboard: Partial<CandidateDashboard>) => void;
 }
 
 const useStore = create<StoreState>((set) => ({
@@ -151,6 +157,18 @@ const useStore = create<StoreState>((set) => ({
     isFinalizing: false,
     publishingRunnerID: null, // Ingest runner ID for publishing JD
   },
+  // State for candidate dashboard
+  candidateDashboard: {
+    step: 1,
+  },
+  // Set candidate dashboard step
+  setCandidateDashboard: (dashboard) =>
+    set((state) => ({
+      candidateDashboard: {
+        ...state.candidateDashboard,
+        ...dashboard,
+      },
+    })),
   // Set the active menu item in the sidebar
   setSelectedMenuItem: (item) => set({ selectedMenuItem: item }),
   // Set the current user

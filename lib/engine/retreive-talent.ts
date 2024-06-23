@@ -84,7 +84,7 @@ export async function findSimilarTalents(
       education: education.filter(Boolean) // Remove any null or undefined values
     }));
 
-    console.log("Similar Talents:", similarTalentsPlain);
+    //console.log("Similar Talents:", similarTalentsPlain);
 
     return similarTalentsPlain;
   } catch (error) {

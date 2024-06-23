@@ -20,8 +20,14 @@ export const jobDescriptionStaticSchema = z
       .array(
         z.object({
           city: z.string().optional().describe("The city of the job location."),
-          state: z.string().optional().describe("The state of the job location, e.g., CA."),
-          zipcode: z.string().optional().describe("The zip code of the job location."),
+          state: z
+            .string()
+            .optional()
+            .describe("The state of the job location, e.g., CA."),
+          zipcode: z
+            .string()
+            .optional()
+            .describe("The zip code of the job location."),
         })
       )
       .optional()
@@ -73,7 +79,15 @@ export const jobDescriptionStaticSchema = z
       .optional()
       .describe("Deadline for application submissions, if applicable."),
     clearanceLevel: z
-      .enum(["none", "basic", "elevated", "high"])
+      .enum([
+        "none",
+        "basic",
+        "confidential",
+        "critical",
+        "paramount",
+        "q_clearance",
+        "l_clearance",
+      ])
       .optional()
       .describe("The required clearance level."),
   })

@@ -16,6 +16,7 @@ import {
   LucideIcon,
   BookOpen,
   Search,
+  Layers2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -80,6 +81,7 @@ export default function EmployerDashboardNavigation() {
         <TooltipButton item="documents" label="Collection" icon={BookOpen} />
         <TooltipButton item="browse" label="Browse" icon={Search} />
         <TooltipButton item="settings" label="Settings" icon={Settings2} />
+        <TooltipButton item="talent-resume" label="Resume (Talent)" icon={Layers2} />
       </nav>
       <nav className="mt-auto grid gap-1 p-2">
         <TooltipButton item="help" label="Help" icon={LifeBuoy} />
