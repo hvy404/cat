@@ -1,11 +1,13 @@
 import useStore from "@/app/state/useStore";
-import { use, useEffect, useState } from "react";
+import { useEffect } from "react";
 import CandidateDashboardRightPanel from "@/app/(employer)/dashboard/views/candidate/right-panel-main";
 import { CandidateOnboardingForm } from "@/app/(employer)/dashboard/views/candidate/main-onboard-form";
 
 export default function CandidateDashboardMain() {
   const { isExpanded, setExpanded } = useStore();
-  const candidateDashboardStep = useStore((state) => state.candidateDashboard.step);
+  const candidateDashboardStep = useStore(
+    (state) => state.candidateDashboard.step
+  );
 
   // Reset layout on unmount
   useEffect(() => {

@@ -49,20 +49,20 @@ export default function CandidateDashboardRightPanelWelcome() {
         variants={variants}
         transition={{ duration: 1.5, ease: "easeInOut" }}
       >
-       <motion.div
-          className={`font-merriweather text-gray-600 font-medium ${!isAnimated ? 'text-center' : ''}`}
+        <motion.div
+          className={`font-merriweather text-gray-600 font-medium ${
+            !isAnimated ? "text-center" : ""
+          }`}
         >
           <p>Hello, Huy 👋</p>
           <p>You're in good hands.</p>
         </motion.div>
         {!isAnimated && (
-        <div className="w-full mt-8 flex justify-center">
-          <Button onClick={handleAnimationStart}>How does it work?</Button>
-        </div>
-      )}
+          <div className="w-full mt-8 flex justify-center">
+            <Button onClick={handleAnimationStart}>How does it work?</Button>
+          </div>
+        )}
       </motion.div>
-      
-      
 
       <AnimatePresence>
         {showNextBox && (
@@ -82,10 +82,9 @@ export default function CandidateDashboardRightPanelWelcome() {
                   Your unique profile becomes the foundation for a sophisticated
                   matching process. Leveraging advanced artificial intelligence,
                   the system analyzes your skills, experience, and aspirations
-                  to identify the most suitable job opportunities in the federal
-                  government space. This approach goes beyond simple keyword
-                  matching to find positions that truly align with your
-                  professional profile.
+                  to identify the most suitable job opportunities. This approach
+                  goes beyond simple keyword matching to find positions that
+                  truly align with your professional profile.
                 </p>
               </div>
               <div className="border border-gray-200 text-gray-600 rounded-md p-4">

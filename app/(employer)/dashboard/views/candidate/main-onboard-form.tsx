@@ -35,6 +35,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { toast } from "sonner";
+import CandidateOnboardingDialog from "@/app/(employer)/dashboard/views/candidate/onboarding-dialog";
 
 interface Education {
   institution: string;
@@ -86,9 +88,6 @@ interface CandidateData {
 export function CandidateOnboardingForm() {
   const user = useStore((state) => state.user?.uuid);
   const dashboardStep = useStore((state) => state.candidateDashboard.step);
-  const setDashboardStep = useStore((state) => state.setCandidateDashboard);
-
-  console.log("Current dashboard step:", dashboardStep);
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -105,57 +104,104 @@ export function CandidateOnboardingForm() {
   });
   const [open, setOpen] = useState(false); // State for State dropdown
   const [errors, setErrors] = useState<{ [key: string]: string }>({}); // Form validation errors
+  const [onboardingDialogOpen, setOnboardingDialogOpen] = useState(true); // State for onboarding dialog
+  const [formLoaded, setFormLoaded] = useState(false); // State for form data loaded
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
+    const missingFields: string[] = [];
 
     // Validate required fields
-    if (!formData.name.trim()) newErrors.name = "Name is required";
-    if (!formData.email.trim()) newErrors.email = "Email is required";
-    if (!formData.city.trim()) newErrors.city = "City is required";
-    if (!formData.state) newErrors.state = "State is required";
-    if (!formData.zipcode.trim()) newErrors.zipcode = "Zip code is required";
+    if (!formData.name.trim()) {
+      newErrors.name = "Name is required";
+      missingFields.push("Name");
+    }
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+      missingFields.push("Email");
+    }
+    if (!formData.city.trim()) {
+      newErrors.city = "City is required";
+      missingFields.push("City");
+    }
+    if (!formData.state) {
+      newErrors.state = "State is required";
+      missingFields.push("State");
+    }
+    if (!formData.zipcode.trim()) {
+      newErrors.zipcode = "Zip code is required";
+      missingFields.push("Zip code");
+    }
+
+    // Email validation
+    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+      missingFields.push("Email");
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = "Invalid email address";
+      missingFields.push("Valid email");
+    }
+
+    // Zip code validation
+    const zipCodeRegex = /^\d{5}$/;
+    if (!formData.zipcode.trim()) {
+      newErrors.zipcode = "Zip code is required";
+      missingFields.push("Zip code");
+    } else if (!zipCodeRegex.test(formData.zipcode)) {
+      newErrors.zipcode = "Zip code must be exactly 5 digits";
+      missingFields.push("Valid zip code");
+    }
 
     // Validate education if any entry exists
     if (formData.education.length > 0) {
       formData.education.forEach((edu, index) => {
-        if (!edu.institution.trim())
-          newErrors[`education_${index}_institution`] =
-            "Institution is required";
-        if (!edu.degree.trim())
+        if (!edu.institution.trim()) {
+          newErrors[`education_${index}_institution`] = "Institution is required";
+          missingFields.push(`Education ${index + 1} Institution`);
+        }
+        if (!edu.degree.trim()) {
           newErrors[`education_${index}_degree`] = "Degree is required";
+          missingFields.push(`Education ${index + 1} Degree`);
+        }
       });
     }
 
     // Validate work experience if any entry exists
     if (formData.work_experience.length > 0) {
       formData.work_experience.forEach((exp, index) => {
-        if (!exp.organization.trim())
+        if (!exp.organization.trim()) {
           newErrors[`work_${index}_organization`] = "Organization is required";
-        if (!exp.job_title.trim())
+          missingFields.push(`Work Experience ${index + 1} Organization`);
+        }
+        if (!exp.job_title.trim()) {
           newErrors[`work_${index}_job_title`] = "Job title is required";
-        if (!exp.responsibilities.trim())
-          newErrors[`work_${index}_responsibilities`] =
-            "Responsibilities are required";
+          missingFields.push(`Work Experience ${index + 1} Job Title`);
+        }
+        if (!exp.responsibilities.trim()) {
+          newErrors[`work_${index}_responsibilities`] = "Responsibilities are required";
+          missingFields.push(`Work Experience ${index + 1} Responsibilities`);
+        }
       });
     }
 
     // Validate certifications if any entry exists
     if (formData.certifications.length > 0) {
       formData.certifications.forEach((cert, index) => {
-        if (!cert.name.trim())
-          newErrors[`certification_${index}_name`] =
-            "Certification name is required";
+        if (!cert.name.trim()) {
+          newErrors[`certification_${index}_name`] = "Certification name is required";
+          missingFields.push(`Certification ${index + 1} Name`);
+        }
       });
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return { isValid: Object.keys(newErrors).length === 0, missingFields };
   };
 
   const renderError = (key: string) => {
     if (errors[key]) {
-      return <p>Error: {errors[key]}</p>;
+      return <span className="text-red-700 text-sm mt-1">{errors[key]}</span>;
     }
     return null;
   };
@@ -178,7 +224,13 @@ export function CandidateOnboardingForm() {
         return { ...prev, [field]: newArray };
       });
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      // Add specific handling for zip code
+      if (name === "zipcode") {
+        const numericValue = value.replace(/\D/g, "").slice(0, 5);
+        setFormData((prev) => ({ ...prev, [name]: numericValue }));
+      } else {
+        setFormData((prev) => ({ ...prev, [name]: value }));
+      }
     }
   };
 
@@ -206,7 +258,7 @@ export function CandidateOnboardingForm() {
         field === "education"
           ? { institution: "", degree: "" }
           : field === "work_experience"
-          ? { organization: "", /* job_title: "", */ responsibilities: "" }
+          ? { organization: "", job_title: "", responsibilities: "" }
           : { name: "" },
       ],
     }));
@@ -245,17 +297,43 @@ export function CandidateOnboardingForm() {
           data.professional_certifications?.map((cert) => ({ name: cert })) ||
           [],
       });
+      setFormLoaded(true);
     }
   };
 
   const handleUpload = () => {
-    if (validateForm()) {
+    const { isValid, missingFields } = validateForm();
+    if (isValid) {
       // TODO: Proceed with the upload
       console.log("Form data to upload:", formData);
+      toast.success("Profile saved successfully!");
     } else {
-      console.log("Form validation failed");
+        const missingFieldsMessage = missingFields.join(", ");
+      toast.error(`Please fill in all required fields: ${missingFieldsMessage}`);
     }
   };
+
+  // if formLoaded is false return <div>Loading...</div>
+
+  if (!formLoaded) {
+    return (
+      <div className="flex flex-col min-h-[70vh] items-center justify-center">
+        <div className="font-merriweather text-2xl text-gray-700 flex items-center">
+          Please wait
+          <div className="dots ml-2 flex">
+            <span className="animate-wave">.</span>
+            <span className="animate-wave">.</span>
+            <span className="animate-wave">.</span>
+          </div>
+        </div>
+        <CandidateOnboardingDialog
+          onboardingDialogOpen={onboardingDialogOpen}
+          onboardingDialogOpenClose={() => setOnboardingDialogOpen(false)}
+          beginStartOnboarding={() => handlePopulate()}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -431,45 +509,47 @@ export function CandidateOnboardingForm() {
           Education <span className="text-xs font-normal">(optional)</span>
         </h2>
         {formData.education.map((edu, index) => (
-          <div key={index} className="flex items-center space-x-4 mb-4">
-            <div className="flex-grow">
-              <Label className="text-sm" htmlFor={`institution-${index}`}>
-                Institution
-              </Label>
-              <Input
-                id={`institution-${index}`}
-                name="institution"
-                value={edu.institution}
-                onChange={(e) => handleInputChange(e, index, "education")}
-              />
-              {renderError(`education_${index}_institution`)}
+          <div key={index} className="flex flex-col space-y-4 mb-4">
+            <div className="flex items-end space-x-4">
+              <div className="flex-grow">
+                <Label className="text-sm" htmlFor={`institution-${index}`}>
+                  Institution
+                </Label>
+                <Input
+                  id={`institution-${index}`}
+                  name="institution"
+                  value={edu.institution}
+                  onChange={(e) => handleInputChange(e, index, "education")}
+                />
+                {renderError(`education_${index}_institution`)}
+              </div>
+              <div className="flex-grow">
+                <Label className="text-sm" htmlFor={`degree-${index}`}>
+                  Degree
+                </Label>
+                <Input
+                  id={`degree-${index}`}
+                  name="degree"
+                  value={edu.degree}
+                  onChange={(e) => handleInputChange(e, index, "education")}
+                />
+                {renderError(`education_${index}_degree`)}
+              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    onClick={() => handleArrayRemove("education", index)}
+                    className="h-10 w-10 p-0 flex-shrink-0 mb-[2px]"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-black text-white border-black">
+                  <p>Remove {edu.institution}</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
-            <div className="flex-grow">
-              <Label className="text-sm" htmlFor={`degree-${index}`}>
-                Degree
-              </Label>
-              <Input
-                id={`degree-${index}`}
-                name="degree"
-                value={edu.degree}
-                onChange={(e) => handleInputChange(e, index, "education")}
-              />
-              {renderError(`education_${index}_degree`)}
-            </div>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  onClick={() => handleArrayRemove("education", index)}
-                  className="h-10 w-10 p-0 flex-shrink-0"
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="bg-black text-white border-black">
-                <p>Remove {edu.institution}</p>
-              </TooltipContent>
-            </Tooltip>
           </div>
         ))}
         <Button
@@ -517,13 +597,12 @@ export function CandidateOnboardingForm() {
                 />
                 {renderError(`work_${index}_job_title`)}
               </div>
-
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     type="button"
                     onClick={() => handleArrayRemove("work_experience", index)}
-                    className="h-10 w-10 p-0 flex-shrink-0"
+                    className="h-10 w-10 p-0 flex-shrink-0 mb-[2px]"
                   >
                     <Minus className="h-4 w-4" />
                   </Button>
@@ -562,7 +641,7 @@ export function CandidateOnboardingForm() {
           Certifications <span className="text-xs font-normal">(optional)</span>
         </h2>
         {formData.certifications.map((cert, index) => (
-          <div key={index} className="flex items-center gap-4 mb-4">
+          <div key={index} className="flex items-end space-x-4 mb-4">
             <div className="flex-grow">
               <Label className="text-sm" htmlFor={`certification-${index}`}>
                 Certification Name
@@ -575,13 +654,12 @@ export function CandidateOnboardingForm() {
               />
               {renderError(`certification_${index}_name`)}
             </div>
-
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   type="button"
                   onClick={() => handleArrayRemove("certifications", index)}
-                  className="h-10 w-10 p-0 flex-shrink-0"
+                  className="h-10 w-10 p-0 flex-shrink-0 mb-[2px]"
                 >
                   <Minus className="h-4 w-4" />
                 </Button>
@@ -603,7 +681,9 @@ export function CandidateOnboardingForm() {
 
       {/* Action Buttons */}
       <div className="flex justify-between">
-        <Button onClick={handlePopulate}>Populate</Button>
+        <Button variant={"link"} onClick={handlePopulate}>
+          Reset
+        </Button>
         <Button onClick={handleUpload}>Save Profile</Button>
       </div>
     </div>
