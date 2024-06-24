@@ -83,7 +83,12 @@ interface CandidateData {
 }
 
 export function CandidateOnboardingForm() {
-  const { user } = useStore();
+  const user = useStore((state) => state.user?.uuid);
+  const dashboardStep = useStore((state) => state.candidateDashboard.step);
+  const setDashboardStep = useStore((state) => state.setCandidateDashboard);
+
+  console.log("Current dashboard step:", dashboardStep);
+
   const [formData, setFormData] = useState<FormData>({
     name: "",
     phone: "",
@@ -127,7 +132,7 @@ export function CandidateOnboardingForm() {
     setOpen(false);
   };
 
-    // Dropdown for Clearance Level
+  // Dropdown for Clearance Level
   const handleSelectChange = (value: string, name: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -165,8 +170,8 @@ export function CandidateOnboardingForm() {
   };
 
   const handlePopulate = async () => {
-    if (!user?.uuid) return;
-    const result = await fetchCandidatePreliminaryData(user.uuid);
+    if (!user) return;
+    const result = await fetchCandidatePreliminaryData(user);
     if (result.success && result.data && result.data.length > 0) {
       const data = result.data[0] as CandidateData;
       setFormData({
@@ -248,12 +253,15 @@ export function CandidateOnboardingForm() {
           </div> */}
           <div>
             <Label className="text-sm" htmlFor="clearance_level">
-              Clearance Level <span className="text-xs font-normal">(optional)</span>
+              Clearance Level{" "}
+              <span className="text-xs font-normal">(optional)</span>
             </Label>
             <Select
               name="clearance_level"
               value={formData.clearance_level}
-              onValueChange={(value) => handleSelectChange(value, "clearance_level")}
+              onValueChange={(value) =>
+                handleSelectChange(value, "clearance_level")
+              }
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select clearance level" />
@@ -355,7 +363,9 @@ export function CandidateOnboardingForm() {
 
       {/* Education */}
       <div className="rounded-lg border hover:border-2 hover:border-slate-800 p-4">
-        <h2 className="text-md font-semibold mb-4 text-gray-700">Education <span className="text-xs font-normal">(optional)</span></h2>
+        <h2 className="text-md font-semibold mb-4 text-gray-700">
+          Education <span className="text-xs font-normal">(optional)</span>
+        </h2>
         {formData.education.map((edu, index) => (
           <div key={index} className="flex items-center space-x-4 mb-4">
             <div className="flex-grow">
@@ -502,7 +512,7 @@ export function CandidateOnboardingForm() {
                 <Button
                   type="button"
                   onClick={() => handleArrayRemove("certifications", index)}
-                  className="mt-6"
+                  className="h-10 w-10 p-0 flex-shrink-0"
                 >
                   <Minus className="h-4 w-4" />
                 </Button>

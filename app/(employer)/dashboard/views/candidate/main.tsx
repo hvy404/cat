@@ -1,11 +1,11 @@
 import useStore from "@/app/state/useStore";
-import { useEffect } from "react";
+import { use, useEffect, useState } from "react";
 import CandidateDashboardRightPanel from "@/app/(employer)/dashboard/views/candidate/right-panel-main";
 import { CandidateOnboardingForm } from "@/app/(employer)/dashboard/views/candidate/main-onboard-form";
 
 export default function CandidateDashboardMain() {
-  const { isExpanded, setExpanded, candidateDashboard, setCandidateDashboard } =
-    useStore();
+  const { isExpanded, setExpanded } = useStore();
+  const candidateDashboardStep = useStore((state) => state.candidateDashboard.step);
 
   // Reset layout on unmount
   useEffect(() => {
@@ -16,7 +16,7 @@ export default function CandidateDashboardMain() {
 
   // Render the main panel based on the current step
   const MainPanel = () => {
-    switch (candidateDashboard.step) {
+    switch (candidateDashboardStep) {
       case 1:
         return <CandidateOnboardingForm />;
       default:
@@ -47,8 +47,8 @@ export default function CandidateDashboardMain() {
         }`}
       >
         <CandidateDashboardRightPanel
-          step={candidateDashboard.step}
-          setStep={(step) => setCandidateDashboard({ step })}
+          step={candidateDashboardStep}
+          /* setStep={(step) => setCandidateDashboard({ step })} */
         />
       </div>
     </main>

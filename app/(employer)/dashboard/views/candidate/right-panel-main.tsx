@@ -2,7 +2,7 @@ import CandidateDashboardRightPanelWelcome from "@/app/(employer)/dashboard/view
 
 interface CandidateDashboardRightPanelProps {
   step: number;
-  setStep?: (step: number) => void;
+  /* setStep?: (step: number) => void; */
 }
 
 const RenderRightPanel = ({ step }: CandidateDashboardRightPanelProps) => {
@@ -17,7 +17,7 @@ const RenderRightPanel = ({ step }: CandidateDashboardRightPanelProps) => {
 
 function CandidateDashboardRightPanel({
   step,
-  setStep,
+  /* setStep, */
 }: CandidateDashboardRightPanelProps) {
   return (
     <div className="min-h-[90vh] rounded-xl bg-muted/50 p-4 overflow-auto">
