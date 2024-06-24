@@ -103,7 +103,62 @@ export function CandidateOnboardingForm() {
     work_experience: [],
     certifications: [],
   });
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false); // State for State dropdown
+  const [errors, setErrors] = useState<{ [key: string]: string }>({}); // Form validation errors
+
+  const validateForm = () => {
+    const newErrors: { [key: string]: string } = {};
+
+    // Validate required fields
+    if (!formData.name.trim()) newErrors.name = "Name is required";
+    if (!formData.email.trim()) newErrors.email = "Email is required";
+    if (!formData.city.trim()) newErrors.city = "City is required";
+    if (!formData.state) newErrors.state = "State is required";
+    if (!formData.zipcode.trim()) newErrors.zipcode = "Zip code is required";
+
+    // Validate education if any entry exists
+    if (formData.education.length > 0) {
+      formData.education.forEach((edu, index) => {
+        if (!edu.institution.trim())
+          newErrors[`education_${index}_institution`] =
+            "Institution is required";
+        if (!edu.degree.trim())
+          newErrors[`education_${index}_degree`] = "Degree is required";
+      });
+    }
+
+    // Validate work experience if any entry exists
+    if (formData.work_experience.length > 0) {
+      formData.work_experience.forEach((exp, index) => {
+        if (!exp.organization.trim())
+          newErrors[`work_${index}_organization`] = "Organization is required";
+        if (!exp.job_title.trim())
+          newErrors[`work_${index}_job_title`] = "Job title is required";
+        if (!exp.responsibilities.trim())
+          newErrors[`work_${index}_responsibilities`] =
+            "Responsibilities are required";
+      });
+    }
+
+    // Validate certifications if any entry exists
+    if (formData.certifications.length > 0) {
+      formData.certifications.forEach((cert, index) => {
+        if (!cert.name.trim())
+          newErrors[`certification_${index}_name`] =
+            "Certification name is required";
+      });
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const renderError = (key: string) => {
+    if (errors[key]) {
+      return <p>Error: {errors[key]}</p>;
+    }
+    return null;
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -194,8 +249,12 @@ export function CandidateOnboardingForm() {
   };
 
   const handleUpload = () => {
-    // TODO: remember to remap clearance_level back to the original value before uploading
-    console.log("Form data to upload:", formData);
+    if (validateForm()) {
+      // TODO: Proceed with the upload
+      console.log("Form data to upload:", formData);
+    } else {
+      console.log("Form validation failed");
+    }
   };
 
   return (
@@ -216,6 +275,7 @@ export function CandidateOnboardingForm() {
               value={formData.name}
               onChange={handleInputChange}
             />
+            {renderError("name")}
           </div>
           <div>
             <Label className="text-sm" htmlFor="phone">
@@ -239,6 +299,7 @@ export function CandidateOnboardingForm() {
               value={formData.email}
               onChange={handleInputChange}
             />
+            {renderError("email")}
           </div>
           {/*  <div>
             <Label className="text-sm" htmlFor="title">
@@ -298,6 +359,7 @@ export function CandidateOnboardingForm() {
               value={formData.city}
               onChange={handleInputChange}
             />
+            {renderError("city")}
           </div>
           <div>
             <Label className="text-sm" htmlFor="state">
@@ -346,6 +408,7 @@ export function CandidateOnboardingForm() {
                 </Command>
               </PopoverContent>
             </Popover>
+            {renderError("state")}
           </div>
           <div>
             <Label className="text-sm" htmlFor="zipcode">
@@ -357,6 +420,7 @@ export function CandidateOnboardingForm() {
               value={formData.zipcode}
               onChange={handleInputChange}
             />
+            {renderError("zipcode")}
           </div>
         </div>
       </div>
@@ -378,6 +442,7 @@ export function CandidateOnboardingForm() {
                 value={edu.institution}
                 onChange={(e) => handleInputChange(e, index, "education")}
               />
+              {renderError(`education_${index}_institution`)}
             </div>
             <div className="flex-grow">
               <Label className="text-sm" htmlFor={`degree-${index}`}>
@@ -389,6 +454,7 @@ export function CandidateOnboardingForm() {
                 value={edu.degree}
                 onChange={(e) => handleInputChange(e, index, "education")}
               />
+              {renderError(`education_${index}_degree`)}
             </div>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -435,6 +501,7 @@ export function CandidateOnboardingForm() {
                     handleInputChange(e, index, "work_experience")
                   }
                 />
+                {renderError(`work_${index}_organization`)}
               </div>
               <div className="flex-grow">
                 <Label className="text-sm" htmlFor={`job_title-${index}`}>
@@ -448,6 +515,7 @@ export function CandidateOnboardingForm() {
                     handleInputChange(e, index, "work_experience")
                   }
                 />
+                {renderError(`work_${index}_job_title`)}
               </div>
 
               <Tooltip>
@@ -505,6 +573,7 @@ export function CandidateOnboardingForm() {
                 value={cert.name}
                 onChange={(e) => handleInputChange(e, index, "certifications")}
               />
+              {renderError(`certification_${index}_name`)}
             </div>
 
             <Tooltip>
