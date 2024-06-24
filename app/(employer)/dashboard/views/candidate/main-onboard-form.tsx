@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import useStore from "@/app/state/useStore";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import FormattedPhoneInput from "@/app/(employer)/dashboard/views/candidate/helpers/formatPhoneInput";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Plus, Minus, Check, ChevronsUpDown } from "lucide-react";
@@ -220,12 +221,11 @@ export function CandidateOnboardingForm() {
             <Label className="text-sm" htmlFor="phone">
               Phone <span className="text-xs font-normal">(optional)</span>
             </Label>
-            <Input
-              id="phone"
-              name="phone"
-              type="tel"
+            <FormattedPhoneInput
               value={formData.phone}
-              onChange={handleInputChange}
+              onChange={(value) =>
+                setFormData((prev) => ({ ...prev, phone: value }))
+              }
             />
           </div>
           <div>
