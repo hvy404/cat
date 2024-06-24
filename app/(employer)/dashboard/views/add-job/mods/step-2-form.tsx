@@ -33,7 +33,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { AddJDGetDataPoints } from "@/lib/dashboard/ingest-jd/get-data-points";
 import { SaveJobDetails } from "@/lib/dashboard/ingest-jd/save-data-points";
-import { states } from "./form-value-states";
+//import { states } from "./form-value-states";
+import { states } from "@/lib/data/form-value-states";
 import { z } from "zod";
 
 interface ValidationErrors {
