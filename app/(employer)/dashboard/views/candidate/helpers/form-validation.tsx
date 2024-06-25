@@ -1,5 +1,3 @@
-"use server";
-
 import { z } from "zod";
 
 const EducationSchema = z.object({
@@ -17,6 +15,10 @@ const CertificationSchema = z.object({
   name: z.string().min(1, "Certification name is required"),
 });
 
+const nameAndCityRegex = /^[a-zA-Z0-9.\- ]+$/;
+
+const cityRegex = /^[a-zA-Z0-9., ]+$/;
+
 /**
  * Represents the schema for the form data.
  */
@@ -24,7 +26,9 @@ const FormDataSchema = z.object({
   /**
    * The name of the candidate.
    */
-  name: z.string().min(1, "Name is required"),
+  name: z.string()
+    .min(1, "Name is required")
+    .regex(nameAndCityRegex, "Name can only contain letters, numbers, periods, hyphens, and spaces"),
 
   /**
    * The phone number of the candidate (optional).
@@ -34,7 +38,11 @@ const FormDataSchema = z.object({
   /**
    * The email address of the candidate.
    */
-  email: z.string().email("Invalid email address"),
+  email: z.string()
+  .email("Invalid email address")
+  .refine(email => !email.includes('+'), {
+    message: "Email address cannot contain a '+' sign"
+  }),
 
   /**
    * The clearance level of the candidate (optional).
@@ -44,7 +52,9 @@ const FormDataSchema = z.object({
   /**
    * The city where the candidate resides.
    */
-  city: z.string().min(1, "City is required"),
+  city: z.string()
+    .min(1, "City is required")
+    .regex(cityRegex, "City can only contain letters, numbers, periods, commas, and spaces"),
 
   /**
    * The state where the candidate resides.
@@ -54,7 +64,7 @@ const FormDataSchema = z.object({
   /**
    * The zip code of the candidate's location (5 digits).
    */
-  zipcode: z.string().regex(/^\d{5}$/, "Zip code 5 digits"),
+  zipcode: z.string().regex(/^\d{5}$/, "Zip code must be 5 digits"),
 
   /**
    * The education history of the candidate.

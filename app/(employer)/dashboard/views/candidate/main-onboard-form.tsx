@@ -103,6 +103,7 @@ export function CandidateOnboardingForm() {
     work_experience: [],
     certifications: [],
   });
+  const [originalData, setOriginalData] = useState<CandidateData | null>(null); // State for original data
   const [open, setOpen] = useState(false); // State for State dropdown
   const [errors, setErrors] = useState<{ [key: string]: string }>({}); // Form validation errors
   const [onboardingDialogOpen, setOnboardingDialogOpen] = useState(true); // State for onboarding dialog
@@ -133,13 +134,13 @@ export function CandidateOnboardingForm() {
         return { ...prev, [field]: newArray };
       });
     } else {
-      // Add specific handling for zip code
+      let newValue = value;
       if (name === "zipcode") {
-        const numericValue = value.replace(/\D/g, "").slice(0, 5);
-        setFormData((prev) => ({ ...prev, [name]: numericValue }));
-      } else {
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        newValue = value.replace(/\D/g, "").slice(0, 5);
+      } else if (name === "name" || name === "city") {
+        newValue = value.replace(/[^a-zA-Z0-9.\- ]/g, "");
       }
+      setFormData((prev) => ({ ...prev, [name]: newValue }));
     }
   };
 
@@ -189,8 +190,10 @@ export function CandidateOnboardingForm() {
   const handlePopulate = async () => {
     if (!user) return;
     const result = await fetchCandidatePreliminaryData(user);
+    console.log("Result from fetchCandidatePreliminaryData:", result)
     if (result.success && result.data && result.data.length > 0) {
       const data = result.data[0] as CandidateData;
+      setOriginalData(data); // Save original data
       setFormData({
         name: data.name || "",
         phone: data.contact?.phone || "",
