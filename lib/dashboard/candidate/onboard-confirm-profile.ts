@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
-import { validateForm } from "@/app/(employer)/dashboard/views/candidate/helpers/form-validation";
+import { validateForm } from "@/app/(auth)/dashboard/views/candidate/helpers/form-validation";
 
 interface FormData {
   name: string;
