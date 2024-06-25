@@ -1,5 +1,6 @@
 /**
  * Extracts resume information and performs various operations on it.
+ * Resume onboard step 1
  *
  * @param event - The event object containing the resume data.
  * @param step - The step object used for invoking other functions.
@@ -13,8 +14,8 @@ import { cookies } from "next/headers";
 import { resumeParserUpload } from "@/lib/candidate/ingest-resume/retrieve-resume";
 import { type resumeGenerateStatic } from "@/inngest/resume-static";
 import { type resumeGenerateInferred } from "@/inngest/resume-inferred";
-import { type generateCandidateCypher } from "@/inngest/resume-generate-cypher";
-import { resumeGenerateEmbeddings } from "@/inngest/resume-embeddings";
+import { type generateCandidateCypher } from "@/inngest/resume-generate-cypher"; // Should be part 2
+import { resumeGenerateEmbeddings } from "@/inngest/resume-embeddings"; // Should be part 2
 
 export const resumeExtract = inngest.createFunction(
   { id: "candidate-extract-resume" },
@@ -80,8 +81,10 @@ export const resumeExtract = inngest.createFunction(
       console.error("Error generating inferred points.", error);
     }
 
+    // TODO: this should be split into a two separate functions
+
     // Build cypher query and send to Neo4j
-    try {
+    /* try {
       const buildCypher = await step.invoke("candidate-add-to-neo-workflow", {
         function: referenceFunction<typeof generateCandidateCypher>({
           functionId: "candidate-add-to-neo-workflow",
@@ -113,10 +116,10 @@ export const resumeExtract = inngest.createFunction(
       );
     } catch (error) {
       console.error("Error during generating embeddings:", error);
-    }
+    } */
 
     // TODO: Add database entry that candidate has been onboarded
 
-    return { message: "Successfully onboarded resume." };
+    return { message: "Resume successfully uploaded." };
   }
 );

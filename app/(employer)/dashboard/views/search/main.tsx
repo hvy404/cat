@@ -20,12 +20,14 @@ interface SearchResultsProps {
   resultFound: boolean;
   filterIndex: FilterIndex;
   selectedFilters: { [key: string]: string[] };
+  hasSearched: boolean;
 }
 
 export default function EmployerDashboardCandidateSearch() {
   const { isExpanded, setExpanded, toggleExpansion } = useStore();
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<searchResults[]>([]);
+  const [hasSearched, setHasSearched] = useState(false);
   const [resultFound, setResultFound] = useState(false);
   const [filterIndex, setFilterIndex] = useState<FilterIndex>({});
   const [selectedFilters, setSelectedFilters] = useState<{
@@ -49,17 +51,19 @@ export default function EmployerDashboardCandidateSearch() {
   const handleSearch = async () => {
     if (!searchInputRef.current || !searchInputRef.current.value.trim()) {
       setSearchResults([]);
-      setSelectedFilters({ location: [] }); // Clear the filters
+      setSelectedFilters({ location: [] });
       setResultFound(false);
       setIsSearching(false);
       setFilterIndex({});
       setOverlappingRoles([]);
+      setHasSearched(false);
       return;
     }
 
-    setSelectedFilters({ location: [] }); // Clear the filters
+    setSelectedFilters({ location: [] });
     setExpanded(false);
     setIsSearching(true);
+    setHasSearched(true);
 
     const searchInput = searchInputRef.current?.value || "";
     const search: SearchResult | { socket: boolean } = await searchHandler(
@@ -74,35 +78,34 @@ export default function EmployerDashboardCandidateSearch() {
       setSearchResults([]);
       setFilterIndex({});
       setOverlappingRoles([]);
-    } else if (
-      "match" in search &&
-      search.match &&
-      Array.isArray(search.similarTalents) &&
-      search.similarTalents.length > 0
-    ) {
-      setSearchResults(search.similarTalents);
-      setResultFound(true);
-      setFilterIndex(createFilterIndex(search.similarTalents));
-
-      // Set overlappingRoles if present
+    } else if ("match" in search) {
       if (
-        "overlappingRoles" in search &&
-        Array.isArray(search.overlappingRoles)
+        search.match &&
+        Array.isArray(search.similarTalents) &&
+        search.similarTalents.length > 0
       ) {
-        setOverlappingRoles(search.overlappingRoles);
+        setSearchResults(search.similarTalents);
+        setResultFound(true);
+        setFilterIndex(createFilterIndex(search.similarTalents));
+
+        if (
+          "overlappingRoles" in search &&
+          Array.isArray(search.overlappingRoles)
+        ) {
+          setOverlappingRoles(search.overlappingRoles);
+        } else {
+          setOverlappingRoles([]);
+        }
       } else {
+        setSearchResults([]);
+        setResultFound(false);
+        setFilterIndex({});
         setOverlappingRoles([]);
       }
-    } else {
-      setSearchResults([]);
-      setResultFound("match" in search ? search.match : false);
-      setFilterIndex({});
-      setOverlappingRoles([]);
     }
 
     setIsSearching(false);
   };
-
   const handleEnterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       handleSearch();
@@ -287,6 +290,7 @@ export default function EmployerDashboardCandidateSearch() {
           resultFound={resultFound}
           filterIndex={filterIndex}
           selectedFilters={selectedFilters}
+          hasSearched={hasSearched}
         />
       </div>
     </main>
@@ -299,6 +303,7 @@ export function SearchResults({
   resultFound,
   filterIndex,
   selectedFilters,
+  hasSearched,
 }: SearchResultsProps) {
   return (
     <div className="min-h-[90vh] rounded-xl bg-muted/50 p-4 overflow-auto">
@@ -306,28 +311,14 @@ export function SearchResults({
         <div className="grid gap-6 h-full">
           <div className="flex flex-col gap-4 items-center justify-center h-full">
             <SearchingAnimation />
-            {/*  <div className="text-center text-gray-400/70 text-2xl font-bold">
-              Searching
-              <span className="dots">
-                <span>.</span>
-                <span>.</span>
-                <span>.</span>
-              </span>
-            </div> */}
           </div>
         </div>
       ) : searchResults.length === 0 ? (
         <div className="grid gap-6 h-full">
           <div className="flex flex-col gap-4 items-center justify-center h-full">
-            {resultFound ? (
-              <div className="text-center text-gray-400/70 text-2xl font-bold">
-                No matches found.
-              </div>
-            ) : (
-              <div className="text-center text-gray-400/70 text-2xl font-bold">
-                Enter a role name
-              </div>
-            )}
+            <div className="text-center text-gray-400/70 text-2xl font-bold">
+              {hasSearched ? "No Results Found" : "Enter a role name"}
+            </div>
           </div>
         </div>
       ) : (

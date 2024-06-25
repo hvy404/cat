@@ -20,6 +20,7 @@ export async function candidateStartOnboard(userId: string) {
     };
   }
   // Send an event to Inngest
+  // /Users/huyle/Documents/Dev/catalyst/inngest/resume-start-onboard.ts
   const { ids } = await inngest.send({
     name: "app/candidate-start-onboard",
     data: {

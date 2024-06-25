@@ -61,8 +61,6 @@ export const generateJobDescriptionCypher = inngest.createFunction(
 
       //console.log(cypherQuery);
 
-      //console.log( "Writing then sending cypher query to Neo4j from candidate-add-to-neo-workflow Inngest function.");
-
       // Run the Cypher query and wait for it to complete successfully
       // TODO: Write doesn't return an error and thus does not throw an error. This needs enhancement
       await write(cypherQuery);

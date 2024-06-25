@@ -19,6 +19,7 @@ export const generateCandidateCypher = inngest.createFunction(
     const supabase = createClient(cookieStore);
     const userId = event.data.user.id;
 
+    // TODO: this can pull the combined column so remove the need for the two separate queries
     try {
       const { data, error } = await supabase
         .from("candidate_resume")
