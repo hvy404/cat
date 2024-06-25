@@ -19,16 +19,15 @@ export const generateCandidateCypher = inngest.createFunction(
     const supabase = createClient(cookieStore);
     const userId = event.data.user.id;
 
-    // TODO: this can pull the combined column so remove the need for the two separate queries
     try {
       const { data, error } = await supabase
         .from("candidate_resume")
-        .select("static, inferred")
+        .select("modified_static, inferred")
         .eq("user", userId);
 
       if (error) throw new Error(error.message);
 
-      const staticData = data[0].static;
+      const staticData = data[0].modified_static;
       const inferredData = data[0].inferred;
       const candidateData = { ...staticData, ...inferredData };
       const cypherQuery = generateCandidateCypherQuery(candidateData, userId);

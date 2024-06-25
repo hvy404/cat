@@ -15,8 +15,16 @@ import { resumeParserUpload } from "@/lib/candidate/ingest-resume/retrieve-resum
 import { type resumeGenerateStatic } from "@/inngest/resume-static";
 import { type resumeGenerateInferred } from "@/inngest/resume-inferred";
 import { type generateCandidateCypher } from "@/inngest/resume-generate-cypher"; // Should be part 2
-import { resumeGenerateEmbeddings } from "@/inngest/resume-embeddings"; // Should be part 2
+import { type resumeGenerateEmbeddings } from "@/inngest/resume-embeddings"; // Should be part 2
+import { type resumeOnboardBooleanStatus } from "@/inngest/resume-onboard-boolean";
 
+/**
+ * Extracts resume information and performs additional processing steps.
+ *
+ * @param event - The event triggering the function.
+ * @param step - The step object used for invoking other functions.
+ * @returns A promise that resolves to an object with a success message or an error message.
+ */
 export const resumeExtract = inngest.createFunction(
   { id: "candidate-extract-resume" },
   { event: "app/candidate-start-onboard" },
@@ -40,8 +48,6 @@ export const resumeExtract = inngest.createFunction(
         error: error,
       };
     }
-
-    console.log("Step 0 Started");
 
     // Generate static points
     try {
@@ -81,10 +87,22 @@ export const resumeExtract = inngest.createFunction(
       console.error("Error generating inferred points.", error);
     }
 
-    // TODO: this should be split into a two separate functions
+    return { message: "Resume successfully read." };
+  }
+);
 
+/**
+ * Finalizes the onboarding process for a candidate.
+ * @param event - The event triggering the onboarding process.
+ * @param step - The step in the onboarding process.
+ * @returns A message indicating the success of the resume upload.
+ */
+export const finalizeOnboarding = inngest.createFunction(
+  { id: "candidate-confirm-resume" },
+  { event: "app/candidate-start-onboard-step-2" },
+  async ({ event, step }) => {
     // Build cypher query and send to Neo4j
-    /* try {
+    try {
       const buildCypher = await step.invoke("candidate-add-to-neo-workflow", {
         function: referenceFunction<typeof generateCandidateCypher>({
           functionId: "candidate-add-to-neo-workflow",
@@ -116,9 +134,23 @@ export const resumeExtract = inngest.createFunction(
       );
     } catch (error) {
       console.error("Error during generating embeddings:", error);
-    } */
+    }
 
     // TODO: Add database entry that candidate has been onboarded
+    try {
+      const onboarded = await step.invoke("candidate-onboard-boolean-true", {
+        function: referenceFunction<typeof resumeOnboardBooleanStatus>({
+          functionId: "candidate-onboard-boolean-true",
+        }),
+        data: {
+          user: {
+            id: event.data.user.id,
+          },
+        },
+      });
+    } catch (error) {
+      console.error("Error setting onboarded status.");
+    }
 
     return { message: "Resume successfully uploaded." };
   }

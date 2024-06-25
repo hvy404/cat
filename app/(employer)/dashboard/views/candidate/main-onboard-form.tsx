@@ -37,17 +37,22 @@ import {
 } from "@/components/ui/popover";
 import { toast } from "sonner";
 import CandidateOnboardingDialog from "@/app/(employer)/dashboard/views/candidate/onboarding-dialog";
+import { handleUpload } from "@/lib/dashboard/candidate/onboard-confirm-profile";
 import { validateForm } from "@/app/(employer)/dashboard/views/candidate/helpers/form-validation";
 
 interface Education {
   institution: string;
   degree: string;
+  start_date?: string;
+  end_date?: string;
 }
 
 interface WorkExperience {
   organization: string;
   job_title: string;
   responsibilities: string;
+  start_date?: string;
+  end_date?: string;
 }
 
 interface Certification {
@@ -70,20 +75,34 @@ interface FormData {
 
 interface CandidateData {
   name?: string;
+  title?: string;
+  company?: string;
   contact?: {
     phone?: string;
     email?: string;
   };
-  //title?: string;
   clearance_level?: string;
   location?: {
     city?: string;
     state?: string;
     zipcode?: string;
   };
-  education?: Education[];
-  work_experience?: WorkExperience[];
+  education?: Array<{
+    institution: string;
+    degree: string;
+    start_date?: string;
+    end_date?: string;
+  }>;
+  work_experience?: Array<{
+    organization: string;
+    job_title: string;
+    responsibilities: string;
+    start_date?: string;
+    end_date?: string;
+  }>;
   professional_certifications?: string[];
+  technical_skills?: string[];
+  industry_experience?: string[];
 }
 
 export function CandidateOnboardingForm() {
@@ -166,9 +185,15 @@ export function CandidateOnboardingForm() {
       [field]: [
         ...prev[field],
         field === "education"
-          ? { institution: "", degree: "" }
+          ? { institution: "", degree: "", start_date: "", end_date: "" }
           : field === "work_experience"
-          ? { organization: "", job_title: "", responsibilities: "" }
+          ? {
+              organization: "",
+              job_title: "",
+              responsibilities: "",
+              start_date: "",
+              end_date: "",
+            }
           : { name: "" },
       ],
     }));
@@ -190,7 +215,7 @@ export function CandidateOnboardingForm() {
   const handlePopulate = async () => {
     if (!user) return;
     const result = await fetchCandidatePreliminaryData(user);
-    console.log("Result from fetchCandidatePreliminaryData:", result)
+    console.log("Result from fetchCandidatePreliminaryData:", result);
     if (result.success && result.data && result.data.length > 0) {
       const data = result.data[0] as CandidateData;
       setOriginalData(data); // Save original data
@@ -213,23 +238,21 @@ export function CandidateOnboardingForm() {
     }
   };
 
-  const handleUpload = async () => {
-    const { isValid, errors } = await validateForm(formData);
-    if (isValid) {
-      // TODO: Proceed with the upload
-      console.log("Form data to upload:", formData);
-      toast.success("Profile saved successfully!");
+  const handleFormSubmit = async () => {
+    if (!user) {
+      toast.error("Unable to save profile. Please try again later.");
+      return;
+    }
+  
+    const result = await handleUpload(formData, originalData, user);
+    if (result.success) {
+      toast.success(result.message);
     } else {
-      setErrors(errors);
-      const missingFields = Object.keys(errors).map((key) =>
-        key.split("_").join(" ")
-      );
-      const missingFieldsMessage = missingFields.join(", ");
-      toast.error(
-        `Please fill in all required fields: ${missingFieldsMessage}`
-      );
+      setErrors(result.errors || {});
+      toast.error(result.message);
     }
   };
+  
 
   // if formLoaded is false return <div>Loading...</div>
 
@@ -427,48 +450,86 @@ export function CandidateOnboardingForm() {
           Education <span className="text-xs font-normal">(optional)</span>
         </h2>
         {formData.education.map((edu, index) => (
-          <div key={index} className="flex flex-col space-y-4 mb-4">
-            <div className="flex items-end space-x-4">
-              <div className="flex-grow">
-                <Label className="text-sm" htmlFor={`institution-${index}`}>
-                  Institution
-                </Label>
-                <Input
-                  id={`institution-${index}`}
-                  name="institution"
-                  value={edu.institution}
-                  onChange={(e) => handleInputChange(e, index, "education")}
-                />
-                {renderError(`education_${index}_institution`)}
+          <>
+            {index > 0 && (
+              <hr
+                key={`hr-${index}`}
+                className="my-6 border-t border-dashed border-gray-400"
+              />
+            )}
+            <div key={index} className="flex flex-col space-y-4 mb-4">
+              <div className="flex items-end space-x-4">
+                <div className="flex-grow">
+                  <Label className="text-sm" htmlFor={`institution-${index}`}>
+                    Institution
+                  </Label>
+                  <Input
+                    id={`institution-${index}`}
+                    name="institution"
+                    value={edu.institution}
+                    onChange={(e) => handleInputChange(e, index, "education")}
+                  />
+                  {renderError(`education_${index}_institution`)}
+                </div>
+                <div className="flex-grow">
+                  <Label className="text-sm" htmlFor={`degree-${index}`}>
+                    Degree
+                  </Label>
+                  <Input
+                    id={`degree-${index}`}
+                    name="degree"
+                    value={edu.degree}
+                    onChange={(e) => handleInputChange(e, index, "education")}
+                  />
+                  {renderError(`education_${index}_degree`)}
+                </div>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      onClick={() => handleArrayRemove("education", index)}
+                      className="h-10 w-10 p-0 flex-shrink-0 mb-[2px]"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-black text-white border-black">
+                    <p>Remove {edu.institution}</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
-              <div className="flex-grow">
-                <Label className="text-sm" htmlFor={`degree-${index}`}>
-                  Degree
-                </Label>
-                <Input
-                  id={`degree-${index}`}
-                  name="degree"
-                  value={edu.degree}
-                  onChange={(e) => handleInputChange(e, index, "education")}
-                />
-                {renderError(`education_${index}_degree`)}
+              <div className="flex items-end space-x-4">
+                <div className="flex-grow">
+                  <Label className="text-sm" htmlFor={`start_date-${index}`}>
+                    Start Date{" "}
+                    <span className="text-xs font-normal">(optional)</span>
+                  </Label>
+                  <Input
+                    id={`start_date-${index}`}
+                    name="start_date"
+                    type="text"
+                    value={edu.start_date}
+                    onChange={(e) => handleInputChange(e, index, "education")}
+                    placeholder="e.g., Sep 2010 or 2010-09-01"
+                  />
+                </div>
+                <div className="flex-grow">
+                  <Label className="text-sm" htmlFor={`end_date-${index}`}>
+                    End Date{" "}
+                    <span className="text-xs font-normal">(optional)</span>
+                  </Label>
+                  <Input
+                    id={`end_date-${index}`}
+                    name="end_date"
+                    type="text"
+                    value={edu.end_date}
+                    onChange={(e) => handleInputChange(e, index, "education")}
+                    placeholder="e.g., May 2014 or 2014-05-01"
+                  />
+                </div>
               </div>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    onClick={() => handleArrayRemove("education", index)}
-                    className="h-10 w-10 p-0 flex-shrink-0 mb-[2px]"
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="bg-black text-white border-black">
-                  <p>Remove {edu.institution}</p>
-                </TooltipContent>
-              </Tooltip>
             </div>
-          </div>
+          </>
         ))}
         <Button
           type="button"
@@ -485,64 +546,113 @@ export function CandidateOnboardingForm() {
           Work Experience
         </h2>
         {formData.work_experience.map((exp, index) => (
-          <div key={index} className="flex flex-col space-y-4 mb-6">
-            <div className="flex items-end space-x-4">
-              <div className="flex-grow">
-                <Label className="text-sm" htmlFor={`organization-${index}`}>
-                  Organization
-                </Label>
-                <Input
-                  id={`organization-${index}`}
-                  name="organization"
-                  value={exp.organization}
-                  onChange={(e) =>
-                    handleInputChange(e, index, "work_experience")
-                  }
-                />
-                {renderError(`work_${index}_organization`)}
-              </div>
-              <div className="flex-grow">
-                <Label className="text-sm" htmlFor={`job_title-${index}`}>
-                  Job Title
-                </Label>
-                <Input
-                  id={`job_title-${index}`}
-                  name="job_title"
-                  value={exp.job_title}
-                  onChange={(e) =>
-                    handleInputChange(e, index, "work_experience")
-                  }
-                />
-                {renderError(`work_${index}_job_title`)}
-              </div>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    onClick={() => handleArrayRemove("work_experience", index)}
-                    className="h-10 w-10 p-0 flex-shrink-0 mb-[2px]"
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="bg-black text-white border-black">
-                  <p>Remove {exp.organization}</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-            <div>
-              <Label className="text-sm" htmlFor={`responsibilities-${index}`}>
-                Responsibilities
-              </Label>
-              <Textarea
-                id={`responsibilities-${index}`}
-                name="responsibilities"
-                value={exp.responsibilities}
-                onChange={(e) => handleInputChange(e, index, "work_experience")}
-                className="h-24"
+          <>
+            {index > 0 && (
+              <hr
+                key={`hr-${index}`}
+                className="my-6 border-t border-dashed border-gray-400"
               />
+            )}
+            <div key={index} className="flex flex-col space-y-4 mb-6">
+              <div className="flex items-end space-x-4">
+                <div className="flex-grow">
+                  <Label className="text-sm" htmlFor={`organization-${index}`}>
+                    Organization
+                  </Label>
+                  <Input
+                    id={`organization-${index}`}
+                    name="organization"
+                    value={exp.organization}
+                    onChange={(e) =>
+                      handleInputChange(e, index, "work_experience")
+                    }
+                  />
+                  {renderError(`work_${index}_organization`)}
+                </div>
+                <div className="flex-grow">
+                  <Label className="text-sm" htmlFor={`job_title-${index}`}>
+                    Job Title
+                  </Label>
+                  <Input
+                    id={`job_title-${index}`}
+                    name="job_title"
+                    value={exp.job_title}
+                    onChange={(e) =>
+                      handleInputChange(e, index, "work_experience")
+                    }
+                  />
+                  {renderError(`work_${index}_job_title`)}
+                </div>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      onClick={() =>
+                        handleArrayRemove("work_experience", index)
+                      }
+                      className="h-10 w-10 p-0 flex-shrink-0 mb-[2px]"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-black text-white border-black">
+                    <p>Remove {exp.organization}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <div>
+                <Label
+                  className="text-sm"
+                  htmlFor={`responsibilities-${index}`}
+                >
+                  Responsibilities
+                </Label>
+                <Textarea
+                  id={`responsibilities-${index}`}
+                  name="responsibilities"
+                  value={exp.responsibilities}
+                  onChange={(e) =>
+                    handleInputChange(e, index, "work_experience")
+                  }
+                  className="h-24"
+                />
+              </div>
+              <div className="flex items-end space-x-4">
+                <div className="flex-grow">
+                  <Label className="text-sm" htmlFor={`start_date-${index}`}>
+                    Start Date{" "}
+                    <span className="text-xs font-normal">(optional)</span>
+                  </Label>
+                  <Input
+                    id={`start_date-${index}`}
+                    name="start_date"
+                    type="text"
+                    value={exp.start_date}
+                    onChange={(e) =>
+                      handleInputChange(e, index, "work_experience")
+                    }
+                    placeholder="e.g., May 2018 or 05-01-2018"
+                  />
+                </div>
+                <div className="flex-grow">
+                  <Label className="text-sm" htmlFor={`end_date-${index}`}>
+                    End Date{" "}
+                    <span className="text-xs font-normal">(optional)</span>
+                  </Label>
+                  <Input
+                    id={`end_date-${index}`}
+                    name="end_date"
+                    type="text"
+                    value={exp.end_date}
+                    onChange={(e) =>
+                      handleInputChange(e, index, "work_experience")
+                    }
+                    placeholder="e.g., Apr 2024 or 07-04-2024"
+                  />
+                </div>
+              </div>
             </div>
-          </div>
+          </>
         ))}
         <Button
           type="button"
@@ -602,7 +712,7 @@ export function CandidateOnboardingForm() {
         <Button variant={"link"} onClick={handlePopulate}>
           Reset
         </Button>
-        <Button onClick={handleUpload}>Save Profile</Button>
+        <Button onClick={handleFormSubmit}>Save Profile</Button>
       </div>
     </div>
   );

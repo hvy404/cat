@@ -5,7 +5,6 @@ import { cookies } from "next/headers";
 
 interface CandidateData {
   static: Record<string, unknown>;
-  inferred: Record<string, unknown>;
 }
 
 function remapClearanceLevel(level: string) {
@@ -41,7 +40,7 @@ export async function fetchCandidatePreliminaryData(candidateId: string) {
   try {
     const { data, error } = await supabase
       .from("candidate_resume")
-      .select("static, inferred")
+      .select("static")
       .eq("user", candidateId);
 
     if (error) {
@@ -54,14 +53,11 @@ export async function fetchCandidatePreliminaryData(candidateId: string) {
       return { success: false, error: "No data found" };
     }
 
-    const combinedDataSet = data.map((item: CandidateData) => ({
+    const cleanedDataset = data.map((item: CandidateData) => ({
       ...item.static,
-      ...item.inferred,
     }));
 
-    // clearance: .enum(["none", "basic", "confidential", "critical", "paramount", "q_clearance", "l_clearance"])
-    // inside of combinedDataSet, we have clearance_level, I want to remap its value using remapClearanceLevela and merge it back into the combinedDataSet
-    combinedDataSet.forEach((item: { clearance_level?: string | unknown }) => {
+    cleanedDataset.forEach((item: { clearance_level?: string | unknown }) => {
       if (item.clearance_level && typeof item.clearance_level === 'string') {
         item.clearance_level = remapClearanceLevel(item.clearance_level);
       } else {
@@ -69,17 +65,16 @@ export async function fetchCandidatePreliminaryData(candidateId: string) {
       }
     });
 
-
     return {
       success: true,
-      data: combinedDataSet,
+      data: cleanedDataset,
     };
   } catch (error) {
     console.error("Unexpected error:", error);
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+        "An unexpected error occurred while fetching candidate data. Please try again later."
     };
   }
 }

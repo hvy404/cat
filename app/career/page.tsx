@@ -1,5 +1,8 @@
 "use client";
-import { candidateStartOnboard } from "@/lib/candidate/onboard/extractResume";
+import {
+  candidateStartOnboard,
+  candidateFinalizeOnboard,
+} from "@/lib/candidate/onboard/onboardResume";
 import { useCallback } from "react";
 
 /* export function startOnboard(candidateID: string) {
@@ -14,9 +17,16 @@ function Careers() {
     console.log(startEvent);
   }, []); // Dependencies array is empty, so this memoizes the function until the component unmounts
 
+  const finalize = useCallback(async () => {
+    const candidateID = "5638c58b-7aab-4f02-b7b9-060c780bd3d1";
+    const finalizeEvent = await candidateFinalizeOnboard(candidateID);
+    console.log(finalizeEvent);
+  }, []); // Dependencies array is empty, so this memoizes the function until the component
+
   return (
     <div className="flex flex-col">
       <button onClick={resume}>Start onboard</button>
+      <button onClick={finalize}>Start onboard - Part 2 - Generate Neo4J</button>
     </div>
   );
 }

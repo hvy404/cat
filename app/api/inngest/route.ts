@@ -1,8 +1,10 @@
 import { serve } from "inngest/next";
 import { inngest } from "@/lib/inngest/client";
-import { resumeExtract } from "@/inngest/resume-start-onboard";
+import { resumeExtract } from "@/inngest/resume-start-onboard"; // Resume - Start onboarding Step 1
+import { finalizeOnboarding } from "@/inngest/resume-start-onboard"; // Resume - Start onboarding step 2
 import { resumeGenerateStatic } from "@/inngest/resume-static";
 import { resumeGenerateInferred } from "@/inngest/resume-inferred";
+import { resumeOnboardBooleanStatus } from "@/inngest/resume-onboard-boolean"; // Resume - Start onboarding step 2
 import { generateCandidateCypher } from "@/inngest/resume-generate-cypher";
 import { resumeGenerateEmbeddings } from "@/inngest/resume-embeddings";
 import { generateJobDescriptionCypher } from "@/inngest/job-description-gen-cypher";
@@ -15,10 +17,10 @@ import { jobDescriptionAddStructured } from "@/inngest/job-description-sql";
 import { jobDescriptionGenerateCompleted } from "@/inngest/job-description-completed";
 import { jdWizardOnboardDocs } from "@/inngest/jd-wizard-onboard-start"; // JD Wizard - Start onboarding
 import { jdWizardDetectRoles } from "@/inngest/jd-wizard-detect-roles"; // JD Wizard - Detect roles
-import { jdWizardProcessSow } from "@/inngest/jd-wizard-chunk"; 
-import { jdWizardFindDocType } from "@/inngest/jd-wizard-doc-identify"; 
-import { jdWizardGetKeyPersonnel } from "@/inngest/jd-wizard-get-key-personnel"; 
-import { jdWizardGetPersonnel } from "@/inngest/jd-wizard-get-personnel"; 
+import { jdWizardProcessSow } from "@/inngest/jd-wizard-chunk";
+import { jdWizardFindDocType } from "@/inngest/jd-wizard-doc-identify";
+import { jdWizardGetKeyPersonnel } from "@/inngest/jd-wizard-get-key-personnel";
+import { jdWizardGetPersonnel } from "@/inngest/jd-wizard-get-personnel";
 import { jdGenerateDescription } from "@/inngest/jd-wizard-generate-jd";
 import { jdWizardWriteDraft } from "@/inngest/jd-wizard-write-draft"; // JD Wizard - Write draft function starter
 
@@ -34,8 +36,10 @@ export const { GET, POST, PUT } = serve({
   client: inngest,
   functions: [
     resumeExtract,
+    finalizeOnboarding,
     resumeGenerateStatic,
     resumeGenerateInferred,
+    resumeOnboardBooleanStatus,
     generateCandidateCypher,
     resumeGenerateEmbeddings,
     generateJobDescriptionCypher,
