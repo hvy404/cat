@@ -36,12 +36,11 @@ function CandidateOnboardingDialog(props: CandidateOnboardingDialogProps) {
             </p>
 
             <p>
-              <span className="font-semibold">PS</span>: When requested by
-              employers, we will share the resume you uploaded. After this step,
-              feel free to check out our AI assistant in your dashboard. It can
-              help you polish up your resume anytime you want. You can then
-              choose this spruced-up version as the one to share with potential
-              employers.
+              🔔 When requested by employers, we will share the resume you
+              uploaded. After this step, feel free to check out our AI assistant
+              in your dashboard. It can help you polish up your resume anytime
+              you want. You can then choose this spruced-up version as the one
+              to share with potential employers.
             </p>
           </AlertDialogDescription>
         </AlertDialogHeader>

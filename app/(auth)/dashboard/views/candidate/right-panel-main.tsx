@@ -1,4 +1,5 @@
 import CandidateDashboardRightPanelWelcome from "@/app/(auth)/dashboard/views/candidate/right-panel-welcome";
+import CandidateDashboardRightPanelDashboard from "@/app/(auth)/dashboard/views/candidate/right-panel-dashboard";
 
 interface CandidateDashboardRightPanelProps {
   step: number;
@@ -7,9 +8,10 @@ interface CandidateDashboardRightPanelProps {
 
 const RenderRightPanel = ({ step }: CandidateDashboardRightPanelProps) => {
   switch (step) {
-    case 1:
+    case 0:
       return <CandidateDashboardRightPanelWelcome />;
-    // Add cases for other steps as needed
+    case 1:
+      return <CandidateDashboardRightPanelDashboard />;
     default:
       return <div>No panel available for this step</div>;
   }
@@ -17,7 +19,6 @@ const RenderRightPanel = ({ step }: CandidateDashboardRightPanelProps) => {
 
 function CandidateDashboardRightPanel({
   step,
-  /* setStep, */
 }: CandidateDashboardRightPanelProps) {
   return (
     <div className="min-h-[90vh] rounded-xl bg-muted/50 p-4 overflow-auto">

@@ -100,6 +100,7 @@ interface JDBuilderWizard {
 interface CandidateDashboard {
   step: number;
   onboardingFormStep: string;
+  widget: string;
 }
 
 interface StoreState {
@@ -162,6 +163,7 @@ const useStore = create<StoreState>((set) => ({
   candidateDashboard: {
     step: 1,
     onboardingFormStep: "",
+    widget: "",
   },
   // Set candidate dashboard step
   setCandidateDashboard: (dashboard) =>

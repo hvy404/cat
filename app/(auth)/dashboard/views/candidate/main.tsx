@@ -1,31 +1,88 @@
 import useStore from "@/app/state/useStore";
-import { useEffect } from "react";
-
+import { useEffect, useState, useRef } from "react";
+import { candidateStatus } from "@/lib/candidate/status";
 import CandidateDashboardRightPanel from "@/app/(auth)/dashboard/views/candidate/right-panel-main";
 import { CandidateOnboardingForm } from "@/app/(auth)/dashboard/views/candidate/main-onboard-form";
+import { CandidateDashboard } from "@/app/(auth)/dashboard/views/candidate/main-user-dashboard";
+
+interface StatusResponse {
+  success: boolean;
+  payload: boolean | string;
+}
 
 export default function CandidateDashboardMain() {
-  const { isExpanded, setExpanded } = useStore();
+  const { isExpanded, setExpanded, user } = useStore();
   const candidateDashboardStep = useStore(
     (state) => state.candidateDashboard.step
   );
+  const setCandidateDashboard = useStore(
+    (state) => state.setCandidateDashboard
+  );
 
-  // Reset layout on unmount
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Create a ref to track if the effect has already run
+  const isActive = useRef(false);
+
+  // Fetch the candidate status on mount
+  useEffect(() => {
+    if (!isActive.current && user && user.uuid) {
+      isActive.current = true;
+      setIsLoading(true);
+      candidateStatus(user.uuid)
+        .then((isOnboarded) => {
+          if (isOnboarded === true) {
+            setCandidateDashboard({ step: 1 });
+          } else {
+            setCandidateDashboard({ step: 0 });
+          }
+          setIsLoading(false);
+        })
+        .catch((err) => {
+          setError("Failed to fetch candidate status");
+          setIsLoading(false);
+        });
+    }
+  }, [user, setCandidateDashboard]);
+
+  // Render the main panel based on the current step
+  const MainPanel = () => {
+    switch (candidateDashboardStep) {
+      case 0:
+        return <CandidateOnboardingForm />;
+        case 1:
+        return <CandidateDashboard />;
+      default:
+        return <div>Candidate Landing</div>;
+    }
+  };
+
+  // Clean up on unmount
   useEffect(() => {
     return () => {
       setExpanded(false);
     };
   }, [setExpanded]);
 
-  // Render the main panel based on the current step
-  const MainPanel = () => {
-    switch (candidateDashboardStep) {
-      case 1:
-        return <CandidateOnboardingForm />;
-      default:
-        return <div>Candidate Landing</div>;
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="flex flex-col min-h-[70vh] items-center justify-center">
+        <div className="font-semibold text-2xl text-gray-600 flex items-center">
+          Loading
+          <div className="dots ml-2 flex">
+            <span className="animate-wave">.</span>
+            <span className="animate-wave">.</span>
+            <span className="animate-wave">.</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="text-gray-700 font-sm">Error: {error}</div>;
+  }
 
   return (
     <main className="flex flex-1 gap-4 p-4">
@@ -48,10 +105,7 @@ export default function CandidateDashboardMain() {
           isExpanded ? "lg:w-1/4" : "lg:w-1/2"
         }`}
       >
-        <CandidateDashboardRightPanel
-          step={candidateDashboardStep}
-          /* setStep={(step) => setCandidateDashboard({ step })} */
-        />
+        <CandidateDashboardRightPanel step={candidateDashboardStep} />
       </div>
     </main>
   );
