@@ -207,6 +207,7 @@ export async function getTalentSoftSkills(
   return getRelationshipNodes<SoftSkillNode>(applicantId, "HAS_SOFT_SKILL");
 }
 
+/* CRUD - Update operation utility for any entry with a Neo4j Node ID */
 export async function updateNodeProperty<T>({
   nodeId,
   propertyName,
@@ -245,3 +246,56 @@ export async function updateNodeProperty<T>({
     throw error;
   }
 }
+
+/* CRUD Add / Remove Operations  */
+export async function addNewWorkExperience(
+  applicantId: string,
+  newExperience: Omit<WorkExperienceNode, "_id" | "labels">
+): Promise<(WorkExperienceNode & NodeWithId) | null> {
+  const query = `
+      MATCH (t:Talent {applicant_id: $applicantId})
+      CREATE (w:WorkExperience $workExperience)
+      CREATE (t)-[:WORKED_AT]->(w)
+      RETURN w, ID(w) as nodeId
+    `;
+
+  try {
+    const result = await write(query, {
+      applicantId,
+      workExperience: newExperience,
+    });
+
+    if (result && result.length > 0) {
+      const createdNode = result[0].w;
+      const nodeId = result[0].nodeId;
+      return {
+        ...newExperience,
+        labels: ["WorkExperience"],
+        _id: nodeId instanceof Integer ? nodeId.toNumber() : nodeId,
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error("Error adding new work experience:", error);
+    throw error;
+  }
+}
+
+export async function removeWorkExperience(nodeId: number): Promise<boolean> {
+    const query = `
+      MATCH (w:WorkExperience)
+      WHERE ID(w) = $nodeId
+      DETACH DELETE w
+      RETURN count(w) AS deletedCount
+    `;
+  
+    try {
+      const result = await write(query, { nodeId });
+      console.log('Remove operation result:', result);
+      // Check if any nodes were deleted
+      return result && result[0] && result[0].deletedCount > 0;
+    } catch (error) {
+      console.error("Error removing work experience:", error);
+      throw error;
+    }
+  }
