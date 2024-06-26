@@ -33,8 +33,9 @@ export default function EmployerDashboardHeader() {
   // useffectt to set the user.uuid to "f5246ce0-da92-4916-b1c8-dedf415a8dd2" when the component mounts
 
   // const employerIdentity = "f5246ce0-da92-4916-b1c8-dedf415a8dd2";
+  // TODO: Login user
   const employerIdentity = "f5246ce0-da92-4916-b1c8-dedf415a8dd2";
-  const userIdentity = "5638c58b-7aab-4f02-b7b9-060c780bd3d1";
+  const userIdentity = "0af9c625-f790-4e95-8a88-5e55f3590722";
   // TODO: Remove this. Only used for development purposes
   useEffect(() => {
     setUser({

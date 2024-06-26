@@ -22,24 +22,35 @@ import {
 } from "@/components/ui/tooltip";
 
 // Define the base WorkExperience type without _id
-type BaseWorkExperience = Omit<WorkExperienceNode, '_id'>;
+type BaseWorkExperience = Omit<WorkExperienceNode, "_id"> & {
+  labels?: string[];
+};
 
 // Define separate interfaces for Neo4j and temporary experiences
-interface Neo4jWorkExperience extends BaseWorkExperience, NodeWithId {}
+interface Neo4jWorkExperience
+  extends NodeWithId,
+    Omit<BaseWorkExperience, "labels"> {
+  labels: string[];
+}
 interface TempWorkExperience extends BaseWorkExperience {
   _id: string;
+  labels: string[]; // Add this line
 }
 
 // Union type for all possible work experience types
 type WorkExperienceWithTempId = Neo4jWorkExperience | TempWorkExperience;
 
-const isTempExperience = (experience: WorkExperienceWithTempId): experience is TempWorkExperience => {
-  return typeof experience._id === 'string';
+const isTempExperience = (
+  experience: WorkExperienceWithTempId
+): experience is TempWorkExperience => {
+  return typeof experience._id === "string";
 };
 
 export default function WorkExperiences() {
   const { user } = useStore();
-  const [workExperiences, setWorkExperiences] = useState<WorkExperienceWithTempId[]>([]);
+  const [workExperiences, setWorkExperiences] = useState<
+    WorkExperienceWithTempId[]
+  >([]);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [loadingStates, setLoadingStates] = useState<{
     [key: string]: boolean;
@@ -85,7 +96,10 @@ export default function WorkExperiences() {
       if (isTempExperience(experience)) {
         // This is a new experience that needs to be added to Neo4j
         if (user?.uuid) {
-          const newExperience = await addNewWorkExperience(user.uuid, experience);
+          const newExperience = await addNewWorkExperience(
+            user.uuid,
+            experience
+          );
           if (newExperience) {
             setWorkExperiences((prevExperiences) =>
               prevExperiences.map((exp) =>
@@ -129,9 +143,12 @@ export default function WorkExperiences() {
       start_date: "",
       end_date: "",
       responsibilities: "",
-      labels: ["WorkExperience"]
+      labels: ["WorkExperience"],
     };
-    setWorkExperiences((prevExperiences) => [...prevExperiences, newExperience]);
+    setWorkExperiences((prevExperiences) => [
+      ...prevExperiences,
+      newExperience,
+    ]);
   };
 
   const removeExperience = async (id: string | number) => {
@@ -139,14 +156,14 @@ export default function WorkExperiences() {
     try {
       if (typeof id === "string") {
         // This is a new, unsaved experience. Just remove it from the state.
-        setWorkExperiences((prevExperiences) => 
+        setWorkExperiences((prevExperiences) =>
           prevExperiences.filter((exp) => exp._id !== id)
         );
       } else {
         // This is an existing experience in Neo4j. Remove it from the database.
         const success = await removeWorkExperience(id);
         if (success) {
-          setWorkExperiences((prevExperiences) => 
+          setWorkExperiences((prevExperiences) =>
             prevExperiences.filter((exp) => exp._id !== id)
           );
           toast.success("Work experience removed successfully");
@@ -172,7 +189,10 @@ export default function WorkExperiences() {
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Work Experiences</h2>
       {workExperiences.map((experience) => (
-        <div key={experience._id.toString()} className="border p-4 rounded-md space-y-4">
+        <div
+          key={experience._id.toString()}
+          className="border p-4 rounded-md space-y-4"
+        >
           <div className="flex justify-between items-center">
             <h3 className="text-xl font-semibold">
               {experience.job_title || "New Experience"}
@@ -207,12 +227,18 @@ export default function WorkExperiences() {
               />
             </div>
             <div>
-              <Label htmlFor={`organization-${experience._id}`}>Organization</Label>
+              <Label htmlFor={`organization-${experience._id}`}>
+                Organization
+              </Label>
               <Input
                 id={`organization-${experience._id}`}
                 value={experience.organization}
                 onChange={(e) =>
-                  handleInputChange(experience._id, "organization", e.target.value)
+                  handleInputChange(
+                    experience._id,
+                    "organization",
+                    e.target.value
+                  )
                 }
                 disabled={loadingStates[experience._id.toString()]}
               />
@@ -223,7 +249,11 @@ export default function WorkExperiences() {
                 id={`start-date-${experience._id}`}
                 value={experience.start_date}
                 onChange={(e) =>
-                  handleInputChange(experience._id, "start_date", e.target.value)
+                  handleInputChange(
+                    experience._id,
+                    "start_date",
+                    e.target.value
+                  )
                 }
                 placeholder="eg. 7/2024 or July 2024"
                 disabled={loadingStates[experience._id.toString()]}
@@ -250,7 +280,11 @@ export default function WorkExperiences() {
               id={`responsibilities-${experience._id}`}
               value={experience.responsibilities}
               onChange={(e) =>
-                handleInputChange(experience._id, "responsibilities", e.target.value)
+                handleInputChange(
+                  experience._id,
+                  "responsibilities",
+                  e.target.value
+                )
               }
               disabled={loadingStates[experience._id.toString()]}
             />
