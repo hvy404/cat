@@ -26,6 +26,7 @@ export default function CandidateDashboardMain() {
   const isActive = useRef(false);
 
   // Fetch the candidate status on mount
+  // TODO: use this state to load side navigation menu too
   useEffect(() => {
     if (!isActive.current && user && user.uuid) {
       isActive.current = true;

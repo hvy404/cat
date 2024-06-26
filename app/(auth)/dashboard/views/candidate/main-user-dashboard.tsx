@@ -26,6 +26,7 @@ import {
   SoftSkillNode,
 } from "@/lib/candidate/dashboard/mutation";
 import WorkExperiences from "@/app/(auth)/dashboard/views/candidate/edit/work-experiences";
+import Education from "@/app/(auth)/dashboard/views/candidate/edit/education";
 
 export function CandidateDashboard() {
   const { candidateDashboard, setCandidateDashboard, user } = useStore();
@@ -36,7 +37,7 @@ export function CandidateDashboard() {
       {/* Edit  work experieces */}
       <div>
         <div>
-          <WorkExperiences />
+          <Education />
         </div>
       </div>
     </div>
