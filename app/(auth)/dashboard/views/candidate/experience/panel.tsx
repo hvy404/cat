@@ -3,15 +3,19 @@ import { motion } from "framer-motion";
 import useStore from "@/app/state/useStore";
 import { fetchAndAnalyzeTalent } from "@/lib/candidate/experience/overview";
 import { toast } from "sonner";
-import { Clipboard } from "lucide-react";
+/* import { Clipboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { experienceSuggestionCacheStore, getExperienceSuggestionCache } from "@/lib/candidate/experience/suggestion-cache";
+} from "@/components/ui/tooltip"; */
+import {
+  experienceSuggestionCacheStore,
+  getExperienceSuggestionCache,
+} from "@/lib/candidate/experience/suggestion-cache";
+import SuggestionCard from "@/app/(auth)/dashboard/views/candidate/experience/suggestionCard";
 
 export interface WorkExperience {
   id: string;
@@ -48,8 +52,11 @@ export default function RightPanel(props: RightPanelProps) {
 
     try {
       // Try to get the cached result first
-      const cachedResult = await getExperienceSuggestionCache(props.workExperienceAnalysisSession, candidate);
-      
+      const cachedResult = await getExperienceSuggestionCache(
+        props.workExperienceAnalysisSession,
+        candidate
+      );
+
       if (cachedResult) {
         setAnalysis(JSON.parse(cachedResult) as AnalysisData);
       } else {
@@ -57,7 +64,11 @@ export default function RightPanel(props: RightPanelProps) {
         const result = await fetchAndAnalyzeTalent(candidate);
         if (result) {
           // Cache the result
-          await experienceSuggestionCacheStore(props.workExperienceAnalysisSession, candidate, result);
+          await experienceSuggestionCacheStore(
+            props.workExperienceAnalysisSession,
+            candidate,
+            result
+          );
           setAnalysis(JSON.parse(result) as AnalysisData);
         } else {
           setError("Unable to generate analysis for this candidate.");
@@ -135,71 +146,13 @@ export default function RightPanel(props: RightPanelProps) {
                 Work Experience Insights
               </h3>
               {analysis.workExperiences.map((exp: WorkExperience) => (
-                <motion.div
+                <SuggestionCard
                   key={exp.id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  whileHover={{
-                    scale: 1.02,
-                    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                  }}
-                  transition={{ duration: 0.2 }}
-                  className={`bg-white p-4 rounded-md shadow-sm border cursor-pointer hover:bg-gray-50 ${
-                    activeExperience === exp.id
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200"
-                  }`}
+                  experience={exp}
+                  isActive={activeExperience === exp.id}
                   onClick={() => handleExperienceClick(exp)}
-                >
-                  <div className="space-y-3">
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-1">
-                        Analysis:
-                      </h4>
-                      <p className="text-sm text-gray-600">{exp.comment}</p>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-1">
-                        Recommendation:
-                      </h4>
-                      <p className="text-sm text-gray-600">
-                        {exp.recommendation}
-                      </p>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-1">
-                        Suggested Change:
-                      </h4>
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-gray-600 italic">
-                          {exp.suggestedChange}
-                        </p>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleCopyToClipboard(exp.suggestedChange);
-                                }}
-                              >
-                                <Clipboard className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent
-                              side="left"
-                              className="bg-black border-0 text-white"
-                            >
-                              <p>Add to clipboard</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
+                  onCopy={handleCopyToClipboard}
+                />
               ))}
             </div>
 
