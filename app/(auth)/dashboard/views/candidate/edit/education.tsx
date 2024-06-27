@@ -11,7 +11,7 @@ import {
   removeEducation,
   EducationNode,
   NodeWithId,
-} from "@/lib/candidate/dashboard/mutation";
+} from "@/lib/candidate/global/mutation";
 import { toast } from "sonner";
 import {
   Tooltip,
@@ -175,7 +175,7 @@ export default function Education() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Education</h2>
+
       {educations.map((education) => (
         <div
           key={education._id.toString()}

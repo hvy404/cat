@@ -101,6 +101,7 @@ interface CandidateDashboard {
   step: number;
   onboardingFormStep: string;
   widget: string;
+  onboarded: boolean; // TOOD: revaluate if this is the best way to track onboarding when done with authencation
 }
 
 interface StoreState {
@@ -164,6 +165,7 @@ const useStore = create<StoreState>((set) => ({
     step: 1,
     onboardingFormStep: "",
     widget: "",
+    onboarded: false,
   },
   // Set candidate dashboard step
   setCandidateDashboard: (dashboard) =>

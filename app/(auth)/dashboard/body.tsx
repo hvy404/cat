@@ -6,6 +6,9 @@ import EmployerDashboardDocuments from "@/app/(auth)/dashboard/views/collection/
 import EmployerDashboardProfile from "@/app/(auth)/dashboard/views/profile/main";
 import EmployerDashboardCandidateSearch from "@/app/(auth)/dashboard/views/search/main";
 import CandidateDashboardMain from "@/app/(auth)/dashboard/views/candidate/main";
+import CandidateDashboardExperience from "@/app/(auth)/dashboard/views/candidate/experience/main";
+import CandidateDashboardEducation from "@/app/(auth)/dashboard/views/candidate/education/main";
+import CandidateDashboardProfile from "@/app/(auth)/dashboard/views/candidate/profile/main";
 import useStore from "@/app/state/useStore";
 
 /**
@@ -34,11 +37,17 @@ export default function EmployerDashboardBody() {
         return <EmployerDashboardProfile />;
       case "browse":
         return <EmployerDashboardCandidateSearch />;
-      case "talent-resume":
+      case "talent-dashboard":
         return <CandidateDashboardMain />;
+      case "talent-experience":
+        return <CandidateDashboardExperience />;
+      case "talent-education":
+        return <CandidateDashboardEducation />;
+      case "talent-profile":
+        return <CandidateDashboardProfile />;
       // Add more cases as needed for other components
       default:
-        return <EmployerDashboardMain />;
+        return <EmployerDashboardMain />; // TODO: Update this to the default component to handle role type: candidate or employer
     }
   };
 

@@ -25,26 +25,29 @@ import { Textarea } from "@/components/ui/textarea";
 export default function EmployerDashboardHeader() {
   // Get 'user' and 'setUser' from the store
   // TODO: Remove this. Only used for development purposes
-  const { user, setUser } = useStore((state) => ({
-    user: state.user,
-    setUser: state.setUser,
-  }));
-
-  // useffectt to set the user.uuid to "f5246ce0-da92-4916-b1c8-dedf415a8dd2" when the component mounts
+  const { user, setUser } = useStore();
 
   // const employerIdentity = "f5246ce0-da92-4916-b1c8-dedf415a8dd2";
   // TODO: Login user
   const employerIdentity = "f5246ce0-da92-4916-b1c8-dedf415a8dd2";
   const userIdentity = "0af9c625-f790-4e95-8a88-5e55f3590722";
-  // TODO: Remove this. Only used for development purposes
-  useEffect(() => {
+  const roleEmployer = "employer";
+  const roleCandidate = "candidate";
+
+// Inside your component
+let isLoaded = false;
+
+useEffect(() => {
+  if (!isLoaded) {
     setUser({
       email: "",
       uuid: userIdentity,
       session: "",
-      role: "",
+      role: roleCandidate,
     });
-  }, []);
+    isLoaded = true; // Set the flag to true after setting the user
+  }
+}, []); // Dependency array remains empty to ensure this effect runs only once after the initial render
 
   return (
     <header className="sticky top-0 z-10 flex h-[57px] items-center gap-1 border-b bg-background px-4">

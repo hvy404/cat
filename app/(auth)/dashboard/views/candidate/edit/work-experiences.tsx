@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import useStore from "@/app/state/useStore";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import {
   removeWorkExperience,
   WorkExperienceNode,
   NodeWithId,
-} from "@/lib/candidate/dashboard/mutation";
+} from "@/lib/candidate/global/mutation";
 import { toast } from "sonner";
 import {
   Tooltip,
@@ -20,6 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { WorkExperience } from "@/app/(auth)/dashboard/views/candidate/experience/panel";
 
 // Define the base WorkExperience type without _id
 type BaseWorkExperience = Omit<WorkExperienceNode, "_id"> & {
@@ -46,7 +47,9 @@ const isTempExperience = (
   return typeof experience._id === "string";
 };
 
-export default function WorkExperiences() {
+export default function WorkExperiences(props: {
+  selectedSuggestion?: WorkExperience;
+}) {
   const { user } = useStore();
   const [workExperiences, setWorkExperiences] = useState<
     WorkExperienceWithTempId[]
@@ -55,6 +58,18 @@ export default function WorkExperiences() {
   const [loadingStates, setLoadingStates] = useState<{
     [key: string]: boolean;
   }>({});
+
+  // Track references to each experience div
+  const experienceRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
+  useEffect(() => {
+    if (props.selectedSuggestion) {
+      const selectedRef = experienceRefs.current[props.selectedSuggestion.id];
+      if (selectedRef) {
+        selectedRef.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    }
+  }, [props.selectedSuggestion]);
 
   useEffect(() => {
     const fetchWorkExperiences = async () => {
@@ -187,11 +202,20 @@ export default function WorkExperiences() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Work Experiences</h2>
       {workExperiences.map((experience) => (
         <div
           key={experience._id.toString()}
-          className="border p-4 rounded-md space-y-4"
+          ref={(el) => {
+            if (el) {
+              experienceRefs.current[experience._id.toString()] = el;
+            }
+          }}
+          className={`border p-4 rounded-md space-y-4 ${
+            props.selectedSuggestion &&
+            props.selectedSuggestion.id === experience._id.toString()
+              ? "border-2 border-gray-800"
+              : ""
+          }`}
         >
           <div className="flex justify-between items-center">
             <h3 className="text-xl font-semibold">

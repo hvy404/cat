@@ -17,6 +17,9 @@ import {
   BookOpen,
   Search,
   Layers2,
+  BriefcaseBusiness,
+  GraduationCap,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -28,7 +31,11 @@ interface TooltipButtonProps {
 }
 
 // Reusable TooltipButton component with typed props
-const TooltipButton: React.FC<TooltipButtonProps> = ({ item, label, icon: Icon }) => {
+const TooltipButton: React.FC<TooltipButtonProps> = ({
+  item,
+  label,
+  icon: Icon,
+}) => {
   const { selectedMenuItem, setSelectedMenuItem } = useStore();
 
   const handleSelect = () => {
@@ -52,7 +59,11 @@ const TooltipButton: React.FC<TooltipButtonProps> = ({ item, label, icon: Icon }
           <Icon className="size-5" />
         </Button>
       </TooltipTrigger>
-      <TooltipContent side="right" sideOffset={5} className="bg-black text-white border-black">
+      <TooltipContent
+        side="right"
+        sideOffset={5}
+        className="bg-black text-white border-black"
+      >
         {label}
       </TooltipContent>
     </Tooltip>
@@ -60,7 +71,42 @@ const TooltipButton: React.FC<TooltipButtonProps> = ({ item, label, icon: Icon }
 };
 
 export default function EmployerDashboardNavigation() {
-  const { setSelectedMenuItem } = useStore(); // Correctly access setSelectedMenuItem
+  const { setSelectedMenuItem } = useStore();
+  const role = useStore((state) => state.user?.role);
+  const onboarded = useStore((state) => state.candidateDashboard.onboarded);
+
+  const renderNavItems = () => {
+    switch (role) {
+      case "employer":
+        return (
+          <>
+            <TooltipButton item="dashboard" label="Dashboard" icon={Home} />
+            <TooltipButton item="add-job" label="Add Job" icon={UserRoundPlus} />
+            <TooltipButton item="jd-builder" label="JD Builder" icon={Folder} />
+            <TooltipButton item="documents" label="Collection" icon={BookOpen} />
+            <TooltipButton item="browse" label="Browse" icon={Search} />
+            <TooltipButton item="settings" label="Settings" icon={Settings2} />
+          </>
+        );
+      case "candidate":
+        if (onboarded) {
+          return (
+            <>
+              <TooltipButton item="talent-dashboard" label="Dashboard" icon={Layers2} />
+              <TooltipButton item="talent-experience" label="Experience" icon={BriefcaseBusiness} />
+              <TooltipButton item="talent-education" label="Education" icon={GraduationCap} />
+              <TooltipButton item="talent-profile" label="Profile" icon={User} />
+            </>
+          );
+        } else {
+          return (
+            <TooltipButton item="talent-dashboard" label="Resume (Talent)" icon={Layers2} />
+          );
+        }
+      default:
+        return null;
+    }
+  };
 
   return (
     <aside className="inset-y fixed left-0 z-20 flex h-full flex-col border-r">
@@ -75,13 +121,7 @@ export default function EmployerDashboardNavigation() {
         </Button>
       </div>
       <nav className="grid gap-1 p-2">
-        <TooltipButton item="dashboard" label="Dashboard" icon={Home} />
-        <TooltipButton item="add-job" label="Add Job" icon={UserRoundPlus} />
-        <TooltipButton item="jd-builder" label="JD Builder" icon={Folder} />
-        <TooltipButton item="documents" label="Collection" icon={BookOpen} />
-        <TooltipButton item="browse" label="Browse" icon={Search} />
-        <TooltipButton item="settings" label="Settings" icon={Settings2} />
-        <TooltipButton item="talent-resume" label="Resume (Talent)" icon={Layers2} />
+        {renderNavItems()}
       </nav>
       <nav className="mt-auto grid gap-1 p-2">
         <TooltipButton item="help" label="Help" icon={LifeBuoy} />

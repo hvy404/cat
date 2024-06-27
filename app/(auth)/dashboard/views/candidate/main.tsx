@@ -26,7 +26,7 @@ export default function CandidateDashboardMain() {
   const isActive = useRef(false);
 
   // Fetch the candidate status on mount
-  // TODO: use this state to load side navigation menu too
+  // TODO: use this state to load side navigation
   useEffect(() => {
     if (!isActive.current && user && user.uuid) {
       isActive.current = true;
@@ -34,9 +34,9 @@ export default function CandidateDashboardMain() {
       candidateStatus(user.uuid)
         .then((isOnboarded) => {
           if (isOnboarded === true) {
-            setCandidateDashboard({ step: 1 });
+            setCandidateDashboard({ step: 1, onboarded: true });
           } else {
-            setCandidateDashboard({ step: 0 });
+            setCandidateDashboard({ step: 0, onboarded: false });
           }
           setIsLoading(false);
         })
@@ -52,10 +52,10 @@ export default function CandidateDashboardMain() {
     switch (candidateDashboardStep) {
       case 0:
         return <CandidateOnboardingForm />;
-        case 1:
+      case 1:
         return <CandidateDashboard />;
       default:
-        return <div>Candidate Landing</div>;
+        return <div>Loading...</div>;
     }
   };
 
@@ -94,7 +94,7 @@ export default function CandidateDashboardMain() {
       >
         <div className="flex justify-between gap-6 rounded-lg border p-4">
           <h2 className="font-bold leading-6 text-gray-900">
-            Candidate Landing
+            Hello
           </h2>
         </div>
         <div className="flex flex-col gap-6">
