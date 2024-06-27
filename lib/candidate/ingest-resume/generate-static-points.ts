@@ -47,7 +47,7 @@ Do not make up any details or include fields that are not specified in the schem
           content: userPrompt,
         },
       ],
-      model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
+      model: "togethercomputer/CodeLlama-34b-Instruct",
       temperature: 0.4,
       max_tokens: 7000,
       // @ts-ignore – Together.ai supports schema while OpenAI does not

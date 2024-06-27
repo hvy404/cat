@@ -63,6 +63,28 @@ export interface SoftSkillNode {
   name: string;
 }
 
+export interface ProjectNode {
+  title: string;
+  description: string;
+  start_date: string;
+  end_date?: string;
+  url?: string;
+  technologies_used: string[];
+  role: string;
+  achievements: string[];
+}
+
+export interface PublicationNode {
+  title: string;
+  authors: string[];
+  publication_date: string;
+  journal_or_conference: string;
+  doi?: string;
+  url?: string;
+  abstract?: string;
+  citations?: number;
+}
+
 export interface NodeWithId {
   labels: string[];
   _id: number;
@@ -76,7 +98,9 @@ type RelationshipType =
   | "HAS_CERTIFICATION"
   | "HAS_INDUSTRY_EXPERIENCE"
   | "HAS_POTENTIAL_ROLE"
-  | "HAS_SOFT_SKILL";
+  | "HAS_SOFT_SKILL"
+  | "WORKED_ON"
+  | "AUTHORED";
 
 export async function getTalentRelationshipTypes({
   talentId,
@@ -118,6 +142,8 @@ function isValidRelationshipType(type: string): type is RelationshipType {
     "HAS_INDUSTRY_EXPERIENCE",
     "HAS_POTENTIAL_ROLE",
     "HAS_SOFT_SKILL",
+    "WORKED_ON",
+    "AUTHORED",
   ].includes(type);
 }
 
@@ -211,6 +237,18 @@ export async function getTalentSoftSkills(
   applicantId: string
 ): Promise<(SoftSkillNode & NodeWithId)[]> {
   return getRelationshipNodes<SoftSkillNode>(applicantId, "HAS_SOFT_SKILL");
+}
+
+export async function getTalentProjects(
+  applicantId: string
+): Promise<(ProjectNode & NodeWithId)[]> {
+  return getRelationshipNodes<ProjectNode>(applicantId, "WORKED_ON");
+}
+
+export async function getTalentPublications(
+  applicantId: string
+): Promise<(PublicationNode & NodeWithId)[]> {
+  return getRelationshipNodes<PublicationNode>(applicantId, "AUTHORED");
 }
 
 /* CRUD - Create operation for Talent node */
@@ -322,6 +360,40 @@ export async function deleteTalentNode(applicantId: string): Promise<boolean> {
     console.error("Error deleting Talent node:", error);
     throw error;
   }
+}
+
+/* CRUD - Add/Remove Project */
+export async function addProject(
+  applicantId: string,
+  projectData: ProjectNode
+): Promise<(ProjectNode & NodeWithId) | null> {
+  return addRelationship<ProjectNode>(
+    applicantId,
+    "Project",
+    projectData,
+    "WORKED_ON"
+  );
+}
+
+export async function removeProject(nodeId: number): Promise<boolean> {
+  return removeRelationship(nodeId, "Project");
+}
+
+/* CRUD - Add/Remove Publication */
+export async function addPublication(
+  applicantId: string,
+  publicationData: PublicationNode
+): Promise<(PublicationNode & NodeWithId) | null> {
+  return addRelationship<PublicationNode>(
+    applicantId,
+    "Publication",
+    publicationData,
+    "AUTHORED"
+  );
+}
+
+export async function removePublication(nodeId: number): Promise<boolean> {
+  return removeRelationship(nodeId, "Publication");
 }
 
 /* Helper function to add a relationship */

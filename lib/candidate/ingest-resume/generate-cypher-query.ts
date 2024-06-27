@@ -38,6 +38,28 @@ export type ProfessionalNetwork = {
   colleagues: string[];
 };
 
+export type Project = {
+  title: string;
+  description: string;
+  start_date: string;
+  end_date?: string;
+  url?: string;
+  technologies_used: string[];
+  role: string;
+  achievements: string[];
+};
+
+export type Publication = {
+  title: string;
+  authors: string[];
+  publication_date: string;
+  journal_or_conference: string;
+  doi?: string;
+  url?: string;
+  abstract?: string;
+  citations?: number;
+};
+
 export type Data = {
   name: string;
   contact: ContactInfo;
@@ -63,6 +85,8 @@ export type Data = {
   resume_matched_to_jd: string[];
   resume_requested_by_company: string[];
   professional_network?: ProfessionalNetwork;
+  projects?: Project[];
+  publications?: Publication[];
 };
 
 // Helper function to format the embedding array
@@ -115,7 +139,9 @@ export function generateCandidateCypherQuery(data: Data, userId: string) {
       data.resume_requested_by_company
         ? JSON.stringify(data.resume_requested_by_company.map(escapeString))
         : "[]"
-    }
+    },
+    projects: [],
+    publications: []
   })
   WITH t`;
 
@@ -128,7 +154,7 @@ UNWIND [{
   end_date: "${escapeString(edu.end_date || "")}",
   honors_awards_coursework: "${escapeString(
     edu.honors_awards_coursework || ""
-  )}" // New property
+  )}"
 }] AS edu
 MERGE (e:Education {institution: edu.institution, degree: edu.degree})
 ON CREATE SET e.start_date = edu.start_date, e.end_date = edu.end_date, e.honors_awards_coursework = edu.honors_awards_coursework
@@ -243,6 +269,58 @@ MERGE (c:Colleague {name: colleague})
 MERGE (t)-[:HAS_COLLEAGUE]->(c)
 WITH t`;
     }
+  }
+
+  // Handle Projects
+  if (data.projects && data.projects.length > 0) {
+    cypher += `
+UNWIND ${JSON.stringify(
+      data.projects.map((project) => ({
+        title: escapeString(project.title),
+        description: escapeString(project.description),
+        start_date: escapeString(project.start_date),
+        end_date: escapeString(project.end_date || ""),
+        url: escapeString(project.url || ""),
+        technologies_used: project.technologies_used.map(escapeString),
+        role: escapeString(project.role),
+        achievements: project.achievements.map(escapeString),
+      }))
+    )} AS project
+MERGE (p:Project {title: project.title, role: project.role})
+ON CREATE SET p.description = project.description,
+              p.start_date = project.start_date,
+              p.end_date = project.end_date,
+              p.url = project.url,
+              p.technologies_used = project.technologies_used,
+              p.achievements = project.achievements
+MERGE (t)-[:WORKED_ON]->(p)
+WITH t`;
+  }
+
+  // Handle Publications
+  if (data.publications && data.publications.length > 0) {
+    cypher += `
+UNWIND ${JSON.stringify(
+      data.publications.map((pub) => ({
+        title: escapeString(pub.title),
+        authors: pub.authors.map(escapeString),
+        publication_date: escapeString(pub.publication_date),
+        journal_or_conference: escapeString(pub.journal_or_conference),
+        doi: escapeString(pub.doi || ""),
+        url: escapeString(pub.url || ""),
+        abstract: escapeString(pub.abstract || ""),
+        citations: pub.citations || 0,
+      }))
+    )} AS pub
+MERGE (p:Publication {title: pub.title, journal_or_conference: pub.journal_or_conference})
+ON CREATE SET p.authors = pub.authors,
+              p.publication_date = pub.publication_date,
+              p.doi = pub.doi,
+              p.url = pub.url,
+              p.abstract = pub.abstract,
+              p.citations = pub.citations
+MERGE (t)-[:AUTHORED]->(p)
+WITH t`;
   }
 
   cypher += `

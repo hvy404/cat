@@ -12,13 +12,13 @@ import { useCallback } from "react";
 
 function Careers() {
   const resume = useCallback(async () => {
-    const candidateID = "0af9c625-f790-4e95-8a88-5e55f3590722";
+    const candidateID = "81c3b2db-fbbd-482a-a18a-c1f9c26f7b8b";
     const startEvent = await candidateStartOnboard(candidateID);
     console.log(startEvent);
   }, []); // Dependencies array is empty, so this memoizes the function until the component unmounts
 
   const finalize = useCallback(async () => {
-    const candidateID = "0af9c625-f790-4e95-8a88-5e55f3590722";
+    const candidateID = "81c3b2db-fbbd-482a-a18a-c1f9c26f7b8b";
     const finalizeEvent = await candidateFinalizeOnboard(candidateID);
     console.log(finalizeEvent);
   }, []); // Dependencies array is empty, so this memoizes the function until the component
