@@ -142,9 +142,10 @@ export default function RightPanel(props: RightPanelProps) {
             className="w-full space-y-6 pt-4 sm:pt-6 md:pt-8"
           >
             <div className="space-y-4">
-              <h3 className="text-base font-medium text-gray-700">
-                Work Experience Insights
-              </h3>
+              <p className="text-xs font-normal text-gray-400">
+                AI can make mistakes. Please double-check suggestions before you
+                apply them.
+              </p>
               {analysis.workExperiences.map((exp: WorkExperience) => (
                 <SuggestionCard
                   key={exp.id}

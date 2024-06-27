@@ -20,6 +20,7 @@ import {
   BriefcaseBusiness,
   GraduationCap,
   User,
+  Award,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -95,6 +96,7 @@ export default function EmployerDashboardNavigation() {
               <TooltipButton item="talent-dashboard" label="Dashboard" icon={Layers2} />
               <TooltipButton item="talent-experience" label="Experience" icon={BriefcaseBusiness} />
               <TooltipButton item="talent-education" label="Education" icon={GraduationCap} />
+              <TooltipButton item="talent-certifications" label="Certifications" icon={Award} />
               <TooltipButton item="talent-profile" label="Profile" icon={User} />
             </>
           );
