@@ -1,6 +1,6 @@
 import useStore from "@/app/state/useStore";
 import { useEffect, useState, useRef } from "react";
-import CandidateDashboardRightPanel from "@/app/(auth)/dashboard/views/candidate/right-panel-main";
+import RightPanel from "@/app/(auth)/dashboard/views/candidate/education/panel";
 import Education from "@/app/(auth)/dashboard/views/candidate/edit/education";
 
 export default function CandidateDashboardEducation() {
@@ -38,7 +38,7 @@ export default function CandidateDashboardEducation() {
           isExpanded ? "lg:w-1/4" : "lg:w-1/2"
         }`}
       >
-        <CandidateDashboardRightPanel step={candidateDashboardStep} />
+        <RightPanel  />
       </div>
     </main>
   );

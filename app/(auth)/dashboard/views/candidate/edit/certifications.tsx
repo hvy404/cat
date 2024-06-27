@@ -148,7 +148,7 @@ export default function Certifications() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Certifications</h2>
+{/*       <h2 className="text-2xl font-bold">Certifications</h2> */}
 
       {certifications.map((cert, index) => (
         <div key={cert._id} className="space-y-4 p-4 border rounded-md">
@@ -161,8 +161,8 @@ export default function Certifications() {
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>
-                  <p>Remove certification</p>
+                <TooltipContent className="bg-black border-0 text-white">
+                  <p>Remove {cert.name || "this certification"}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

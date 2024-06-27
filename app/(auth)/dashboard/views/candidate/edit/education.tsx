@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import useStore from "@/app/state/useStore";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, Save } from "lucide-react";
 import {
@@ -20,12 +21,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-// Define the base Education type without _id
 type BaseEducation = Omit<EducationNode, "_id"> & {
   labels?: string[];
+  honors_awards_coursework?: string;
 };
 
-// Define separate interfaces for Neo4j and temporary education
 interface Neo4jEducation extends NodeWithId, Omit<BaseEducation, "labels"> {
   labels: string[];
 }
@@ -34,7 +34,6 @@ interface TempEducation extends BaseEducation {
   labels: string[];
 }
 
-// Union type for all possible education types
 type EducationWithTempId = Neo4jEducation | TempEducation;
 
 const isTempEducation = (
@@ -89,7 +88,6 @@ export default function Education() {
     setLoadingState(education._id, true);
     try {
       if (isTempEducation(education)) {
-        // This is a new education that needs to be added to Neo4j
         if (user?.uuid) {
           const newEducation = await addEducation(user.uuid, education);
           if (newEducation) {
@@ -106,7 +104,6 @@ export default function Education() {
           throw new Error("User UUID is not available");
         }
       } else {
-        // This is an existing education that needs to be updated
         for (const [key, value] of Object.entries(education)) {
           if (key !== "_id" && key !== "labels") {
             await updateNodeProperty({
@@ -134,6 +131,7 @@ export default function Education() {
       institution: "",
       start_date: "",
       end_date: "",
+      honors_awards_coursework: "",
       labels: ["Education"],
     };
     setEducations((prevEducations) => [...prevEducations, newEducation]);
@@ -143,12 +141,10 @@ export default function Education() {
     setLoadingState(id, true);
     try {
       if (typeof id === "string") {
-        // This is a new, unsaved education. Just remove it from the state.
         setEducations((prevEducations) =>
           prevEducations.filter((edu) => edu._id !== id)
         );
       } else {
-        // This is an existing education in Neo4j. Remove it from the database.
         const success = await removeEducation(id);
         if (success) {
           setEducations((prevEducations) =>
@@ -175,7 +171,6 @@ export default function Education() {
 
   return (
     <div className="space-y-6">
-
       {educations.map((education) => (
         <div
           key={education._id.toString()}
@@ -245,6 +240,18 @@ export default function Education() {
                   handleInputChange(education._id, "end_date", e.target.value)
                 }
                 placeholder="eg. 5/2024, May 2024, or Present"
+                disabled={loadingStates[education._id.toString()]}
+              />
+            </div>
+            <div className="col-span-2">
+              <Label htmlFor={`honors-awards-${education._id}`}>Honors, Awards & Relevant Coursework</Label>
+              <Textarea
+                id={`honors-awards-${education._id}`}
+                value={education.honors_awards_coursework || ''}
+                onChange={(e) =>
+                  handleInputChange(education._id, "honors_awards_coursework", e.target.value)
+                }
+                placeholder="e.g., Dean's List, Advanced Machine Learning Course"
                 disabled={loadingStates[education._id.toString()]}
               />
             </div>

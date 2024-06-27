@@ -21,6 +21,7 @@ export type Education = {
   institution: string;
   start_date: string;
   end_date: string;
+  honors_awards_coursework?: string;
 };
 
 export type WorkExperience = {
@@ -120,15 +121,17 @@ export function generateCandidateCypherQuery(data: Data, userId: string) {
 
   data.education.forEach((edu: Education, index: number) => {
     cypher += `
-UNWIND [{degree: "${escapeString(
-      edu.degree || ""
-    )}", institution: "${escapeString(
-      edu.institution || ""
-    )}", start_date: "${escapeString(
-      edu.start_date || ""
-    )}", end_date: "${escapeString(edu.end_date || "")}"}] AS edu
+UNWIND [{
+  degree: "${escapeString(edu.degree || "")}",
+  institution: "${escapeString(edu.institution || "")}",
+  start_date: "${escapeString(edu.start_date || "")}",
+  end_date: "${escapeString(edu.end_date || "")}",
+  honors_awards_coursework: "${escapeString(
+    edu.honors_awards_coursework || ""
+  )}" // New property
+}] AS edu
 MERGE (e:Education {institution: edu.institution, degree: edu.degree})
-ON CREATE SET e.start_date = edu.start_date, e.end_date = edu.end_date
+ON CREATE SET e.start_date = edu.start_date, e.end_date = edu.end_date, e.honors_awards_coursework = edu.honors_awards_coursework
 MERGE (t)-[:STUDIED_AT]->(e)
 ${index < data.education.length - 1 ? "WITH t" : ""}`;
   });

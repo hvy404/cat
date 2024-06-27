@@ -31,7 +31,7 @@ export interface WorkExperienceNode {
   start_date: string;
   end_date?: string;
   responsibilities: string;
-  labels?: string[]; // Add this line
+  labels?: string[];
 }
 
 export interface EducationNode {
@@ -39,6 +39,7 @@ export interface EducationNode {
   institution: string;
   start_date: string;
   end_date: string;
+  honors_awards_coursework?: string;
 }
 
 export interface SkillNode {
@@ -213,7 +214,9 @@ export async function getTalentSoftSkills(
 }
 
 /* CRUD - Create operation for Talent node */
-export async function createTalentNode(talentData: TalentNode): Promise<TalentNode & NodeWithId | null> {
+export async function createTalentNode(
+  talentData: TalentNode
+): Promise<(TalentNode & NodeWithId) | null> {
   const query = `
     CREATE (t:Talent $talentData)
     RETURN t, ID(t) as nodeId
@@ -238,7 +241,9 @@ export async function createTalentNode(talentData: TalentNode): Promise<TalentNo
 }
 
 /* CRUD - Read operation for Talent node */
-export async function getTalentNode(applicantId: string): Promise<TalentNode & NodeWithId | null> {
+export async function getTalentNode(
+  applicantId: string
+): Promise<(TalentNode & NodeWithId) | null> {
   const query = `
     MATCH (t:Talent {applicant_id: $applicantId})
     RETURN t, ID(t) as nodeId
@@ -284,7 +289,9 @@ export async function updateNodeProperty<T>({
 
     if (result && result.length > 0) {
       console.log(
-        `Successfully updated ${String(propertyName)} for node with ID ${nodeId}`
+        `Successfully updated ${String(
+          propertyName
+        )} for node with ID ${nodeId}`
       );
       return true;
     } else {
@@ -319,9 +326,9 @@ export async function deleteTalentNode(applicantId: string): Promise<boolean> {
 
 /* Helper function to add a relationship */
 async function addRelationship<T>(
-  applicantId: string, 
-  nodeLabel: string, 
-  nodeProperties: T, 
+  applicantId: string,
+  nodeLabel: string,
+  nodeProperties: T,
   relationshipType: RelationshipType
 ): Promise<(T & NodeWithId) | null> {
   const query = `
@@ -350,7 +357,10 @@ async function addRelationship<T>(
 }
 
 /* Helper function to remove a relationship */
-async function removeRelationship(nodeId: number, nodeLabel: string): Promise<boolean> {
+async function removeRelationship(
+  nodeId: number,
+  nodeLabel: string
+): Promise<boolean> {
   const query = `
     MATCH (n:${nodeLabel})
     WHERE ID(n) = $nodeId
@@ -372,7 +382,12 @@ export async function addNewWorkExperience(
   applicantId: string,
   newExperience: WorkExperienceNode
 ): Promise<(WorkExperienceNode & NodeWithId) | null> {
-  return addRelationship<WorkExperienceNode>(applicantId, "WorkExperience", newExperience, "WORKED_AT");
+  return addRelationship<WorkExperienceNode>(
+    applicantId,
+    "WorkExperience",
+    newExperience,
+    "WORKED_AT"
+  );
 }
 
 export async function removeWorkExperience(nodeId: number): Promise<boolean> {
@@ -384,7 +399,12 @@ export async function addEducation(
   applicantId: string,
   educationData: EducationNode
 ): Promise<(EducationNode & NodeWithId) | null> {
-  return addRelationship<EducationNode>(applicantId, "Education", educationData, "STUDIED_AT");
+  return addRelationship<EducationNode>(
+    applicantId,
+    "Education",
+    educationData,
+    "STUDIED_AT"
+  );
 }
 
 export async function removeEducation(nodeId: number): Promise<boolean> {
@@ -396,7 +416,12 @@ export async function addSkill(
   applicantId: string,
   skillData: SkillNode
 ): Promise<(SkillNode & NodeWithId) | null> {
-  return addRelationship<SkillNode>(applicantId, "Skill", skillData, "HAS_SKILL");
+  return addRelationship<SkillNode>(
+    applicantId,
+    "Skill",
+    skillData,
+    "HAS_SKILL"
+  );
 }
 
 export async function removeSkill(nodeId: number): Promise<boolean> {
@@ -408,7 +433,12 @@ export async function addCertification(
   applicantId: string,
   certificationData: CertificationNode
 ): Promise<(CertificationNode & NodeWithId) | null> {
-  return addRelationship<CertificationNode>(applicantId, "Certification", certificationData, "HAS_CERTIFICATION");
+  return addRelationship<CertificationNode>(
+    applicantId,
+    "Certification",
+    certificationData,
+    "HAS_CERTIFICATION"
+  );
 }
 
 export async function removeCertification(nodeId: number): Promise<boolean> {
@@ -420,10 +450,17 @@ export async function addIndustryExperience(
   applicantId: string,
   industryData: IndustryNode
 ): Promise<(IndustryNode & NodeWithId) | null> {
-  return addRelationship<IndustryNode>(applicantId, "Industry", industryData, "HAS_INDUSTRY_EXPERIENCE");
+  return addRelationship<IndustryNode>(
+    applicantId,
+    "Industry",
+    industryData,
+    "HAS_INDUSTRY_EXPERIENCE"
+  );
 }
 
-export async function removeIndustryExperience(nodeId: number): Promise<boolean> {
+export async function removeIndustryExperience(
+  nodeId: number
+): Promise<boolean> {
   return removeRelationship(nodeId, "Industry");
 }
 
@@ -432,7 +469,12 @@ export async function addSoftSkill(
   applicantId: string,
   softSkillData: SoftSkillNode
 ): Promise<(SoftSkillNode & NodeWithId) | null> {
-  return addRelationship<SoftSkillNode>(applicantId, "SoftSkill", softSkillData, "HAS_SOFT_SKILL");
+  return addRelationship<SoftSkillNode>(
+    applicantId,
+    "SoftSkill",
+    softSkillData,
+    "HAS_SOFT_SKILL"
+  );
 }
 
 export async function removeSoftSkill(nodeId: number): Promise<boolean> {
@@ -444,7 +486,12 @@ export async function addPotentialRole(
   applicantId: string,
   roleData: RoleNode
 ): Promise<(RoleNode & NodeWithId) | null> {
-  return addRelationship<RoleNode>(applicantId, "Role", roleData, "HAS_POTENTIAL_ROLE");
+  return addRelationship<RoleNode>(
+    applicantId,
+    "Role",
+    roleData,
+    "HAS_POTENTIAL_ROLE"
+  );
 }
 
 export async function removePotentialRole(nodeId: number): Promise<boolean> {

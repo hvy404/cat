@@ -1,7 +1,7 @@
 import useStore from "@/app/state/useStore";
 import { useEffect, useState, useRef } from "react";
-import CandidateDashboardRightPanel from "@/app/(auth)/dashboard/views/candidate/right-panel-main";
 import Certifications from "@/app/(auth)/dashboard/views/candidate/edit/certifications";
+import RightPanel from "@/app/(auth)/dashboard/views/candidate/certifications/panel";
 
 export default function CandidateDashboardCertifications() {
   const { isExpanded, setExpanded, user } = useStore();
@@ -38,7 +38,7 @@ export default function CandidateDashboardCertifications() {
           isExpanded ? "lg:w-1/4" : "lg:w-1/2"
         }`}
       >
-        <CandidateDashboardRightPanel step={candidateDashboardStep} />
+        <RightPanel  />
       </div>
     </main>
   );
