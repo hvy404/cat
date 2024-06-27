@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import RightPanel from "@/app/(auth)/dashboard/views/candidate/experience/panel";
 import WorkExperiences from "@/app/(auth)/dashboard/views/candidate/edit/work-experiences";
 import { WorkExperience } from "@/app/(auth)/dashboard/views/candidate/experience/panel";
+import { nanoid } from "nanoid";
 
 interface StatusResponse {
   success: boolean;
@@ -14,6 +15,8 @@ export default function CandidateDashboardExperience() {
   const [selectedSuggestion, setSelectedSuggestion] = useState<
     WorkExperience | undefined
   >(undefined);
+  const [workExperienceAnalysisSession, setWorkExperienceAnalysisSession] =
+    useState<string>(nanoid(8));
 
   // Clean up on unmount
   useEffect(() => {
@@ -49,7 +52,7 @@ export default function CandidateDashboardExperience() {
           isExpanded ? "lg:w-1/4" : "lg:w-1/2"
         }`}
       >
-        <RightPanel setSelectedSuggestion={handleSetSelectedSuggestion} />
+        <RightPanel setSelectedSuggestion={handleSetSelectedSuggestion} workExperienceAnalysisSession={workExperienceAnalysisSession}  />
       </div>
     </main>
   );

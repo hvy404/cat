@@ -2,6 +2,16 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import useStore from "@/app/state/useStore";
 import { fetchAndAnalyzeTalent } from "@/lib/candidate/experience/overview";
+import { toast } from "sonner";
+import { Clipboard } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { experienceSuggestionCacheStore, getExperienceSuggestionCache } from "@/lib/candidate/experience/suggestion-cache";
 
 export interface WorkExperience {
   id: string;
@@ -17,6 +27,7 @@ interface AnalysisData {
 
 interface RightPanelProps {
   setSelectedSuggestion: (suggestion: WorkExperience | undefined) => void;
+  workExperienceAnalysisSession: string;
 }
 
 export default function RightPanel(props: RightPanelProps) {
@@ -27,7 +38,7 @@ export default function RightPanel(props: RightPanelProps) {
   const [activeExperience, setActiveExperience] = useState<string | null>(null);
 
   const handleAnalysis = async () => {
-    if (!candidate) {
+    if (!candidate || !props.workExperienceAnalysisSession) {
       setError("No candidate selected");
       return;
     }
@@ -36,11 +47,21 @@ export default function RightPanel(props: RightPanelProps) {
     setError(null);
 
     try {
-      const result = await fetchAndAnalyzeTalent(candidate);
-      if (result) {
-        setAnalysis(JSON.parse(result) as AnalysisData);
+      // Try to get the cached result first
+      const cachedResult = await getExperienceSuggestionCache(props.workExperienceAnalysisSession, candidate);
+      
+      if (cachedResult) {
+        setAnalysis(JSON.parse(cachedResult) as AnalysisData);
       } else {
-        setError("Unable to generate analysis for this candidate.");
+        // If not cached, fetch and analyze
+        const result = await fetchAndAnalyzeTalent(candidate);
+        if (result) {
+          // Cache the result
+          await experienceSuggestionCacheStore(props.workExperienceAnalysisSession, candidate, result);
+          setAnalysis(JSON.parse(result) as AnalysisData);
+        } else {
+          setError("Unable to generate analysis for this candidate.");
+        }
       }
     } catch (err) {
       setError("An error occurred while fetching the analysis.");
@@ -55,23 +76,42 @@ export default function RightPanel(props: RightPanelProps) {
     props.setSelectedSuggestion(exp);
   };
 
+  const handleCopyToClipboard = (text: string) => {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        toast.success("Copied to clipboard!");
+      })
+      .catch((err) => {
+        console.error("Failed to copy text: ", err);
+        toast.error("Failed to copy to clipboard");
+      });
+  };
+
   return (
     <div className="min-h-[90vh] rounded-lg bg-gray-100 p-4 overflow-auto">
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="relative h-full w-full"
+        className="relative w-full flex flex-col items-center justify-center min-h-full"
       >
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={handleAnalysis}
-          disabled={isLoading || !candidate}
-          className="px-4 py-2 bg-gray-700 text-gray-100 rounded-md hover:bg-gray-600 disabled:bg-gray-400 transition-colors duration-200 text-sm font-medium"
-        >
-          {isLoading ? "Analyzing..." : "Get AI Analysis"}
-        </motion.button>
+        {!analysis && (
+          <motion.div className="flex flex-col items-center justify-center gap-6 absolute inset-0">
+            <motion.h3 className="font-merriweather text-gray-600 text-3xl">
+              Enhance your professional story
+            </motion.h3>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleAnalysis}
+              disabled={isLoading || !candidate}
+              className="px-4 py-2 bg-gray-700 text-gray-100 rounded-md hover:bg-gray-600 disabled:bg-gray-400 transition-colors duration-200 text-sm font-medium"
+            >
+              {isLoading ? "Analyzing..." : "Get Analysis 🧑‍💻"}
+            </motion.button>
+          </motion.div>
+        )}
 
         {error && (
           <motion.p
@@ -88,7 +128,7 @@ export default function RightPanel(props: RightPanelProps) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
-            className="mt-6 space-y-6"
+            className="w-full space-y-6 pt-4 sm:pt-6 md:pt-8"
           >
             <div className="space-y-4">
               <h3 className="text-base font-medium text-gray-700">
@@ -130,9 +170,33 @@ export default function RightPanel(props: RightPanelProps) {
                       <h4 className="text-sm font-medium text-gray-700 mb-1">
                         Suggested Change:
                       </h4>
-                      <p className="text-sm text-gray-600 italic">
-                        {exp.suggestedChange}
-                      </p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-gray-600 italic">
+                          {exp.suggestedChange}
+                        </p>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCopyToClipboard(exp.suggestedChange);
+                                }}
+                              >
+                                <Clipboard className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent
+                              side="left"
+                              className="bg-black border-0 text-white"
+                            >
+                              <p>Add to clipboard</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
