@@ -3,7 +3,7 @@ import useStore from "@/app/state/useStore";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus, Save } from "lucide-react";
+import { Plus, Trash2, Save } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
   getTalentWorkExperiences,
@@ -230,7 +230,7 @@ export default function WorkExperiences(props: {
                   onClick={() => removeExperience(experience._id)}
                   disabled={loadingStates[experience._id.toString()]}
                 >
-                  <Minus className="h-4 w-4" />
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent className="bg-black text-white border-0">
@@ -327,7 +327,7 @@ export default function WorkExperiences(props: {
           </Button>
         </div>
       ))}
-      <Button onClick={addNewExperience}>
+      <Button onClick={addNewExperience} variant="outline" className="w-full">
         <Plus className="h-4 w-4 mr-2" /> Add New Experience
       </Button>
     </div>

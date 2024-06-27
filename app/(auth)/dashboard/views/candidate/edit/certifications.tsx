@@ -3,7 +3,7 @@ import useStore from "@/app/state/useStore";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus, Save, Calendar as CalendarIcon } from "lucide-react";
+import { Plus, Trash2, Save, Calendar as CalendarIcon } from "lucide-react";
 import {
   getTalentCertifications,
   addCertification,
@@ -34,7 +34,7 @@ export default function Certifications() {
   const { user } = useStore();
   const [certifications, setCertifications] = useState<CertificationWithId[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
+  const [savingStates, setSavingStates] = useState<{ [key: number]: boolean }>({});
 
   const fetchCertifications = useCallback(async () => {
     if (user?.uuid) {
@@ -55,34 +55,31 @@ export default function Certifications() {
     fetchCertifications();
   }, [fetchCertifications]);
 
-  const handleAddCertification = async () => {
-    if (!user?.uuid) return;
-
-    setIsSaving(true);
-    try {
-      const newCertification = await addCertification(user.uuid, { name: "", date_obtained: "" });
-      if (newCertification) {
-        setCertifications([...certifications, newCertification]);
-        toast.success("New certification added successfully.");
-      }
-    } catch (error) {
-      console.error("Error adding new certification:", error);
-      toast.error("Failed to add new certification. Please try again.");
-    } finally {
-      setIsSaving(false);
-    }
+  const handleAddCertification = () => {
+    const newCertification: CertificationWithId = {
+      _id: -Date.now(), // Temporary negative ID
+      name: "",
+      date_obtained: "",
+      labels: ["Certification"]
+    };
+    setCertifications([...certifications, newCertification]);
   };
 
   const handleRemoveCertification = async (index: number) => {
     const certToRemove = certifications[index];
     if (certToRemove._id && typeof certToRemove._id === 'number') {
+      setSavingStates({ ...savingStates, [certToRemove._id]: true });
       try {
-        await removeCertification(certToRemove._id);
+        if (certToRemove._id > 0) { // Only remove from Neo4j if it's an existing certification
+          await removeCertification(certToRemove._id);
+        }
         setCertifications(certifications.filter((_, i) => i !== index));
         toast.success("Certification removed successfully.");
       } catch (error) {
         console.error("Error removing certification:", error);
         toast.error("Failed to remove certification. Please try again.");
+      } finally {
+        setSavingStates({ ...savingStates, [certToRemove._id]: false });
       }
     } else {
       setCertifications(certifications.filter((_, i) => i !== index));
@@ -104,33 +101,44 @@ export default function Certifications() {
     setCertifications(updatedCertifications);
   };
 
-  const handleSave = async () => {
+  const handleSaveCertification = async (cert: CertificationWithId, index: number) => {
     if (!user?.uuid) return;
 
-    setIsSaving(true);
+    setSavingStates({ ...savingStates, [cert._id]: true });
     try {
-      for (const cert of certifications) {
-        if (cert._id && typeof cert._id === 'number') {
-          // Update existing certification
-          await updateNodeProperty({
-            nodeId: cert._id,
-            propertyName: "name",
-            propertyValue: cert.name
-          });
-          await updateNodeProperty({
-            nodeId: cert._id,
-            propertyName: "date_obtained",
-            propertyValue: cert.date_obtained
-          });
+      let savedCert: CertificationWithId;
+      if (cert._id <= 0) { // New certification
+        const newCert = await addCertification(user.uuid, {
+          name: cert.name,
+          date_obtained: cert.date_obtained
+        });
+        if (!newCert) {
+          throw new Error("Failed to add new certification");
         }
+        savedCert = { ...newCert, labels: ["Certification"] };
+        toast.success("New certification added successfully.");
+      } else { // Existing certification
+        await updateNodeProperty({
+          nodeId: cert._id,
+          propertyName: "name",
+          propertyValue: cert.name
+        });
+        await updateNodeProperty({
+          nodeId: cert._id,
+          propertyName: "date_obtained",
+          propertyValue: cert.date_obtained
+        });
+        savedCert = { ...cert };
+        toast.success("Certification updated successfully.");
       }
-      toast.success("Certifications saved successfully!");
-      await fetchCertifications(); // Refresh the list after saving
+      const updatedCertifications = [...certifications];
+      updatedCertifications[index] = savedCert;
+      setCertifications(updatedCertifications);
     } catch (error) {
-      console.error("Error saving certifications:", error);
-      toast.error("Failed to save certifications. Please try again.");
+      console.error("Error saving certification:", error);
+      toast.error("Failed to save certification. Please try again.");
     } finally {
-      setIsSaving(false);
+      setSavingStates({ ...savingStates, [cert._id]: false });
     }
   };
 
@@ -140,31 +148,17 @@ export default function Certifications() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Certifications</h2>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button onClick={handleAddCertification} variant="outline" size="icon" disabled={isSaving}>
-                <Plus className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Add new certification</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
+      <h2 className="text-2xl font-bold">Certifications</h2>
 
       {certifications.map((cert, index) => (
         <div key={cert._id} className="space-y-4 p-4 border rounded-md">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Certification {index + 1}</h3>
+            <h3 className="text-lg font-semibold">{cert.name || "New Certification"}</h3>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button onClick={() => handleRemoveCertification(index)} variant="outline" size="icon">
-                    <Minus className="h-4 w-4" />
+                  <Button onClick={() => handleRemoveCertification(index)} variant="outline" size="icon" disabled={savingStates[cert._id]}>
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -179,6 +173,7 @@ export default function Certifications() {
               id={`cert-name-${index}`}
               value={cert.name}
               onChange={(e) => handleInputChange(index, "name", e.target.value)}
+              disabled={savingStates[cert._id]}
             />
           </div>
           <div className="space-y-2">
@@ -192,6 +187,7 @@ export default function Certifications() {
                     "w-full justify-start text-left font-normal",
                     !cert.date_obtained && "text-muted-foreground"
                   )}
+                  disabled={savingStates[cert._id]}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {cert.date_obtained ? format(parse(cert.date_obtained, "yyyy-MM-dd", new Date()), "PPP") : <span>Pick a date</span>}
@@ -207,17 +203,20 @@ export default function Certifications() {
               </PopoverContent>
             </Popover>
           </div>
+          <Button onClick={() => handleSaveCertification(cert, index)} disabled={savingStates[cert._id]}>
+            {savingStates[cert._id] ? (
+              "Saving..."
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" /> Save Certification
+              </>
+            )}
+          </Button>
         </div>
       ))}
 
-      <Button onClick={handleSave} disabled={isSaving}>
-        {isSaving ? (
-          "Saving..."
-        ) : (
-          <>
-            <Save className="h-4 w-4 mr-2" /> Save Certifications
-          </>
-        )}
+      <Button onClick={handleAddCertification} variant="outline" className="w-full">
+        <Plus className="h-4 w-4 mr-2" /> Add New Certification
       </Button>
     </div>
   );
