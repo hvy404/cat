@@ -1,36 +1,16 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import useStore from "@/app/state/useStore";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  ChevronRight,
-  Briefcase,
-  FileText,
-  UserPlus,
-  Award,
-  RefreshCw,
-  TrendingUp,
-  DollarSign,
-  Clock,
-} from "lucide-react";
+import { Briefcase, FileText, UserPlus, Award, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import { QuickStats } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/quick-stats";
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+  InsightsCard,
+  CareerInsight,
+} from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/career-insight";
+import { JobCard } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-card";
+import { RecommendationCard } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/recommendation-card";
 
 interface Job {
   id: number;
@@ -42,25 +22,12 @@ interface Job {
   progress?: number;
 }
 
-interface CareerInsight {
-  date: string;
-  applications: number;
-  interviews: number;
-}
-
 interface DashboardData {
   invitedJobs: Job[];
   appliedJobs: Job[];
   resumeRecommendations: string[];
   profileEnhancements: string[];
   careerInsights: CareerInsight[];
-}
-
-interface QuickStat {
-  icon: React.ElementType;
-  title: string;
-  value: string;
-  change: string;
 }
 
 const mockData: DashboardData = {
@@ -115,151 +82,6 @@ const cardVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
-interface JobCardProps {
-  job: Job;
-  type: "invited" | "applied";
-}
-
-const JobCard: React.FC<JobCardProps> = ({ job, type }) => (
-  <Card className="w-full bg-white shadow-sm hover:shadow-md transition-all duration-300 border-l-4 border-gray-300 flex flex-col h-full">
-    <CardHeader className="pb-2">
-      <div className="flex justify-between items-center">
-        <CardTitle className="text-md font-semibold text-gray-800">
-          {job.title}
-        </CardTitle>
-        {type === "invited" && job.match && (
-          <span className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded-full">
-            {job.match}% Match
-          </span>
-        )}
-      </div>
-      <CardDescription className="text-sm text-gray-600">
-        {job.company}
-      </CardDescription>
-    </CardHeader>
-    <CardContent className="py-2 flex-grow">
-     Content...
-    </CardContent>
-    <CardFooter className="pt-2 flex justify-end">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-      >
-        View Details <ChevronRight className="ml-1 w-4 h-4" />
-      </Button>
-    </CardFooter>
-  </Card>
-);
-
-interface RecommendationCardProps {
-  title: string;
-  items: string[];
-  icon: React.ElementType;
-}
-
-const RecommendationCard: React.FC<RecommendationCardProps> = ({
-  title,
-  items,
-  icon: Icon,
-}) => (
-  <Card className="w-full bg-white shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full">
-    <CardHeader className="flex flex-row items-center space-x-2 pb-2">
-      <Icon className="w-4 h-4 text-gray-700" />
-      <CardTitle className="text-md font-semibold text-gray-800">
-        {title}
-      </CardTitle>
-    </CardHeader>
-    <CardContent className="flex-grow">
-      <ul className="space-y-2">
-        {items.map((item, index) => (
-          <li key={index} className="text-sm text-gray-700 flex items-start">
-            <span className="w-1 h-1 rounded-full bg-gray-500 mr-2 mt-1.5 flex-shrink-0" />
-            <span>{item}</span>
-          </li>
-        ))}
-      </ul>
-    </CardContent>
-    <CardFooter className="pt-2 mt-auto">
-      <Button variant="outline" size="sm" className="w-full text-sm">
-        Take Action
-      </Button>
-    </CardFooter>
-  </Card>
-);
-
-interface InsightsCardProps {
-  data: CareerInsight[];
-}
-
-const InsightsCard: React.FC<InsightsCardProps> = ({ data }) => (
-  <Card className="w-full bg-white shadow-sm hover:shadow-md transition-all duration-300">
-    <CardHeader>
-      <CardTitle className="text-sm font-semibold text-gray-800">
-        Career Insights
-      </CardTitle>
-    </CardHeader>
-    <CardContent>
-      <ResponsiveContainer width="100%" height={200}>
-        <LineChart data={data}>
-          <XAxis dataKey="date" stroke="#4B5563" />
-          <YAxis stroke="#4B5563" />
-          <Tooltip
-            contentStyle={{ backgroundColor: "#FFFFFF", border: "none" }}
-            itemStyle={{ color: "#1F2937" }}
-          />
-          <Line
-            type="monotone"
-            dataKey="applications"
-            stroke="#4B5563"
-            strokeWidth={2}
-            dot={false}
-          />
-          <Line
-            type="monotone"
-            dataKey="interviews"
-            stroke="#9CA3AF"
-            strokeWidth={2}
-            dot={false}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </CardContent>
-  </Card>
-);
-
-const QuickStats: React.FC = () => {
-  const stats: QuickStat[] = [
-    { icon: TrendingUp, title: "Profile Views", value: "152", change: "+12%" },
-    {
-      icon: DollarSign,
-      title: "Avg. Salary Range",
-      value: "$110k - $140k",
-      change: "+5%",
-    },
-    {
-      icon: Clock,
-      title: "Time to Interview",
-      value: "14 days",
-      change: "-2 days",
-    },
-  ];
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      {stats.map((stat, index) => (
-        <Card key={index} className="bg-white">
-          <CardContent className="flex flex-col items-center justify-center p-4">
-            <stat.icon className="w-6 h-6 text-gray-600 mb-2" />
-            <p className="text-sm font-medium text-gray-700">{stat.title}</p>
-            <p className="text-lg font-semibold text-gray-900">{stat.value}</p>
-            <p className="text-sm text-gray-600">{stat.change}</p>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-};
 
 export function CandidateDashboard() {
   const { candidateDashboard, setCandidateDashboard, user } = useStore();
