@@ -3,14 +3,6 @@ import { motion } from "framer-motion";
 import useStore from "@/app/state/useStore";
 import { fetchAndAnalyzeTalent } from "@/lib/candidate/experience/overview";
 import { toast } from "sonner";
-/* import { Clipboard } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"; */
 import {
   experienceSuggestionCacheStore,
   getExperienceSuggestionCache,
@@ -33,6 +25,30 @@ interface RightPanelProps {
   setSelectedSuggestion: (suggestion: WorkExperience | undefined) => void;
   workExperienceAnalysisSession: string;
 }
+
+const MAX_RETRIES = 2;
+const RETRY_DELAY = 1000; // 1 second
+
+const retryFetchAndAnalyze = async (
+  candidate: string,
+  retries = 0
+): Promise<string | null> => {
+  try {
+    const result = await fetchAndAnalyzeTalent(candidate);
+    if (result) {
+      return result;
+    }
+  } catch (error) {
+    console.error(`Attempt ${retries + 1} failed:`, error);
+  }
+
+  if (retries < MAX_RETRIES) {
+    await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
+    return retryFetchAndAnalyze(candidate, retries + 1);
+  }
+
+  return null;
+};
 
 export default function RightPanel(props: RightPanelProps) {
   const candidate = useStore((state) => state.user?.uuid);
@@ -60,8 +76,8 @@ export default function RightPanel(props: RightPanelProps) {
       if (cachedResult) {
         setAnalysis(JSON.parse(cachedResult) as AnalysisData);
       } else {
-        // If not cached, fetch and analyze
-        const result = await fetchAndAnalyzeTalent(candidate);
+        // If not cached, fetch and analyze with retry logic
+        const result = await retryFetchAndAnalyze(candidate);
         if (result) {
           // Cache the result
           await experienceSuggestionCacheStore(
@@ -71,7 +87,9 @@ export default function RightPanel(props: RightPanelProps) {
           );
           setAnalysis(JSON.parse(result) as AnalysisData);
         } else {
-          setError("Unable to generate analysis for this candidate.");
+          setError(
+            "We are experiencing heavy traffic. Please try again in a few moments."
+          );
         }
       }
     } catch (err) {
@@ -121,17 +139,16 @@ export default function RightPanel(props: RightPanelProps) {
             >
               {isLoading ? "Analyzing..." : "Get Analysis 🧑‍💻"}
             </motion.button>
+            {error && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-red-500 mt-4 text-sm text-center max-w-md"
+              >
+                {error}
+              </motion.p>
+            )}
           </motion.div>
-        )}
-
-        {error && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-red-500 mt-3 text-sm"
-          >
-            {error}
-          </motion.p>
         )}
 
         {analysis && (

@@ -85,9 +85,9 @@ Please provide your analysis in the following JSON format. Include comments, rec
   "overallRecommendations": [
     "string"
   ]
-}`;
-
-    console.log("Prompt for talent analysis:", prompt);
+}
+  
+It is imperative not to include any text outside of this JSON structure in your response.`;
 
     const response = await openai.chat.completions.create({
       model: "meta-llama/Llama-3-70b-chat-hf",
@@ -99,7 +99,7 @@ Please provide your analysis in the following JSON format. Include comments, rec
         },
         { role: "user", content: prompt },
       ],
-      max_tokens: 4000,
+      max_tokens: 5000,
       temperature: 0.6,
     });
 
@@ -117,7 +117,7 @@ export async function fetchAndAnalyzeTalent(
     const relationships = await fetchTalentRelationships(candidateId);
     const analysis = await analyzeTalentRelationships(relationships);
 
-    console.log("Analysis for candidate", candidateId, ":", analysis);
+    //console.log("Analysis for candidate", candidateId, ":", analysis);
     return analysis;
   } catch (error) {
     console.error(

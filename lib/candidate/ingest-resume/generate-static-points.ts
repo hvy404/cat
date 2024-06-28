@@ -29,7 +29,7 @@ Guidelines:
 - company: (optional) Name of the candidate's current or most recent company.
 - contact: (optional) An object containing phone (optional) and email.
 - education: An array of objects, each containing institution name, degree, start_date, and end_date (optional) as properties.
-- location: An object containing city (optional), state (two letter abbreviation) (optional), and zipcode (optional). Example values: city: "Atlanta", state: "GA", zipcode: "30363".
+- location: An object containing city (optional), state (two letter abbreviation) (optional), and zipcode (optional).
 - technical_skills: An array of strings listing hard skills, tools, and technologies from previous work experience.
 - industry_experience: (optional) An array of strings listing specific knowledge areas in which the candidate has experience.
 - clearance_level: (optional) If applicable, should be one of: "none", "basic", "confidential", "critical", "paramount", "q_clearance", or "l_clearance".
@@ -47,9 +47,9 @@ Guidelines:
   - start_date: The start date of the job (optional).
   - end_date: The end date of the job (optional).
 
-Note: The resume may include bullet points or lists of responsibilities for each respective experience. You should include all relevant information in the description field.
+Note: The resume may include bullet points or lists of responsibilities following the description for each respective experience. You should include all relevant information in the description field.
 
-Do not make up any details or include fields that are not specified in the schema.`;
+Do not make up details that are not present in the resume. Omit any values for which no information is available.`;
 
   const userPrompt = `Context: ${JSON.stringify(resume)}`;
 
