@@ -30,7 +30,7 @@ export default function EmployerDashboardHeader() {
   // const employerIdentity = "f5246ce0-da92-4916-b1c8-dedf415a8dd2";
   // TODO: Login user
   const employerIdentity = "f5246ce0-da92-4916-b1c8-dedf415a8dd2";
-  const userIdentity = "81c3b2db-fbbd-482a-a18a-c1f9c26f7b8b";
+  const userIdentity = "a4004387-b3af-4b03-8d44-4109c5e4a143";
   const roleEmployer = "employer";
   const roleCandidate = "candidate";
 

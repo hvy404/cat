@@ -34,17 +34,6 @@ export const staticSchema = z.object({
       zipcode: z.string().optional(),
     })
     .describe("Candidate location."),
-  work_experience: z
-    .array(
-      z.object({
-        organization: z.string(),
-        job_title: z.string(),
-        responsibilities: z.string(),
-        start_date: z.string().optional(),
-        end_date: z.string().optional(),
-      })
-    )
-    .describe("Applicant past job history."),
   technical_skills: z
     .array(z.string())
     .describe(

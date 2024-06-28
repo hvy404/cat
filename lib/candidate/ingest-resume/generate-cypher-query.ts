@@ -94,12 +94,21 @@ function formatArrayForCypher(array: number[]) {
   return `[${array.join(", ")}]`; // Adds a space after each comma
 }
 
-// Helper function to escape double quotes in strings
-function escapeString(str: string = ""): string {
-  return str.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+function escapeString(str: string | undefined): string {
+  if (str === undefined) return "";
+  return str.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n");
 }
 
-// TODO: jds_viewed, interviewed_by should be matched to jds by relationship and not used as properties
+function processWorkExperience(work: WorkExperience): WorkExperience {
+  return {
+    job_title: escapeString(work.job_title),
+    organization: escapeString(work.organization),
+    start_date: escapeString(work.start_date),
+    end_date: escapeString(work.end_date),
+    responsibilities: escapeString(work.responsibilities),
+  };
+}
+
 export function generateCandidateCypherQuery(data: Data, userId: string) {
   let cypher = `
   CREATE (t:Talent {
@@ -116,215 +125,120 @@ export function generateCandidateCypherQuery(data: Data, userId: string) {
     embedding: ${data.embedding ? formatArrayForCypher(data.embedding) : "[]"},
     matching_opt_in: "${escapeString(data.matching_opt_in || "")}",
     active_looking: "${escapeString(data.active_looking || "")}",
-    active_looking_confirmed_date: "${escapeString(
-      data.active_looking_confirmed_date || ""
-    )}",
-    applied_at: ${
-      data.applied_at ? JSON.stringify(data.applied_at.map(escapeString)) : "[]"
-    },
-    jds_viewed: ${
-      data.jds_viewed ? JSON.stringify(data.jds_viewed.map(escapeString)) : "[]"
-    },
-    interviewed_by: ${
-      data.interviewed_by
-        ? JSON.stringify(data.interviewed_by.map(escapeString))
-        : "[]"
-    },
-    resume_matched_to_jd: ${
-      data.resume_matched_to_jd
-        ? JSON.stringify(data.resume_matched_to_jd.map(escapeString))
-        : "[]"
-    },
-    resume_requested_by_company: ${
-      data.resume_requested_by_company
-        ? JSON.stringify(data.resume_requested_by_company.map(escapeString))
-        : "[]"
-    },
-    projects: [],
-    publications: []
+    active_looking_confirmed_date: "${escapeString(data.active_looking_confirmed_date || "")}"
   })
-  WITH t`;
+  WITH t
+  `;
 
-  data.education.forEach((edu: Education, index: number) => {
-    cypher += `
-UNWIND [{
-  degree: "${escapeString(edu.degree || "")}",
-  institution: "${escapeString(edu.institution || "")}",
-  start_date: "${escapeString(edu.start_date || "")}",
-  end_date: "${escapeString(edu.end_date || "")}",
-  honors_awards_coursework: "${escapeString(
-    edu.honors_awards_coursework || ""
-  )}"
-}] AS edu
-MERGE (e:Education {institution: edu.institution, degree: edu.degree})
-ON CREATE SET e.start_date = edu.start_date, e.end_date = edu.end_date, e.honors_awards_coursework = edu.honors_awards_coursework
-MERGE (t)-[:STUDIED_AT]->(e)
-${index < data.education.length - 1 ? "WITH t" : ""}`;
-  });
+  // Education
+  if (data.education && data.education.length > 0) {
+    data.education.forEach((edu, index) => {
+      cypher += `
+      CREATE (e${index}:Education {
+        degree: "${escapeString(edu.degree || "")}",
+        institution: "${escapeString(edu.institution || "")}",
+        start_date: "${escapeString(edu.start_date || "")}",
+        end_date: "${escapeString(edu.end_date || "")}",
+        honors_awards_coursework: "${escapeString(edu.honors_awards_coursework || "")}"
+      })
+      CREATE (t)-[:STUDIED_AT]->(e${index})
+      WITH t
+      `;
+    });
+  }
 
-  if (data.education.length > 0) cypher += "WITH t";
+  // Work Experience
+  if (data.work_experience && data.work_experience.length > 0) {
+    data.work_experience.forEach((work, index) => {
+      const processedWork = processWorkExperience(work);
+      cypher += `
+      CREATE (w${index}:WorkExperience {
+        job_title: "${processedWork.job_title}",
+        organization: "${processedWork.organization}",
+        start_date: "${processedWork.start_date}",
+        end_date: "${processedWork.end_date}",
+        responsibilities: "${processedWork.responsibilities}"
+      })
+      CREATE (t)-[:WORKED_AT]->(w${index})
+      WITH t
+      `;
+    });
+  }
 
-  data.work_experience.forEach((work: WorkExperience, index: number) => {
-    let responsibilities = escapeString(work.responsibilities || "");
-    cypher += `
-UNWIND [{job_title: "${escapeString(
-      work.job_title || ""
-    )}", organization: "${escapeString(
-      work.organization || ""
-    )}", start_date: "${escapeString(
-      work.start_date || ""
-    )}", end_date: "${escapeString(
-      work.end_date || ""
-    )}", responsibilities: "${responsibilities}"}] AS work
-MERGE (w:WorkExperience {organization: work.organization, job_title: work.job_title})
-ON CREATE SET w.start_date = work.start_date, w.end_date = work.end_date, w.responsibilities = "${responsibilities}"
-MERGE (t)-[:WORKED_AT]->(w)
-${index < data.work_experience.length - 1 ? "WITH t" : ""}`;
-  });
-
-  if (data.work_experience.length > 0) cypher += "WITH t";
-
-  // Handling arrays for technical skills, certifications, and other array-based properties
+  // Technical Skills
   if (data.technical_skills && data.technical_skills.length > 0) {
-    cypher += `
-UNWIND ${JSON.stringify(data.technical_skills.map(escapeString))} AS skill
-MERGE (s:Skill {name: skill})
-MERGE (t)-[:HAS_SKILL]->(s)
-WITH t`;
+    data.technical_skills.forEach((skill, index) => {
+      cypher += `
+      MERGE (s${index}:Skill {name: "${escapeString(skill)}"})
+      CREATE (t)-[:HAS_SKILL]->(s${index})
+      WITH t
+      `;
+    });
   }
 
-  if (
-    data.professional_certifications &&
-    data.professional_certifications.length > 0
-  ) {
-    cypher += `
-UNWIND ${JSON.stringify(
-      data.professional_certifications.map(escapeString)
-    )} AS cert
-MERGE (c:Certification {name: cert})
-MERGE (t)-[:HAS_CERTIFICATION]->(c)
-WITH t`;
+  // Professional Certifications
+  if (data.professional_certifications && data.professional_certifications.length > 0) {
+    data.professional_certifications.forEach((cert, index) => {
+      cypher += `
+      MERGE (c${index}:Certification {name: "${escapeString(cert)}"})
+      CREATE (t)-[:HAS_CERTIFICATION]->(c${index})
+      WITH t
+      `;
+    });
   }
 
+  // Industry Experience
   if (data.industry_experience && data.industry_experience.length > 0) {
-    cypher += `
-UNWIND ${JSON.stringify(data.industry_experience.map(escapeString))} AS industry
-MERGE (i:Industry {name: industry})
-MERGE (t)-[:HAS_INDUSTRY_EXPERIENCE]->(i)
-WITH t`;
-  }
-
-  if (data.soft_skills && data.soft_skills.length > 0) {
-    cypher += `
-UNWIND ${JSON.stringify(data.soft_skills.map(escapeString))} AS skill
-MERGE (s:SoftSkill {name: skill})
-MERGE (t)-[:HAS_SOFT_SKILL]->(s)
-WITH t`;
-  }
-
-  if (data.potential_roles && data.potential_roles.length > 0) {
-    cypher += `
-UNWIND ${JSON.stringify(data.potential_roles.map(escapeString))} AS role
-MERGE (r:Role {name: role})
-MERGE (t)-[:HAS_POTENTIAL_ROLE]->(r)
-WITH t`;
-  }
-
-  if (data.professional_network) {
-    if (
-      data.professional_network.mentors &&
-      data.professional_network.mentors.length > 0
-    ) {
+    data.industry_experience.forEach((industry, index) => {
       cypher += `
-UNWIND ${JSON.stringify(
-        data.professional_network.mentors.map(escapeString)
-      )} AS mentor
-MERGE (m:Mentor {name: mentor})
-MERGE (t)-[:HAS_MENTOR]->(m)
-WITH t`;
-    }
-
-    if (
-      data.professional_network.references &&
-      data.professional_network.references.length > 0
-    ) {
-      cypher += `
-UNWIND ${JSON.stringify(
-        data.professional_network.references.map(escapeString)
-      )} AS reference
-MERGE (r:Reference {name: reference})
-MERGE (t)-[:HAS_REFERENCE]->(r)
-WITH t`;
-    }
-
-    if (
-      data.professional_network.colleagues &&
-      data.professional_network.colleagues.length > 0
-    ) {
-      cypher += `
-UNWIND ${JSON.stringify(
-        data.professional_network.colleagues.map(escapeString)
-      )} AS colleague
-MERGE (c:Colleague {name: colleague})
-MERGE (t)-[:HAS_COLLEAGUE]->(c)
-WITH t`;
-    }
+      MERGE (i${index}:Industry {name: "${escapeString(industry)}"})
+      CREATE (t)-[:HAS_INDUSTRY_EXPERIENCE]->(i${index})
+      WITH t
+      `;
+    });
   }
 
-  // Handle Projects
+  // Projects
   if (data.projects && data.projects.length > 0) {
-    cypher += `
-UNWIND ${JSON.stringify(
-      data.projects.map((project) => ({
-        title: escapeString(project.title),
-        description: escapeString(project.description),
-        start_date: escapeString(project.start_date),
-        end_date: escapeString(project.end_date || ""),
-        url: escapeString(project.url || ""),
-        technologies_used: project.technologies_used.map(escapeString),
-        role: escapeString(project.role),
-        achievements: project.achievements.map(escapeString),
-      }))
-    )} AS project
-MERGE (p:Project {title: project.title, role: project.role})
-ON CREATE SET p.description = project.description,
-              p.start_date = project.start_date,
-              p.end_date = project.end_date,
-              p.url = project.url,
-              p.technologies_used = project.technologies_used,
-              p.achievements = project.achievements
-MERGE (t)-[:WORKED_ON]->(p)
-WITH t`;
+    data.projects.forEach((project, index) => {
+      cypher += `
+      CREATE (p${index}:Project {
+        title: "${escapeString(project.title)}",
+        description: "${escapeString(project.description)}",
+        start_date: "${escapeString(project.start_date)}",
+        end_date: "${escapeString(project.end_date || "")}",
+        url: "${escapeString(project.url || "")}",
+        role: "${escapeString(project.role)}",
+        technologies_used: ${JSON.stringify(project.technologies_used.map(escapeString))},
+        achievements: ${JSON.stringify(project.achievements.map(escapeString))}
+      })
+      CREATE (t)-[:WORKED_ON]->(p${index})
+      WITH t
+      `;
+    });
   }
 
-  // Handle Publications
+  // Publications
   if (data.publications && data.publications.length > 0) {
-    cypher += `
-UNWIND ${JSON.stringify(
-      data.publications.map((pub) => ({
-        title: escapeString(pub.title),
-        authors: pub.authors.map(escapeString),
-        publication_date: escapeString(pub.publication_date),
-        journal_or_conference: escapeString(pub.journal_or_conference),
-        doi: escapeString(pub.doi || ""),
-        url: escapeString(pub.url || ""),
-        abstract: escapeString(pub.abstract || ""),
-        citations: pub.citations || 0,
-      }))
-    )} AS pub
-MERGE (p:Publication {title: pub.title, journal_or_conference: pub.journal_or_conference})
-ON CREATE SET p.authors = pub.authors,
-              p.publication_date = pub.publication_date,
-              p.doi = pub.doi,
-              p.url = pub.url,
-              p.abstract = pub.abstract,
-              p.citations = pub.citations
-MERGE (t)-[:AUTHORED]->(p)
-WITH t`;
+    data.publications.forEach((pub, index) => {
+      cypher += `
+      CREATE (pub${index}:Publication {
+        title: "${escapeString(pub.title)}",
+        authors: ${JSON.stringify(pub.authors.map(escapeString))},
+        publication_date: "${escapeString(pub.publication_date)}",
+        journal_or_conference: "${escapeString(pub.journal_or_conference)}",
+        doi: "${escapeString(pub.doi || "")}",
+        url: "${escapeString(pub.url || "")}",
+        abstract: "${escapeString(pub.abstract || "")}",
+        citations: ${pub.citations || 0}
+      })
+      CREATE (t)-[:AUTHORED]->(pub${index})
+      WITH t
+      `;
+    });
   }
 
-  cypher += `
-RETURN t;`;
+  cypher += `RETURN t;`;
 
   return cypher;
 }
