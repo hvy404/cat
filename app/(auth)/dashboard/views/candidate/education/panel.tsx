@@ -80,7 +80,6 @@ export default function RightPanel() {
               <p>For each educational entry, include:</p>
               <ul className="list-disc pl-5 space-y-2">
                 <li>Degree or certification name</li>
-                <li>Major or field of study</li>
                 <li>Institution name</li>
                 <li>Graduation date (or expected graduation date)</li>
                 <li>Relevant coursework, projects, or thesis topics</li>

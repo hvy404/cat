@@ -1,7 +1,7 @@
 import useStore from "@/app/state/useStore";
 import { useEffect, useState, useRef } from "react";
-import CandidateDashboardRightPanel from "@/app/(auth)/dashboard/views/candidate/right-panel-main";
 import TalentPropertiesEditor from "@/app/(auth)/dashboard/views/candidate/edit/profile";
+import RightPanel from "@/app/(auth)/dashboard/views/candidate/profile/panel";
 
 export default function CandidateDashboardProfile() {
   const { isExpanded, setExpanded, user } = useStore();
@@ -24,7 +24,9 @@ export default function CandidateDashboardProfile() {
         }`}
       >
         <div className="flex justify-between gap-6 rounded-lg border p-4">
-          <h2 className="font-bold leading-6 text-gray-900">Manage your profile</h2>
+          <h2 className="font-bold leading-6 text-gray-900">
+            Manage your profile
+          </h2>
         </div>
         <div className="flex flex-col gap-6">
           <TalentPropertiesEditor />
@@ -35,7 +37,7 @@ export default function CandidateDashboardProfile() {
           isExpanded ? "lg:w-1/4" : "lg:w-1/2"
         }`}
       >
-        <CandidateDashboardRightPanel step={candidateDashboardStep} />
+        <RightPanel />
       </div>
     </main>
   );

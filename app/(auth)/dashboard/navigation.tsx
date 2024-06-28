@@ -12,7 +12,6 @@ import {
   Settings2,
   Home,
   SquareUser,
-  UsersRound,
   LucideIcon,
   BookOpen,
   Search,
@@ -21,6 +20,7 @@ import {
   GraduationCap,
   User,
   Award,
+  Compass,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -117,9 +117,10 @@ export default function EmployerDashboardNavigation() {
           variant="outline"
           size="icon"
           aria-label="Home"
-          onClick={() => setSelectedMenuItem("home")}
+          //onClick={() => setSelectedMenuItem("home")} 
+          // TODO: select home item based on role
         >
-          <UsersRound className="size-5" />
+          <Compass className="size-5" />
         </Button>
       </div>
       <nav className="grid gap-1 p-2">
