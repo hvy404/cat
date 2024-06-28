@@ -33,7 +33,7 @@ interface DashboardData {
 
 const mockData: DashboardData = {
   invitedJobs: [
-    {
+       {
       id: 1,
       title: "Senior React Developer",
       company: "Acme",
@@ -47,19 +47,9 @@ const mockData: DashboardData = {
       salary: "$100k - $130k",
       match: 88,
     },
+     
   ],
-  appliedJobs: [
-    {
-      id: 3,
-      title: "Frontend Developer",
-      company: "Batman",
-    },
-    {
-      id: 4,
-      title: "Software Architect",
-      company: "Spidey",
-    },
-  ],
+  appliedJobs: [],
   resumeRecommendations: [
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
     "Add more details about your role in Agile development processes",
@@ -145,8 +135,12 @@ export function CandidateDashboard() {
                 transition={{ duration: 0.5, delay: 0.1 }}
                 className="col-span-1 lg:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-6"
               >
-                <JobApplied appliedJobs={data.appliedJobs} />
-                <JobInvited invitedJobs={data.invitedJobs} />
+                <div className="flex flex-col h-full">
+                  <JobApplied appliedJobs={data.appliedJobs} />
+                </div>
+                <div className="flex flex-col h-full">
+                  <JobInvited invitedJobs={data.invitedJobs} />
+                </div>
               </motion.div>
 
               <motion.div
