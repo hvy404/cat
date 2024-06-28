@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import useStore from "@/app/state/useStore";
 import {
   Card,
@@ -10,10 +10,27 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronRight, Briefcase, FileText, UserPlus, Award, RefreshCw, TrendingUp, DollarSign, Clock } from 'lucide-react';
+import {
+  ChevronRight,
+  Briefcase,
+  FileText,
+  UserPlus,
+  Award,
+  RefreshCw,
+  TrendingUp,
+  DollarSign,
+  Clock,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 interface Job {
   id: number;
@@ -48,28 +65,48 @@ interface QuickStat {
 
 const mockData: DashboardData = {
   invitedJobs: [
-    { id: 1, title: 'Senior React Developer', company: 'Acme', salary: '$120k - $150k', match: 95 },
-    { id: 2, title: 'Full Stack Engineer', company: 'Corp', salary: '$100k - $130k', match: 88 },
+    {
+      id: 1,
+      title: "Senior React Developer",
+      company: "Acme",
+      salary: "$120k - $150k",
+      match: 95,
+    },
+    {
+      id: 2,
+      title: "Full Stack Engineer",
+      company: "Corp",
+      salary: "$100k - $130k",
+      match: 88,
+    },
   ],
   appliedJobs: [
-    { id: 3, title: 'Frontend Developer', company: 'Batman', status: 'In Review', progress: 60 },
-    { id: 4, title: 'Software Architect', company: 'Spidey', status: 'Interview Scheduled', progress: 80 },
+    {
+      id: 3,
+      title: "Frontend Developer",
+      company: "Batman",
+    },
+    {
+      id: 4,
+      title: "Software Architect",
+      company: "Spidey",
+    },
   ],
   resumeRecommendations: [
-    'Lorem ipsum dolor sit amet, consectetur adipiscing elit',
-    'Add more details about your role in Agile development processes',
-    'Include metrics demonstrating the impact of your work',
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+    "Add more details about your role in Agile development processes",
+    "Include metrics demonstrating the impact of your work",
   ],
   profileEnhancements: [
     'Complete the "Skills" section of your profile',
-    'Request endorsements from previous colleagues',
+    "Request endorsements from previous colleagues",
   ],
   careerInsights: [
-    { date: 'Jan', applications: 5, interviews: 2 },
-    { date: 'Feb', applications: 8, interviews: 3 },
-    { date: 'Mar', applications: 12, interviews: 5 },
-    { date: 'Apr', applications: 15, interviews: 7 },
-    { date: 'May', applications: 10, interviews: 4 },
+    { date: "Jan", applications: 5, interviews: 2 },
+    { date: "Feb", applications: 8, interviews: 3 },
+    { date: "Mar", applications: 12, interviews: 5 },
+    { date: "Apr", applications: 15, interviews: 7 },
+    { date: "May", applications: 10, interviews: 4 },
   ],
 };
 
@@ -80,34 +117,35 @@ const cardVariants = {
 
 interface JobCardProps {
   job: Job;
-  type: 'invited' | 'applied';
+  type: "invited" | "applied";
 }
 
 const JobCard: React.FC<JobCardProps> = ({ job, type }) => (
   <Card className="w-full bg-white shadow-sm hover:shadow-md transition-all duration-300 border-l-4 border-gray-300 flex flex-col h-full">
     <CardHeader className="pb-2">
       <div className="flex justify-between items-center">
-        <CardTitle className="text-md font-semibold text-gray-800">{job.title}</CardTitle>
-        {type === 'invited' && job.match && (
+        <CardTitle className="text-md font-semibold text-gray-800">
+          {job.title}
+        </CardTitle>
+        {type === "invited" && job.match && (
           <span className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded-full">
             {job.match}% Match
           </span>
         )}
       </div>
-      <CardDescription className="text-sm text-gray-600">{job.company}</CardDescription>
+      <CardDescription className="text-sm text-gray-600">
+        {job.company}
+      </CardDescription>
     </CardHeader>
     <CardContent className="py-2 flex-grow">
-      <p className="text-sm text-gray-700">
-        {type === 'invited' ? job.salary : (
-          <div className="flex items-center">
-            <span className="mr-2">{job.status}</span>
-            {job.progress && <Progress value={job.progress} className="w-24" />}
-          </div>
-        )}
-      </p>
+     Content...
     </CardContent>
     <CardFooter className="pt-2 flex justify-end">
-      <Button variant="ghost" size="sm" className="text-gray-700 hover:text-gray-900 hover:bg-gray-100">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+      >
         View Details <ChevronRight className="ml-1 w-4 h-4" />
       </Button>
     </CardFooter>
@@ -120,11 +158,17 @@ interface RecommendationCardProps {
   icon: React.ElementType;
 }
 
-const RecommendationCard: React.FC<RecommendationCardProps> = ({ title, items, icon: Icon }) => (
+const RecommendationCard: React.FC<RecommendationCardProps> = ({
+  title,
+  items,
+  icon: Icon,
+}) => (
   <Card className="w-full bg-white shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full">
     <CardHeader className="flex flex-row items-center space-x-2 pb-2">
       <Icon className="w-4 h-4 text-gray-700" />
-      <CardTitle className="text-md font-semibold text-gray-800">{title}</CardTitle>
+      <CardTitle className="text-md font-semibold text-gray-800">
+        {title}
+      </CardTitle>
     </CardHeader>
     <CardContent className="flex-grow">
       <ul className="space-y-2">
@@ -151,19 +195,33 @@ interface InsightsCardProps {
 const InsightsCard: React.FC<InsightsCardProps> = ({ data }) => (
   <Card className="w-full bg-white shadow-sm hover:shadow-md transition-all duration-300">
     <CardHeader>
-      <CardTitle className="text-sm font-semibold text-gray-800">Career Insights</CardTitle>
+      <CardTitle className="text-sm font-semibold text-gray-800">
+        Career Insights
+      </CardTitle>
     </CardHeader>
     <CardContent>
       <ResponsiveContainer width="100%" height={200}>
         <LineChart data={data}>
           <XAxis dataKey="date" stroke="#4B5563" />
           <YAxis stroke="#4B5563" />
-          <Tooltip 
-            contentStyle={{ backgroundColor: '#FFFFFF', border: 'none' }}
-            itemStyle={{ color: '#1F2937' }}
+          <Tooltip
+            contentStyle={{ backgroundColor: "#FFFFFF", border: "none" }}
+            itemStyle={{ color: "#1F2937" }}
           />
-          <Line type="monotone" dataKey="applications" stroke="#4B5563" strokeWidth={2} dot={false} />
-          <Line type="monotone" dataKey="interviews" stroke="#9CA3AF" strokeWidth={2} dot={false} />
+          <Line
+            type="monotone"
+            dataKey="applications"
+            stroke="#4B5563"
+            strokeWidth={2}
+            dot={false}
+          />
+          <Line
+            type="monotone"
+            dataKey="interviews"
+            stroke="#9CA3AF"
+            strokeWidth={2}
+            dot={false}
+          />
         </LineChart>
       </ResponsiveContainer>
     </CardContent>
@@ -173,8 +231,18 @@ const InsightsCard: React.FC<InsightsCardProps> = ({ data }) => (
 const QuickStats: React.FC = () => {
   const stats: QuickStat[] = [
     { icon: TrendingUp, title: "Profile Views", value: "152", change: "+12%" },
-    { icon: DollarSign, title: "Avg. Salary Range", value: "$110k - $140k", change: "+5%" },
-    { icon: Clock, title: "Time to Interview", value: "14 days", change: "-2 days" },
+    {
+      icon: DollarSign,
+      title: "Avg. Salary Range",
+      value: "$110k - $140k",
+      change: "+5%",
+    },
+    {
+      icon: Clock,
+      title: "Time to Interview",
+      value: "14 days",
+      change: "-2 days",
+    },
   ];
 
   return (
@@ -202,7 +270,7 @@ export function CandidateDashboard() {
 
   const refreshData = async () => {
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     setData(mockData);
     setIsLoading(false);
   };
@@ -215,19 +283,33 @@ export function CandidateDashboard() {
     <div className="max-w">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-xl font-bold text-gray-900">Welcome back, Huy</h1>
-        <Button onClick={refreshData} disabled={isLoading} variant="outline" size="sm" className="text-xs">
-          <RefreshCw className={`w-3 h-3 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+        <Button
+          onClick={refreshData}
+          disabled={isLoading}
+          variant="outline"
+          size="sm"
+          className="text-xs"
+        >
+          <RefreshCw
+            className={`w-3 h-3 mr-2 ${isLoading ? "animate-spin" : ""}`}
+          />
           Refresh
         </Button>
       </div>
 
       <QuickStats />
-      
+
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="overview" className="text-sm">Overview</TabsTrigger>
-          <TabsTrigger value="jobs" className="text-sm">Jobs</TabsTrigger>
-          <TabsTrigger value="insights" className="text-sm">Insights</TabsTrigger>
+          <TabsTrigger value="overview" className="text-sm">
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="jobs" className="text-sm">
+            Jobs
+          </TabsTrigger>
+          <TabsTrigger value="insights" className="text-sm">
+            Insights
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="overview">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -246,8 +328,13 @@ export function CandidateDashboard() {
                     <Briefcase className="w-4 h-4 mr-2 text-gray-700" />
                     Jobs You're Invited To
                   </h2>
-                  <div className="grid grid-cols-1 gap-4 flex-grow" style={{ gridTemplateRows: 'repeat(auto-fit, minmax(0, 1fr))' }}>
-                    {data.invitedJobs.map(job => (
+                  <div
+                    className="grid grid-cols-1 gap-4 flex-grow"
+                    style={{
+                      gridTemplateRows: "repeat(auto-fit, minmax(0, 1fr))",
+                    }}
+                  >
+                    {data.invitedJobs.map((job) => (
                       <JobCard key={job.id} job={job} type="invited" />
                     ))}
                   </div>
@@ -258,8 +345,13 @@ export function CandidateDashboard() {
                     <FileText className="w-4 h-4 mr-2 text-gray-700" />
                     Jobs You've Applied To
                   </h2>
-                  <div className="grid grid-cols-1 gap-4 flex-grow" style={{ gridTemplateRows: 'repeat(auto-fit, minmax(0, 1fr))' }}>
-                    {data.appliedJobs.map(job => (
+                  <div
+                    className="grid grid-cols-1 gap-4 flex-grow"
+                    style={{
+                      gridTemplateRows: "repeat(auto-fit, minmax(0, 1fr))",
+                    }}
+                  >
+                    {data.appliedJobs.map((job) => (
                       <JobCard key={job.id} job={job} type="applied" />
                     ))}
                   </div>
@@ -302,7 +394,9 @@ export function CandidateDashboard() {
         </TabsContent>
         <TabsContent value="jobs">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <p className="text-sm text-gray-700">Advanced job search and filtering options (to be implemented)</p>
+            <p className="text-sm text-gray-700">
+              Advanced job search and filtering options (to be implemented)
+            </p>
           </div>
         </TabsContent>
         <TabsContent value="insights">
