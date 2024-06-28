@@ -9,8 +9,9 @@ import {
   InsightsCard,
   CareerInsight,
 } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/career-insight";
-import { JobCard } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-card";
 import { RecommendationCard } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/recommendation-card";
+import { JobApplied } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-applied";
+import { JobInvited } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-invited";
 
 interface Job {
   id: number;
@@ -82,7 +83,6 @@ const cardVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
-
 export function CandidateDashboard() {
   const { candidateDashboard, setCandidateDashboard, user } = useStore();
   const candidateId = user?.uuid;
@@ -145,39 +145,8 @@ export function CandidateDashboard() {
                 transition={{ duration: 0.5, delay: 0.1 }}
                 className="col-span-1 lg:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-6"
               >
-                <div className="flex flex-col">
-                  <h2 className="text-md font-semibold text-gray-800 mb-4 flex items-center">
-                    <Briefcase className="w-4 h-4 mr-2 text-gray-700" />
-                    Jobs You're Invited To
-                  </h2>
-                  <div
-                    className="grid grid-cols-1 gap-4 flex-grow"
-                    style={{
-                      gridTemplateRows: "repeat(auto-fit, minmax(0, 1fr))",
-                    }}
-                  >
-                    {data.invitedJobs.map((job) => (
-                      <JobCard key={job.id} job={job} type="invited" />
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex flex-col">
-                  <h2 className="text-md font-semibold text-gray-800 mb-4 flex items-center">
-                    <FileText className="w-4 h-4 mr-2 text-gray-700" />
-                    Jobs You've Applied To
-                  </h2>
-                  <div
-                    className="grid grid-cols-1 gap-4 flex-grow"
-                    style={{
-                      gridTemplateRows: "repeat(auto-fit, minmax(0, 1fr))",
-                    }}
-                  >
-                    {data.appliedJobs.map((job) => (
-                      <JobCard key={job.id} job={job} type="applied" />
-                    ))}
-                  </div>
-                </div>
+                <JobApplied appliedJobs={data.appliedJobs} />
+                <JobInvited invitedJobs={data.invitedJobs} />
               </motion.div>
 
               <motion.div

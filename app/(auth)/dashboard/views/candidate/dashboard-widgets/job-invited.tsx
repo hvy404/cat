@@ -1,0 +1,78 @@
+import React from "react";
+import { Briefcase, FileText, PlusCircle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { JobCard } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-card";
+
+interface Job {
+  id: number;
+  title: string;
+  company: string;
+  salary?: string;
+  match?: number;
+  status?: string;
+  progress?: number;
+}
+
+interface DashboardData {
+  invitedJobs: Job[];
+  appliedJobs: Job[];
+}
+
+const EmptyStateCard = ({
+  title,
+  description,
+  buttonText,
+}: {
+  title: string;
+  description: string;
+  buttonText: string;
+}) => (
+  <Card className="w-full bg-white shadow-sm hover:shadow-md transition-all duration-300 border-l-4 border-blue-300">
+    <CardHeader className="pb-2">
+      <CardTitle className="text-lg font-semibold text-gray-800">
+        {title}
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="py-4">
+      <p className="text-sm text-gray-600 mb-4">{description}</p>
+      <Button
+        variant="outline"
+        size="sm"
+        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+      >
+        <PlusCircle className="mr-2 h-4 w-4" /> {buttonText}
+      </Button>
+    </CardContent>
+  </Card>
+);
+
+export const JobInvited = ({ invitedJobs }: { invitedJobs: Job[] }) => {
+  const hasInvitedJobs = invitedJobs && invitedJobs.length > 0;
+
+  return (
+    <div className="space-y-8">
+      <div className="flex flex-col">
+        <h2 className="text-md font-semibold text-gray-800 mb-4 flex items-center">
+          <Briefcase className="w-4 h-4 mr-2 text-gray-700" />
+          Jobs You're Invited To
+        </h2>
+        {hasInvitedJobs ? (
+          <div className="grid grid-cols-1 gap-4">
+            {invitedJobs.map((job) => (
+              <JobCard key={job.id} job={job} type="invited" />
+            ))}
+          </div>
+        ) : (
+          <EmptyStateCard
+            title="No Invitations Yet"
+            description="We're actively looking for great job matches for you. Check back soon or update your profile to improve your chances!"
+            buttonText="Update Profile"
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default JobInvited;
