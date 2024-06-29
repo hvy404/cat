@@ -3,6 +3,7 @@ import { generateEmbeddings } from "@/lib/llm/generate-embeddings";
 import { contentModerationWordFilter } from "@/lib/content-moderation/explicit_word_filter";
 import { findSimilarJobs } from "./job-utils";
 import { Integer } from 'neo4j-driver';
+import { jobSearchCache, getCache, setCache } from "./cache";
 
 // Utility function to ensure all data is serializable
 function ensureSerializable(obj: any): any {
@@ -44,7 +45,7 @@ export type JobSearchResult = {
   similarJobs: SerializableJobResult[];
 };
 
-export async function jobSearchHandler(mainSearchQuery: string): Promise<JobSearchResult | { match: false; socket: true }> {
+export async function jobSearchHandler(mainSearchQuery: string, userId: string): Promise<JobSearchResult | { match: false; socket: true }> {
   // Validate the mainSearchQuery
   const isValid = /^(?=.*[a-zA-Z0-9])(?:(?:\s|[a-zA-Z0-9])+)$/.test(mainSearchQuery);
   if (!isValid) {
@@ -64,6 +65,16 @@ export async function jobSearchHandler(mainSearchQuery: string): Promise<JobSear
   }
 
   try {
+    // Check cache first
+    const cachedResults = await getCache({ userId, searchQuery: mainSearchQuery });
+    if (cachedResults) {
+      return {
+        match: cachedResults.length > 0,
+        similarJobs: cachedResults,
+      };
+    }
+
+    // If not in cache, perform the search
     const buildQuery = `I am looking for a job as a ${mainSearchQuery}`;
     const embeddings = await generateEmbeddings(buildQuery);
     const threshold = 0.6;
@@ -71,6 +82,9 @@ export async function jobSearchHandler(mainSearchQuery: string): Promise<JobSear
 
     // Ensure all job data is serializable
     const serializableJobs = similarJobs.map(job => ensureSerializable(job));
+
+    // Cache the results
+    await setCache({ userId, searchQuery: mainSearchQuery, searchResults: serializableJobs });
 
     return {
       match: serializableJobs.length > 0,
