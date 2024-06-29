@@ -4,7 +4,7 @@ import { read } from "@/lib/neo4j/utils";
 export type DetailedJobResult = {
   job_id: string;
   job_title: string;
-  company: string;
+  company?: string;
   security_clearance: string;
   location: string;
   score: number;
@@ -28,6 +28,69 @@ export type DetailedJobResult = {
   hourly_comp_min: number;
   hourly_comp_max: number;
 };
+
+export async function remapJobType(type: string): Promise<string> {
+  const jobTypeMap: { [key: string]: string } = {
+    "full-time": "Full-Time",
+    "part-time": "Part-Time",
+    "contract": "Contract",
+    "temporary": "Temporary",
+    // Add more mappings as needed
+  };
+
+  return jobTypeMap[type.toLowerCase()] || type;
+}
+
+export async function remapJobProperties(
+  jobType: string,
+  locationType: string,
+  securityClearance: string
+): Promise<{ jobType: string; locationType: string; securityClearance: string }> {
+  const remappedJobType = await remapJobType(jobType);
+
+  const remapLocationType = async (type: string): Promise<string> => {
+    switch (type.toLowerCase()) {
+      case "remote":
+        return "Remote";
+      case "onsite":
+        return "On Site";
+      case "hybrid":
+        return "Hybrid";
+      default:
+        return type;
+    }
+  };
+
+  const remapClearanceLevel = async (level: string): Promise<string> => {
+    switch (level.toLowerCase()) {
+      case "none":
+        return "Unclassified";
+      case "basic":
+        return "Public Trust";
+      case "confidential":
+        return "Secret";
+      case "critical":
+        return "Top Secret";
+      case "paramount":
+        return "Top Secret/SCI";
+      case "q_clearance":
+        return "Q Clearance";
+      case "l_clearance":
+        return "L Clearance";
+      default:
+        return level;
+    }
+  };
+
+  const remappedLocationType = await remapLocationType(locationType);
+  const remappedSecurityClearance = await remapClearanceLevel(securityClearance);
+
+  return {
+    jobType: remappedJobType,
+    locationType: remappedLocationType,
+    securityClearance: remappedSecurityClearance,
+  };
+}
 
 export async function findSimilarJobs(
   embedding: number[],
@@ -72,35 +135,49 @@ export async function findSimilarJobs(
   try {
     const result = await read(query, params);
 
-    const similarJobsPlain: DetailedJobResult[] = result.map(
-      ({ similarJob, score }) => ({
-        job_id: similarJob.job_id,
-        job_title: similarJob.job_title,
-        company: similarJob.company,
-        security_clearance: similarJob.security_clearance,
-        location: similarJob.location,
-        score,
-        experience: similarJob.experience,
-        client: similarJob.client,
-        job_type: similarJob.job_type,
-        remote_flexibility: similarJob.remote_flexibility,
-        company_overview: similarJob.company_overview,
-        advancement_potential: similarJob.advancement_potential,
-        employer_id: similarJob.employer_id,
-        location_type: similarJob.location_type,
-        summary: similarJob.summary,
-        salary_disclose: similarJob.salary_disclose,
-        private_employer: similarJob.private_employer,
-        compensation_type: similarJob.compensation_type,
-        maximum_salary: similarJob.maximum_salary,
-        starting_salary: similarJob.starting_salary,
-        commission_percent: similarJob.commission_percent,
-        commission_pay: similarJob.commission_pay,
-        ote_salary: similarJob.ote_salary,
-        hourly_comp_min: similarJob.hourly_comp_min,
-        hourly_comp_max: similarJob.hourly_comp_max,
-      })
-    );
+    const similarJobsPlain: DetailedJobResult[] = await Promise.all(result.map(
+      async ({ similarJob, score }) => {
+        const remappedProperties = await remapJobProperties(
+          similarJob.job_type,
+          similarJob.location_type,
+          similarJob.security_clearance
+        );
+
+        const jobResult: DetailedJobResult = {
+          job_id: similarJob.job_id,
+          job_title: similarJob.job_title,
+          security_clearance: remappedProperties.securityClearance,
+          location: similarJob.location,
+          score,
+          experience: similarJob.experience,
+          client: similarJob.client,
+          job_type: remappedProperties.jobType,
+          remote_flexibility: similarJob.remote_flexibility,
+          company_overview: similarJob.company_overview,
+          advancement_potential: similarJob.advancement_potential,
+          employer_id: similarJob.employer_id,
+          location_type: remappedProperties.locationType,
+          summary: similarJob.summary,
+          salary_disclose: similarJob.salary_disclose,
+          private_employer: similarJob.private_employer,
+          compensation_type: similarJob.compensation_type,
+          maximum_salary: similarJob.maximum_salary,
+          starting_salary: similarJob.starting_salary,
+          commission_percent: similarJob.commission_percent,
+          commission_pay: similarJob.commission_pay,
+          ote_salary: similarJob.ote_salary,
+          hourly_comp_min: similarJob.hourly_comp_min,
+          hourly_comp_max: similarJob.hourly_comp_max,
+        };
+
+        // Only include company if private_employer is false
+        if (!similarJob.private_employer) {
+          jobResult.company = similarJob.company;
+        }
+
+        return jobResult;
+      }
+    ));
 
     return similarJobsPlain;
   } catch (error) {
@@ -120,6 +197,22 @@ export async function getJobProperties(jobId: string) {
   try {
     const result = await read(query, params);
     const jobProperties = result[0]?.j.properties;
+    
+    if (jobProperties) {
+      const remappedProperties = await remapJobProperties(
+        jobProperties.job_type,
+        jobProperties.location_type,
+        jobProperties.security_clearance
+      );
+
+      return {
+        ...jobProperties,
+        job_type: remappedProperties.jobType,
+        location_type: remappedProperties.locationType,
+        security_clearance: remappedProperties.securityClearance,
+      };
+    }
+
     return jobProperties;
   } catch (error) {
     console.error("We encountered an error while fetching job properties");

@@ -71,8 +71,8 @@ export async function fetchDetailedJobPosts(userID: string, filter: string) {
 const jobTypeMap: Record<string, string> = {
   "full-time": "Full-Time",
   "part-time": "Part-Time",
-  contract: "Contract",
-  temporary: "Temporary",
+  "contract": "Contract",
+  "temporary": "Temporary",
 };
 
 const compensationTypeMap: Record<string, string> = {
@@ -80,24 +80,6 @@ const compensationTypeMap: Record<string, string> = {
   hourly: "Hourly",
   commission: "Commission",
 };
-
-interface JobPost {
-  description: string;
-  job_type: keyof typeof jobTypeMap;
-  active: boolean;
-  private_employer: boolean;
-  min_salary: number;
-  max_salary: number;
-  location_type: "remote" | "onsite" | "hybrid";
-  security_clearance: string;
-  salary_disclose: boolean;
-  commission_pay: boolean;
-  commission_percent: number;
-  ote_salary: number;
-  compensation_type: keyof typeof compensationTypeMap;
-  hourly_comp_min: number;
-  hourly_comp_max: number;
-}
 
 export async function fetchJobPostSpecifics(userId: string, jobId: string) {
   const { data, error } = await supabase

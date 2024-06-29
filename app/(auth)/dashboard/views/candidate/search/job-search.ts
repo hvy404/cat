@@ -1,7 +1,7 @@
 "use server";
 import { generateEmbeddings } from "@/lib/llm/generate-embeddings";
 import { contentModerationWordFilter } from "@/lib/content-moderation/explicit_word_filter";
-import { findSimilarJobs, DetailedJobResult } from "./job-utils";
+import { findSimilarJobs } from "./job-utils";
 import { Integer } from 'neo4j-driver';
 
 // Utility function to ensure all data is serializable
@@ -66,7 +66,7 @@ export async function jobSearchHandler(mainSearchQuery: string): Promise<JobSear
   try {
     const buildQuery = `I am looking for a job as a ${mainSearchQuery}`;
     const embeddings = await generateEmbeddings(buildQuery);
-    const threshold = 0.515;
+    const threshold = 0.6;
     const similarJobs = await findSimilarJobs(embeddings, threshold);
 
     // Ensure all job data is serializable

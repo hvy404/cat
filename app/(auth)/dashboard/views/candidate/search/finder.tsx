@@ -33,11 +33,17 @@ export const JobSearch: React.FC = () => {
     return salary ? `$${salary.toLocaleString()}` : 'Not specified';
   };
 
+  const formatHourlyRate = (rate: number | null) => {
+    return rate ? `$${rate.toFixed(2)}` : 'Not specified';
+  };
+
   const renderJobDetails = (job: SerializableJobResult) => (
     <Card key={job.job_id} className="mb-4 shadow-sm hover:shadow-md transition-all duration-300">
       <CardHeader>
         <CardTitle className="text-lg font-semibold text-gray-800">{job.job_title}</CardTitle>
-        <CardDescription className="text-sm text-gray-600">{job.company}</CardDescription>
+        <CardDescription className="text-sm text-gray-600">
+          {job.company ? job.company : <p className='inline-flex flex-grow-0 rounded-xl text-xs bg-gray-900 text-white px-2 py-1'>Private Employer</p>}
+        </CardDescription>
       </CardHeader>
       <CardContent className="text-sm text-gray-700 space-y-2">
         <div className="flex items-center">
@@ -59,7 +65,15 @@ export const JobSearch: React.FC = () => {
         {job.salary_disclose && (
           <div className="flex items-center">
             <DollarSign className="w-4 h-4 mr-2 text-gray-500" />
-            <span>Salary Range: {formatSalary(job.starting_salary)} - {formatSalary(job.maximum_salary)}</span>
+            {job.compensation_type === 'salary' && (
+              <span>Salary Range: {formatSalary(job.starting_salary)} - {formatSalary(job.maximum_salary)}</span>
+            )}
+            {job.compensation_type === 'hourly' && (
+              <span>Hourly Rate: {formatHourlyRate(job.hourly_comp_min)} - {formatHourlyRate(job.hourly_comp_max)}</span>
+            )}
+            {job.compensation_type === 'commission' && (
+              <span>OTE: {formatSalary(job.ote_salary)} (Commission: {job.commission_percent}%)</span>
+            )}
           </div>
         )}
         <p className="mt-2">{job.summary}</p>
