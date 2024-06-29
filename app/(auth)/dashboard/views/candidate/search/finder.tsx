@@ -8,6 +8,7 @@ import {
   DollarSign,
   ChevronLeft,
   ChevronRight,
+  Flag,
 } from "lucide-react";
 import {
   Card,
@@ -25,11 +26,16 @@ import {
   JobSearchResult,
   SerializableJobResult,
 } from "./job-search";
+import { WildWest } from "./flag/wildwest";
 
 type ExtendedJobSearchResult = JobSearchResult & {
   match: boolean;
   socket: boolean;
   similarJobs: SerializableJobResult[];
+  flag?: {
+    threshold: number;
+    mode: string;
+  };
 };
 
 const card_per = 5;
@@ -60,9 +66,9 @@ export const JobSearch: React.FC = () => {
     try {
       const results = await jobSearchHandler(searchQuery, userId);
       setSearchResults(results as ExtendedJobSearchResult);
+      console.log("Job search results:", results);
     } catch (err) {
       setError("An error occurred while searching for jobs. Please try again.");
-      console.error("Job search error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -195,68 +201,74 @@ export const JobSearch: React.FC = () => {
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
       {hasSearched && searchResults && (
-        <Tabs defaultValue="results" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="results" className="text-sm">
-              Search Results
-            </TabsTrigger>
-            <TabsTrigger value="filters" className="text-sm">
-              Filters
-            </TabsTrigger>
-          </TabsList>
+        <>
+          {searchResults.flag && searchResults.flag.mode && (
+            <WildWest />
+          )}
 
-          <TabsContent value="results">
-            {searchResults.match && searchResults.similarJobs.length > 0 ? (
-              <>
-                {getCurrentPageJobs().map(renderJobDetails)}
-                {shouldShowPagination && (
-                  <div className="flex justify-between items-center mt-4">
-                    <Button
-                      onClick={handlePrevPage}
-                      disabled={currentPage === 1}
-                      variant="outline"
-                      size="sm"
-                    >
-                      <ChevronLeft className="w-4 h-4 mr-2" />
-                      Previous
-                    </Button>
-                    <span className="text-sm text-gray-600">
-                      Page {currentPage} of {totalPages}
-                    </span>
-                    <Button
-                      onClick={handleNextPage}
-                      disabled={currentPage === totalPages}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Next
-                      <ChevronRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </div>
-                )}
-              </>
-            ) : (
-              <p className="text-gray-600 text-sm">
-                No matching opportunities found at this time.
-              </p>
-            )}
-          </TabsContent>
+          <Tabs defaultValue="results" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="results" className="text-sm">
+                Search Results
+              </TabsTrigger>
+              <TabsTrigger value="filters" className="text-sm">
+                Filters
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="filters">
-            <Card className="bg-gray-50">
-              <CardHeader>
-                <CardTitle className="text-md">Search Filters</CardTitle>
-                <CardDescription>
-                  Refine your job search results
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {/* Add filter options here */}
-                <p className="text-gray-600">Filter options coming soon...</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="results">
+              {searchResults.match && searchResults.similarJobs.length > 0 ? (
+                <>
+                  {getCurrentPageJobs().map(renderJobDetails)}
+                  {shouldShowPagination && (
+                    <div className="flex justify-between items-center mt-4">
+                      <Button
+                        onClick={handlePrevPage}
+                        disabled={currentPage === 1}
+                        variant="outline"
+                        size="sm"
+                      >
+                        <ChevronLeft className="w-4 h-4 mr-2" />
+                        Previous
+                      </Button>
+                      <span className="text-sm text-gray-600">
+                        Page {currentPage} of {totalPages}
+                      </span>
+                      <Button
+                        onClick={handleNextPage}
+                        disabled={currentPage === totalPages}
+                        variant="outline"
+                        size="sm"
+                      >
+                        Next
+                        <ChevronRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p className="text-gray-600 text-sm">
+                  No matching opportunities found at this time.
+                </p>
+              )}
+            </TabsContent>
+
+            <TabsContent value="filters">
+              <Card className="bg-gray-50">
+                <CardHeader>
+                  <CardTitle className="text-md">Search Filters</CardTitle>
+                  <CardDescription>
+                    Refine your job search results
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {/* Add filter options here */}
+                  <p className="text-gray-600">Filter options coming soon...</p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </>
       )}
     </div>
   );

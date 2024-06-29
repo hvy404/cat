@@ -1,8 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Shield, Info, ChevronRight } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Search, Zap, UserCheck, Lightbulb } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const cardVariants = {
@@ -29,11 +28,6 @@ const Section: React.FC<SectionProps> = ({ title, description, content, icon: Ic
     <CardContent className="flex-grow">
       {content}
     </CardContent>
-{/*     <CardFooter className="pt-2 mt-auto">
-      <Button variant="ghost" size="sm" className="w-full text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100">
-        Edit <ChevronRight className="ml-1 w-4 h-4" />
-      </Button>
-    </CardFooter> */}
   </Card>
 );
 
@@ -41,25 +35,25 @@ export default function RightPanelSearch() {
   return (
     <div className="max-w-3xl mx-auto p-6 bg-gray-50 rounded-xl">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-xl font-bold text-gray-900">Panel Search</h1>
+        <h1 className="text-xl font-bold text-gray-900">Smart Search</h1>
       </div>
 
       <p className="text-gray-600 mb-6 text-sm">
-        Your public profile is crucial for matching you with federal contracting opportunities. Keep your information up-to-date to improve your chances of finding the perfect placement.
+        While our AI-powered matching is at the core of our platform, we understand that sometimes you want to take the reins. Use our Smart Search to explore opportunities tailored to your professional profile.
       </p>
 
-      <Tabs defaultValue="personal" className="w-full">
+      <Tabs defaultValue="search" className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="personal" className="text-sm">Personal Info</TabsTrigger>
-          <TabsTrigger value="security" className="text-sm">Security Clearance</TabsTrigger>
-          <TabsTrigger value="tips" className="text-sm">Optimization Tips</TabsTrigger>
+          <TabsTrigger value="search" className="text-sm">How It Works</TabsTrigger>
+          <TabsTrigger value="ai" className="text-sm">Smart Matching</TabsTrigger>
+          <TabsTrigger value="tips" className="text-sm">Search Tips</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="personal">
+        <TabsContent value="search">
           <div className="grid grid-cols-1 gap-6">
             <AnimatePresence>
               <motion.div
-                key="personal"
+                key="search"
                 variants={cardVariants}
                 initial="hidden"
                 animate="visible"
@@ -67,16 +61,19 @@ export default function RightPanelSearch() {
                 transition={{ duration: 0.5, delay: 0.1 }}
               >
                 <Section
-                  title="Personal Information"
-                  description="Key details for your profile"
-                  icon={User}
+                  title="Smart Search: Your Personal Job Explorer"
+                  description="Discover opportunities that fit you"
+                  icon={Search}
                   content={
-                    <ul className="list-disc pl-5 space-y-2 text-sm text-gray-600">
-                      <li>Name: How you'll be identified to potential employers</li>
-                      <li>Email: Your primary contact method for opportunities</li>
-                      <li>Location (City, State, Zip): Highly recommended as employers often search by location</li>
-                      <li>Ensure all information is accurate and professional</li>
-                    </ul>
+                    <div className="space-y-3 text-sm text-gray-600">
+                      <p>Our Smart Search is like having a personal career assistant:</p>
+                      <ul className="list-disc pl-5 space-y-2">
+                        <li>It uses the information from your profile to find relevant job opportunities</li>
+                        <li>When you search, you're not seeing every job out there - just the ones that could be a good match for you</li>
+                        <li>Try searching for job titles, skills, or even companies you're interested in</li>
+                        <li>The more complete your profile, the better your search results will be</li>
+                      </ul>
+                    </div>
                   }
                 />
               </motion.div>
@@ -84,11 +81,11 @@ export default function RightPanelSearch() {
           </div>
         </TabsContent>
 
-        <TabsContent value="security">
+        <TabsContent value="ai">
           <div className="grid grid-cols-1 gap-6">
             <AnimatePresence>
               <motion.div
-                key="security"
+                key="ai"
                 variants={cardVariants}
                 initial="hidden"
                 animate="visible"
@@ -96,16 +93,16 @@ export default function RightPanelSearch() {
                 transition={{ duration: 0.5, delay: 0.1 }}
               >
                 <Section
-                  title="Security Clearance"
-                  description="Essential for many federal positions"
-                  icon={Shield}
+                  title="Smart Matching: Your Career Compass"
+                  description="How our technology finds your perfect fit"
+                  icon={Zap}
                   content={
                     <div className="space-y-3 text-sm text-gray-600">
-                      <p>Your security clearance level is crucial for many positions:</p>
+                      <p>Our smart technology works behind the scenes to help you:</p>
                       <ul className="list-disc pl-5 space-y-2">
-                        <li>Select your current clearance level accurately</li>
-                        <li>Update promptly if your clearance status changes</li>
-                        <li>This information helps match you with appropriate opportunities</li>
+                        <li>It looks at your whole professional story - your skills, experience, and what you want for your future</li>
+                        <li>Then, it searches through tons of jobs to find the ones that fit you best</li>
+                        <li>The more you use our platform, the better it gets at understanding what you're looking for</li>
                       </ul>
                     </div>
                   }
@@ -127,16 +124,16 @@ export default function RightPanelSearch() {
                 transition={{ duration: 0.5, delay: 0.1 }}
               >
                 <Section
-                  title="Profile Optimization Tips"
-                  description="Maximize your chances of finding opportunities"
-                  icon={Info}
+                  title="Search Like a Pro"
+                  description="Get the most out of your job search"
+                  icon={Lightbulb}
                   content={
                     <ul className="list-disc pl-5 space-y-2 text-sm text-gray-600">
-                      <li>Use a professional email address</li>
-                      <li>Double-check all entered information for accuracy</li>
-                      <li>Regularly update your profile to reflect current skills and clearances</li>
-                      <li>Employers often have strict placement criteria; the more complete your profile, the better your chances of matching</li>
-                      <li>Ensure your security clearance information is always up-to-date</li>
+                      <li>Keep your profile up-to-date - it's like giving our smart search a better map to find your dream job</li>
+                      <li>Try different search terms - if "Marketing Manager" doesn't show what you want, try "Brand Strategist" or "Digital Marketing"</li>
+                      <li>Use specific skills in your search - especially for those unique abilities you bring to the table</li>
+                      <li>Don't see what you're looking for? New opportunities are added all the time, so check back often</li>
+                      <li>Remember, while you're searching, our smart technology is also working to bring opportunities to you</li>
                     </ul>
                   }
                 />

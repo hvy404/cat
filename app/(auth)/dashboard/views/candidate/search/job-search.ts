@@ -43,11 +43,43 @@ export type SerializableJobResult = ReturnType<typeof ensureSerializable>;
 export type JobSearchResult = {
   match: boolean;
   similarJobs: SerializableJobResult[];
+  flag?: {
+    threshold: number;
+    mode: string;
+  };
 };
 
 export async function jobSearchHandler(mainSearchQuery: string, userId: string): Promise<JobSearchResult | { match: false; socket: true }> {
-  // Validate the mainSearchQuery
-  const isValid = /^(?=.*[a-zA-Z0-9])(?:(?:\s|[a-zA-Z0-9])+)$/.test(mainSearchQuery);
+  let threshold = 0.64; // Default threshold
+  let cleanedSearchQuery = mainSearchQuery;
+  let mode = "";
+
+  // Check for easter eggs
+  switch (true) {
+    case mainSearchQuery.includes("!wildwest"):
+      console.log("Yeehaw! 🤠");
+      threshold = 0.5;
+      mode = "wildwest";
+      cleanedSearchQuery = mainSearchQuery.replace("!wildwest", "").trim();
+      break;
+    case mainSearchQuery.includes("!cyberpunk"):
+      console.log("Welcome to Night City! 🌃");
+      threshold = 0.6;
+      cleanedSearchQuery = mainSearchQuery.replace("!cyberpunk", "").trim();
+      break;
+    case mainSearchQuery.includes("!space"):
+      console.log("To infinity and beyond! 🚀");
+      threshold = 0.55;
+      cleanedSearchQuery = mainSearchQuery.replace("!space", "").trim();
+      break;
+    // Add more easter eggs here as needed
+    default:
+      // No easter egg found, use default threshold and don't modify the query
+      break;
+  }
+
+  // Validate the cleaned search query
+  const isValid = /^(?=.*[a-zA-Z0-9])(?:(?:\s|[a-zA-Z0-9])+)$/.test(cleanedSearchQuery);
   if (!isValid) {
     return {
       match: false,
@@ -55,8 +87,8 @@ export async function jobSearchHandler(mainSearchQuery: string, userId: string):
     };
   }
 
-  // Check for explicit content in the main search query
-  const explicitContent = await contentModerationWordFilter(mainSearchQuery);
+  // Check for explicit content in the cleaned search query
+  const explicitContent = await contentModerationWordFilter(cleanedSearchQuery);
   if (explicitContent) {
     return {
       match: false,
@@ -66,7 +98,7 @@ export async function jobSearchHandler(mainSearchQuery: string, userId: string):
 
   try {
     // Check cache first
-    const cachedResults = await getCache({ userId, searchQuery: mainSearchQuery });
+    const cachedResults = await getCache({ userId, searchQuery: cleanedSearchQuery });
     if (cachedResults) {
       return {
         match: cachedResults.length > 0,
@@ -75,20 +107,25 @@ export async function jobSearchHandler(mainSearchQuery: string, userId: string):
     }
 
     // If not in cache, perform the search
-    const buildQuery = `I am looking for a job as a ${mainSearchQuery}`;
+    const buildQuery = `I am looking for a job as a ${cleanedSearchQuery}`;
     const embeddings = await generateEmbeddings(buildQuery);
-    const threshold = 0.6;
+    
     const similarJobs = await findSimilarJobs(embeddings, threshold);
 
     // Ensure all job data is serializable
     const serializableJobs = similarJobs.map(job => ensureSerializable(job));
 
     // Cache the results
-    await setCache({ userId, searchQuery: mainSearchQuery, searchResults: serializableJobs });
+    await setCache({ userId, searchQuery: cleanedSearchQuery, searchResults: serializableJobs });
 
     return {
       match: serializableJobs.length > 0,
       similarJobs: serializableJobs,
+      // if easteregg is found, return the threshold and cleaned query
+      flag: {
+        threshold,
+        mode,
+      },
     };
   } catch (error) {
     console.error("Error in jobSearchHandler:", error);
