@@ -34,20 +34,20 @@ export default function EmployerDashboardHeader() {
   const roleEmployer = "employer";
   const roleCandidate = "candidate";
 
-// Inside your component
-let isLoaded = false;
+  // Inside your component
+  let isLoaded = false;
 
-useEffect(() => {
-  if (!isLoaded) {
-    setUser({
-      email: "",
-      uuid: userIdentity,
-      session: "",
-      role: roleCandidate,
-    });
-    isLoaded = true; // Set the flag to true after setting the user
-  }
-}, []); // Dependency array remains empty to ensure this effect runs only once after the initial render
+  useEffect(() => {
+    if (!isLoaded) {
+      setUser({
+        email: "",
+        uuid: userIdentity,
+        session: "",
+        role: roleCandidate,
+      });
+      isLoaded = true; // Set the flag to true after setting the user
+    }
+  }, []); // Dependency array remains empty to ensure this effect runs only once after the initial render
 
   return (
     <header className="sticky top-0 z-10 flex h-[57px] items-center gap-1 border-b bg-background px-4">

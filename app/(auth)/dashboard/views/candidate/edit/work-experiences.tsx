@@ -218,7 +218,7 @@ export default function WorkExperiences(props: {
           }`}
         >
           <div className="flex justify-between items-center">
-            <h3 className="text-xl font-semibold">
+            <h3 className="text-lg font-semibold">
               {experience.job_title || "New Experience"}
             </h3>
 

@@ -1,4 +1,5 @@
 /**
+ * Supports Neo4j/5.20-aura
  * Executes a write operation in Neo4j using the provided Cypher query and parameters.
  * Having dynamic parameters is optional.
  * @param cypher - The Cypher query to execute.

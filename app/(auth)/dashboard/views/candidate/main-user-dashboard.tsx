@@ -12,6 +12,7 @@ import {
 import { RecommendationCard } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/recommendation-card";
 import { JobApplied } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-applied";
 import { JobInvited } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-invited";
+import { JobSearch } from "./search/finder";
 
 interface Job {
   id: number;
@@ -179,9 +180,7 @@ export function CandidateDashboard() {
         </TabsContent>
         <TabsContent value="jobs">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <p className="text-sm text-gray-700">
-              Advanced job search and filtering options (to be implemented)
-            </p>
+            <JobSearch />
           </div>
         </TabsContent>
         <TabsContent value="insights">

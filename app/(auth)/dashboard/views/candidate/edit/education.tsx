@@ -177,7 +177,7 @@ export default function Education() {
           className="border p-4 rounded-md space-y-4"
         >
           <div className="flex justify-between items-center">
-            <h3 className="text-xl font-semibold">
+            <h3 className="text-lg font-semibold">
               {education.degree || "New Education"}
             </h3>
             <Tooltip>

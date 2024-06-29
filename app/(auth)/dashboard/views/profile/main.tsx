@@ -1,6 +1,7 @@
 import useStore from "@/app/state/useStore";
 import { useEffect } from "react";
 import { MyProfileForm } from "@/app/(auth)/dashboard/views/profile/form";
+import ProfileRightPanel from "@/app/(auth)/dashboard/views/profile/right-panel";
 
 export default function EmployerDashboardProfile() {
   const { isExpanded, setExpanded, toggleExpansion } = useStore();
@@ -30,7 +31,7 @@ export default function EmployerDashboardProfile() {
         }`}
       >
         <div className="min-h-[90vh] rounded-xl bg-muted/50 p-4 overflow-auto">
-          <div className="grid gap-6">Right Column</div>
+          <ProfileRightPanel />
         </div>
       </div>
     </main>

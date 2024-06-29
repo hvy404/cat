@@ -120,7 +120,7 @@ export default function SOWUploader() {
       {jdBuilderWizard.files.length === 0 && (
         <>
           <PaperclipIcon
-            className={`w-8 h-8 text-gray-500 flex-shrink-0 ${
+            className={`w-4 h-4 text-gray-500 flex-shrink-0 ${
               jdBuilderWizard.files.length === 0 ? "animate-bounce" : ""
             }`}
           />

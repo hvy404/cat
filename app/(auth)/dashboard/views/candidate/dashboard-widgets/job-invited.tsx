@@ -28,7 +28,7 @@ const EmptyStateCard = ({
   description: string;
   buttonText: string;
 }) => (
-  <Card className="w-full h-full bg-white shadow-sm hover:shadow-md transition-all duration-300 border-l-4 border-gray-300 flex flex-col">
+  <Card className="w-full h-full bg-white shadow-sm hover:shadow-md transition-all duration-300 border-gray-300 flex flex-col">
     <CardHeader className="pb-2">
       <CardTitle className="text-lg font-semibold text-gray-800">
         {title}

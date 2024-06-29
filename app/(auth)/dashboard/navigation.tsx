@@ -94,6 +94,7 @@ export default function EmployerDashboardNavigation() {
           return (
             <>
               <TooltipButton item="talent-dashboard" label="Dashboard" icon={Layers2} />
+              <TooltipButton item="talent-search" label="Search" icon={Search} />
               <TooltipButton item="talent-experience" label="Experience" icon={BriefcaseBusiness} />
               <TooltipButton item="talent-education" label="Education" icon={GraduationCap} />
               <TooltipButton item="talent-certifications" label="Certifications" icon={Award} />
