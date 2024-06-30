@@ -31,7 +31,7 @@ const Section: React.FC<SectionProps> = ({ title, description, content, icon: Ic
   </Card>
 );
 
-export default function RightPanelSearch() {
+export default function RightPanelSearchInfo() {
   return (
     <div className="max-w-3xl mx-auto p-6 bg-gray-50 rounded-xl">
       <div className="flex justify-between items-center mb-8">
@@ -70,7 +70,6 @@ export default function RightPanelSearch() {
                       <ul className="list-disc pl-5 space-y-2">
                         <li>It uses the information from your profile to find relevant job opportunities</li>
                         <li>When you search, you're not seeing every job out there - just the ones that could be a good match for you</li>
-                        <li>Try searching for job titles, skills, or even companies you're interested in</li>
                         <li>The more complete your profile, the better your search results will be</li>
                       </ul>
                     </div>
@@ -142,6 +141,7 @@ export default function RightPanelSearch() {
           </div>
         </TabsContent>
       </Tabs>
+     
     </div>
   );
 }

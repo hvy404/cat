@@ -8,11 +8,11 @@
 
 export type JobDescription = {
   jobTitle: string;
-  salaryDisclose?: boolean; 
-  compensationType?: string; 
-  hourlyCompMin?: number; 
-  hourlyCompMax?: number; 
-  privateEmployer?: boolean; 
+  salaryDisclose?: boolean;
+  compensationType?: string;
+  hourlyCompMin?: number;
+  hourlyCompMax?: number;
+  privateEmployer?: boolean;
   company: string;
   client?: string;
   skills: string[];
@@ -59,13 +59,13 @@ function escapeString(str: string = ""): string {
 export function generateJobCypherQuery(
   jd: JobDescription,
   jobDescriptionId: string,
-  employerId: string
+  //employerId: string -  deprecated favor of companyId
+  companyId: string
 ): string {
   let cypher = `
     CREATE (j:Job {
       job_title: "${escapeString(jd.jobTitle)}",  
       job_id: "${jobDescriptionId}",  
-      employer_id: "${employerId}",
       embedding: ${jd.embedding ? formatArrayForCypher(jd.embedding) : "[]"},
       client: "${escapeString(jd.client || "")}",  
       company: "${escapeString(jd.company)}",      
@@ -95,6 +95,13 @@ export function generateJobCypherQuery(
     })
     WITH j`;
 
+  // Add relationship to Company
+  cypher += `
+  WITH j
+  MATCH (c:Company {id: "${companyId}"})
+  CREATE (j)-[:POSTED_BY]->(c)
+`;
+
   // Append relationships for arrays
   cypher += appendArrayNodes(jd.skills, "Skill", "REQUIRES_SKILL", true);
   cypher += appendArrayNodes(jd.benefits, "Benefit", "OFFERS_BENEFIT", true);
@@ -110,6 +117,7 @@ export function generateJobCypherQuery(
     "PREFERS_SKILL",
     true
   );
+
   cypher += appendArrayNodes(
     jd.responsibilities,
     "Responsibility",

@@ -130,6 +130,9 @@ export async function findSimilarJobs(
         score
     `;
 
+    // location_type = 'remote' OR location_type = 'onsite' OR location_type = 'hybrid'
+
+
   const params = { embedding, threshold };
 
   try {

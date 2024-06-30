@@ -1,13 +1,26 @@
 import useStore from "@/app/state/useStore";
 import { useEffect, useState, useRef } from "react";
 import { JobSearch } from "@/app/(auth)/dashboard/views/candidate/search/finder";
-import TalentPropertiesEditor from "@/app/(auth)/dashboard/views/candidate/edit/profile";
-import RightPanelSearch from "@/app/(auth)/dashboard/views/candidate/search/panel";
+import RightPanelSearchInfo from "@/app/(auth)/dashboard/views/candidate/search/panel";
+import JobMoreDetails from "./job-details";
 
 export default function CandidateDashboardJobSearch() {
   const { isExpanded, setExpanded, user } = useStore();
+  const [viewDetails, setViewDetails] = useState("");
   const candidateDashboardStep = useStore(
     (state) => state.candidateDashboard.step
+  );
+
+  // onClick handler for the "View Details" button. Grab the job ID and console log it.
+  const handleViewDetails = (jobId: string) => {
+    console.log(jobId);
+    setViewDetails(jobId);
+  };
+
+  const activeRightPanel = viewDetails ? (
+    <JobMoreDetails jobId={viewDetails} onBack={() => setViewDetails("")} />
+  ) : (
+    <RightPanelSearchInfo />
   );
 
   // Clean up on unmount
@@ -24,9 +37,8 @@ export default function CandidateDashboardJobSearch() {
           isExpanded ? "lg:w-3/4" : "lg:w-3/5"
         }`}
       >
- 
         <div className="flex flex-col">
-          <JobSearch />
+          <JobSearch viewDetails={handleViewDetails} />
         </div>
       </div>
       <div
@@ -34,7 +46,7 @@ export default function CandidateDashboardJobSearch() {
           isExpanded ? "lg:w-1/4" : "lg:w-1/2"
         }`}
       >
-        <RightPanelSearch />
+        {activeRightPanel}
       </div>
     </main>
   );

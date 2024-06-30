@@ -12,7 +12,8 @@ import {
 import { RecommendationCard } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/recommendation-card";
 import { JobApplied } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-applied";
 import { JobInvited } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-invited";
-import { JobSearch } from "./search/finder";
+import { getAllBookmarkedJobsForCandidate, CandidateJobBookmark } from "@/app/(auth)/dashboard/views/candidate/search/bookmark"; // Get bookmarked jobs
+import { JobBookmarked } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-bookmarked";
 
 interface Job {
   id: number;
@@ -80,9 +81,19 @@ export function CandidateDashboard() {
 
   const [data, setData] = useState<DashboardData>(mockData);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [bookmarkedJobs, setBookmarkedJobs] = useState<CandidateJobBookmark[]>([]);
 
   const refreshData = async () => {
     setIsLoading(true);
+    if (candidateId) {
+      const response = await getAllBookmarkedJobsForCandidate(candidateId);
+      if (response.success) {
+        setBookmarkedJobs(response.data || []);
+      } else {
+        console.error("Failed to fetch bookmarked jobs:", response.error);
+      }
+    }
+
     await new Promise((resolve) => setTimeout(resolve, 1000));
     setData(mockData);
     setIsLoading(false);
@@ -113,12 +124,9 @@ export function CandidateDashboard() {
       <QuickStats />
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
           <TabsTrigger value="overview" className="text-sm">
             Overview
-          </TabsTrigger>
-          <TabsTrigger value="jobs" className="text-sm">
-            Jobs
           </TabsTrigger>
           <TabsTrigger value="insights" className="text-sm">
             Insights
@@ -137,7 +145,8 @@ export function CandidateDashboard() {
                 className="col-span-1 lg:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-6"
               >
                 <div className="flex flex-col h-full">
-                  <JobApplied appliedJobs={data.appliedJobs} />
+                  {/* <JobApplied appliedJobs={data.appliedJobs} /> */}
+                  <JobBookmarked bookmarkedJobs={bookmarkedJobs} />
                 </div>
                 <div className="flex flex-col h-full">
                   <JobInvited invitedJobs={data.invitedJobs} />
@@ -176,11 +185,6 @@ export function CandidateDashboard() {
                 />
               </motion.div>
             </AnimatePresence>
-          </div>
-        </TabsContent>
-        <TabsContent value="jobs">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <JobSearch />
           </div>
         </TabsContent>
         <TabsContent value="insights">

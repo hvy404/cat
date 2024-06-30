@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import useStore from "@/app/state/useStore";
 import {
   Briefcase,
@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Flag,
+  Bookmark,
 } from "lucide-react";
 import {
   Card,
@@ -22,10 +23,21 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   jobSearchHandler,
   JobSearchResult,
   SerializableJobResult,
 } from "./job-search";
+import {
+  addCandidateJobBookmark,
+  removeCandidateJobBookmark,
+  checkCandidateJobBookmarkExists,
+} from "./bookmark";
 import { WildWest } from "./flag/wildwest";
 
 type ExtendedJobSearchResult = JobSearchResult & {
@@ -38,9 +50,15 @@ type ExtendedJobSearchResult = JobSearchResult & {
   };
 };
 
+type BookmarkedJobs = { [key: string]: boolean };
+
+interface JobSearchProps {
+  viewDetails: (jobId: string) => void;
+}
+
 const card_per = 5;
 
-export const JobSearch: React.FC = () => {
+export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchResults, setSearchResults] =
     useState<ExtendedJobSearchResult | null>(null);
@@ -48,6 +66,7 @@ export const JobSearch: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
+  const [bookmarkedJobs, setBookmarkedJobs] = useState<BookmarkedJobs>({});
 
   const { user } = useStore();
   const userId = user?.uuid;
@@ -82,24 +101,102 @@ export const JobSearch: React.FC = () => {
     return rate ? `$${rate.toFixed(2)}` : "Not specified";
   };
 
+  const handleBookmarkToggle = async (jobId: string) => {
+    if (!userId) {
+      setError("User ID is not available. Please ensure you're logged in.");
+      return;
+    }
+
+    try {
+      const isCurrentlyBookmarked = bookmarkedJobs[jobId];
+      if (isCurrentlyBookmarked) {
+        await removeCandidateJobBookmark(userId, jobId);
+      } else {
+        await addCandidateJobBookmark(userId, jobId);
+      }
+      setBookmarkedJobs((prev) => ({
+        ...prev,
+        [jobId]: !isCurrentlyBookmarked,
+      }));
+    } catch (error) {
+      console.error("Error toggling bookmark:", error);
+      setError(
+        "An error occurred while updating the bookmark. Please try again."
+      );
+    }
+  };
+
+  useEffect(() => {
+    const checkBookmarks = async () => {
+      if (userId && searchResults?.similarJobs) {
+        try {
+          const newBookmarkedJobs: BookmarkedJobs = {};
+
+          for (const job of searchResults.similarJobs) {
+            const isBookmarked = await checkCandidateJobBookmarkExists(
+              userId,
+              job.job_id
+            );
+            newBookmarkedJobs[job.job_id] = isBookmarked;
+          }
+
+          setBookmarkedJobs(newBookmarkedJobs);
+        } catch (error) {
+          setError(
+            "An error occurred while checking bookmarks. Please try again."
+          );
+        }
+      }
+    };
+    checkBookmarks();
+  }, [userId, searchResults]);
+
   const renderJobDetails = (job: SerializableJobResult): JSX.Element => (
     <Card
       key={job.job_id}
       className="mb-4 shadow-sm hover:shadow-md transition-all duration-300"
     >
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-800">
-          {job.job_title}
-        </CardTitle>
-        <CardDescription className="text-sm text-gray-600">
-          {job.company ? (
-            job.company
-          ) : (
-            <span className="inline-flex flex-grow-0 rounded-xl text-xs bg-gray-900 text-white px-2 py-1">
-              Private Employer
-            </span>
-          )}
-        </CardDescription>
+      <CardHeader className="flex flex-row justify-between items-start">
+        <div>
+          <CardTitle className="text-lg font-semibold text-gray-800">
+            {job.job_title}
+          </CardTitle>
+          <CardDescription className="text-sm text-gray-600">
+            {job.company ? (
+              job.company
+            ) : (
+              <span className="inline-flex flex-grow-0 rounded-xl text-xs bg-gray-700 text-white px-2 py-1">
+                Private Employer
+              </span>
+            )}
+          </CardDescription>
+        </div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleBookmarkToggle(job.job_id)}
+              >
+                <Bookmark
+                  className={`h-5 w-5 ${
+                    bookmarkedJobs[job.job_id]
+                      ? "fill-current text-gray-800"
+                      : "text-gray-500"
+                  }`}
+                />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="bg-black text-white border-0">
+              <p>
+                {bookmarkedJobs[job.job_id]
+                  ? "Remove bookmark"
+                  : "Bookmark this job"}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </CardHeader>
       <CardContent className="text-sm text-gray-700 space-y-2">
         <div className="flex items-center">
@@ -151,6 +248,7 @@ export const JobSearch: React.FC = () => {
           variant="outline"
           size="sm"
           className="w-full text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+          onClick={() => viewDetails(job.job_id)}
         >
           View Details
         </Button>
@@ -202,9 +300,7 @@ export const JobSearch: React.FC = () => {
 
       {hasSearched && searchResults && (
         <>
-          {searchResults.flag && searchResults.flag.mode && (
-            <WildWest />
-          )}
+          {searchResults.flag && searchResults.flag.mode && <WildWest />}
 
           <Tabs defaultValue="results" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
