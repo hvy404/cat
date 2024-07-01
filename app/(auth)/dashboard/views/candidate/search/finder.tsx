@@ -210,10 +210,10 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
           <ShieldCheck className="w-4 h-4 mr-2 text-gray-500" />
           <span>Security Clearance: {job.security_clearance}</span>
         </div>
-        <div className="flex items-center">
+   {/*      <div className="flex items-center">
           <Briefcase className="w-4 h-4 mr-2 text-gray-500" />
           <span>Experience: {job.experience}</span>
-        </div>
+        </div> */}
         <div className="flex items-center">
           <Clock className="w-4 h-4 mr-2 text-gray-500" />
           <span>Job Type: {job.job_type}</span>
@@ -241,7 +241,7 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
             )}
           </div>
         )}
-        <p className="mt-2">{job.summary}</p>
+        {/* <p className="mt-2">{job.summary}</p> */}
       </CardContent>
       <CardFooter>
         <Button

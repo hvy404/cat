@@ -99,6 +99,24 @@ export function CandidateDashboard() {
     setIsLoading(false);
   };
 
+  const handleViewMoreJobBookmarked = (jobId: string) => {
+    setCandidateDashboard({
+      widget: 'jobBookmarked',
+      widgetPayload: { type: 'jobBookmarked', payload: { jobId: 'some-job-id' } }
+    });
+  };
+
+  /*
+
+  const handleViewMoreInsights = (newsId: string, jobId: string) => {
+    setCandidateDashboard({
+      widget: 'insights',
+      widgetPayload: { type: 'insights', newsId, jobId },
+    });
+  }; */
+
+
+  
   useEffect(() => {
     refreshData();
   }, [candidateId]);

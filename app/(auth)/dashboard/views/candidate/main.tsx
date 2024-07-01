@@ -1,14 +1,10 @@
 import useStore from "@/app/state/useStore";
 import { useEffect, useState, useRef } from "react";
 import { candidateStatus } from "@/lib/candidate/status";
-import CandidateDashboardRightPanel from "@/app/(auth)/dashboard/views/candidate/right-panel-main";
 import { CandidateOnboardingForm } from "@/app/(auth)/dashboard/views/candidate/main-onboard-form";
 import { CandidateDashboard } from "@/app/(auth)/dashboard/views/candidate/main-user-dashboard";
-
-interface StatusResponse {
-  success: boolean;
-  payload: boolean | string;
-}
+import CandidateDashboardRightPanelWelcome from "@/app/(auth)/dashboard/views/candidate/right-panel-welcome";
+import CandidateDashboardRightPanelDashboard from "@/app/(auth)/dashboard/views/candidate/right-panel-dashboard";
 
 export default function CandidateDashboardMain() {
   const { isExpanded, setExpanded, user } = useStore();
@@ -22,11 +18,8 @@ export default function CandidateDashboardMain() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Create a ref to track if the effect has already run
   const isActive = useRef(false);
 
-  // Fetch the candidate status on mount
-  // TODO: use this state to load side navigation
   useEffect(() => {
     if (!isActive.current && user && user.uuid) {
       isActive.current = true;
@@ -47,7 +40,12 @@ export default function CandidateDashboardMain() {
     }
   }, [user, setCandidateDashboard]);
 
-  // Render the main panel based on the current step
+  useEffect(() => {
+    return () => {
+      setExpanded(false);
+    };
+  }, [setExpanded]);
+
   const MainPanel = () => {
     switch (candidateDashboardStep) {
       case 0:
@@ -59,12 +57,16 @@ export default function CandidateDashboardMain() {
     }
   };
 
-  // Clean up on unmount
-  useEffect(() => {
-    return () => {
-      setExpanded(false);
-    };
-  }, [setExpanded]);
+  const RightPanel = () => {
+    switch (candidateDashboardStep) {
+      case 0:
+        return <CandidateDashboardRightPanelWelcome />;
+      case 1:
+        return <CandidateDashboardRightPanelDashboard />;
+      default:
+        return <div></div>;
+    }
+  };
 
   if (isLoading) {
     return (
@@ -93,9 +95,7 @@ export default function CandidateDashboardMain() {
         }`}
       >
         <div className="flex justify-between gap-6 rounded-lg border p-4">
-          <h2 className="font-bold leading-6 text-gray-900">
-            Hello
-          </h2>
+          <h2 className="font-bold leading-6 text-gray-900">Hello</h2>
         </div>
         <div className="flex flex-col gap-6">
           <MainPanel />
@@ -106,7 +106,9 @@ export default function CandidateDashboardMain() {
           isExpanded ? "lg:w-1/4" : "lg:w-1/2"
         }`}
       >
-        <CandidateDashboardRightPanel step={candidateDashboardStep} />
+        <div className="min-h-[90vh] rounded-xl bg-muted/50 p-4 overflow-auto">
+          <RightPanel />
+        </div>
       </div>
     </main>
   );

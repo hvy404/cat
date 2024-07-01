@@ -104,6 +104,46 @@ interface CandidateDashboard {
   onboarded: boolean; // TOOD: revaluate if this is the best way to track onboarding when done with authencation
 }
 
+// Talent dashboard widget payloads
+type JobBookmarkedPayload = {
+  jobId: string;
+};
+
+type JobInvitedPayload = {
+  jobId: string;
+};
+
+type ResumeRecommendationsPayload = {
+  recommendationIds: string[];
+};
+
+type ProfileEnhancementsPayload = {
+  enhancementIds: string[];
+};
+
+type InsightsPayload = {
+  newsId: string;
+  jobId: string;
+};
+
+// Union type for all possible widget payloads
+export type WidgetPayload =
+  | { type: 'jobBookmarked'; payload: JobBookmarkedPayload }
+  | { type: 'jobInvited'; payload: JobInvitedPayload }
+  | { type: 'resumeRecommendations'; payload: ResumeRecommendationsPayload }
+  | { type: 'profileEnhancements'; payload: ProfileEnhancementsPayload }
+  | { type: 'insights'; payload: InsightsPayload }
+  | { type: null; payload: null };
+
+// Update the CandidateDashboard interface
+interface CandidateDashboard {
+  step: number;
+  onboardingFormStep: string;
+  widget: string;
+  widgetPayload: WidgetPayload;
+  onboarded: boolean;
+}
+
 interface StoreState {
   selectedMenuItem: string | null;
   user: User | null;
@@ -165,6 +205,7 @@ const useStore = create<StoreState>((set) => ({
     step: 1,
     onboardingFormStep: "",
     widget: "",
+    widgetPayload: { type: null, payload: null },
     onboarded: false,
   },
   // Set candidate dashboard step
