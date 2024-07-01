@@ -1,18 +1,57 @@
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import useStore from "@/app/state/useStore";
-import { useEffect, useState, useRef } from "react";
 import { candidateStatus } from "@/lib/candidate/status";
 import { CandidateOnboardingForm } from "@/app/(auth)/dashboard/views/candidate/main-onboard-form";
 import { CandidateDashboard } from "@/app/(auth)/dashboard/views/candidate/main-user-dashboard";
 import CandidateDashboardRightPanelWelcome from "@/app/(auth)/dashboard/views/candidate/right-panel-welcome";
 import CandidateDashboardRightPanelDashboard from "@/app/(auth)/dashboard/views/candidate/right-panel-dashboard";
 
+const MainPanel = React.memo(({ step }: { step: number }) => {
+  switch (step) {
+    case 0:
+      return <CandidateOnboardingForm />;
+    case 1:
+      return <CandidateDashboard />;
+    default:
+      return <div>Loading...</div>;
+  }
+});
+
+const RightPanel = React.memo(({ step }: { step: number }) => {
+  switch (step) {
+    case 0:
+      return <CandidateDashboardRightPanelWelcome />;
+    case 1:
+      return <CandidateDashboardRightPanelDashboard />;
+    default:
+      return <div></div>;
+  }
+});
+
 export default function CandidateDashboardMain() {
-  const { isExpanded, setExpanded, user } = useStore();
-  const candidateDashboardStep = useStore(
-    (state) => state.candidateDashboard.step
-  );
-  const setCandidateDashboard = useStore(
-    (state) => state.setCandidateDashboard
+  const {
+    isExpanded,
+    setExpanded,
+    user,
+    candidateDashboard,
+    setCandidateDashboard,
+  } = useStore(
+    useCallback(
+      (state) => ({
+        isExpanded: state.isExpanded,
+        setExpanded: state.setExpanded,
+        user: state.user,
+        candidateDashboard: state.candidateDashboard,
+        setCandidateDashboard: state.setCandidateDashboard,
+      }),
+      []
+    )
   );
 
   const [isLoading, setIsLoading] = useState(true);
@@ -26,11 +65,10 @@ export default function CandidateDashboardMain() {
       setIsLoading(true);
       candidateStatus(user.uuid)
         .then((isOnboarded) => {
-          if (isOnboarded === true) {
-            setCandidateDashboard({ step: 1, onboarded: true });
-          } else {
-            setCandidateDashboard({ step: 0, onboarded: false });
-          }
+          setCandidateDashboard({
+            step: isOnboarded ? 1 : 0,
+            onboarded: isOnboarded ?? undefined,
+          });
           setIsLoading(false);
         })
         .catch((err) => {
@@ -46,27 +84,14 @@ export default function CandidateDashboardMain() {
     };
   }, [setExpanded]);
 
-  const MainPanel = () => {
-    switch (candidateDashboardStep) {
-      case 0:
-        return <CandidateOnboardingForm />;
-      case 1:
-        return <CandidateDashboard />;
-      default:
-        return <div>Loading...</div>;
-    }
-  };
-
-  const RightPanel = () => {
-    switch (candidateDashboardStep) {
-      case 0:
-        return <CandidateDashboardRightPanelWelcome />;
-      case 1:
-        return <CandidateDashboardRightPanelDashboard />;
-      default:
-        return <div></div>;
-    }
-  };
+  const memoizedMainPanel = useMemo(
+    () => <MainPanel step={candidateDashboard.step} />,
+    [candidateDashboard.step]
+  );
+  const memoizedRightPanel = useMemo(
+    () => <RightPanel step={candidateDashboard.step} />,
+    [candidateDashboard.step]
+  );
 
   if (isLoading) {
     return (
@@ -97,17 +122,15 @@ export default function CandidateDashboardMain() {
         <div className="flex justify-between gap-6 rounded-lg border p-4">
           <h2 className="font-bold leading-6 text-gray-900">Hello</h2>
         </div>
-        <div className="flex flex-col gap-6">
-          <MainPanel />
-        </div>
+        <div className="flex flex-col gap-6">{memoizedMainPanel}</div>
       </div>
       <div
         className={`hidden md:flex flex-col gap-4 transition-all duration-700 ease-in-out max-h-screen overflow-y-auto ${
           isExpanded ? "lg:w-1/4" : "lg:w-1/2"
         }`}
       >
-        <div className="min-h-[90vh] rounded-xl bg-muted/50 p-4 overflow-auto">
-          <RightPanel />
+        <div className="min-h-[90vh] rounded-xl bg-muted/50 overflow-auto">
+          {memoizedRightPanel}
         </div>
       </div>
     </main>

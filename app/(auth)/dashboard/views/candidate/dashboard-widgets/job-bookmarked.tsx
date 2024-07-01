@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { FileText, PlusCircle, ArrowRightCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,11 @@ import {
 interface BookmarkedJob {
   jd_uuid: string;
   title: string;
+}
+
+interface JobBookmarkedProps {
+  bookmarkedJobs: BookmarkedJob[];
+  handleViewMoreJobBookmarked: (jobId: string) => void;
 }
 
 const EmptyStateCard = ({
@@ -42,7 +47,13 @@ const EmptyStateCard = ({
   </div>
 );
 
-const MainViewJobListItem = ({ job }: { job: BookmarkedJob }) => (
+const MainViewJobListItem = ({
+  job,
+  handleViewMoreJobBookmarked,
+}: {
+  job: BookmarkedJob;
+  handleViewMoreJobBookmarked: (jobId: string) => void;
+}) => (
   <div
     key={job.jd_uuid}
     className="flex items-center justify-between transition-transform hover:translate-x-1 hover:border-l-4 hover:border-gray-400 px-4 border-l-4 border-transparent hover:bg-gray-50"
@@ -55,6 +66,7 @@ const MainViewJobListItem = ({ job }: { job: BookmarkedJob }) => (
       variant="link"
       size="sm"
       className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 flex items-center"
+      onClick={() => handleViewMoreJobBookmarked(job.jd_uuid)}
     >
       Details
       <ArrowRightCircle className="ml-2 h-4 w-4" />
@@ -84,9 +96,8 @@ const DialogJobListItem = ({ job }: { job: BookmarkedJob }) => (
 
 export const JobBookmarked = ({
   bookmarkedJobs,
-}: {
-  bookmarkedJobs: BookmarkedJob[];
-}) => {
+  handleViewMoreJobBookmarked,
+}: JobBookmarkedProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const hasBookmarkedJobs = bookmarkedJobs && bookmarkedJobs.length > 0;
   const displayedJobs = hasBookmarkedJobs ? bookmarkedJobs.slice(0, 5) : [];
@@ -103,7 +114,7 @@ export const JobBookmarked = ({
           {hasBookmarkedJobs ? (
             <div className="space-y-4">
               {displayedJobs.map((job) => (
-                <MainViewJobListItem key={job.jd_uuid} job={job} />
+                <MainViewJobListItem key={job.jd_uuid} job={job} handleViewMoreJobBookmarked={handleViewMoreJobBookmarked} />
               ))}
               {hasMoreJobs && (
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -144,5 +155,4 @@ export const JobBookmarked = ({
     </div>
   );
 };
-
 export default JobBookmarked;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import useStore from "@/app/state/useStore";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -76,14 +76,17 @@ const cardVariants = {
 };
 
 export function CandidateDashboard() {
-  const { candidateDashboard, setCandidateDashboard, user } = useStore();
+  const { setCandidateDashboard, user } = useStore(state => ({
+    setCandidateDashboard: state.setCandidateDashboard,
+    user: state.user
+  }));
   const candidateId = user?.uuid;
 
   const [data, setData] = useState<DashboardData>(mockData);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [bookmarkedJobs, setBookmarkedJobs] = useState<CandidateJobBookmark[]>([]);
 
-  const refreshData = async () => {
+  const refreshData = useCallback(async () => {
     setIsLoading(true);
     if (candidateId) {
       const response = await getAllBookmarkedJobsForCandidate(candidateId);
@@ -97,34 +100,54 @@ export function CandidateDashboard() {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     setData(mockData);
     setIsLoading(false);
-  };
+  }, [candidateId]);
 
-  const handleViewMoreJobBookmarked = (jobId: string) => {
+  const handleViewMoreJobBookmarked = useCallback((jobId: string) => {
     setCandidateDashboard({
       widget: 'jobBookmarked',
-      widgetPayload: { type: 'jobBookmarked', payload: { jobId: 'some-job-id' } }
+      widgetPayload: { type: 'jobBookmarked', payload: { jobId: jobId } }
     });
-  };
+  }, [setCandidateDashboard]);
 
-  /*
-
-  const handleViewMoreInsights = (newsId: string, jobId: string) => {
-    setCandidateDashboard({
-      widget: 'insights',
-      widgetPayload: { type: 'insights', newsId, jobId },
-    });
-  }; */
-
-
-  
   useEffect(() => {
     refreshData();
-  }, [candidateId]);
+  }, [refreshData]);
+
+  const memoizedJobBookmarked = useMemo(() => (
+    <JobBookmarked 
+      bookmarkedJobs={bookmarkedJobs}
+      handleViewMoreJobBookmarked={handleViewMoreJobBookmarked}
+    />
+  ), [bookmarkedJobs, handleViewMoreJobBookmarked]);
+
+  const memoizedJobInvited = useMemo(() => (
+    <JobInvited invitedJobs={data.invitedJobs} />
+  ), [data.invitedJobs]);
+
+  const memoizedResumeRecommendations = useMemo(() => (
+    <RecommendationCard
+      title="Resume Recommendations"
+      items={data.resumeRecommendations}
+      icon={Award}
+    />
+  ), [data.resumeRecommendations]);
+
+  const memoizedProfileEnhancements = useMemo(() => (
+    <RecommendationCard
+      title="Profile Enhancements"
+      items={data.profileEnhancements}
+      icon={UserPlus}
+    />
+  ), [data.profileEnhancements]);
+
+  const memoizedInsightsCard = useMemo(() => (
+    <InsightsCard data={data.careerInsights} />
+  ), [data.careerInsights]);
 
   return (
     <div className="max-w">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-xl font-bold text-gray-900">Welcome back, Huy</h1>
+        <h1 className="text-xl font-bold text-gray-900">Welcome back, {user?.email}</h1>
         <Button
           onClick={refreshData}
           disabled={isLoading}
@@ -163,11 +186,10 @@ export function CandidateDashboard() {
                 className="col-span-1 lg:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-6"
               >
                 <div className="flex flex-col h-full">
-                  {/* <JobApplied appliedJobs={data.appliedJobs} /> */}
-                  <JobBookmarked bookmarkedJobs={bookmarkedJobs} />
+                  {memoizedJobBookmarked}
                 </div>
                 <div className="flex flex-col h-full">
-                  <JobInvited invitedJobs={data.invitedJobs} />
+                  {memoizedJobInvited}
                 </div>
               </motion.div>
 
@@ -180,11 +202,7 @@ export function CandidateDashboard() {
                 transition={{ duration: 0.5, delay: 0.3 }}
                 className="flex flex-col h-full"
               >
-                <RecommendationCard
-                  title="Resume Recommendations"
-                  items={data.resumeRecommendations}
-                  icon={Award}
-                />
+                {memoizedResumeRecommendations}
               </motion.div>
 
               <motion.div
@@ -196,21 +214,17 @@ export function CandidateDashboard() {
                 transition={{ duration: 0.5, delay: 0.4 }}
                 className="flex flex-col h-full"
               >
-                <RecommendationCard
-                  title="Profile Enhancements"
-                  items={data.profileEnhancements}
-                  icon={UserPlus}
-                />
+                {memoizedProfileEnhancements}
               </motion.div>
             </AnimatePresence>
           </div>
         </TabsContent>
         <TabsContent value="insights">
-          <InsightsCard data={data.careerInsights} />
+          {memoizedInsightsCard}
         </TabsContent>
       </Tabs>
     </div>
   );
 }
 
-export default CandidateDashboard;
+export default React.memo(CandidateDashboard);
