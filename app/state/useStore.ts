@@ -126,9 +126,15 @@ type InsightsPayload = {
   jobId: string;
 };
 
+type TalentIDPayload = {
+  show: boolean;
+  candidateId: string;
+};
+
 // Union type for all possible widget payloads
 export type WidgetPayload =
   | { type: 'jobBookmarked'; payload: JobBookmarkedPayload }
+  | { type: 'talentID'; payload: TalentIDPayload }
   | { type: 'jobInvited'; payload: JobInvitedPayload }
   | { type: 'resumeRecommendations'; payload: ResumeRecommendationsPayload }
   | { type: 'profileEnhancements'; payload: ProfileEnhancementsPayload }

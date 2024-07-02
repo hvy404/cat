@@ -12,8 +12,12 @@ import {
 import { RecommendationCard } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/recommendation-card";
 import { JobApplied } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-applied";
 import { JobInvited } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-invited";
-import { getAllBookmarkedJobsForCandidate, CandidateJobBookmark } from "@/app/(auth)/dashboard/views/candidate/search/bookmark"; // Get bookmarked jobs
+import {
+  getAllBookmarkedJobsForCandidate,
+  CandidateJobBookmark,
+} from "@/app/(auth)/dashboard/views/candidate/search/bookmark"; // Get bookmarked jobs
 import { JobBookmarked } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-bookmarked";
+import TalentId from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/talent-id";
 
 interface Job {
   id: number;
@@ -35,7 +39,7 @@ interface DashboardData {
 
 const mockData: DashboardData = {
   invitedJobs: [
-       {
+    {
       id: 1,
       title: "Senior React Developer",
       company: "Acme",
@@ -49,7 +53,6 @@ const mockData: DashboardData = {
       salary: "$100k - $130k",
       match: 88,
     },
-     
   ],
   appliedJobs: [],
   resumeRecommendations: [
@@ -76,15 +79,17 @@ const cardVariants = {
 };
 
 export function CandidateDashboard() {
-  const { setCandidateDashboard, user } = useStore(state => ({
+  const { setCandidateDashboard, user } = useStore((state) => ({
     setCandidateDashboard: state.setCandidateDashboard,
-    user: state.user
+    user: state.user,
   }));
   const candidateId = user?.uuid;
 
   const [data, setData] = useState<DashboardData>(mockData);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [bookmarkedJobs, setBookmarkedJobs] = useState<CandidateJobBookmark[]>([]);
+  const [bookmarkedJobs, setBookmarkedJobs] = useState<CandidateJobBookmark[]>(
+    []
+  );
 
   const refreshData = useCallback(async () => {
     setIsLoading(true);
@@ -102,52 +107,82 @@ export function CandidateDashboard() {
     setIsLoading(false);
   }, [candidateId]);
 
-  const handleViewMoreJobBookmarked = useCallback((jobId: string) => {
-    setCandidateDashboard({
-      widget: 'jobBookmarked',
-      widgetPayload: { type: 'jobBookmarked', payload: { jobId: jobId } }
-    });
-  }, [setCandidateDashboard]);
+  const handleViewMoreJobBookmarked = useCallback(
+    (jobId: string) => {
+      setCandidateDashboard({
+        widget: "jobBookmarked",
+        widgetPayload: { type: "jobBookmarked", payload: { jobId: jobId } },
+      });
+    },
+    [setCandidateDashboard]
+  );
+
+  const handleTalentIDLearnMore = useCallback(
+    (candidateId: string) => {
+      setCandidateDashboard({
+        widget: "talentID",
+        widgetPayload: {
+          type: "talentID",
+          payload: { show: true, candidateId },
+        },
+      });
+      console.log("Talent ID learn more");
+    },
+    [setCandidateDashboard]
+  );
 
   useEffect(() => {
     refreshData();
   }, [refreshData]);
 
-  const memoizedJobBookmarked = useMemo(() => (
-    <JobBookmarked 
-      bookmarkedJobs={bookmarkedJobs}
-      handleViewMoreJobBookmarked={handleViewMoreJobBookmarked}
-    />
-  ), [bookmarkedJobs, handleViewMoreJobBookmarked]);
+  const memoizedJobBookmarked = useMemo(
+    () => (
+      <JobBookmarked
+        bookmarkedJobs={bookmarkedJobs}
+        handleViewMoreJobBookmarked={handleViewMoreJobBookmarked}
+      />
+    ),
+    [bookmarkedJobs, handleViewMoreJobBookmarked]
+  );
 
-  const memoizedJobInvited = useMemo(() => (
-    <JobInvited invitedJobs={data.invitedJobs} />
-  ), [data.invitedJobs]);
+  const memoizedJobInvited = useMemo(
+    () => <JobInvited invitedJobs={data.invitedJobs} />,
+    [data.invitedJobs]
+  );
 
-  const memoizedResumeRecommendations = useMemo(() => (
-    <RecommendationCard
-      title="Resume Recommendations"
-      items={data.resumeRecommendations}
-      icon={Award}
-    />
-  ), [data.resumeRecommendations]);
+  const memoizedResumeRecommendations = useMemo(
+    () => (
+      <RecommendationCard
+        title="Resume Recommendations"
+        items={data.resumeRecommendations}
+        icon={Award}
+      />
+    ),
+    [data.resumeRecommendations]
+  );
 
-  const memoizedProfileEnhancements = useMemo(() => (
-    <RecommendationCard
-      title="Profile Enhancements"
-      items={data.profileEnhancements}
-      icon={UserPlus}
-    />
-  ), [data.profileEnhancements]);
+  const memoizedProfileEnhancements = useMemo(
+    () => (
+      <RecommendationCard
+        title="Profile Enhancements"
+        items={data.profileEnhancements}
+        icon={UserPlus}
+      />
+    ),
+    [data.profileEnhancements]
+  );
 
-  const memoizedInsightsCard = useMemo(() => (
-    <InsightsCard data={data.careerInsights} />
-  ), [data.careerInsights]);
+  const memoizedInsightsCard = useMemo(
+    () => <InsightsCard data={data.careerInsights} />,
+    [data.careerInsights]
+  );
 
   return (
     <div className="max-w">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-xl font-bold text-gray-900">Welcome back, {user?.email}</h1>
+        <h1 className="text-xl font-bold text-gray-900">
+          Welcome back, {user?.email}
+        </h1>
         <Button
           onClick={refreshData}
           disabled={isLoading}
@@ -162,7 +197,27 @@ export function CandidateDashboard() {
         </Button>
       </div>
 
-      <QuickStats />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="flex flex-col items-center justify-center p-4 border border-gray-300 rounded-md">
+          {/*  <stat.icon className="w-6 h-6 text-gray-600 mb-2" /> */}
+          <p className="text-sm font-medium text-gray-700">Title</p>
+          <p className="text-lg font-semibold text-gray-900">Value</p>
+          <p className="text-sm text-gray-600">Change messages</p>
+        </div>
+        <div className="flex flex-col items-center justify-center p-4 border border-gray-300 rounded-md">
+          {/*  <stat.icon className="w-6 h-6 text-gray-600 mb-2" /> */}
+          <p className="text-sm font-medium text-gray-700">Title</p>
+          <p className="text-lg font-semibold text-gray-900">Value</p>
+          <p className="text-sm text-gray-600">Change messages</p>
+        </div>
+        {user && user.uuid && (
+          <TalentId
+            handleTalentIDLearnMore={handleTalentIDLearnMore}
+            candidateId={user.uuid}
+          />
+        )}
+      </div>
+      {/* <QuickStats /> */}
 
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-2 mb-6">
@@ -188,9 +243,7 @@ export function CandidateDashboard() {
                 <div className="flex flex-col h-full">
                   {memoizedJobBookmarked}
                 </div>
-                <div className="flex flex-col h-full">
-                  {memoizedJobInvited}
-                </div>
+                <div className="flex flex-col h-full">{memoizedJobInvited}</div>
               </motion.div>
 
               <motion.div
@@ -219,9 +272,7 @@ export function CandidateDashboard() {
             </AnimatePresence>
           </div>
         </TabsContent>
-        <TabsContent value="insights">
-          {memoizedInsightsCard}
-        </TabsContent>
+        <TabsContent value="insights">{memoizedInsightsCard}</TabsContent>
       </Tabs>
     </div>
   );

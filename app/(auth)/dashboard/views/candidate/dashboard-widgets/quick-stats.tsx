@@ -17,12 +17,7 @@ export const QuickStats: React.FC = () => {
       value: "$110k - $140k",
       change: "+5%",
     },
-    {
-      icon: Clock,
-      title: "Time to Interview",
-      value: "14 days",
-      change: "-2 days",
-    },
+
   ];
 
   return (
