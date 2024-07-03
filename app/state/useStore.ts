@@ -112,9 +112,11 @@ type JobBookmarkedPayload = {
 type JobInvitedPayload = {
   jobId: string;
 };
-
 type ResumeRecommendationsPayload = {
-  recommendationIds: string[];
+  title: string;
+  type: string;
+  message: string;
+  priority: "high" | "medium" | "low";
 };
 
 type ProfileEnhancementsPayload = {
@@ -133,12 +135,12 @@ type TalentIDPayload = {
 
 // Union type for all possible widget payloads
 export type WidgetPayload =
-  | { type: 'jobBookmarked'; payload: JobBookmarkedPayload }
-  | { type: 'talentID'; payload: TalentIDPayload }
-  | { type: 'jobInvited'; payload: JobInvitedPayload }
-  | { type: 'resumeRecommendations'; payload: ResumeRecommendationsPayload }
-  | { type: 'profileEnhancements'; payload: ProfileEnhancementsPayload }
-  | { type: 'insights'; payload: InsightsPayload }
+  | { type: "jobBookmarked"; payload: JobBookmarkedPayload }
+  | { type: "talentID"; payload: TalentIDPayload }
+  | { type: "jobInvited"; payload: JobInvitedPayload }
+  | { type: "resumeRecommendation"; payload: ResumeRecommendationsPayload }
+  | { type: "profileEnhancement"; payload: ProfileEnhancementsPayload }
+  | { type: "insights"; payload: InsightsPayload }
   | { type: null; payload: null };
 
 // Update the CandidateDashboard interface

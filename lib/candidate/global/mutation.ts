@@ -305,6 +305,47 @@ export async function getTalentNode(
   }
 }
 
+export async function getTalentNodeNoEmbedding(
+  applicantId: string
+): Promise<(Omit<TalentNode, "embedding"> & NodeWithId) | null> {
+  const query = `
+    MATCH (t:Talent {applicant_id: $applicantId})
+    RETURN {
+      city: t.city,
+      clearance_level: t.clearance_level,
+      title: t.title,
+      active_looking: t.active_looking,
+      zipcode: t.zipcode,
+      applicant_id: t.applicant_id,
+      phone: t.phone,
+      name: t.name,
+      matching_opt_in: t.matching_opt_in,
+      company: t.company,
+      active_looking_confirmed_date: t.active_looking_confirmed_date,
+      state: t.state,
+      email: t.email
+    } as talentData,
+    ID(t) as nodeId
+  `;
+
+  try {
+    const result = await read(query, { applicantId });
+    if (result && result.length > 0) {
+      const talentData = result[0].talentData;
+      const nodeId = result[0].nodeId;
+      return {
+        ...talentData,
+        labels: ["Talent"],
+        _id: nodeId instanceof Integer ? nodeId.toNumber() : nodeId,
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error("Error retrieving Talent node:", error);
+    throw error;
+  }
+}
+
 /* CRUD - Update operation for any node property */
 export async function updateNodeProperty<T>({
   nodeId,

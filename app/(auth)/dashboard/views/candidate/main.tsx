@@ -12,7 +12,7 @@ import { CandidateDashboard } from "@/app/(auth)/dashboard/views/candidate/main-
 import CandidateDashboardRightPanelWelcome from "@/app/(auth)/dashboard/views/candidate/right-panel-welcome";
 import CandidateDashboardRightPanelDashboard from "@/app/(auth)/dashboard/views/candidate/right-panel-dashboard";
 
-const MainPanel = React.memo(({ step }: { step: number }) => {
+const MainPanel = React.memo(function MainPanel({ step }: { step: number }) {
   switch (step) {
     case 0:
       return <CandidateOnboardingForm />;
@@ -23,7 +23,7 @@ const MainPanel = React.memo(({ step }: { step: number }) => {
   }
 });
 
-const RightPanel = React.memo(({ step }: { step: number }) => {
+const RightPanel = React.memo(function RightPanel({ step }: { step: number }) {
   switch (step) {
     case 0:
       return <CandidateDashboardRightPanelWelcome />;

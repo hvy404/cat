@@ -80,9 +80,7 @@ export default function TalentId({
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <motion.div 
-          className="w-16 h-16 mb-4 relative"
-        >
+        <motion.div className="w-16 h-16 mb-4 relative">
           <motion.div
             className="absolute inset-0 border-2 border-gray-300 rounded-full"
             initial="start"

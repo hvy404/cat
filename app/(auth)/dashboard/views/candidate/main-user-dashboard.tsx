@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import useStore from "@/app/state/useStore";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Briefcase, FileText, UserPlus, Award, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QuickStats } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/quick-stats";
 import {
@@ -10,6 +10,9 @@ import {
   CareerInsight,
 } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/career-insight";
 import { RecommendationCard } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/recommendation-card";
+import ProfileSuggestionCard from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/profile-suggestions";
+import ResumeSuggestionCard from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/resume-suggestions";
+import { ResumeSuggestion } from "@/lib/dashboard/candidate/resume-enhancements/build-suggestions";
 import { JobApplied } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-applied";
 import { JobInvited } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-invited";
 import {
@@ -107,6 +110,7 @@ export function CandidateDashboard() {
     setIsLoading(false);
   }, [candidateId]);
 
+  // Handle view more job bookmarked
   const handleViewMoreJobBookmarked = useCallback(
     (jobId: string) => {
       setCandidateDashboard({
@@ -117,6 +121,7 @@ export function CandidateDashboard() {
     [setCandidateDashboard]
   );
 
+  // Handle Talent ID learn more
   const handleTalentIDLearnMore = useCallback(
     (candidateId: string) => {
       setCandidateDashboard({
@@ -127,6 +132,26 @@ export function CandidateDashboard() {
         },
       });
       console.log("Talent ID learn more");
+    },
+    [setCandidateDashboard]
+  );
+
+  // Handle resume suggestion click
+  const handleResumeSuggestionClick = useCallback(
+    (suggestion: ResumeSuggestion) => {
+
+      setCandidateDashboard({
+        widget: "resumeRecommendation",
+        widgetPayload: {
+          type: "resumeRecommendation",
+          payload: {
+            message: suggestion.message,
+            title: suggestion.title,
+            priority: suggestion.priority,
+            type: suggestion.type,
+          },
+        },
+      });
     },
     [setCandidateDashboard]
   );
@@ -150,7 +175,7 @@ export function CandidateDashboard() {
     [data.invitedJobs]
   );
 
-  const memoizedResumeRecommendations = useMemo(
+  /*   const memoizedResumeRecommendations = useMemo(
     () => (
       <RecommendationCard
         title="Resume Recommendations"
@@ -159,9 +184,9 @@ export function CandidateDashboard() {
       />
     ),
     [data.resumeRecommendations]
-  );
+  ); */
 
-  const memoizedProfileEnhancements = useMemo(
+  /*   const memoizedProfileEnhancements = useMemo(
     () => (
       <RecommendationCard
         title="Profile Enhancements"
@@ -170,7 +195,7 @@ export function CandidateDashboard() {
       />
     ),
     [data.profileEnhancements]
-  );
+  ); */
 
   const memoizedInsightsCard = useMemo(
     () => <InsightsCard data={data.careerInsights} />,
@@ -255,7 +280,12 @@ export function CandidateDashboard() {
                 transition={{ duration: 0.5, delay: 0.3 }}
                 className="flex flex-col h-full"
               >
-                {memoizedResumeRecommendations}
+                {candidateId && (
+                  <ResumeSuggestionCard
+                    candidateId={candidateId}
+                    handleResumeSuggestionClick={handleResumeSuggestionClick}
+                  />
+                )}
               </motion.div>
 
               <motion.div
@@ -267,7 +297,9 @@ export function CandidateDashboard() {
                 transition={{ duration: 0.5, delay: 0.4 }}
                 className="flex flex-col h-full"
               >
-                {memoizedProfileEnhancements}
+                {candidateId && (
+                  <ProfileSuggestionCard candidateId={candidateId} />
+                )}
               </motion.div>
             </AnimatePresence>
           </div>

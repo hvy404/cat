@@ -1,7 +1,11 @@
+/* This the switch that displays the panel for the active state */
+
 import React, { useCallback } from "react";
 import useStore, { WidgetPayload } from "@/app/state/useStore";
+import DefaultPanel from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/right-panel-default";
 import JobMoreDetails from "@/app/(auth)/dashboard/views/candidate/search/job-details";
 import G2XTalentIDPanel from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/right-panel-talentId";
+import RightPanelResumeSuggestionDetails from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/right-panel-resume-suggestions";
 
 type WidgetComponentType =
   | ((data: WidgetPayload, clearWidget: () => void) => React.ReactNode)
@@ -45,6 +49,19 @@ export default function CandidateDashboardRightPanelDashboard() {
       }
       return null;
     },
+    resumeRecommendation: (data: WidgetPayload, clearWidget: () => void) => {
+      if (data.type === "resumeRecommendation") {
+        return (
+          <RightPanelResumeSuggestionDetails
+            title={data.payload.title}
+            message={data.payload.message}
+            type={data.payload.type}
+            priority={data.payload.priority}
+          />
+        );
+      }
+      return null;
+    }
   };
 
   function isWidgetFunction(
@@ -59,7 +76,7 @@ export default function CandidateDashboardRightPanelDashboard() {
   const WidgetDetailComponent = widgetComponents[widget];
 
   if (!WidgetDetailComponent || !widgetPayload) {
-    return <p className="p-4">Need to build a default panel</p>;
+    return <DefaultPanel />;
   }
 
   return (
