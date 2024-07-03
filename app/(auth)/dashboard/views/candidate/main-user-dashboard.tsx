@@ -11,6 +11,7 @@ import {
 } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/career-insight";
 import { RecommendationCard } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/recommendation-card";
 import ProfileSuggestionCard from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/profile-suggestions";
+import { Suggestion as ProfileSuggestion } from "@/lib/dashboard/candidate/profile-enhancements/build-suggestions";
 import ResumeSuggestionCard from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/resume-suggestions";
 import { ResumeSuggestion } from "@/lib/dashboard/candidate/resume-enhancements/build-suggestions";
 import { JobApplied } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-applied";
@@ -35,8 +36,6 @@ interface Job {
 interface DashboardData {
   invitedJobs: Job[];
   appliedJobs: Job[];
-  resumeRecommendations: string[];
-  profileEnhancements: string[];
   careerInsights: CareerInsight[];
 }
 
@@ -58,15 +57,6 @@ const mockData: DashboardData = {
     },
   ],
   appliedJobs: [],
-  resumeRecommendations: [
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-    "Add more details about your role in Agile development processes",
-    "Include metrics demonstrating the impact of your work",
-  ],
-  profileEnhancements: [
-    'Complete the "Skills" section of your profile',
-    "Request endorsements from previous colleagues",
-  ],
   careerInsights: [
     { date: "Jan", applications: 5, interviews: 2 },
     { date: "Feb", applications: 8, interviews: 3 },
@@ -139,11 +129,29 @@ export function CandidateDashboard() {
   // Handle resume suggestion click
   const handleResumeSuggestionClick = useCallback(
     (suggestion: ResumeSuggestion) => {
-
       setCandidateDashboard({
         widget: "resumeRecommendation",
         widgetPayload: {
           type: "resumeRecommendation",
+          payload: {
+            message: suggestion.message,
+            title: suggestion.title,
+            priority: suggestion.priority,
+            type: suggestion.type,
+          },
+        },
+      });
+    },
+    [setCandidateDashboard]
+  );
+
+  // Handle profile suggestion click
+  const handleProfileSuggestionClick = useCallback(
+    (suggestion: ProfileSuggestion) => {
+      setCandidateDashboard({
+        widget: "profileRecommendation",
+        widgetPayload: {
+          type: "profileRecommendation",
           payload: {
             message: suggestion.message,
             title: suggestion.title,
@@ -298,7 +306,7 @@ export function CandidateDashboard() {
                 className="flex flex-col h-full"
               >
                 {candidateId && (
-                  <ProfileSuggestionCard candidateId={candidateId} />
+                  <ProfileSuggestionCard candidateId={candidateId} handleProfileSuggestionClick={handleProfileSuggestionClick} />
                 )}
               </motion.div>
             </AnimatePresence>

@@ -120,7 +120,10 @@ type ResumeRecommendationsPayload = {
 };
 
 type ProfileEnhancementsPayload = {
-  enhancementIds: string[];
+  title: string;
+  type: string;
+  message: string;
+  priority: "low" | "medium" | "high";
 };
 
 type InsightsPayload = {
@@ -139,7 +142,7 @@ export type WidgetPayload =
   | { type: "talentID"; payload: TalentIDPayload }
   | { type: "jobInvited"; payload: JobInvitedPayload }
   | { type: "resumeRecommendation"; payload: ResumeRecommendationsPayload }
-  | { type: "profileEnhancement"; payload: ProfileEnhancementsPayload }
+  | { type: "profileRecommendation"; payload: ProfileEnhancementsPayload }
   | { type: "insights"; payload: InsightsPayload }
   | { type: null; payload: null };
 

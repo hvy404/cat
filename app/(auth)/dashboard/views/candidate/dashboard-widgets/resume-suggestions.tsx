@@ -58,7 +58,7 @@ export default function ResumeSuggestionCard({
         {loading ? (
           <p className="text-gray-500 text-center">Loading suggestions...</p>
         ) : suggestions.length === 0 ? (
-          <p className="text-gray-500 text-center">
+          <p className="text-gray-500 text-sm text-center">
             Your resume is looking great!
           </p>
         ) : (

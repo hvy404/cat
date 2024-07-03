@@ -38,6 +38,15 @@ export type ProfessionalNetwork = {
   colleagues: string[];
 };
 
+export type Certification = {
+  name: string;
+  issuing_organization?: string;
+  date_obtained: string;
+  expiration_date?: string;
+  credential_id?: string;
+  credential_url?: string;
+};
+
 export type Project = {
   title: string;
   description: string;
@@ -64,7 +73,7 @@ export type Data = {
   name: string;
   contact: ContactInfo;
   education: Education[];
-  professional_certifications: string[];
+  professional_certifications: Certification[];
   work_experience: WorkExperience[];
   technical_skills: string[];
   industry_experience?: string[];
@@ -125,7 +134,9 @@ export function generateCandidateCypherQuery(data: Data, userId: string) {
     embedding: ${data.embedding ? formatArrayForCypher(data.embedding) : "[]"},
     matching_opt_in: "${escapeString(data.matching_opt_in || "")}",
     active_looking: "${escapeString(data.active_looking || "")}",
-    active_looking_confirmed_date: "${escapeString(data.active_looking_confirmed_date || "")}"
+    active_looking_confirmed_date: "${escapeString(
+      data.active_looking_confirmed_date || ""
+    )}"
   })
   WITH t
   `;
@@ -139,7 +150,9 @@ export function generateCandidateCypherQuery(data: Data, userId: string) {
         institution: "${escapeString(edu.institution || "")}",
         start_date: "${escapeString(edu.start_date || "")}",
         end_date: "${escapeString(edu.end_date || "")}",
-        honors_awards_coursework: "${escapeString(edu.honors_awards_coursework || "")}"
+        honors_awards_coursework: "${escapeString(
+          edu.honors_awards_coursework || ""
+        )}"
       })
       CREATE (t)-[:STUDIED_AT]->(e${index})
       WITH t
@@ -177,13 +190,23 @@ export function generateCandidateCypherQuery(data: Data, userId: string) {
   }
 
   // Professional Certifications
-  if (data.professional_certifications && data.professional_certifications.length > 0) {
+  if (
+    data.professional_certifications &&
+    data.professional_certifications.length > 0
+  ) {
     data.professional_certifications.forEach((cert, index) => {
       cypher += `
-      MERGE (c${index}:Certification {name: "${escapeString(cert)}"})
-      CREATE (t)-[:HAS_CERTIFICATION]->(c${index})
-      WITH t
-      `;
+    CREATE (c${index}:Certification {
+      name: "${escapeString(cert.name || "")}",
+      issuing_organization: "${escapeString(cert.issuing_organization || "")}",
+      issue_date: "${escapeString(cert.date_obtained || "")}",
+      expiration_date: "${escapeString(cert.expiration_date || "")}",
+      credential_id: "${escapeString(cert.credential_id || "")}",
+      credential_url: "${escapeString(cert.credential_url || "")}"
+    })
+    CREATE (t)-[:HAS_CERTIFICATION]->(c${index})
+    WITH t
+    `;
     });
   }
 
@@ -209,7 +232,9 @@ export function generateCandidateCypherQuery(data: Data, userId: string) {
         end_date: "${escapeString(project.end_date || "")}",
         url: "${escapeString(project.url || "")}",
         role: "${escapeString(project.role)}",
-        technologies_used: ${JSON.stringify(project.technologies_used.map(escapeString))},
+        technologies_used: ${JSON.stringify(
+          project.technologies_used.map(escapeString)
+        )},
         achievements: ${JSON.stringify(project.achievements.map(escapeString))}
       })
       CREATE (t)-[:WORKED_ON]->(p${index})

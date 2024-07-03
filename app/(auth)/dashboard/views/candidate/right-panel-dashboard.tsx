@@ -6,6 +6,7 @@ import DefaultPanel from "@/app/(auth)/dashboard/views/candidate/dashboard-widge
 import JobMoreDetails from "@/app/(auth)/dashboard/views/candidate/search/job-details";
 import G2XTalentIDPanel from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/right-panel-talentId";
 import RightPanelResumeSuggestionDetails from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/right-panel-resume-suggestions";
+import RightPanelProfileSuggestionDetails from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/right-panel-profile-suggestions";
 
 type WidgetComponentType =
   | ((data: WidgetPayload, clearWidget: () => void) => React.ReactNode)
@@ -53,6 +54,19 @@ export default function CandidateDashboardRightPanelDashboard() {
       if (data.type === "resumeRecommendation") {
         return (
           <RightPanelResumeSuggestionDetails
+            title={data.payload.title}
+            message={data.payload.message}
+            type={data.payload.type}
+            priority={data.payload.priority}
+          />
+        );
+      }
+      return null;
+    },
+    profileRecommendation: (data: WidgetPayload, clearWidget: () => void) => {
+      if (data.type === "profileRecommendation") {
+        return (
+          <RightPanelProfileSuggestionDetails
             title={data.payload.title}
             message={data.payload.message}
             type={data.payload.type}

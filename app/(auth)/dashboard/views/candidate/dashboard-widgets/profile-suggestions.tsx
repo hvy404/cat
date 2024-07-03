@@ -7,14 +7,20 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Lightbulb, ChevronRight } from "lucide-react";
-import { FetchBuildEnhancements, Suggestion } from "@/lib/dashboard/candidate/profile-enhancements/build-suggestions";
+import {
+  FetchBuildEnhancements,
+  Suggestion,
+} from "@/lib/dashboard/candidate/profile-enhancements/build-suggestions";
 
 interface ProfileSuggestionCardProps {
   candidateId: string;
+  handleProfileSuggestionClick: (suggestion: Suggestion) => void;
 }
 
-export default function ProfileSuggestionCard
-  ({ candidateId }: ProfileSuggestionCardProps) {
+export default function ProfileSuggestionCard({
+  candidateId,
+  handleProfileSuggestionClick,
+}: ProfileSuggestionCardProps) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -30,20 +36,16 @@ export default function ProfileSuggestionCard
     fetchSuggestions();
   }, []);
 
-  const handleSuggestionClick = (suggestion: Suggestion) => {
-    console.log("Suggestion clicked:", suggestion.message);
-  };
-
   const getPriorityClass = (priority: string) => {
     switch (priority) {
-      case 'high':
-        return 'before:bg-gray-800';
-      case 'medium':
-        return 'before:bg-gray-500';
-      case 'low':
-        return 'before:bg-gray-300';
+      case "high":
+        return "before:bg-gray-800";
+      case "medium":
+        return "before:bg-gray-500";
+      case "low":
+        return "before:bg-gray-300";
       default:
-        return '';
+        return "";
     }
   };
 
@@ -59,15 +61,21 @@ export default function ProfileSuggestionCard
         {loading ? (
           <p className="text-gray-500 text-center">Loading suggestions...</p>
         ) : suggestions.length === 0 ? (
-          <p className="text-gray-500 text-center">Your profile is looking great!</p>
+          <p className="text-gray-500 text-center">
+            Your profile is looking great!
+          </p>
         ) : (
           suggestions.map((suggestion, index) => (
             <button
               key={index}
-              className={`w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-r-lg transition-colors duration-200 relative overflow-hidden ${getPriorityClass(suggestion.priority)} before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1`}
-              onClick={() => handleSuggestionClick(suggestion)}
+              className={`w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-r-lg transition-colors duration-200 relative overflow-hidden ${getPriorityClass(
+                suggestion.priority
+              )} before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1`}
+              onClick={() => handleProfileSuggestionClick(suggestion)}
             >
-              <span className="text-sm font-medium text-gray-700 text-left">{suggestion.title}</span>
+              <span className="text-sm font-medium text-gray-700 text-left">
+                {suggestion.title}
+              </span>
               <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
             </button>
           ))

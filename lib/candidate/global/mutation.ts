@@ -49,6 +49,10 @@ export interface SkillNode {
 export interface CertificationNode {
   name: string;
   date_obtained?: string;
+  issuing_organization?: string;
+  expiration_date?: string;
+  credential_id?: string;
+  credential_url?: string;
 }
 
 export interface IndustryNode {
