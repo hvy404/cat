@@ -59,9 +59,9 @@ export default function ProfileSuggestionCard({
       </CardHeader>
       <CardContent className="flex-grow py-4 space-y-2">
         {loading ? (
-          <p className="text-gray-500 text-center">Loading suggestions...</p>
+          <p className="text-gray-500 text-sm text-center">Loading suggestions...</p>
         ) : suggestions.length === 0 ? (
-          <p className="text-gray-500 text-center">
+          <p className="text-gray-500 text-sm text-center">
             Your profile is looking great!
           </p>
         ) : (
