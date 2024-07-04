@@ -45,6 +45,10 @@ export default function AIMatchCandidateResumeView({
   );
   const [skills, setSkills] = useState<(SkillNode & NodeWithId)[]>([]);
 
+  const [expandedExperiences, setExpandedExperiences] = useState<Set<number>>(
+    new Set()
+  ); // Set of indexes of expanded experiences
+
   useEffect(() => {
     if (isOpen && applicantId) {
       fetchTalentData();
@@ -67,6 +71,18 @@ export default function AIMatchCandidateResumeView({
     } catch (error) {
       console.error("Error fetching talent data:", error);
     }
+  };
+
+  const toggleExpand = (index: number) => {
+    setExpandedExperiences((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
   };
 
   if (!talentData) {
@@ -155,9 +171,31 @@ export default function AIMatchCandidateResumeView({
                     <p className="text-sm text-gray-600 mb-2">{`${
                       exp.start_date
                     } - ${exp.end_date || "Present"}`}</p>
-                    <p className="text-sm text-gray-700 whitespace-pre-line">
-                      {exp.responsibilities}
-                    </p>
+                    <div className="text-sm text-gray-700">
+                      {expandedExperiences.has(index) ? (
+                        <p className="whitespace-pre-line">
+                          {exp.responsibilities}
+                        </p>
+                      ) : (
+                        <p>
+                          {exp.responsibilities
+                            .split(/\s+/)
+                            .slice(0, 4)
+                            .join(" ")}
+                          {exp.responsibilities.split(/\s+/).length > 4
+                            ? "..."
+                            : ""}
+                        </p>
+                      )}
+                      <button
+                        onClick={() => toggleExpand(index)}
+                        className="text-slate-600 hover:text-slate-800 mt-1 focus:outline-none font-bold"
+                      >
+                        {expandedExperiences.has(index)
+                          ? "Show less"
+                          : "Show more"}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </dd>
