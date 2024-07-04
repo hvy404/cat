@@ -18,6 +18,7 @@ import {
   Layers2,
   BriefcaseBusiness,
   GraduationCap,
+  Zap,
   User,
   Award,
   Compass,
@@ -89,10 +90,10 @@ export default function EmployerDashboardNavigation() {
             <TooltipButton item="dashboard" label="Dashboard" icon={Home} />
             <TooltipButton
               item="add-job"
-              label="Add Job"
+              label="Post New Job"
               icon={UserRoundPlus}
             />
-            <TooltipButton item="jd-builder" label="JD Builder" icon={Folder} />
+            <TooltipButton item="jd-builder" label="Job Description Wizard" icon={Zap} />
             <TooltipButton
               item="documents"
               label="Collection"

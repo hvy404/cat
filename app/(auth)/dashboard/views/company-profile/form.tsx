@@ -29,35 +29,16 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-
-interface FormData {
-  id: string;
-  name: string;
-  industry: string;
-  size: string;
-  foundedYear: string;
-  website: string;
-  description: string;
-  headquarters: {
-    city: string;
-    state: string;
-    country: string;
-  };
-  socialMedia: {
-    linkedin: string;
-    twitter: string;
-    facebook: string;
-  };
-  contactEmail: string;
-  phoneNumber: string;
-  admin: string[];
-  manager: string[];
-}
+import {
+  validateCompanyProfile,
+  CompanyProfileData,
+  ValidationResult,
+} from "@/lib/company/validation";
 
 type NestedKeys = "headquarters" | "socialMedia";
 
 export default function EditCompanyProfile() {
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<CompanyProfileData>({
     id: uuidv4(),
     name: "",
     industry: "",
@@ -81,14 +62,12 @@ export default function EditCompanyProfile() {
     manager: [],
   });
 
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
   const [stateOpen, setStateOpen] = useState(false);
-  const [stateValue, setStateValue] = useState("");
   const [countryOpen, setCountryOpen] = useState(false);
-  const [countryValue, setCountryValue] = useState("");
   const [sizeOpen, setSizeOpen] = useState(false);
-  const [sizeValue, setSizeValue] = useState("");
   const [industryOpen, setIndustryOpen] = useState(false);
-  const [industryValue, setIndustryValue] = useState("");
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -106,13 +85,31 @@ export default function EditCompanyProfile() {
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
+    // Clear the error for this field when it's changed
+    if (errors[name]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
-  const handleSubmit = () => {
-    console.log("Form data submitted:", formData);
-    // Here you would typically send the data to your backend
+  const handleSubmit = async () => {
+    const result = await validateCompanyProfile(formData);
+    if (result.success) {
+      console.log("Form data submitted:", result.data);
+      // Here you would typically send the data to your backend
+      setErrors({}); // Clear any existing errors
+    } else {
+      const newErrors: { [key: string]: string } = {};
+      result.errors.forEach((error) => {
+        newErrors[error.path] = error.message;
+      });
+      setErrors(newErrors);
+      console.log("Validation errors:", newErrors);
+    }
   };
-
   return (
     <main className="p-4 w-full overflow-auto">
       <div className="space-y-6">
@@ -131,6 +128,9 @@ export default function EditCompanyProfile() {
               placeholder="Enter company name"
               required
             />
+            {errors.name && (
+              <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-3 gap-4">
@@ -161,7 +161,6 @@ export default function EditCompanyProfile() {
                           <CommandItem
                             key={industry.id}
                             onSelect={() => {
-                              setIndustryValue(industry.code);
                               setFormData((prev) => ({
                                 ...prev,
                                 industry: industry.code,
@@ -173,7 +172,7 @@ export default function EditCompanyProfile() {
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4 flex-shrink-0",
-                                industryValue === industry.code
+                                formData.industry === industry.code
                                   ? "opacity-100"
                                   : "opacity-0"
                               )}
@@ -186,6 +185,9 @@ export default function EditCompanyProfile() {
                   </Command>
                 </PopoverContent>
               </Popover>
+              {errors.industry && (
+                <p className="text-red-500 text-sm mt-1">{errors.industry}</p>
+              )}
             </div>
 
             <div>
@@ -213,7 +215,6 @@ export default function EditCompanyProfile() {
                           <CommandItem
                             key={size.value}
                             onSelect={() => {
-                              setSizeValue(size.value);
                               setFormData((prev) => ({
                                 ...prev,
                                 size: size.value,
@@ -225,7 +226,7 @@ export default function EditCompanyProfile() {
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4 flex-shrink-0",
-                                sizeValue === size.value
+                                formData.size === size.value
                                   ? "opacity-100"
                                   : "opacity-0"
                               )}
@@ -238,6 +239,9 @@ export default function EditCompanyProfile() {
                   </Command>
                 </PopoverContent>
               </Popover>
+              {errors.size && (
+                <p className="text-red-500 text-sm mt-1">{errors.size}</p>
+              )}
             </div>
 
             <div>
@@ -250,6 +254,11 @@ export default function EditCompanyProfile() {
                 onChange={handleChange}
                 placeholder="2010"
               />
+              {errors.foundedYear && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.foundedYear}
+                </p>
+              )}
             </div>
           </div>
 
@@ -263,6 +272,9 @@ export default function EditCompanyProfile() {
               onChange={handleChange}
               placeholder="https://www.example.com"
             />
+            {errors.website && (
+              <p className="text-red-500 text-sm mt-1">{errors.website}</p>
+            )}
           </div>
 
           <div>
@@ -275,6 +287,9 @@ export default function EditCompanyProfile() {
               rows={3}
               placeholder="Brief description of your company"
             />
+            {errors.description && (
+              <p className="text-red-500 text-sm mt-1">{errors.description}</p>
+            )}
           </div>
 
           <div>
@@ -284,7 +299,7 @@ export default function EditCompanyProfile() {
                 type="text"
                 name="headquarters.city"
                 placeholder="City"
-                value={formData.headquarters.city}
+                value={formData.headquarters?.city}
                 onChange={handleChange}
               />
               <div>
@@ -296,7 +311,9 @@ export default function EditCompanyProfile() {
                       aria-expanded={stateOpen}
                       className="w-full justify-between"
                     >
-                      {formData.headquarters.state || "Select state"}
+                      <span className="truncate">
+                        {formData.headquarters?.state || "Select state"}
+                      </span>
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
@@ -310,7 +327,6 @@ export default function EditCompanyProfile() {
                             <CommandItem
                               key={state.value}
                               onSelect={() => {
-                                setStateValue(state.value);
                                 setFormData((prev) => ({
                                   ...prev,
                                   headquarters: {
@@ -325,7 +341,7 @@ export default function EditCompanyProfile() {
                               <Check
                                 className={cn(
                                   "mr-2 h-4 w-4 flex-shrink-0",
-                                  stateValue === state.value
+                                  formData.headquarters?.state === state.value
                                     ? "opacity-100"
                                     : "opacity-0"
                                 )}
@@ -348,9 +364,11 @@ export default function EditCompanyProfile() {
                       aria-expanded={countryOpen}
                       className="w-full justify-between truncate"
                     >
-                      {countries.find(
-                        (c) => c.code3 === formData.headquarters.country
-                      )?.name || "Select country"}
+                      <span className="truncate">
+                        {countries.find(
+                          (c) => c.code3 === formData.headquarters?.country
+                        )?.name || "Select country"}
+                      </span>
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
@@ -364,7 +382,6 @@ export default function EditCompanyProfile() {
                             <CommandItem
                               key={country.code3}
                               onSelect={() => {
-                                setCountryValue(country.code3);
                                 setFormData((prev) => ({
                                   ...prev,
                                   headquarters: {
@@ -379,7 +396,8 @@ export default function EditCompanyProfile() {
                               <Check
                                 className={cn(
                                   "mr-2 h-4 w-4 flex-shrink-0",
-                                  countryValue === country.code3
+                                  formData.headquarters?.country ===
+                                    country.code3
                                     ? "opacity-100"
                                     : "opacity-0"
                                 )}
@@ -393,7 +411,22 @@ export default function EditCompanyProfile() {
                   </PopoverContent>
                 </Popover>
               </div>
-            </div>{" "}
+            </div>
+            {errors["headquarters.city"] && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors["headquarters.city"]}
+              </p>
+            )}
+            {errors["headquarters.state"] && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors["headquarters.state"]}
+              </p>
+            )}
+            {errors["headquarters.country"] && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors["headquarters.country"]}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -407,7 +440,7 @@ export default function EditCompanyProfile() {
                 type="text"
                 name="socialMedia.linkedin"
                 placeholder="LinkedIn username"
-                value={formData.socialMedia.linkedin}
+                value={formData.socialMedia?.linkedin}
                 onChange={handleChange}
                 className="pl-10"
               />
@@ -421,7 +454,7 @@ export default function EditCompanyProfile() {
                 type="text"
                 name="socialMedia.twitter"
                 placeholder="Twitter username"
-                value={formData.socialMedia.twitter}
+                value={formData.socialMedia?.twitter}
                 onChange={handleChange}
                 className="pl-10"
               />
@@ -435,11 +468,26 @@ export default function EditCompanyProfile() {
                 type="text"
                 name="socialMedia.facebook"
                 placeholder="Facebook username"
-                value={formData.socialMedia.facebook}
+                value={formData.socialMedia?.facebook}
                 onChange={handleChange}
                 className="pl-10"
               />
             </div>
+            {errors["socialMedia.linkedin"] && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors["socialMedia.linkedin"]}
+              </p>
+            )}
+            {errors["socialMedia.twitter"] && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors["socialMedia.twitter"]}
+              </p>
+            )}
+            {errors["socialMedia.facebook"] && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors["socialMedia.facebook"]}
+              </p>
+            )}
           </div>
 
           <div>
@@ -452,6 +500,9 @@ export default function EditCompanyProfile() {
               onChange={handleChange}
               placeholder="contact@example.com"
             />
+            {errors.contactEmail && (
+              <p className="text-red-500 text-sm mt-1">{errors.contactEmail}</p>
+            )}
           </div>
 
           <div>
@@ -464,6 +515,9 @@ export default function EditCompanyProfile() {
               onChange={handleChange}
               placeholder="+1 (555) 123-4567"
             />
+            {errors.phoneNumber && (
+              <p className="text-red-500 text-sm mt-1">{errors.phoneNumber}</p>
+            )}
           </div>
 
           <div className="flex justify-end">
