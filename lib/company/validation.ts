@@ -1,7 +1,9 @@
+"use server";
 import { z } from "zod";
 
 // Regular expression for company name and city
 const nameRegex = /^[a-zA-Z0-9 .\-']+$/;
+const descriptionRegex = /^[0-9a-zA-Z,()' -]*$/;
 
 const CompanyProfileSchema = z.object({
   id: z.string().uuid(),
@@ -15,11 +17,11 @@ const CompanyProfileSchema = z.object({
   industry: z.string().optional(),
   size: z.string().optional(),
   foundedYear: z
-    .string()
-    .optional()
-    .refine((val) => !val || !isNaN(parseInt(val)), {
-      message: "Founded year must be a valid number",
-    }),
+      .string()
+      .optional()
+      .refine((val) => !val || (/^\d{4}$/.test(val) && !isNaN(parseInt(val))), {
+        message: "Year must be a valid 4-digit year",
+      }),
   website: z.string().url().optional().or(z.literal("")),
   description: z.string().optional(),
   headquarters: z

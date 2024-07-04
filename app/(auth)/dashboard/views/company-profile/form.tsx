@@ -32,37 +32,21 @@ import { cn } from "@/lib/utils";
 import {
   validateCompanyProfile,
   CompanyProfileData,
-  ValidationResult,
 } from "@/lib/company/validation";
 import FormattedPhoneInput from "@/app/(auth)/dashboard/views/candidate/helpers/formatPhoneInput";
+import PrefixedUrlInput from "@/app/(auth)/dashboard/views/company-profile/website-field";
 
 type NestedKeys = "headquarters" | "socialMedia";
 
-export default function EditCompanyProfile() {
-  const [formData, setFormData] = useState<CompanyProfileData>({
-    id: uuidv4(),
-    name: "",
-    industry: "",
-    size: "",
-    foundedYear: "",
-    website: "",
-    description: "",
-    headquarters: {
-      city: "",
-      state: "",
-      country: "",
-    },
-    socialMedia: {
-      linkedin: "",
-      twitter: "",
-      facebook: "",
-    },
-    contactEmail: "",
-    phoneNumber: "",
-    admin: [],
-    manager: [],
-  });
+interface EditCompanyProfileProps {
+  formData: CompanyProfileData;
+  setFormData: React.Dispatch<React.SetStateAction<CompanyProfileData>>;
+}
 
+export default function EditCompanyProfile({
+  formData,
+  setFormData,
+}: EditCompanyProfileProps) {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const [stateOpen, setStateOpen] = useState(false);
@@ -127,6 +111,7 @@ export default function EditCompanyProfile() {
       console.log("Validation errors:", newErrors);
     }
   };
+
   return (
     <main className="p-4 w-full overflow-auto">
       <div className="space-y-6">
@@ -267,27 +252,21 @@ export default function EditCompanyProfile() {
                 type="number"
                 id="foundedYear"
                 name="foundedYear"
-                value={formData.foundedYear}
+                value={formData.foundedYear || ""}
                 onChange={handleChange}
-                placeholder="2010"
+                maxLength={4}
               />
               {errors.foundedYear && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.foundedYear}
-                </p>
+                <p className="text-red-500 text-sm mt-1">{errors.foundedYear}</p>
               )}
             </div>
           </div>
 
           <div>
             <Label htmlFor="website">Website</Label>
-            <Input
-              type="url"
-              id="website"
-              name="website"
-              value={formData.website}
-              onChange={handleChange}
-              placeholder="https://www.example.com"
+            <PrefixedUrlInput
+              value={formData.website || ""}
+              onChange={(value) => handleChange(value, "website")}
             />
             {errors.website && (
               <p className="text-red-500 text-sm mt-1">{errors.website}</p>
@@ -299,7 +278,7 @@ export default function EditCompanyProfile() {
             <Textarea
               id="description"
               name="description"
-              value={formData.description}
+              value={formData.description || ""}
               onChange={handleChange}
               rows={3}
               placeholder="Brief description of your company"
@@ -316,7 +295,7 @@ export default function EditCompanyProfile() {
                 type="text"
                 name="headquarters.city"
                 placeholder="City"
-                value={formData.headquarters?.city}
+                value={formData.headquarters?.city || ""}
                 onChange={handleChange}
               />
               <div>
@@ -457,7 +436,7 @@ export default function EditCompanyProfile() {
                 type="text"
                 name="socialMedia.linkedin"
                 placeholder="LinkedIn username"
-                value={formData.socialMedia?.linkedin}
+                value={formData.socialMedia?.linkedin || ""}
                 onChange={handleChange}
                 className="pl-10"
               />
@@ -471,7 +450,7 @@ export default function EditCompanyProfile() {
                 type="text"
                 name="socialMedia.twitter"
                 placeholder="Twitter username"
-                value={formData.socialMedia?.twitter}
+                value={formData.socialMedia?.twitter || ""}
                 onChange={handleChange}
                 className="pl-10"
               />
@@ -485,7 +464,7 @@ export default function EditCompanyProfile() {
                 type="text"
                 name="socialMedia.facebook"
                 placeholder="Facebook username"
-                value={formData.socialMedia?.facebook}
+                value={formData.socialMedia?.facebook || ""}
                 onChange={handleChange}
                 className="pl-10"
               />
@@ -513,12 +492,14 @@ export default function EditCompanyProfile() {
               type="email"
               id="contactEmail"
               name="contactEmail"
-              value={formData.contactEmail}
+              value={formData.contactEmail || ""}
               onChange={handleChange}
               placeholder="contact@example.com"
             />
             {errors.contactEmail && (
-              <p className="text-red-500 text-sm mt-1">{errors.contactEmail}</p>
+              <p className="text-red-500 text-sm mt-1">
+                {errors.contactEmail}
+              </p>
             )}
           </div>
 
