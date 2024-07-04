@@ -34,6 +34,7 @@ import {
   CompanyProfileData,
   ValidationResult,
 } from "@/lib/company/validation";
+import FormattedPhoneInput from "@/app/(auth)/dashboard/views/candidate/helpers/formatPhoneInput";
 
 type NestedKeys = "headquarters" | "socialMedia";
 
@@ -70,26 +71,42 @@ export default function EditCompanyProfile() {
   const [industryOpen, setIndustryOpen] = useState(false);
 
   const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | string,
+    fieldName?: string
   ) => {
-    const { name, value } = e.target;
-    if (name.includes(".")) {
-      const [parent, child] = name.split(".") as [NestedKeys, string];
-      setFormData((prev) => ({
-        ...prev,
-        [parent]: {
-          ...prev[parent],
-          [child]: value,
-        },
-      }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+    if (typeof e === "string" && fieldName) {
+      // This is for the phone number input
+      setFormData((prev) => ({ ...prev, [fieldName]: e }));
+    } else if (typeof e !== "string") {
+      const { name, value } = e.target;
+      if (name.includes(".")) {
+        const [parent, child] = name.split(".") as [NestedKeys, string];
+        setFormData((prev) => ({
+          ...prev,
+          [parent]: {
+            ...prev[parent],
+            [child]: value,
+          },
+        }));
+      } else {
+        setFormData((prev) => ({ ...prev, [name]: value }));
+      }
     }
+
     // Clear the error for this field when it's changed
-    if (errors[name]) {
+    if (typeof e !== "string") {
+      const name = e.target.name;
+      if (errors[name]) {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[name];
+          return newErrors;
+        });
+      }
+    } else if (fieldName && errors[fieldName]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
-        delete newErrors[name];
+        delete newErrors[fieldName];
         return newErrors;
       });
     }
@@ -507,13 +524,9 @@ export default function EditCompanyProfile() {
 
           <div>
             <Label htmlFor="phoneNumber">Phone Number</Label>
-            <Input
-              type="tel"
-              id="phoneNumber"
-              name="phoneNumber"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-              placeholder="+1 (555) 123-4567"
+            <FormattedPhoneInput
+              value={formData.phoneNumber || ""}
+              onChange={(value) => handleChange(value, "phoneNumber")}
             />
             {errors.phoneNumber && (
               <p className="text-red-500 text-sm mt-1">{errors.phoneNumber}</p>
