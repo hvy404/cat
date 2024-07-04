@@ -1,0 +1,73 @@
+export const naicsList = [
+  { id: 1, code: "11", label: "Agriculture, Forestry, Fishing and Hunting" },
+  { id: 2, code: "21", label: "Mining, Quarrying, and Oil and Gas Extraction" },
+  { id: 3, code: "22", label: "Utilities" },
+  { id: 4, code: "23", label: "Construction" },
+  { id: 5, code: "31-33", label: "Manufacturing" },
+  { id: 6, code: "42", label: "Wholesale Trade" },
+  { id: 7, code: "44-45", label: "Retail Trade" },
+  { id: 8, code: "48-49", label: "Transportation and Warehousing" },
+  { id: 9, code: "51", label: "Information" },
+  { id: 10, code: "52", label: "Finance and Insurance" },
+  { id: 11, code: "53", label: "Real Estate and Rental and Leasing" },
+  {
+    id: 12,
+    code: "54",
+    label: "Professional, Scientific, and Technical Services",
+  },
+  { id: 13, code: "55", label: "Management of Companies and Enterprises" },
+  {
+    id: 14,
+    code: "56",
+    label:
+      "Administrative and Support and Waste Management and Remediation Services",
+  },
+  { id: 15, code: "61", label: "Educational Services" },
+  { id: 16, code: "62", label: "Health Care and Social Assistance" },
+  { id: 17, code: "71", label: "Arts, Entertainment, and Recreation" },
+  { id: 18, code: "72", label: "Accommodation and Food Services" },
+  {
+    id: 19,
+    code: "81",
+    label: "Other Services (except Public Administration)",
+  },
+  { id: 20, code: "92", label: "Public Administration" },
+  {
+    id: 21,
+    code: "9281",
+    label: "National Security and International Affairs",
+  },
+  {
+    id: 22,
+    code: "5415",
+    label: "Computer Systems Design and Related Services",
+  },
+  {
+    id: 23,
+    code: "5416",
+    label: "Management, Scientific, and Technical Consulting Services",
+  },
+  {
+    id: 24,
+    code: "5417",
+    label: "Scientific Research and Development Services",
+  },
+  {
+    id: 25,
+    code: "5419",
+    label: "Other Professional, Scientific, and Technical Services",
+  },
+  { id: 26, code: "5612", label: "Facilities Support Services" },
+  { id: 27, code: "5614", label: "Business Support Services" },
+  {
+    id: 28,
+    code: "5615",
+    label: "Travel Arrangement and Reservation Services",
+  },
+  { id: 29, code: "5616", label: "Investigation and Security Services" },
+  {
+    id: 30,
+    code: "5629",
+    label: "Remediation and Other Waste Management Services",
+  },
+];

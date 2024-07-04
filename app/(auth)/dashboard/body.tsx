@@ -5,6 +5,7 @@ import EmployerDashboardJDBuilder from "@/app/(auth)/dashboard/views/jd-builder/
 import EmployerDashboardDocuments from "@/app/(auth)/dashboard/views/collection/main";
 import EmployerDashboardProfile from "@/app/(auth)/dashboard/views/profile/main";
 import EmployerDashboardCandidateSearch from "@/app/(auth)/dashboard/views/search/main";
+import EmployerDashboardCompanyProfile from "@/app/(auth)/dashboard/views/company-profile/main";
 import CandidateDashboardMain from "@/app/(auth)/dashboard/views/candidate/main";
 import CandidateDashboardExperience from "@/app/(auth)/dashboard/views/candidate/experience/main";
 import CandidateDashboardEducation from "@/app/(auth)/dashboard/views/candidate/education/main";
@@ -39,6 +40,8 @@ export default function EmployerDashboardBody() {
         return <EmployerDashboardProfile />;
       case "browse":
         return <EmployerDashboardCandidateSearch />;
+      case "company-profile":
+        return <EmployerDashboardCompanyProfile />;
       case "talent-dashboard":
         return <CandidateDashboardMain />;
       case "talent-experience":

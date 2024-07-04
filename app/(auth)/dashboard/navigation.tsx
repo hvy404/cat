@@ -21,6 +21,7 @@ import {
   User,
   Award,
   Compass,
+  Building,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { clearDashboardWidgetPanel } from "@/lib/dashboard/janitor";
@@ -98,6 +99,11 @@ export default function EmployerDashboardNavigation() {
               icon={BookOpen}
             />
             <TooltipButton item="browse" label="Browse" icon={Search} />
+            <TooltipButton
+              item="company-profile"
+              label="Company Profile"
+              icon={Building}
+            />
             <TooltipButton item="settings" label="Settings" icon={Settings2} />
           </>
         );
