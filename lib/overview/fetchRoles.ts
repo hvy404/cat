@@ -1,6 +1,7 @@
 "use server";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
+import { format, parseISO } from 'date-fns';
 
 const cookieStore = cookies();
 const supabase = createClient(cookieStore);
@@ -39,6 +40,17 @@ function remapLocationType(type: string) {
   }
 }
 
+
+function formatDate(dateString: string) {
+  try {
+    const date = parseISO(dateString);
+    return format(date, 'MMMM d, yyyy');
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return dateString; // Return original string if parsing fails
+  }
+}
+
 export async function fetchDetailedJobPosts(userID: string, filter: string) {
   const filterBoolean = filter === "active" ? true : false;
 
@@ -62,7 +74,8 @@ export async function fetchDetailedJobPosts(userID: string, filter: string) {
   const remappedData = data?.map(job => ({
     ...job,
     security_clearance: remapClearanceLevel(job.security_clearance),
-    location_type: remapLocationType(job.location_type)
+    location_type: remapLocationType(job.location_type),
+    posted_date: formatDate(job.posted_date),
   }));
 
   return { data: remappedData };

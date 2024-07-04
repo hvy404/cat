@@ -50,58 +50,7 @@ const candidates = [
     availability: "1 month",
     candidateSummary:
       "Proficient Software Engineer with extensive experience in software design and implementation, and a proven track record of leading successful projects.",
-  },
-  {
-    id: "3",
-    name: "Jane Doe",
-    role: "Software Engineer",
-    location: "New York City, NY",
-    matchingScore: 72,
-    keyResponsibilitiesMatch: [
-      "Designing and implementing software",
-      "Maintaining and improving code quality",
-    ],
-    experienceLevel: "6 years",
-    educationLevel: "Master's Degree in Computer Science",
-    recentJobTitles: ["Lead Software Engineer", "Software Engineer"],
-    availability: "1 month",
-    candidateSummary:
-      "Proficient Software Engineer with extensive experience in software design and implementation, and a proven track record of leading successful projects.",
-  },
-  {
-    id: "4",
-    name: "Jane Doe",
-    role: "Software Engineer",
-    location: "New York City, NY",
-    matchingScore: 72,
-    keyResponsibilitiesMatch: [
-      "Designing and implementing software",
-      "Maintaining and improving code quality",
-    ],
-    experienceLevel: "6 years",
-    educationLevel: "Master's Degree in Computer Science",
-    recentJobTitles: ["Lead Software Engineer", "Software Engineer"],
-    availability: "1 month",
-    candidateSummary:
-      "Proficient Software Engineer with extensive experience in software design and implementation, and a proven track record of leading successful projects.",
-  },
-  {
-    id: "5",
-    name: "Jane Doe",
-    role: "Software Engineer",
-    location: "New York City, NY",
-    matchingScore: 48,
-    keyResponsibilitiesMatch: [
-      "Designing and implementing software",
-      "Maintaining and improving code quality",
-    ],
-    experienceLevel: "6 years",
-    educationLevel: "Master's Degree in Computer Science",
-    recentJobTitles: ["Lead Software Engineer", "Software Engineer"],
-    availability: "1 month",
-    candidateSummary:
-      "Proficient Software Engineer with extensive experience in software design and implementation, and a proven track record of leading successful projects.",
-  },
+  }
 ];
 
 interface CircularProgressProps {
@@ -193,7 +142,8 @@ export default function AIMatchCandidateOverview() {
       <AIMatchCandidateResumeView
         isOpen={isOpen}
         setIsOpen={setIsOpen}
-        name={selectedCandidate || ""}
+        /* applicantId={selectedCandidate || ""} */
+        applicantId={"a4004387-b3af-4b03-8d44-4109c5e4a143"}
       />
     </>
   );

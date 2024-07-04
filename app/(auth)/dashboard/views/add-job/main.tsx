@@ -4,7 +4,6 @@ import AddJobBreadcrumb from "@/app/(auth)/dashboard/views/add-job/breadcrumb";
 import AddNewJobStart from "@/app/(auth)/dashboard/views/add-job/mods/panel-step-1";
 import { Separator } from "@/components/ui/separator";
 import { v4 as uuidv4 } from "uuid";
-import { checkUploadSession } from "@/lib/dashboard/ingest-jd/deprecate_set-local-session";
 import { jdGetProcessStatus } from "@/lib/dashboard/ingest-jd/jd-process-status";
 import AddJDStepOne from "@/app/(auth)/dashboard/views/add-job/steps/step-1";
 import AddJDStepTwo from "@/app/(auth)/dashboard/views/add-job/steps/step-2";
