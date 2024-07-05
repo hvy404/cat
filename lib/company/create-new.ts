@@ -62,16 +62,36 @@ export async function addEmployeeToCompany({
   if (!employerId || !companyId || !role) {
     return {
       success: false,
-      error:
-        "There was an error adding the employee to the company. Please try again.",
+      error: "Missing required information. Please try your request again.",
     };
   }
 
   const supabase = getSupabase();
 
-  console.log("Employer ID", employerId);
-
   try {
+    // If the role is "admin", check if there's already an admin for this company
+    if (role === "admin") {
+      const { data: existingAdmin, error: adminCheckError } = await supabase
+        .from("company_employers")
+        .select("employer_uuid")
+        .eq("company_id", companyId)
+        .eq("role", "admin")
+        .single();
+
+      if (adminCheckError && adminCheckError.code !== "PGRST116") {
+        // PGRST116 is the error code for no rows returned, which is what we want
+        throw adminCheckError;
+      }
+
+      if (existingAdmin) {
+        return {
+          success: false,
+          error: "An administrator already exists for this company. Only one administrator is allowed per company.",
+        };
+      }
+    }
+
+    // If we've passed the admin check (or if the role isn't admin), proceed with insertion
     const { error } = await supabase
       .from("company_employers")
       .insert([
@@ -86,8 +106,7 @@ export async function addEmployeeToCompany({
     console.error("Error adding employee to company:", error);
     return {
       success: false,
-      error:
-        "There was an error adding the employee to the company. Please try again.",
+      error: "There was an error adding the employee to the company. Please try again.",
     };
   }
 }

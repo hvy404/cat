@@ -38,6 +38,7 @@ import {
   addNewCompanyEntry,
   addEmployeeToCompany,
 } from "@/lib/company/create-new";
+import { toast } from "sonner";
 
 type NestedKeys = "headquarters" | "socialMedia";
 
@@ -108,8 +109,6 @@ export default function EditCompanyProfile({
   const handleSubmit = async () => {
     const result = await validateCompanyProfile(formData);
     if (result.success) {
-      console.log("Form data submitted:", result.data);
-
       if (createNew) {
         const addCompany = await addNewCompanyEntry(
           result.data.id,
@@ -122,7 +121,15 @@ export default function EditCompanyProfile({
             companyId: formData.id,
             role: isInitialOwner ? "admin" : "employee",
           });
+
+          // catch error from addEmployeeToCompany
+          if (!addEmployee.success) {
+            toast.error(addEmployee.error);
+            return;
+          }
         }
+
+        toast.success("Your company profile has been saved.");
       } else {
         // TODO: Add our update logic here if needed
       }

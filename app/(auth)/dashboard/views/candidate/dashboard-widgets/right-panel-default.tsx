@@ -15,7 +15,7 @@ const WelcomePanel = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        Welcome to Your Job Search Journey
+        Welcome to Your Career Growth Journey
       </motion.h2>
       
       <motion.div 
