@@ -45,12 +45,16 @@ interface EditCompanyProfileProps {
   formData: CompanyProfileData;
   setFormData: React.Dispatch<React.SetStateAction<CompanyProfileData>>;
   createNew: boolean;
+  isInitialOwner: boolean;
+  employerId: string;
 }
 
 export default function EditCompanyProfile({
   formData,
   setFormData,
   createNew,
+  isInitialOwner,
+  employerId,
 }: EditCompanyProfileProps) {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -111,10 +115,16 @@ export default function EditCompanyProfile({
           result.data.id,
           result.data.name
         );
-        console.log("New company added:", addCompany);
+
+        if (isInitialOwner) {
+          const addEmployee = await addEmployeeToCompany({
+            employerId: employerId,
+            companyId: formData.id,
+            role: isInitialOwner ? "admin" : "employee",
+          });
+        }
       } else {
-        console.log("updating...");
-        // Add your update logic here if needed
+        // TODO: Add our update logic here if needed
       }
 
       setErrors({}); // Clear any existing errors

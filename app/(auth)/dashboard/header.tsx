@@ -173,7 +173,7 @@ export default function EmployerDashboardHeader() {
 
       <Button variant="outline" size="sm" className="ml-auto gap-1.5 text-sm">
         <Share className="size-3.5" />
-        Share
+        Placeholder
       </Button>
       <div className="flex flex-col text-xs text-gray-400">
         <p>

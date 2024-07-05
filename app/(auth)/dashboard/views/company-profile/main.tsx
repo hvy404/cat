@@ -5,8 +5,8 @@ import { CompanyProfileData } from "@/lib/company/validation";
 import { v4 as uuidv4 } from "uuid";
 import CompanyProfileRightPanel from "@/app/(auth)/dashboard/views/company-profile/right-panel";
 import CompanyProfileImportance from "@/app/(auth)/dashboard/views/company-profile/right-panel-intro";
-import EmployerCompanyCheck from "@/app/(auth)/dashboard/views/company-profile/has-company";
-import { CheckUserCompany } from "@/lib/company/has-company";
+import EmployerCompanyCheck from "@/app/(auth)/dashboard/views/company-profile/check-membership";
+import { checkUserCompany } from "@/lib/company/check-company-membership";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
@@ -49,13 +49,18 @@ export default function EmployerDashboardCompanyProfile() {
     CompanyState.LOADING
   );
 
+  // Early return if user is not logged in
+  if (!user?.uuid) {
+    return null;
+  }
+
   const [formData, setFormData] = useState<CompanyProfileData>(defaultFormData);
 
   useEffect(() => {
     const checkCompany = async () => {
       if (user?.uuid) {
         try {
-          const result = await CheckUserCompany({ employerId: user.uuid });
+          const result = await checkUserCompany({ employerId: user.uuid });
           setCompanyState(
             result ? CompanyState.HAS_COMPANY : CompanyState.INITIAL
           );
@@ -94,7 +99,7 @@ export default function EmployerDashboardCompanyProfile() {
       case CompanyState.LOADING:
         return <div>Loading...</div>;
       case CompanyState.HAS_COMPANY:
-        return <div>Company Joined</div>;
+        return <div>Company Joined...add edit form etc</div>;
       case CompanyState.CREATING_COMPANY:
         return (
           <>
@@ -103,6 +108,8 @@ export default function EmployerDashboardCompanyProfile() {
               formData={formData}
               setFormData={setFormData}
               createNew={true}
+              isInitialOwner={true} // Initial owner is the user creating the company
+              employerId={user.uuid}
             />
           </>
         );

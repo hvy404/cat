@@ -10,10 +10,10 @@ const getSupabase = () => {
 };
 
 interface EmployerDetails {
-  employerId: string;
+  employerId?: string;
   companyId: string;
-  companyName: string;
-  role: "admin" | "manager" | "employee";
+  companyName?: string;
+  role?: "admin" | "manager" | "employee";
 }
 
 export async function addNewCompanyEntry(
@@ -33,7 +33,11 @@ export async function addNewCompanyEntry(
     const { error } = await supabase
       .from("companies")
       .insert([
-        { company_id: companyId, last_modified: new Date().toISOString(), name: companyName },
+        {
+          company_id: companyId,
+          last_modified: new Date().toISOString(),
+          name: companyName,
+        },
       ])
       .single();
 
@@ -44,7 +48,8 @@ export async function addNewCompanyEntry(
     console.error("Error adding new company entry:", error);
     return {
       success: false,
-      error: "There was an error adding the new company entry. Please try again.s",
+      error:
+        "There was an error adding the new company entry. Please try again.s",
     };
   }
 }
@@ -57,11 +62,14 @@ export async function addEmployeeToCompany({
   if (!employerId || !companyId || !role) {
     return {
       success: false,
-      error: "Employee ID, Company ID, and role are required",
+      error:
+        "There was an error adding the employee to the company. Please try again.",
     };
   }
 
   const supabase = getSupabase();
+
+  console.log("Employer ID", employerId);
 
   try {
     const { error } = await supabase
@@ -78,7 +86,8 @@ export async function addEmployeeToCompany({
     console.error("Error adding employee to company:", error);
     return {
       success: false,
-      error: "There was an error adding the employee to the company. Please try again.",
+      error:
+        "There was an error adding the employee to the company. Please try again.",
     };
   }
 }
