@@ -2,26 +2,22 @@
 import { z } from "zod";
 
 // Regular expression for company name and city
-const nameRegex = /^[a-zA-Z0-9 .\-']+$/;
-const descriptionRegex = /^[0-9a-zA-Z,()' -]*$/;
+const nameRegex = /^[a-zA-Z0-9 .,\-']+$/;
 
 const CompanyProfileSchema = z.object({
   id: z.string().uuid(),
   name: z
     .string()
     .min(1, "Company name is required")
-    .regex(
-      nameRegex,
-      "Company name contains invalid characters."
-    ),
+    .regex(nameRegex, "Company name contains invalid characters."),
   industry: z.string().optional(),
   size: z.string().optional(),
   foundedYear: z
-      .string()
-      .optional()
-      .refine((val) => !val || (/^\d{4}$/.test(val) && !isNaN(parseInt(val))), {
-        message: "Year must be a valid 4-digit year",
-      }),
+    .string()
+    .optional()
+    .refine((val) => !val || (/^\d{4}$/.test(val) && !isNaN(parseInt(val))), {
+      message: "Year must be a valid 4-digit year",
+    }),
   website: z.string().url().optional().or(z.literal("")),
   description: z.string().optional(),
   headquarters: z

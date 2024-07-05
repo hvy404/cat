@@ -5,18 +5,22 @@ import { CompanyProfileData } from "@/lib/company/validation";
 import { v4 as uuidv4 } from "uuid";
 import CompanyProfileRightPanel from "@/app/(auth)/dashboard/views/company-profile/right-panel";
 import CompanyProfileImportance from "@/app/(auth)/dashboard/views/company-profile/right-panel-intro";
+import EmployerCompanyCheck from "@/app/(auth)/dashboard/views/company-profile/has-company";
+import { CheckUserCompany } from "@/lib/company/has-company";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+
+// Enum for company states
+enum CompanyState {
+  LOADING,
+  HAS_COMPANY,
+  CREATING_COMPANY,
+  JOINING_COMPANY,
+  INITIAL,
+}
 
 export default function EmployerDashboardCompanyProfile() {
-  const { isExpanded, setExpanded, toggleExpansion } = useStore();
-
-  // Reset expanded state when component unmounts
-  useEffect(() => {
-    return () => {
-      setExpanded(false);
-    };
-  }, [setExpanded]);
-
-  const [formData, setFormData] = useState<CompanyProfileData>({
+  const defaultFormData: CompanyProfileData = {
     id: uuidv4(),
     name: "",
     industry: "",
@@ -38,7 +42,87 @@ export default function EmployerDashboardCompanyProfile() {
     phoneNumber: "",
     admin: [],
     manager: [],
-  });
+  };
+
+  const { isExpanded, setExpanded, user } = useStore();
+  const [companyState, setCompanyState] = useState<CompanyState>(
+    CompanyState.LOADING
+  );
+
+  const [formData, setFormData] = useState<CompanyProfileData>(defaultFormData);
+
+  useEffect(() => {
+    const checkCompany = async () => {
+      if (user?.uuid) {
+        try {
+          const result = await CheckUserCompany({ employerId: user.uuid });
+          setCompanyState(
+            result ? CompanyState.HAS_COMPANY : CompanyState.INITIAL
+          );
+        } catch (error) {
+          console.error("Error checking company:", error);
+          setCompanyState(CompanyState.INITIAL);
+        }
+      } else {
+        setCompanyState(CompanyState.INITIAL);
+      }
+    };
+
+    checkCompany();
+
+    return () => {
+      setExpanded(false);
+    };
+  }, [user?.uuid, setExpanded]);
+
+  const handleCreateCompany = () =>
+    setCompanyState(CompanyState.CREATING_COMPANY);
+  const handleJoinCompany = () => setCompanyState(CompanyState.JOINING_COMPANY);
+  const handleBack = () => {
+    setCompanyState(CompanyState.INITIAL);
+    setFormData(defaultFormData);
+  };
+
+  const renderContent = () => {
+    const backButton = (
+      <Button variant="outline" onClick={handleBack}>
+        <ArrowLeft className="mr-2 h-4 w-4" /> Back
+      </Button>
+    );
+
+    switch (companyState) {
+      case CompanyState.LOADING:
+        return <div>Loading...</div>;
+      case CompanyState.HAS_COMPANY:
+        return <div>Company Joined</div>;
+      case CompanyState.CREATING_COMPANY:
+        return (
+          <>
+            {backButton}
+            <EditCompanyProfile
+              formData={formData}
+              setFormData={setFormData}
+              createNew={true}
+            />
+          </>
+        );
+      case CompanyState.JOINING_COMPANY:
+        return (
+          <>
+            {backButton}
+            <div>Request access</div>
+          </>
+        );
+      case CompanyState.INITIAL:
+      default:
+        return (
+          <EmployerCompanyCheck
+            setIsCreatingCompany={handleCreateCompany}
+            setIsJoiningCompany={handleJoinCompany}
+          />
+        );
+    }
+  };
 
   return (
     <main className="flex flex-1 gap-4 p-4 max-h-screen">
@@ -49,11 +133,8 @@ export default function EmployerDashboardCompanyProfile() {
       >
         <div className="flex flex-col gap-6">
           <div className="rounded-lg border p-4">
-            <div className="flex items-center gap-2">
-              <EditCompanyProfile
-                formData={formData}
-                setFormData={setFormData}
-              />
+            <div className="flex flex-col items-start gap-4">
+              {renderContent()}
             </div>
           </div>
         </div>

@@ -1,5 +1,4 @@
 import React, { useState, ChangeEvent } from "react";
-import { v4 as uuidv4 } from "uuid";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -35,17 +34,23 @@ import {
 } from "@/lib/company/validation";
 import FormattedPhoneInput from "@/app/(auth)/dashboard/views/candidate/helpers/formatPhoneInput";
 import PrefixedUrlInput from "@/app/(auth)/dashboard/views/company-profile/website-field";
+import {
+  addNewCompanyEntry,
+  addEmployeeToCompany,
+} from "@/lib/company/create-new";
 
 type NestedKeys = "headquarters" | "socialMedia";
 
 interface EditCompanyProfileProps {
   formData: CompanyProfileData;
   setFormData: React.Dispatch<React.SetStateAction<CompanyProfileData>>;
+  createNew: boolean;
 }
 
 export default function EditCompanyProfile({
   formData,
   setFormData,
+  createNew,
 }: EditCompanyProfileProps) {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -100,7 +105,18 @@ export default function EditCompanyProfile({
     const result = await validateCompanyProfile(formData);
     if (result.success) {
       console.log("Form data submitted:", result.data);
-      // Here you would typically send the data to your backend
+
+      if (createNew) {
+        const addCompany = await addNewCompanyEntry(
+          result.data.id,
+          result.data.name
+        );
+        console.log("New company added:", addCompany);
+      } else {
+        console.log("updating...");
+        // Add your update logic here if needed
+      }
+
       setErrors({}); // Clear any existing errors
     } else {
       const newErrors: { [key: string]: string } = {};
@@ -257,7 +273,9 @@ export default function EditCompanyProfile({
                 maxLength={4}
               />
               {errors.foundedYear && (
-                <p className="text-red-500 text-sm mt-1">{errors.foundedYear}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.foundedYear}
+                </p>
               )}
             </div>
           </div>
@@ -497,9 +515,7 @@ export default function EditCompanyProfile({
               placeholder="contact@example.com"
             />
             {errors.contactEmail && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.contactEmail}
-              </p>
+              <p className="text-red-500 text-sm mt-1">{errors.contactEmail}</p>
             )}
           </div>
 
