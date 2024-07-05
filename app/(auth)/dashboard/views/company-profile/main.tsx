@@ -48,12 +48,6 @@ export default function EmployerDashboardCompanyProfile() {
   const [companyState, setCompanyState] = useState<CompanyState>(
     CompanyState.LOADING
   );
-
-  // Early return if user is not logged in
-  if (!user?.uuid) {
-    return null;
-  }
-
   const [formData, setFormData] = useState<CompanyProfileData>(defaultFormData);
 
   useEffect(() => {
@@ -79,6 +73,11 @@ export default function EmployerDashboardCompanyProfile() {
       setExpanded(false);
     };
   }, [user?.uuid, setExpanded]);
+
+  // Early return if user is not logged in
+  if (!user?.uuid) {
+    return null;
+  }
 
   const handleCreateCompany = () =>
     setCompanyState(CompanyState.CREATING_COMPANY);
