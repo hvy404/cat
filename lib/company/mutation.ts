@@ -45,67 +45,15 @@ export interface NodeWithId {
   customId?: string;
 }
 
-/* CRUD - Create operation for Company node */
-/**
- * Creates a new Company node in the database.
- *
- * @param {CompanyNode} companyData - The data for the company to be created.
- * @returns {Promise<(CompanyNode & NodeWithId) | null>} - The created company node with its properties and labels, or null if creation failed.
- *
- * @example
- * const newCompany = {
- *   id: "123",
- *   name: "Example Corp",
- *   industry: "Technology",
- *   size: "500-1000",
- *   foundedYear: 2010,
- *   website: "https://example.com",
- *   description: "An example company",
- *   admin: ["admin1"]
- * };
- *
- * const createdCompany = await createCompanyNode(newCompany);
- * console.log(createdCompany);
- */
-export async function createCompanyNode(
-  companyData: CompanyNode
-): Promise<(CompanyNode & NodeWithId) | null> {
-  const query = `
-      CREATE (c:Company $companyData)
-      RETURN c, ID(c) as nodeId
-    `;
-
-  const serializedData = {
-    ...companyData,
-    admin: companyData.admin || [],
-    manager: companyData.manager || [],
-  };
-
-  try {
-    const result = await write(query, { companyData: serializedData });
-    if (result && result.length > 0) {
-      const createdNode = result[0].c;
-      const nodeId = result[0].nodeId;
-      return {
-        ...createdNode.properties,
-        labels: ["Company"],
-        _id: nodeId instanceof Integer ? nodeId.toNumber() : nodeId,
-      };
-    }
-    return null;
-  } catch (error) {
-    console.error("Error creating new Company node:", error);
-    throw error;
-  }
-}
-
 /**
  * Adds a company node to the graph database.
  * @param company - The company node to be added.
  * @returns A promise that resolves to the added company node with the generated _id.
  * @throws An error if the creation or update of the company node fails.
  */
-export async function addCompanyNode(company: CompanyNode): Promise<CompanyNode & { _id: number }> {
+export async function addCompanyNode(
+  company: CompanyNode
+): Promise<CompanyNode & { _id: number }> {
   const properties = Object.entries(company)
     .map(([key, value]) => `c.${key} = ${formatValue(value)}`)
     .join(",\n    ");
@@ -151,9 +99,9 @@ export async function getCompanyNode(
   companyId: string
 ): Promise<(CompanyNode & NodeWithId) | null> {
   const query = `
-        MATCH (c:Company {id: $companyId})
-        RETURN c, ID(c) as nodeId
-      `;
+    MATCH (c:Company {id: $companyId})
+    RETURN c, ID(c) as nodeId
+  `;
 
   try {
     const result = await read(query, { companyId });
@@ -164,21 +112,32 @@ export async function getCompanyNode(
       const serializedNode: Partial<CompanyNode> = {};
 
       (Object.keys(companyNode) as Array<keyof CompanyNode>).forEach((key) => {
-        const value = companyNode[key];
-        if (value instanceof Integer) {
-          serializedNode[key] = value.toNumber() as any;
-        } else if (typeof value === "object" && value !== null) {
-          serializedNode[key] = JSON.parse(JSON.stringify(value));
-        } else {
-          serializedNode[key] = value as any;
+        let value = companyNode[key];
+        if (typeof value === 'string') {
+          try {
+            // Attempt to parse JSON strings
+            const parsedValue = JSON.parse(value);
+            if (typeof parsedValue === 'object' || Array.isArray(parsedValue)) {
+              value = parsedValue;
+            }
+          } catch (e) {
+            // If parsing fails, keep the original string value
+          }
         }
+        serializedNode[key] = value;
       });
 
-      // Ensure all required properties are present
-      if (!serializedNode.id || !serializedNode.name || !serializedNode.admin) {
-        throw new Error(
-          "Retrieved company data is missing required properties"
-        );
+      // Ensure headquarters is an object
+      if (typeof serializedNode.headquarters === 'string') {
+        serializedNode.headquarters = { city: '', state: '', country: '' };
+      }
+
+      // Ensure admin and manager are arrays
+      if (!Array.isArray(serializedNode.admin)) {
+        serializedNode.admin = [];
+      }
+      if (!Array.isArray(serializedNode.manager)) {
+        serializedNode.manager = [];
       }
 
       const finalNode: CompanyNode & NodeWithId = {

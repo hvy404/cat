@@ -109,13 +109,25 @@ export default function EditCompanyProfile({
     }
   };
 
-  // Separate function for adding company node
-  const createCompanyNode = () => {
-    return addCompanyNode({
-      ...formData,
-      admin: [employerId], // Assuming the current user is the admin
-      manager: [], // Initialize as empty array, update as needed
-    });
+  const processCompanyData = (data: any): any => {
+    const processObject = (obj: any): any => {
+      const processed: any = {};
+      for (const [key, value] of Object.entries(obj)) {
+        if (value === null || value === undefined) {
+          // Convert null or undefined to empty string
+          processed[key] = "";
+        } else if (typeof value === "object" && !Array.isArray(value)) {
+          const nestedProcessed = processObject(value);
+          processed[key] = nestedProcessed;
+        } else {
+          // Preserve all other values, including empty strings
+          processed[key] = value;
+        }
+      }
+      return processed;
+    };
+
+    return processObject(data);
   };
 
   const handleSubmit = async () => {
@@ -124,23 +136,29 @@ export default function EditCompanyProfile({
       setIsSavingForm(true);
 
       try {
-        // Call the separate function to add company node
-        const companyNode = await createCompanyNode();
+        const processedData = processCompanyData(formData);
+
+        // Use addCompanyNode with simplified admin and manager assignment
+        const companyNode = await addCompanyNode({
+          ...processedData,
+          admin: processedData.admin || [],
+          manager: processedData.manager || [],
+        });
 
         if (createNew) {
+          // Additional steps for new company creation
           const addCompany = await addNewCompanyEntry(
-            result.data.id,
-            result.data.name
+            companyNode.id,
+            companyNode.name
           );
 
           if (isInitialOwner) {
             const addEmployee = await addEmployeeToCompany({
               employerId: employerId,
-              companyId: formData.id,
-              role: isInitialOwner ? "admin" : "employee",
+              companyId: companyNode.id,
+              role: "admin",
             });
 
-            // catch error from addEmployeeToCompany
             if (!addEmployee.success) {
               toast.error(addEmployee.error);
               setIsSavingForm(false);
@@ -148,12 +166,12 @@ export default function EditCompanyProfile({
             }
           }
 
-          toast.success("Your company profile has been saved.");
+          toast.success("Your company profile has been created.");
         } else {
-          // TODO: Add our update logic here if needed
+          toast.success("Your company profile has been updated.");
         }
 
-        setErrors({}); // Clear any existing errors
+        setErrors({});
       } catch (error) {
         console.error("Error saving company profile:", error);
         toast.error("An error occurred while saving the company profile.");

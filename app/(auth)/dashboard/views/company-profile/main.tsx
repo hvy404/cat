@@ -9,6 +9,7 @@ import EmployerCompanyCheck from "@/app/(auth)/dashboard/views/company-profile/c
 import { checkUserCompany } from "@/lib/company/check-company-membership";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { getCompanyNode } from "@/lib/company/mutation";
 
 // Enum for company states
 enum CompanyState {
@@ -55,9 +56,23 @@ export default function EmployerDashboardCompanyProfile() {
       if (user?.uuid) {
         try {
           const result = await checkUserCompany({ employerId: user.uuid });
-          setCompanyState(
-            result ? CompanyState.HAS_COMPANY : CompanyState.INITIAL
-          );
+          if (result.hasCompany && result.companyId) {
+            setCompanyState(CompanyState.HAS_COMPANY);
+            try {
+              const companyNode = await getCompanyNode(result.companyId);
+              console.log("Company Node:", companyNode);
+              if (companyNode) {
+                setFormData({
+                  ...defaultFormData,
+                  ...companyNode,
+                });
+              }
+            } catch (error) {
+              console.error("Error retrieving Company node:", error);
+            }
+          } else {
+            setCompanyState(CompanyState.INITIAL);
+          }
         } catch (error) {
           console.error("Error checking company:", error);
           setCompanyState(CompanyState.INITIAL);
@@ -66,13 +81,14 @@ export default function EmployerDashboardCompanyProfile() {
         setCompanyState(CompanyState.INITIAL);
       }
     };
-
+  
     checkCompany();
-
+  
     return () => {
       setExpanded(false);
     };
   }, [user?.uuid, setExpanded]);
+
 
   // Early return if user is not logged in
   if (!user?.uuid) {
@@ -98,7 +114,15 @@ export default function EmployerDashboardCompanyProfile() {
       case CompanyState.LOADING:
         return <div>Loading...</div>;
       case CompanyState.HAS_COMPANY:
-        return <div>Company Joined...add edit form etc</div>;
+        return (
+          <EditCompanyProfile
+            formData={formData}
+            setFormData={setFormData}
+            createNew={false}
+            isInitialOwner={false}
+            employerId={user.uuid}
+          />
+        );
       case CompanyState.CREATING_COMPANY:
         return (
           <>
@@ -107,7 +131,7 @@ export default function EmployerDashboardCompanyProfile() {
               formData={formData}
               setFormData={setFormData}
               createNew={true}
-              isInitialOwner={true} // Initial owner is the user creating the company
+              isInitialOwner={true}
               employerId={user.uuid}
             />
           </>

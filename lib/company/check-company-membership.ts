@@ -19,9 +19,15 @@ interface CompanyEmployerRecord {
  * @param {EmployerDetails} employerId - The employer ID of the user.
  * @returns {Promise<boolean>} - A promise that resolves to a boolean indicating whether the user is associated with a company.
  */
+
+interface CompanyCheckResult {
+  hasCompany: boolean;
+  companyId: string | null;
+}
+
 export async function checkUserCompany({
   employerId,
-}: EmployerDetails): Promise<boolean> {
+}: EmployerDetails): Promise<CompanyCheckResult> {
   const { data, error } = await supabase
     .from("company_employers")
     .select("employer_uuid, company_id")
@@ -30,14 +36,13 @@ export async function checkUserCompany({
 
   if (error) {
     console.error("Error checking user company:", error);
-    return false;
+    return { hasCompany: false, companyId: null };
   }
 
-  //console.log("Company employer data:", data);
-
   const hasCompany = !!data && data.length > 0;
+  const companyId = hasCompany ? data[0].company_id : null;
 
-  return hasCompany;
+  return { hasCompany, companyId };
 }
 
 /**
