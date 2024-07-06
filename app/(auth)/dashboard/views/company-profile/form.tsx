@@ -9,6 +9,7 @@ import {
   Facebook,
   ChevronsUpDown,
   Check,
+  LoaderCircle,
 } from "lucide-react";
 import { states } from "@/lib/data/form-value-states";
 import { countries } from "@/lib/data/form-value-countries";
@@ -39,6 +40,7 @@ import {
   addEmployeeToCompany,
 } from "@/lib/company/create-new";
 import { toast } from "sonner";
+import { addCompanyNode } from "@/lib/company/mutation";
 
 type NestedKeys = "headquarters" | "socialMedia";
 
@@ -63,6 +65,7 @@ export default function EditCompanyProfile({
   const [countryOpen, setCountryOpen] = useState(false);
   const [sizeOpen, setSizeOpen] = useState(false);
   const [industryOpen, setIndustryOpen] = useState(false);
+  const [isSavingForm, setIsSavingForm] = useState(false);
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | string,
@@ -106,35 +109,57 @@ export default function EditCompanyProfile({
     }
   };
 
+  // Separate function for adding company node
+  const createCompanyNode = () => {
+    return addCompanyNode({
+      ...formData,
+      admin: [employerId], // Assuming the current user is the admin
+      manager: [], // Initialize as empty array, update as needed
+    });
+  };
+
   const handleSubmit = async () => {
     const result = await validateCompanyProfile(formData);
     if (result.success) {
-      if (createNew) {
-        const addCompany = await addNewCompanyEntry(
-          result.data.id,
-          result.data.name
-        );
+      setIsSavingForm(true);
 
-        if (isInitialOwner) {
-          const addEmployee = await addEmployeeToCompany({
-            employerId: employerId,
-            companyId: formData.id,
-            role: isInitialOwner ? "admin" : "employee",
-          });
+      try {
+        // Call the separate function to add company node
+        const companyNode = await createCompanyNode();
 
-          // catch error from addEmployeeToCompany
-          if (!addEmployee.success) {
-            toast.error(addEmployee.error);
-            return;
+        if (createNew) {
+          const addCompany = await addNewCompanyEntry(
+            result.data.id,
+            result.data.name
+          );
+
+          if (isInitialOwner) {
+            const addEmployee = await addEmployeeToCompany({
+              employerId: employerId,
+              companyId: formData.id,
+              role: isInitialOwner ? "admin" : "employee",
+            });
+
+            // catch error from addEmployeeToCompany
+            if (!addEmployee.success) {
+              toast.error(addEmployee.error);
+              setIsSavingForm(false);
+              return;
+            }
           }
+
+          toast.success("Your company profile has been saved.");
+        } else {
+          // TODO: Add our update logic here if needed
         }
 
-        toast.success("Your company profile has been saved.");
-      } else {
-        // TODO: Add our update logic here if needed
+        setErrors({}); // Clear any existing errors
+      } catch (error) {
+        console.error("Error saving company profile:", error);
+        toast.error("An error occurred while saving the company profile.");
+      } finally {
+        setIsSavingForm(false);
       }
-
-      setErrors({}); // Clear any existing errors
     } else {
       const newErrors: { [key: string]: string } = {};
       result.errors.forEach((error) => {
@@ -548,7 +573,15 @@ export default function EditCompanyProfile({
           </div>
 
           <div className="flex justify-end">
-            <Button onClick={handleSubmit}>Save Profile</Button>
+            <Button onClick={handleSubmit}>
+              {!isSavingForm ? (
+                "Save Company"
+              ) : (
+                <div>
+                  <LoaderCircle className="animate-spin h-4 w-4" />
+                </div>
+              )}
+            </Button>
           </div>
         </div>
       </div>

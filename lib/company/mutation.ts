@@ -8,7 +8,7 @@ export interface CompanyNode {
   name: string;
   industry?: string;
   size?: string;
-  foundedYear?: number;
+  foundedYear?: string;
   website?: string;
   description?: string;
   headquarters?: {
@@ -25,6 +25,18 @@ export interface CompanyNode {
   phoneNumber?: string;
   admin: string[];
   manager?: string[];
+}
+
+function formatValue(value: any): string {
+  if (typeof value === "string") {
+    return `"${value.replace(/"/g, '\\"')}"`;
+  } else if (value === null || value === undefined) {
+    return "null";
+  } else if (typeof value === "object") {
+    return `'${JSON.stringify(value).replace(/'/g, "\\'")}'`;
+  } else {
+    return String(value);
+  }
 }
 
 export interface NodeWithId {
@@ -83,6 +95,42 @@ export async function createCompanyNode(
     return null;
   } catch (error) {
     console.error("Error creating new Company node:", error);
+    throw error;
+  }
+}
+
+/**
+ * Adds a company node to the graph database.
+ * @param company - The company node to be added.
+ * @returns A promise that resolves to the added company node with the generated _id.
+ * @throws An error if the creation or update of the company node fails.
+ */
+export async function addCompanyNode(company: CompanyNode): Promise<CompanyNode & { _id: number }> {
+  const properties = Object.entries(company)
+    .map(([key, value]) => `c.${key} = ${formatValue(value)}`)
+    .join(",\n    ");
+
+  const cypher = `
+    MERGE (c:Company {id: ${formatValue(company.id)}})
+    SET
+        ${properties}
+    RETURN c, ID(c) as nodeId
+  `;
+
+  try {
+    const result = await write(cypher);
+    if (result && result.length > 0) {
+      const mergedNode = result[0].c.properties;
+      const nodeId = result[0].nodeId;
+
+      return {
+        ...mergedNode,
+        _id: nodeId instanceof Integer ? nodeId.toNumber() : nodeId,
+      };
+    }
+    throw new Error("Failed to create or update Company node");
+  } catch (error) {
+    console.error("Error creating or updating Company node:", error);
     throw error;
   }
 }
