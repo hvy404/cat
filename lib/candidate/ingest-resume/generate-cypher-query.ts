@@ -38,15 +38,6 @@ export type ProfessionalNetwork = {
   colleagues: string[];
 };
 
-export type Certification = {
-  name: string;
-  issuing_organization?: string;
-  date_obtained: string;
-  expiration_date?: string;
-  credential_id?: string;
-  credential_url?: string;
-};
-
 export type Project = {
   title: string;
   description: string;
@@ -73,7 +64,7 @@ export type Data = {
   name: string;
   contact: ContactInfo;
   education: Education[];
-  professional_certifications: Certification[];
+  professional_certifications: string[];
   work_experience: WorkExperience[];
   technical_skills: string[];
   industry_experience?: string[];
@@ -194,22 +185,21 @@ export function generateCandidateCypherQuery(data: Data, userId: string) {
     data.professional_certifications &&
     data.professional_certifications.length > 0
   ) {
-    data.professional_certifications.forEach((cert, index) => {
+    data.professional_certifications.forEach((certName, index) => {
       cypher += `
     CREATE (c${index}:Certification {
-      name: "${escapeString(cert.name || "")}",
-      issuing_organization: "${escapeString(cert.issuing_organization || "")}",
-      issue_date: "${escapeString(cert.date_obtained || "")}",
-      expiration_date: "${escapeString(cert.expiration_date || "")}",
-      credential_id: "${escapeString(cert.credential_id || "")}",
-      credential_url: "${escapeString(cert.credential_url || "")}"
+      name: "${escapeString(certName)}",
+      issuing_organization: "",
+      date_obtained: "",
+      expiration_date: "",
+      credential_id: "",
+      credential_url: ""
     })
     CREATE (t)-[:HAS_CERTIFICATION]->(c${index})
     WITH t
     `;
     });
   }
-
   // Industry Experience
   if (data.industry_experience && data.industry_experience.length > 0) {
     data.industry_experience.forEach((industry, index) => {

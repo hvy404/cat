@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 
 interface BookmarkedJob {
-  jd_uuid: string;
+  jd_id: string;
   title: string;
 }
 
@@ -55,7 +55,7 @@ const MainViewJobListItem = ({
   handleViewMoreJobBookmarked: (jobId: string) => void;
 }) => (
   <div
-    key={job.jd_uuid}
+    key={job.jd_id}
     className="flex items-center justify-between transition-transform hover:translate-x-1 hover:border-l-4 hover:border-gray-400 px-4 border-l-4 border-transparent hover:bg-gray-50"
   >
     <div className="flex items-center">
@@ -66,7 +66,7 @@ const MainViewJobListItem = ({
       variant="link"
       size="sm"
       className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 flex items-center"
-      onClick={() => handleViewMoreJobBookmarked(job.jd_uuid)}
+      onClick={() => handleViewMoreJobBookmarked(job.jd_id)}
     >
       Details
       <ArrowRightCircle className="ml-2 h-4 w-4" />
@@ -76,7 +76,7 @@ const MainViewJobListItem = ({
 
 const DialogJobListItem = ({ job }: { job: BookmarkedJob }) => (
   <div
-    key={job.jd_uuid}
+    key={job.jd_id}
     className="flex items-center justify-between py-2 px-4 hover:bg-gray-50"
   >
     <div className="flex items-center">
@@ -114,7 +114,7 @@ export const JobBookmarked = ({
           {hasBookmarkedJobs ? (
             <div className="space-y-4">
               {displayedJobs.map((job) => (
-                <MainViewJobListItem key={job.jd_uuid} job={job} handleViewMoreJobBookmarked={handleViewMoreJobBookmarked} />
+                <MainViewJobListItem key={job.jd_id} job={job} handleViewMoreJobBookmarked={handleViewMoreJobBookmarked} />
               ))}
               {hasMoreJobs && (
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -136,7 +136,7 @@ export const JobBookmarked = ({
                     </DialogHeader>
                     <div className="mt-4 max-h-[60vh] overflow-y-auto">
                       {bookmarkedJobs.map((job) => (
-                        <DialogJobListItem key={job.jd_uuid} job={job} />
+                        <DialogJobListItem key={job.jd_id} job={job} />
                       ))}
                     </div>
                   </DialogContent>

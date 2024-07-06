@@ -27,7 +27,7 @@ export const generateJobDescriptionCypher = inngest.createFunction(
         .select(
           "static, inferred, salary_disclose, compensation_type, hourly_comp_min, hourly_comp_max, private_employer"
         )
-        .eq("jd_uuid", jobDescriptionID);
+        .eq("jd_id", jobDescriptionID);
 
       if (error) throw new Error(error.message);
 

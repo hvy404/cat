@@ -57,7 +57,7 @@ export async function fetchDetailedJobPosts(userID: string, filter: string) {
   const { data, error } = await supabase
     .from("job_postings")
     .select(
-      "jd_uuid, title, location, location_type, security_clearance, posted_date, private_employer, active"
+      "jd_id, title, location, location_type, security_clearance, posted_date, private_employer, active"
     )
     .eq("employer_id", userID)
     .eq("processed", true)
@@ -101,7 +101,7 @@ export async function fetchJobPostSpecifics(userId: string, jobId: string) {
       "description, job_type, active, private_employer, min_salary, max_salary, location_type, security_clearance, salary_disclose, commission_percent, ote_salary, compensation_type, hourly_comp_min, hourly_comp_max"
     )
     .eq("employer_id", userId)
-    .eq("jd_uuid", jobId);
+    .eq("jd_id", jobId);
 
   if (error) {
     console.error("Fetch error:", error);
@@ -161,7 +161,7 @@ export async function getSimplifiedJobPosts(userID: string, filter: string) {
       security_clearance: job.security_clearance, 
       location: job.location,
       location_type: job.location_type,
-      job_uuid: job.jd_uuid,
+      job_uuid: job.jd_id,
     }));
   } catch (error) {
     console.error('Error fetching simplified job posts:', error);
@@ -177,7 +177,7 @@ export async function jobPostStatus(
   const { error } = await supabase
     .from("job_postings")
     .update({ active: status })
-    .eq("jd_uuid", jobID)
+    .eq("jd_id", jobID)
     .eq("employer_id", userID);
 
   if (error) {

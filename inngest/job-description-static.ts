@@ -21,7 +21,7 @@ export const jobDescriptionGenerateStatic = inngest.createFunction(
     const { data, error } = await supabase
       .from("job_postings")
       .select("raw")
-      .eq("jd_uuid", jobDescriptionID);
+      .eq("jd_id", jobDescriptionID);
 
     if (error) {
       console.error(error);

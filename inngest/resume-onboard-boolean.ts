@@ -20,9 +20,9 @@ export const resumeOnboardBooleanStatus = inngest.createFunction(
 
     try {
       const { data, error } = await supabase
-        .from("identity")
+        .from("candidates")
         .update({ onboarded: true })
-        .eq("uuid", id);
+        .eq("identity", id);
 
         console.log(error);
 

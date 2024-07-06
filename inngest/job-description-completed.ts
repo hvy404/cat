@@ -20,13 +20,13 @@ export const jobDescriptionGenerateCompleted = inngest.createFunction(
     const user = event.data.job_description.employer;
     const sessionID = event.data.job_description.session;
 
-    // Update 'processed' column in job_postings table to true in the row where the jd_uuid is jobDescriptionID
+    // Update 'processed' column in job_postings table to true in the row where the jd_id is jobDescriptionID
     const { error } = await supabase
       .from("job_postings")
       .update({
         processed: true,
       })
-      .eq("jd_uuid", jobDescriptionID);
+      .eq("jd_id", jobDescriptionID);
 
     if (error) {
       console.error(error);

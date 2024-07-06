@@ -15,11 +15,11 @@ export async function deleteJobPost(jdUUID: string, userUUID: string) {
   const supabase = createClient(cookieStore);
 
   try {
-    // Delete the job post from Supabase by deleting the row from 'job_postings' table, where jd_uuid eq. to jdUUID and employer_uuid eq. to userUUID
+    // Delete the job post from Supabase by deleting the row from 'job_postings' table, where jd_id eq. to jdUUID and employer_id eq. to userUUID
     const { data, error } = await supabase
       .from("job_postings")
       .delete()
-      .eq("jd_uuid", jdUUID)
+      .eq("jd_id", jdUUID)
       .eq("employer_id", userUUID);
 
     if (error) {

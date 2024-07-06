@@ -23,7 +23,7 @@ export async function TitleOptions(
   const { data, error } = await client
     .from("job_postings")
     .select("static, inferred")
-    .eq("jd_uuid", jobID);
+    .eq("jd_id", jobID);
 
   if (error) {
     console.error(error);

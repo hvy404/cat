@@ -33,7 +33,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { fetchDetailedJobPosts } from "@/lib/overview/fetchRoles";
 
 interface Job {
-  jd_uuid: string;
+  jd_id: string;
   title: string;
   location: any[];
   location_type: string;
@@ -213,13 +213,13 @@ const JobList = ({ filter }: { filter: string }) => {
     <div className="space-y-4">
       {jobs.map((job) => (
         <motion.div
-          key={job.jd_uuid}
+          key={job.jd_id}
           className={`rounded-md transition-all duration-300 cursor-pointer ${
-            dashboard_role_overview.active_role_id === job.jd_uuid
+            dashboard_role_overview.active_role_id === job.jd_id
               ? "bg-gray-100/70"
               : ""
           }`}
-          onClick={() => handleClick(job.jd_uuid, job.title)}
+          onClick={() => handleClick(job.jd_id, job.title)}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >

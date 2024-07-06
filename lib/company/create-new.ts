@@ -73,7 +73,7 @@ export async function addEmployeeToCompany({
     if (role === "admin") {
       const { data: existingAdmin, error: adminCheckError } = await supabase
         .from("company_employers")
-        .select("employer_uuid")
+        .select("employer_id")
         .eq("company_id", companyId)
         .eq("role", "admin")
         .single();
@@ -95,7 +95,7 @@ export async function addEmployeeToCompany({
     const { error } = await supabase
       .from("company_employers")
       .insert([
-        { employer_uuid: employerId, company_id: companyId, role: role },
+        { employer_id: employerId, company_id: companyId, role: role },
       ])
       .single();
 

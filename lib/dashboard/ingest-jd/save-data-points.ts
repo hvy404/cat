@@ -74,7 +74,7 @@ export async function SaveJobDetails(jobDetails: JobDetails, jdUUID: string) {
           }))
         : null,
     })
-    .eq("jd_uuid", jdUUID);
+    .eq("jd_id", jdUUID);
 
   if (error) {
     console.error("Error updating job details: ", error);

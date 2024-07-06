@@ -15,7 +15,7 @@ export async function AddJDGetDataPoints(jdUUID: string, employer: string) {
     .select(
       "title, location, location_type, min_salary, max_salary, security_clearance, salary_disclose, commission_pay, commission_percent, private_employer, ote_salary, compensation_type, hourly_comp_min, hourly_comp_max"
     )
-    .eq("jd_uuid", jdUUID);
+    .eq("jd_id", jdUUID);
 
     //console.log(data);
 

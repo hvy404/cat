@@ -183,7 +183,7 @@ export async function generateJDStatic(
     const { error } = await supabase
       .from("job_postings")
       .update({ static: mergedOutputs }) // Only updating the 'static' column
-      .match({ jd_uuid: jobDescriptionID });
+      .match({ jd_id: jobDescriptionID });
 
     if (error) {
       throw error;

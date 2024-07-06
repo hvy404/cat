@@ -31,7 +31,7 @@ export async function verifyOtp(
   const { data, error } = await supabase
     .from("candidates_otp")
     .select("expires_at, otp_code")
-    .eq("candidate_uuid", userId)
+    .eq("candidate_id", userId)
     .eq("action_type", actionType)
     .single();
 

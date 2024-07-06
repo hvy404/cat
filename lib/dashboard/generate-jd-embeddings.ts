@@ -69,7 +69,7 @@ function formatJobDescription(json: JobDescription): string {
   return formattedText;
 }
 
-export async function generateJobDescriptionEmbeddings(jd_uuid: string) {
+export async function generateJobDescriptionEmbeddings(jd_id: string) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
@@ -81,7 +81,7 @@ export async function generateJobDescriptionEmbeddings(jd_uuid: string) {
   const { data, error } = await supabase
     .from("job_postings")
     .select("static, inferred")
-    .eq("jd_uuid", jd_uuid); // TODO: change this to dynamic jd_uuid
+    .eq("jd_id", jd_id); // TODO: change this to dynamic jd_id
 
   if (error) {
     return {

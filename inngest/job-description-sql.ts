@@ -22,7 +22,7 @@ export const jobDescriptionAddStructured = inngest.createFunction(
     const { data, error } = await supabase
       .from("job_postings")
       .select("static, inferred")
-      .eq("jd_uuid", jobDescriptionID);
+      .eq("jd_id", jobDescriptionID);
 
     if (error) {
       console.error(error);
@@ -70,7 +70,7 @@ export const jobDescriptionAddStructured = inngest.createFunction(
         commission_percent: commissionPercent,
         ote_salary: oteSalary,
       })
-      .eq("jd_uuid", jobDescriptionID);
+      .eq("jd_id", jobDescriptionID);
 
     if (updateError) {
       console.error(updateError);

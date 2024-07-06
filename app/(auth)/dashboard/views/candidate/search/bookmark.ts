@@ -179,7 +179,7 @@ export interface CandidateJobBookmarkResponse {
 
 export interface CandidateJobBookmark {
   title: string;
-  jd_uuid: string;
+  jd_id: string;
 }
 
 /**
@@ -212,7 +212,7 @@ export async function getAllBookmarkedJobsForCandidate(
     // If not in cache, query Supabase
     const { data, error } = await supabase
       .from("candidate_job_bookmarks")
-      .select("job_postings(jd_uuid, title)")
+      .select("job_postings(jd_id, title)")
       .eq("candidate_id", candidateId);
 
     if (error) {
@@ -221,7 +221,7 @@ export async function getAllBookmarkedJobsForCandidate(
     }
 
     const bookmarks = data.map((bookmark: any) => ({
-      jd_uuid: bookmark.job_postings.jd_uuid,
+      jd_id: bookmark.job_postings.jd_id,
       title: bookmark.job_postings.title,
     }));
 

@@ -38,7 +38,7 @@ export async function storeCandidateOtpRequest(
 
   const { data, error } = await supabase.from("candidates_otp").insert([
     {
-      candidate_uuid: userId,
+      candidate_id: userId,
       action_type: actionType,
       expires_at: expiresAt, // More explicit declaration of the expiration date
       otp_code: otpKey,

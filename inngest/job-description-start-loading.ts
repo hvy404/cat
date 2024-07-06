@@ -30,7 +30,7 @@ export const jobDescriptionOnboard = inngest.createFunction(
       .update({
         raw: rawExtract,
       })
-      .eq("jd_uuid", jobDescriptionID);
+      .eq("jd_id", jobDescriptionID);
 
     if (error) {
       console.error(error);

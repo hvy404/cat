@@ -20,7 +20,7 @@ export async function JDAddDatabaseEntry(employerID: string, filename: string) {
     const { error } = await supabase.from("job_postings").upsert([
       {
         employer_id: employerID,
-        jd_uuid: jobID,
+        jd_id: jobID,
         filename: filename,
       },
     ]);

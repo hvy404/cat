@@ -10,7 +10,7 @@ interface EmployerDetails {
 }
 
 interface CompanyEmployerRecord {
-  employer_uuid: string;
+  employer_id: string;
   company_id: string;
 }
 
@@ -30,8 +30,8 @@ export async function checkUserCompany({
 }: EmployerDetails): Promise<CompanyCheckResult> {
   const { data, error } = await supabase
     .from("company_employers")
-    .select("employer_uuid, company_id")
-    .eq("employer_uuid", employerId)
+    .select("employer_id, company_id")
+    .eq("employer_id", employerId)
     .not("company_id", "is", null);
 
   if (error) {
@@ -55,8 +55,8 @@ export async function getUserCompanyDetails({
 }: EmployerDetails): Promise<CompanyEmployerRecord | null> {
   const { data, error } = await supabase
     .from("company_employers")
-    .select("employer_uuid, company_id")
-    .eq("employer_uuid", employerId)
+    .select("employer_id, company_id")
+    .eq("employer_id", employerId)
     .not("company_id", "is", null) // Ensure company_id is not null
     .single();
 
