@@ -10,7 +10,7 @@ export async function updateCandidateConfirmStatus(userId: string) {
   const { data, error } = await supabase
     .from("candidates")
     .update({ email_confirmed: true })
-    .match({ uuid: userId });
+    .match({ identity: userId });
 
   if (error) {
     return {

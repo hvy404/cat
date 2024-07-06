@@ -95,7 +95,7 @@ export default function EmployerCompanyCheck({
                   Connect with your team's existing company profile
                 </p>
                 <Button variant={"default"}>
-                  Join Now <ArrowRight className="ml-2 w-4 h-4" />
+                  Request <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
               </CardContent>
             </Card>

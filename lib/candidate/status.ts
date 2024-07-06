@@ -21,7 +21,7 @@ export async function candidateStatus(
     const { data, error } = await supabase
       .from("candidates")
       .select("onboarded")
-      .eq("uuid", candidateId)
+      .eq("identity", candidateId)
       .single();
 
     if (error) {

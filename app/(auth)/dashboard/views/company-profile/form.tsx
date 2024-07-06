@@ -196,7 +196,7 @@ export default function EditCompanyProfile({
         </div>
         <div className="space-y-6">
           <div>
-            <Label htmlFor="name">Company Name</Label>
+            <Label htmlFor="name">Company Name <span className="mr-2 text-gray-500 text-xs">(Required)</span></Label>
             <Input
               type="text"
               id="name"

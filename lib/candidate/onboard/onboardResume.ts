@@ -16,7 +16,7 @@ export async function candidateStartOnboard(userId: string) {
   const { data, error } = await supabase
     .from("candidates")
     .select("filename")
-    .eq("uuid", userId);
+    .eq("identity", userId);
 
   if (error) {
     console.error(error);

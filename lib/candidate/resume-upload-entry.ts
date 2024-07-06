@@ -18,7 +18,7 @@ export async function resumeUnconfirmedAddToDatabase(
   // Add to Supabase
   const { data, error } = await supabase.from("candidates").insert([
     {
-      uuid: uuid,
+      identity: uuid,
       signature: signature,
       email: email,
       filename: fileName,
