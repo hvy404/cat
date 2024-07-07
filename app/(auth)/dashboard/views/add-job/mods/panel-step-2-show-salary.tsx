@@ -8,7 +8,6 @@ export default function Step2SubPanelDisplaySalary() {
     setAddJD: state.setAddJD,
   }));
 
-  /* {addJD.jobDetails[0].salary_disclose */
   return (
     <div>
       <div className="flex">

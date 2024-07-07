@@ -98,6 +98,10 @@ export async function getJobDescription(
   }
   /* End fetch preset introduction and employee benefits from database if available */
 
+  console.log("Company Introduction:", company_introduction);
+  console.log("Company Benefits:", company_benefits);
+  console.log("Role Name:", role_name);
+
   const jdBuilderLookup = [
     {
       key: "role_job_description",
@@ -125,6 +129,8 @@ export async function getJobDescription(
     const embeddings = embeddingsResponse.data[0].embedding;
 
     const filter = { owner: owner, sowId: sowId };
+
+    console.log("Filter:", filter);
 
     const { data: context } = await supabase.rpc("sow_builder", {
       filter: filter,
@@ -154,7 +160,7 @@ export async function getJobDescription(
 
     const output = jdLookupSummarizer.choices[0].message.content!;
 
-    //console.log("Intermediate Output:", item.key, output);
+    console.log("Intermediate Output:", item.key, output);
 
     // Store the output based on the key
     if (item.key === "role_job_description") {

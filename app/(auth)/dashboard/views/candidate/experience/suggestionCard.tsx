@@ -33,7 +33,7 @@ const SuggestionCard: React.FC<PremiumSuggestionCardProps> = ({
         isActive ? "ring-2 ring-blue-500" : ""
       }`}
     >
-      <div className="p-6 cursor-pointer" onClick={onClick}>
+      <div className="p-6" onMouseEnter={onClick}>
         <div className="space-y-4">
           <div>
             <h4 className="text-sm font-semibold text-gray-800 mb-2">

@@ -26,6 +26,7 @@ export const jdGenerateDescription = inngest.createFunction(
         jd_id: generateJD.jd_id,
       };
     } catch (error) {
+      console.error("Error", error);
       throw new Error("Failed to generate job description");
     }
   }

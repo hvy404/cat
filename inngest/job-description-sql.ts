@@ -38,10 +38,6 @@ export const jobDescriptionAddStructured = inngest.createFunction(
     // Merge the 'static' and 'inferred' columns into a single object
     const structuredData = { ...staticData, ...inferredData };
 
-    // Get 'title', 'description', location, jobType, salaryRange from the structuredData object
-    // Data type for salaryRange: salaryRange: { maximumSalary: 150000, startingSalary: 100000 }
-    // Data type for location: location: "location": [{"city": "Remote"}],
-
     const title = structuredData.jobTitle;
     const description = structuredData.summary;
     const location = structuredData.location;

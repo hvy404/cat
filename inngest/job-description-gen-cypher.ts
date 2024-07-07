@@ -25,7 +25,7 @@ export const generateJobDescriptionCypher = inngest.createFunction(
       const { data, error } = await supabase
         .from("job_postings")
         .select(
-          "static, inferred, salary_disclose, compensation_type, hourly_comp_min, hourly_comp_max, private_employer"
+          "static, inferred, salary_disclose, compensation_type, hourly_comp_min, hourly_comp_max, private_employer, title, location_type, min_salary, max_salary, security_clearance, commission_pay, commission_percent, ote_salary, location"
         )
         .eq("jd_id", jobDescriptionID);
 
@@ -47,11 +47,23 @@ export const generateJobDescriptionCypher = inngest.createFunction(
       jobDescriptionData.hourlyCompMin = data[0].hourly_comp_min;
       jobDescriptionData.hourlyCompMax = data[0].hourly_comp_max;
       jobDescriptionData.privateEmployer = data[0].private_employer;
-
-      // TODO: Remove this console.log statement after testing
-      console.log(
-        JSON.stringify("Merged JD with user edits:", jobDescriptionData)
-      );
+      jobDescriptionData.jobTitle = data[0].title;
+      jobDescriptionData.locationType = data[0].location_type;
+      jobDescriptionData.minSalary = data[0].min_salary;
+      jobDescriptionData.maxSalary = data[0].max_salary;
+      jobDescriptionData.clearanceLevel = data[0].security_clearance;
+      jobDescriptionData.commissionPay = data[0].commission_pay;
+      jobDescriptionData.commissionPercent = data[0].commission_percent;
+      jobDescriptionData.oteSalary = data[0].ote_salary;
+      jobDescriptionData.location = data[0].location
+        ? data[0].location.map(
+            (loc: { city: string; state: string; zipcode: string }) => ({
+              city: loc.city,
+              state: loc.state,
+              zipcode: loc.zipcode,
+            })
+          )
+        : null;
 
       const cypherQuery = generateJobCypherQuery(
         jobDescriptionData,
@@ -59,7 +71,7 @@ export const generateJobDescriptionCypher = inngest.createFunction(
         employerID
       );
 
-      //console.log(cypherQuery);
+      console.log(cypherQuery);
 
       // Run the Cypher query and wait for it to complete successfully
       // TODO: Write doesn't return an error and thus does not throw an error. This needs enhancement
@@ -72,11 +84,6 @@ export const generateJobDescriptionCypher = inngest.createFunction(
       };
     } catch (err) {
       throw new Error("There was an error executing the operation: " + err);
-      /* return {
-        message: "Failed to execute the operation.",
-        error: "Error executing write operation in Neo4j:",
-        success: false,
-      }; */
     }
   }
 );

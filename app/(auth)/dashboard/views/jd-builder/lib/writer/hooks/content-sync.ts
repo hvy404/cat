@@ -12,7 +12,7 @@ export async function syncWriter(generatedJobDescriptionId: string, content: any
     .eq("job_description_id", generatedJobDescriptionId);
 
   if (error) {
-    //console.error("Error updating the job description", error);
+    console.error("Error updating the job description", error);
     return {
       success: false,
     };

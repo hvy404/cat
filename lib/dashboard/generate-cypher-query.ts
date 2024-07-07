@@ -6,6 +6,8 @@
  * @returns The Cypher query string.
  */
 
+// GOOD VERSION
+
 export type JobDescription = {
   jobTitle: string;
   salaryDisclose?: boolean;
@@ -44,6 +46,8 @@ export type JobDescription = {
   oteSalary?: number;
   education?: string[];
   certifications?: string[];
+  maxSalary?: number;
+  minSalary?: number;
 };
 
 // Helper function to format the embedding array
@@ -59,9 +63,10 @@ function escapeString(str: string = ""): string {
 export function generateJobCypherQuery(
   jd: JobDescription,
   jobDescriptionId: string,
-  //employerId: string -  deprecated favor of companyId
   companyId: string
 ): string {
+  console.log("Data Receveid:", jd);
+  // Create the Job node
   let cypher = `
     CREATE (j:Job {
       job_title: "${escapeString(jd.jobTitle)}",  
@@ -74,8 +79,8 @@ export function generateJobCypherQuery(
       location: "${escapeString(JSON.stringify(jd.location || []))}",    
       experience: "${escapeString(jd.experience || "")}", 
       summary: "${escapeString(jd.summary || "")}",      
-      maximum_salary: ${jd.salaryRange?.maximumSalary ?? "null"}, 
-      starting_salary: ${jd.salaryRange?.startingSalary ?? "null"}, 
+      maximum_salary: ${jd.maxSalary ?? "null"}, 
+      starting_salary: ${jd.minSalary ?? "null"}, 
       company_overview: "${escapeString(jd.companyOverview || "")}", 
       security_clearance: "${escapeString(jd.clearanceLevel || "none")}", 
       application_deadline: "${escapeString(jd.applicationDeadline || "")}", 
@@ -95,12 +100,12 @@ export function generateJobCypherQuery(
     })
     WITH j`;
 
-  // Add relationship to Company
+/*   // Add relationship to Company
   cypher += `
   WITH j
   MATCH (c:Company {id: "${companyId}"})
   CREATE (j)-[:POSTED_BY]->(c)
-`;
+`; */
 
   // Append relationships for arrays
   cypher += appendArrayNodes(jd.skills, "Skill", "REQUIRES_SKILL", true);
