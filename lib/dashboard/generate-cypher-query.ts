@@ -100,13 +100,6 @@ export function generateJobCypherQuery(
     })
     WITH j`;
 
-/*   // Add relationship to Company
-  cypher += `
-  WITH j
-  MATCH (c:Company {id: "${companyId}"})
-  CREATE (j)-[:POSTED_BY]->(c)
-`; */
-
   // Append relationships for arrays
   cypher += appendArrayNodes(jd.skills, "Skill", "REQUIRES_SKILL", true);
   cypher += appendArrayNodes(jd.benefits, "Benefit", "OFFERS_BENEFIT", true);
