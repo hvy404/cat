@@ -15,7 +15,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-
 import useStore from "@/app/state/useStore";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,7 +32,6 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { AddJDGetDataPoints } from "@/lib/dashboard/ingest-jd/get-data-points";
 import { SaveJobDetails } from "@/lib/dashboard/ingest-jd/save-data-points";
-//import { states } from "./form-value-states";
 import { states } from "@/lib/data/form-value-states";
 import { z } from "zod";
 
@@ -88,6 +86,12 @@ export default function AddJDStep2Form() {
     user: state.user,
   }));
 
+  if (!user || !user.uuid) {
+    return null;
+  }
+
+  const empployerId = user?.uuid;
+
   // State dropdown
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
@@ -115,10 +119,7 @@ export default function AddJDStep2Form() {
         return;
       }
 
-      const result = await AddJDGetDataPoints(
-        addJD.jdEntryID,
-        "f5246ce0-da92-4916-b1c8-dedf415a8dd2" // TODO: Remove hardcoded employer ID
-      );
+      const result = await AddJDGetDataPoints(addJD.jdEntryID, empployerId);
 
       console.log("Data fetched:", result);
 

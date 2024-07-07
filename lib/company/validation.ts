@@ -5,7 +5,7 @@ import { z } from "zod";
 const nameRegex = /^[a-zA-Z0-9 .,\-']+$/;
 
 const CompanyProfileSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().cuid2(),
   name: z
     .string()
     .min(1, "Company name is required")

@@ -192,11 +192,16 @@ export default function EditCompanyProfile({
     <main className="p-4 w-full overflow-auto">
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-md font-bold text-gray-900">Company Profile</h2>
+          <h2 className="text-md font-bold text-gray-900">
+            {createNew ? "Company Profile" : "Update Company Profile"}
+          </h2>
         </div>
         <div className="space-y-6">
           <div>
-            <Label htmlFor="name">Company Name <span className="mr-2 text-gray-500 text-xs">(Required)</span></Label>
+            <Label htmlFor="name">
+              Company Name{" "}
+              <span className="mr-2 text-gray-500 text-xs">(Required)</span>
+            </Label>
             <Input
               type="text"
               id="name"

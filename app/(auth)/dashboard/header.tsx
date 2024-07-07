@@ -30,6 +30,7 @@ export default function EmployerDashboardHeader() {
   // const employerIdentity = "f5246ce0-da92-4916-b1c8-dedf415a8dd2";
   // TODO: Login user
   const employerIdentity = "f5246ce0-da92-4916-b1c8-dedf415a8dd2";
+  const employerCompany = "te0zfs2klzx61uxmb3rrcdi5";
   const userIdentity = "3dd74025-212e-48e6-8d7b-a2a5dbd7531a";
   const roleEmployer = "employer";
   const roleCandidate = "candidate";
@@ -37,6 +38,7 @@ export default function EmployerDashboardHeader() {
   // Inside your component
   let isLoaded = false;
 
+  // TODO: Remove this. Only used for development purposes
   useEffect(() => {
     if (!isLoaded) {
       setUser({
@@ -44,6 +46,7 @@ export default function EmployerDashboardHeader() {
         uuid: employerIdentity,
         session: "",
         role: roleEmployer,
+        company: employerCompany, // these field should be provied by authentification
       });
       isLoaded = true; // Set the flag to true after setting the user
     }

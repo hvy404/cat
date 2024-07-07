@@ -20,6 +20,7 @@ export const generateJobDescriptionCypher = inngest.createFunction(
 
     const jobDescriptionID = event.data.job_description.id;
     const employerID = event.data.job_description.employer;
+    const companyID = event.data.job_description.company;
 
     try {
       const { data, error } = await supabase
@@ -68,7 +69,8 @@ export const generateJobDescriptionCypher = inngest.createFunction(
       const cypherQuery = generateJobCypherQuery(
         jobDescriptionData,
         jobDescriptionID,
-        employerID
+        employerID,
+        companyID,
       );
 
       console.log(cypherQuery);

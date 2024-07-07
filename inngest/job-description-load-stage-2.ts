@@ -15,6 +15,9 @@ export const jobDescriptionOnboardStage2 = inngest.createFunction(
     const employerID = event.data.job_description.employer;
     const jobDescriptionID = event.data.job_description.id;
     const session = event.data.job_description.session;
+    const company = event.data.job_description.company;
+
+    console.log("Onboarding job description stage 2.", company);
 
     try {
       const buildCypherForNeo = await step.invoke(
@@ -27,6 +30,7 @@ export const jobDescriptionOnboardStage2 = inngest.createFunction(
             job_description: {
               id: jobDescriptionID,
               employer: employerID,
+              company: company,
             },
           },
         }

@@ -6,11 +6,10 @@ import {
 } from "@/lib/collection/fetchPresets";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Pencil } from "lucide-react";
+import { Info, Pencil, InfoIcon } from "lucide-react";
 import CollectRightPanelEditor from "@/app/(auth)/dashboard/views/collection/right-panel-editor";
 import { CollectRightPanelStart } from "@/app/(auth)/dashboard/views/collection/right-panel-help";
 import { CollectionLoading } from "@/app/(auth)/dashboard/views/collection/loading";
-
 
 interface Preset {
   title: string;
@@ -289,6 +288,10 @@ export default function EmployerDashboardDocuments() {
               </div>
             </>
           )}
+        </div>
+        <div className="flex items-center gap-4 rounded-lg border px-4 py-2 text-xs">
+          <InfoIcon className="h-4 w-4" />{" "}
+          <p>Collections are not shared with other users of your organization</p>
         </div>
       </div>
 

@@ -4,7 +4,7 @@ import { JDAddDatabaseEntry } from "@/lib/dashboard/jd-add-new-entry";
 import { v4 as uuidv4 } from "uuid";
 
 /**
- * This is the connect for JB Builder Wizard to JD Upload
+ * This is the connect for JD Builder Wizard to JD Upload
  * It takes a draft job description and sends it to upload process which starts the onboarding process.
  * Publishes a draft job description to Inngest for further processing.
  *

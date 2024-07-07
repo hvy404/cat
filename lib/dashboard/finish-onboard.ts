@@ -13,7 +13,8 @@ import { inngest } from "@/lib/inngest/client";
 export async function jobDescriptionFinishOnboard(
   jdUUID: string,
   employerId: string,
-  sessionID: string
+  sessionID: string,
+  company?: string
 ) {
 
   // Send an event to Inngest
@@ -24,6 +25,7 @@ export async function jobDescriptionFinishOnboard(
         employer: employerId,
         id: jdUUID,
         session: sessionID,
+        company: company,
       },
     },
   });

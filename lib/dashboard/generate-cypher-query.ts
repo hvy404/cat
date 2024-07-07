@@ -63,14 +63,16 @@ function escapeString(str: string = ""): string {
 export function generateJobCypherQuery(
   jd: JobDescription,
   jobDescriptionId: string,
+  employerId: string,
   companyId: string
 ): string {
-  console.log("Data Receveid:", jd);
   // Create the Job node
+
   let cypher = `
     CREATE (j:Job {
       job_title: "${escapeString(jd.jobTitle)}",  
       job_id: "${jobDescriptionId}",  
+      author: "${employerId}",
       embedding: ${jd.embedding ? formatArrayForCypher(jd.embedding) : "[]"},
       client: "${escapeString(jd.client || "")}",  
       company: "${escapeString(jd.company)}",      
@@ -98,6 +100,11 @@ export function generateJobCypherQuery(
       hourly_comp_max: ${jd.hourlyCompMax ?? "null"},
       private_employer: ${jd.privateEmployer ?? "null"}
     })
+    WITH j
+    OPTIONAL MATCH (c:Company {id: "${companyId}"})
+      FOREACH (_ IN CASE WHEN c IS NOT NULL THEN [1] ELSE [] END |
+    CREATE (j)-[:POSTED_BY]->(c)
+    )
     WITH j`;
 
   // Append relationships for arrays

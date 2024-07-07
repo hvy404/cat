@@ -5,6 +5,7 @@ interface User {
   uuid: string;
   session: string;
   role: string; // TOOD: this should be an enum of employer-owner, employer-admin, employer-user, talent
+  company?: string;
 }
 
 interface DashboardRoleOverview {

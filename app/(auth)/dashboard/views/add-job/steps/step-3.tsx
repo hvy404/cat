@@ -32,7 +32,8 @@ export default function AddJDStepThree() {
         const result = await jobDescriptionFinishOnboard(
           addJD.jdEntryID,
           user.uuid,
-          user.session
+          user.session,
+          user.company
         );
 
         if (result.success) {

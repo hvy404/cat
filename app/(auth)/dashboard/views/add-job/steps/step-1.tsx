@@ -8,13 +8,10 @@ import {
   Clock,
   Search,
   UserCheck,
-  ArrowRight,
   Zap,
   Target,
   ChevronRight,
 } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
 
 interface ProcessingStepProps {
   icon: LucideIcon;

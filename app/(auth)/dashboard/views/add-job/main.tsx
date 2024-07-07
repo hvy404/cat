@@ -80,6 +80,7 @@ export default function EmployerDashboardAddJob() {
             <p>JD Entry ID: {addJD.jdEntryID}</p>
             <p>JD Session: {addJD.session}</p>
             <p>RunnerID: {addJD.publishingRunnerID}</p>
+            <p>Company ID: {user?.company}</p>
           </div>
         </div>
 

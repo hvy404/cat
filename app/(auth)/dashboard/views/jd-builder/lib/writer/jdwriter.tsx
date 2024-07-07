@@ -38,7 +38,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { set } from "zod";
 
 const JDWriter = () => {
   // Get state from the store
@@ -435,7 +434,7 @@ const JDWriter = () => {
           step: 1,
         });
 
-        setSelectedMenuItem("add-job")
+        setSelectedMenuItem("add-job") // Move to the next step (add job)
       } else if (
         status === "Running" ||
         status === "Failed" ||

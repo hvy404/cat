@@ -2,7 +2,6 @@ import useStore from "@/app/state/useStore";
 import { useEffect, useState } from "react";
 import EditCompanyProfile from "@/app/(auth)/dashboard/views/company-profile/form";
 import { CompanyProfileData } from "@/lib/company/validation";
-import { v4 as uuidv4 } from "uuid";
 import CompanyProfileRightPanel from "@/app/(auth)/dashboard/views/company-profile/right-panel";
 import CompanyProfileImportance from "@/app/(auth)/dashboard/views/company-profile/right-panel-intro";
 import EmployerCompanyCheck from "@/app/(auth)/dashboard/views/company-profile/check-membership";
@@ -10,6 +9,7 @@ import { checkUserCompany } from "@/lib/company/check-company-membership";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { getCompanyNode } from "@/lib/company/mutation";
+import createId from "@/lib/global/cuid-generate";
 
 // Enum for company states
 enum CompanyState {
@@ -22,7 +22,7 @@ enum CompanyState {
 
 export default function EmployerDashboardCompanyProfile() {
   const defaultFormData: CompanyProfileData = {
-    id: uuidv4(),
+    id: createId(),
     name: "",
     industry: "",
     size: "",
