@@ -12,6 +12,7 @@ import { jobDescriptionEmbeddings } from "@/inngest/job-generate-embeddings";
 import { jobDescriptionOnboard } from "@/inngest/job-description-start-loading";
 import { jobDescriptionOnboardStage2 } from "@/inngest/job-description-load-stage-2";
 import { jobDescriptionGenerateStatic } from "@/inngest/job-description-static";
+import { jobDescriptionGenerateKeyworks } from "@/inngest/job-description-keyword-builder";
 import { jobDescriptionGenerateInferred } from "@/inngest/job-description-inferred";
 import { jobDescriptionAddStructured } from "@/inngest/job-description-sql";
 import { jobDescriptionGenerateCompleted } from "@/inngest/job-description-completed";
@@ -48,6 +49,7 @@ export const { GET, POST, PUT } = serve({
     jobDescriptionOnboardStage2,
     jobDescriptionGenerateStatic,
     jobDescriptionGenerateInferred,
+    jobDescriptionGenerateKeyworks,
     jobDescriptionAddStructured,
     jobDescriptionGenerateCompleted,
     jdWizardOnboardDocs,

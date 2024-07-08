@@ -14,12 +14,6 @@ export const assumedDetailsSchema = z
       .describe(
         "Potential for professional growth and advancement, inferred from the job description and company overview."
       ),
-    clientInteraction: z
-      .boolean()
-      .optional()
-      .describe(
-        "Likelihood of frequent client interaction, inferred from job responsibilities and the role's context."
-      ),
     remoteFlexibility: z
       .boolean()
       .optional()

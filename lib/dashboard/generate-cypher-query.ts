@@ -16,7 +16,6 @@ export type JobDescription = {
   hourlyCompMax?: number;
   privateEmployer?: boolean;
   company: string;
-  client?: string;
   skills: string[];
   jobType: string;
   benefits?: string[];
@@ -33,9 +32,7 @@ export type JobDescription = {
   preferredSkills: string[];
   responsibilities: string[];
   clearanceLevel?: "none" | "basic" | "elevated" | "high";
-  applicationDeadline?: string;
   technicalDemand?: string;
-  clientInteraction?: boolean;
   embedding?: number[];
   remoteFlexibility?: boolean;
   suitablePastRoles?: string[];
@@ -74,7 +71,6 @@ export function generateJobCypherQuery(
       job_id: "${jobDescriptionId}",  
       author: "${employerId}",
       embedding: ${jd.embedding ? formatArrayForCypher(jd.embedding) : "[]"},
-      client: "${escapeString(jd.client || "")}",  
       company: "${escapeString(jd.company)}",      
       job_type: "${escapeString(jd.jobType)}",   
       location_type: "${escapeString(jd.locationType || "unspecified")}", 
@@ -85,9 +81,7 @@ export function generateJobCypherQuery(
       starting_salary: ${jd.minSalary ?? "null"}, 
       company_overview: "${escapeString(jd.companyOverview || "")}", 
       security_clearance: "${escapeString(jd.clearanceLevel || "none")}", 
-      application_deadline: "${escapeString(jd.applicationDeadline || "")}", 
       technical_demand: "${escapeString(jd.technicalDemand || "")}", 
-      client_interaction: ${jd.clientInteraction ?? "null"}, 
       remote_flexibility: ${jd.remoteFlexibility ?? "null"}, 
       advancement_potential: ${jd.advancementPotential ?? "null"}, 
       leadership_opportunity: ${jd.leadershipOpportunity ?? "null"},

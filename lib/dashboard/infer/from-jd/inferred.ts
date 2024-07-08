@@ -25,7 +25,6 @@ export async function generateJDInferred(
 
   - leadershipOpportunity: (optional) potential for leadership roles or responsibilities, inferred from the job title and key responsibilities
   - advancementPotential: (optional) potential for professional growth and advancement, inferred from the job description and company overview
-  - clientInteraction: (optional) likelihood of frequent client interaction, inferred from job responsibilities and the role's context
   - remoteFlexibility: (optional) potential for remote work or flexibility in work location, explicitly mentioned or implied
   - technicalDemand: (optional) level of technical expertise required, inferred from the qualifications and skills listed
   - suitablePastRoles: (optional) a list of past roles or job titles that may align well with the demands and responsibilities of this job

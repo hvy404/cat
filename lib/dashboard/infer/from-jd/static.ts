@@ -40,7 +40,6 @@ export async function generateJDStatic(
   Guidelines:
   - jobTitle: the title or name of the job opportunity
   - company: name of the company posting the job and doing the hiring
-  - client: (optional) the client company where the applicant might be placed. this is typically applicable for pro-services companies
   - locationType: (optional) the type of location for the job, e.g., Remote, Onsite, Hybrid
   - location: (optional) the city, state, and zip code of the job location if applicable and an onsite job
     - city: the city of the job location
@@ -54,7 +53,6 @@ export async function generateJDStatic(
   - commissionPercent: (optional) if commission pay is offered, specify the commission percentage for the job
   - oteSalary: (optional) if commission pay is offered, specify the OTE (On Target Earnings) salary for the job
   - benefits: (optional) list of benefits offered with the job, like health insurance, retirement plans, etc.
-  - applicationDeadline: (optional) deadline for submissions. Only include if specified in the job description context
   - clearanceLevel: (optional) the required clearance level if the job requires a clearance
 
   Only include details in your response for which there is relevant information available in the job description provided. Do not make up any details. Your answer must be in JSON format.`;

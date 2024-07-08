@@ -6,10 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { type jobDescriptionGenerateStatic } from "@/inngest/job-description-static";
 import { type jobDescriptionGenerateInferred } from "@/inngest/job-description-inferred";
-//import { type generateJobDescriptionCypher } from "@/inngest/job-description-gen-cypher";
-//import { type jobDescriptionEmbeddings } from "@/inngest/job-generate-embeddings";
 import { jobDescriptionAddStructured } from "@/inngest/job-description-sql";
-import { type jobDescriptionGenerateCompleted } from "@/inngest/job-description-completed";
 
 export const jobDescriptionOnboard = inngest.createFunction(
   { id: "job-description-start-onboard" },
@@ -43,9 +40,11 @@ export const jobDescriptionOnboard = inngest.createFunction(
     // Generate static points
     try {
       const generateStatic = await step.invoke(
+        // Name of the step and not a reference to an Inngest function
         "job-description-generate-static-details",
         {
           function: referenceFunction<typeof jobDescriptionGenerateStatic>({
+            // Name of the Inngest function
             functionId: "job-description-generate-static-info",
           }),
           data: {
@@ -55,7 +54,6 @@ export const jobDescriptionOnboard = inngest.createFunction(
           },
         }
       );
-
     } catch (error) {
       console.error("Error generating static points", error);
     }

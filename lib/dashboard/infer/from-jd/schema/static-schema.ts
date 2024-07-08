@@ -6,10 +6,6 @@ export const jobDescriptionStaticSchema = z
     company: z
       .string()
       .describe("Name of company posting the job and doing the hiring."),
-    client: z
-      .string()
-      .optional()
-      .describe("The client company where the applicant might be placed."),
     locationType: z
       .enum(["remote", "onsite", "hybrid"])
       .optional()
@@ -74,10 +70,6 @@ export const jobDescriptionStaticSchema = z
       .describe(
         "List of benefits offered with the job, like health insurance, retirement plans, etc."
       ),
-    applicationDeadline: z
-      .string()
-      .optional()
-      .describe("Deadline for application submissions, if applicable."),
     clearanceLevel: z
       .enum([
         "none",
