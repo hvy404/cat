@@ -7,7 +7,6 @@ export function generateHumanReadableJobDescription(
 
   // Job Title and Company
   formattedText += `**Job Title:** ${jobDescription.jobTitle}\n`;
-  formattedText += `**Company:** ${jobDescription.company}\n\n`;
 
   // Location and Job Type
   formattedText += `**Location:** ${jobDescription.locationType}\n`;
@@ -26,11 +25,11 @@ export function generateHumanReadableJobDescription(
   formattedText += `**Compensation Type:** ${jobDescription.compensationType}\n`;
 
   if (jobDescription.compensationType === "hourly") {
-    formattedText += `This position offers an hourly wage ranging from ${jobDescription.hourlyCompMin} to ${jobDescription.hourlyCompMax}.\n\n`;
+    formattedText += `This position offers an hourly wage ranging from $${jobDescription.hourlyCompMin} to $${jobDescription.hourlyCompMax}.\n\n`;
   } else if (jobDescription.compensationType === "salary") {
-    formattedText += `This position offers a salary ranging from ${jobDescription.minSalary} to ${jobDescription.maxSalary}.\n\n`;
+    formattedText += `This position offers a salary ranging from $${jobDescription.minSalary} to $${jobDescription.maxSalary}.\n\n`;
   } else if (jobDescription.compensationType === "commission") {
-    formattedText += `This position offers an On-Target Earnings (OTE) salary of ${
+    formattedText += `This position offers an On-Target Earnings (OTE) salary of $${
       jobDescription.oteSalary
     }, with a commission rate of ${
       jobDescription.commissionPercent
@@ -57,7 +56,7 @@ export function generateHumanReadableJobDescription(
 
   // Preferred Skills
   if (jobDescription.preferredSkills) {
-    formattedText += `**Preferred Skills:**\n`;
+    formattedText += `**Desired Skills:**\n`;
     jobDescription.preferredSkills.forEach((skill) => {
       formattedText += `  - ${skill}\n`;
     });
@@ -66,7 +65,7 @@ export function generateHumanReadableJobDescription(
 
   // Skills
   if (jobDescription.skills) {
-    formattedText += `**Skills:**\n`;
+    formattedText += `**Core Skills:**\n`;
     jobDescription.skills.forEach((skill) => {
       formattedText += `  - ${skill}\n`;
     });
@@ -88,9 +87,6 @@ export function generateHumanReadableJobDescription(
   }
   if (jobDescription.clearanceLevel) {
     formattedText += `**Clearance Level:** This position requires ${jobDescription.clearanceLevel} clearance.\n\n`;
-  }
-  if (jobDescription.technicalDemand) {
-    formattedText += `**Technical Demand:** The technical demand for this role is ${jobDescription.technicalDemand}.\n\n`;
   }
 
   if (jobDescription.remoteFlexibility !== undefined) {
@@ -115,9 +111,18 @@ export function generateHumanReadableJobDescription(
     }\n\n`;
   }
   if (jobDescription.suitablePastRoles) {
-    formattedText += `**Suitable Past Roles:**\n`;
+    formattedText += `**Candidates with previous experience as a:**\n`;
     jobDescription.suitablePastRoles.forEach((role) => {
       formattedText += `  - ${role}\n`;
+    });
+    formattedText += "\n";
+  }
+
+  // New section for Similar Job Titles
+  if (jobDescription.similarJobTitle) {
+    formattedText += `**Jobseekers looking for the following roles should apply:**\n`;
+    jobDescription.similarJobTitle.forEach((title) => {
+      formattedText += `  - ${title}\n`;
     });
     formattedText += "\n";
   }

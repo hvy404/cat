@@ -8,7 +8,7 @@
 
 import { inngest } from "@/lib/inngest/client";
 import { generateJobDescriptionEmbeddings } from "@/lib/dashboard/generate-jd-embeddings";
-import { read, write } from "@/lib/neo4j/utils";
+import { write } from "@/lib/neo4j/utils";
 
 function buildCypherQuery(jobUUID: string, embeddings: number[]): string {
   let embeddingsString = embeddings.join(", ");
@@ -29,11 +29,6 @@ export const jobDescriptionEmbeddings = inngest.createFunction(
       // Build the cypher query
       const cypherQuery = buildCypherQuery(jobID, embeddings);
 
-      //console.log("Writing the job embeddings to Neo4j");
-
-      //console.log(cypherQuery);
-
-      // Run the cypher query on the Neo4j database
       await write(cypherQuery);
     } else {
       console.error("Invalid embeddings");

@@ -78,7 +78,8 @@ type RelationshipType =
   | "HAS_RESPONSIBILITY"
   | "SUITABLE_FOR_ROLE"
   | "REQUIRED_EDUCATION"
-  | "REQUIRED_CERTIFICATION";
+  | "REQUIRED_CERTIFICATION"
+  | "HAS_ALTERNATIVE_TITLE";
 
 export async function getJobRelationshipTypes({
   jobId,
@@ -183,7 +184,10 @@ export async function getJobBenefits(
 export async function getJobQualifications(
   jobId: string
 ): Promise<(QualificationNode & NodeWithId)[]> {
-  return getRelationshipNodes<QualificationNode>(jobId, "REQUIRES_QUALIFICATION");
+  return getRelationshipNodes<QualificationNode>(
+    jobId,
+    "REQUIRES_QUALIFICATION"
+  );
 }
 
 export async function getJobPreferredSkills(
@@ -213,7 +217,10 @@ export async function getJobRequiredEducation(
 export async function getJobRequiredCertifications(
   jobId: string
 ): Promise<(CertificationNode & NodeWithId)[]> {
-  return getRelationshipNodes<CertificationNode>(jobId, "REQUIRED_CERTIFICATION");
+  return getRelationshipNodes<CertificationNode>(
+    jobId,
+    "REQUIRED_CERTIFICATION"
+  );
 }
 
 /* CRUD - Create operation for Job node */
@@ -246,7 +253,7 @@ export async function createJobNode(
 /* CRUD - Read operation for Job node */
 export async function getJobNode(
   jobId: string
-): Promise<(Omit<JobNode, 'embedding'> & NodeWithId) | null> {
+): Promise<(Omit<JobNode, "embedding"> & NodeWithId) | null> {
   const query = `
     MATCH (j:Job {job_id: $jobId})
     RETURN j {
@@ -260,34 +267,55 @@ export async function getJobNode(
     if (result && result.length > 0) {
       const jobNode = result[0].j;
       const nodeId = result[0].nodeId;
-      
+
       // Define all required properties of JobNode (except embedding)
-      const requiredProps: (keyof Omit<JobNode, 'embedding'>)[] = [
-        'job_title', 'job_id', 'employer_id', 'client', 'company',
-        'job_type', 'location_type', 'location', 'experience', 'summary',
-        'maximum_salary', 'starting_salary', 'company_overview', 'security_clearance',
-        'application_deadline', 'technical_demand', 'client_interaction',
-        'remote_flexibility', 'advancement_potential', 'leadership_opportunity',
-        'commission_pay', 'commission_percent', 'ote_salary', 'salary_disclose',
-        'compensation_type', 'hourly_comp_min', 'hourly_comp_max', 'private_employer'
+      const requiredProps: (keyof Omit<JobNode, "embedding">)[] = [
+        "job_title",
+        "job_id",
+        "employer_id",
+        "client",
+        "company",
+        "job_type",
+        "location_type",
+        "location",
+        "experience",
+        "summary",
+        "maximum_salary",
+        "starting_salary",
+        "company_overview",
+        "security_clearance",
+        "application_deadline",
+        "client_interaction",
+        "remote_flexibility",
+        "advancement_potential",
+        "leadership_opportunity",
+        "commission_pay",
+        "commission_percent",
+        "ote_salary",
+        "salary_disclose",
+        "compensation_type",
+        "hourly_comp_min",
+        "hourly_comp_max",
+        "private_employer",
       ];
 
       // Create an object with all required properties
-      const serializedNode = requiredProps.reduce<Partial<Omit<JobNode, 'embedding'>>>((acc, prop) => {
+      const serializedNode = requiredProps.reduce<
+        Partial<Omit<JobNode, "embedding">>
+      >((acc, prop) => {
         const value = jobNode[prop];
-        acc[prop] = value instanceof Integer ? value.toNumber() : (value ?? null);
+        acc[prop] = value instanceof Integer ? value.toNumber() : value ?? null;
         return acc;
       }, {});
 
       // Add NodeWithId properties
-      const finalNode: Omit<JobNode, 'embedding'> & NodeWithId = {
-        ...serializedNode as Omit<JobNode, 'embedding'>,
+      const finalNode: Omit<JobNode, "embedding"> & NodeWithId = {
+        ...(serializedNode as Omit<JobNode, "embedding">),
         labels: ["Job"],
-        _id: nodeId instanceof Integer ? nodeId.toNumber() : nodeId
+        _id: nodeId instanceof Integer ? nodeId.toNumber() : nodeId,
       };
 
       return finalNode;
-
     }
     return null;
   } catch (error) {
@@ -462,12 +490,7 @@ export async function addPreferredSkill(
   jobId: string,
   skillData: SkillNode
 ): Promise<(SkillNode & NodeWithId) | null> {
-  return addRelationship<SkillNode>(
-    jobId,
-    "Skill",
-    skillData,
-    "PREFERS_SKILL"
-  );
+  return addRelationship<SkillNode>(jobId, "Skill", skillData, "PREFERS_SKILL");
 }
 
 export async function removePreferredSkill(nodeId: number): Promise<boolean> {
@@ -510,129 +533,146 @@ export async function removeSuitableRole(nodeId: number): Promise<boolean> {
 
 /* CRUD - Add/Remove Required Education */
 export async function addRequiredEducation(
-    jobId: string,
-    educationData: EducationNode
-  ): Promise<(EducationNode & NodeWithId) | null> {
-    return addRelationship<EducationNode>(
-      jobId,
-      "Education",
-      educationData,
-      "REQUIRED_EDUCATION"
-    );
-  }
-  
-  export async function removeRequiredEducation(nodeId: number): Promise<boolean> {
-    return removeRelationship(nodeId, "Education");
-  }
-  
-  /* CRUD - Add/Remove Required Certification */
-  export async function addRequiredCertification(
-    jobId: string,
-    certificationData: CertificationNode
-  ): Promise<(CertificationNode & NodeWithId) | null> {
-    return addRelationship<CertificationNode>(
-      jobId,
-      "Certification",
-      certificationData,
-      "REQUIRED_CERTIFICATION"
-    );
-  }
-  
-  export async function removeRequiredCertification(nodeId: number): Promise<boolean> {
-    return removeRelationship(nodeId, "Certification");
-  }
-  
-  /* Utility function to get all relationships for a Job */
-  export async function getAllJobRelationships(jobId: string): Promise<Record<RelationshipType, (NodeWithId & Record<string, any>)[]>> {
-    const relationshipTypes = await getJobRelationshipTypes({ jobId });
-    const relationships: Record<RelationshipType, (NodeWithId & Record<string, any>)[]> = {} as any;
-  
-    for (const type of relationshipTypes) {
-      switch (type) {
-        case "REQUIRES_SKILL":
-          relationships[type] = await getJobRequiredSkills(jobId);
-          break;
-        case "OFFERS_BENEFIT":
-          relationships[type] = await getJobBenefits(jobId);
-          break;
-        case "REQUIRES_QUALIFICATION":
-          relationships[type] = await getJobQualifications(jobId);
-          break;
-        case "PREFERS_SKILL":
-          relationships[type] = await getJobPreferredSkills(jobId);
-          break;
-        case "HAS_RESPONSIBILITY":
-          relationships[type] = await getJobResponsibilities(jobId);
-          break;
-        case "SUITABLE_FOR_ROLE":
-          relationships[type] = await getJobSuitableRoles(jobId);
-          break;
-        case "REQUIRED_EDUCATION":
-          relationships[type] = await getJobRequiredEducation(jobId);
-          break;
-        case "REQUIRED_CERTIFICATION":
-          relationships[type] = await getJobRequiredCertifications(jobId);
-          break;
-      }
+  jobId: string,
+  educationData: EducationNode
+): Promise<(EducationNode & NodeWithId) | null> {
+  return addRelationship<EducationNode>(
+    jobId,
+    "Education",
+    educationData,
+    "REQUIRED_EDUCATION"
+  );
+}
+
+export async function removeRequiredEducation(
+  nodeId: number
+): Promise<boolean> {
+  return removeRelationship(nodeId, "Education");
+}
+
+/* CRUD - Add/Remove Required Certification */
+export async function addRequiredCertification(
+  jobId: string,
+  certificationData: CertificationNode
+): Promise<(CertificationNode & NodeWithId) | null> {
+  return addRelationship<CertificationNode>(
+    jobId,
+    "Certification",
+    certificationData,
+    "REQUIRED_CERTIFICATION"
+  );
+}
+
+export async function removeRequiredCertification(
+  nodeId: number
+): Promise<boolean> {
+  return removeRelationship(nodeId, "Certification");
+}
+
+/* Utility function to get all relationships for a Job */
+export async function getAllJobRelationships(
+  jobId: string
+): Promise<Record<RelationshipType, (NodeWithId & Record<string, any>)[]>> {
+  const relationshipTypes = await getJobRelationshipTypes({ jobId });
+  const relationships: Record<
+    RelationshipType,
+    (NodeWithId & Record<string, any>)[]
+  > = {} as any;
+
+  for (const type of relationshipTypes) {
+    switch (type) {
+      case "REQUIRES_SKILL":
+        relationships[type] = await getJobRequiredSkills(jobId);
+        break;
+      case "OFFERS_BENEFIT":
+        relationships[type] = await getJobBenefits(jobId);
+        break;
+      case "REQUIRES_QUALIFICATION":
+        relationships[type] = await getJobQualifications(jobId);
+        break;
+      case "PREFERS_SKILL":
+        relationships[type] = await getJobPreferredSkills(jobId);
+        break;
+      case "HAS_RESPONSIBILITY":
+        relationships[type] = await getJobResponsibilities(jobId);
+        break;
+      case "SUITABLE_FOR_ROLE":
+        relationships[type] = await getJobSuitableRoles(jobId);
+        break;
+      case "REQUIRED_EDUCATION":
+        relationships[type] = await getJobRequiredEducation(jobId);
+        break;
+      case "REQUIRED_CERTIFICATION":
+        relationships[type] = await getJobRequiredCertifications(jobId);
+        break;
     }
-  
-    return relationships;
   }
-  
-  /* Utility function to update multiple properties of a Job node */
-  export async function updateJobProperties(
-    jobId: string,
-    properties: Partial<JobNode>
-  ): Promise<boolean> {
-    const query = `
+
+  return relationships;
+}
+
+/* Utility function to update multiple properties of a Job node */
+export async function updateJobProperties(
+  jobId: string,
+  properties: Partial<JobNode>
+): Promise<boolean> {
+  const query = `
       MATCH (j:Job {job_id: $jobId})
       SET j += $properties
       RETURN j
     `;
-  
-    try {
-      const result = await write(query, { jobId, properties });
-      return result && result.length > 0;
-    } catch (error) {
-      console.error("Error updating Job properties:", error);
-      throw error;
-    }
+
+  try {
+    const result = await write(query, { jobId, properties });
+    return result && result.length > 0;
+  } catch (error) {
+    console.error("Error updating Job properties:", error);
+    throw error;
   }
-  
-  /* Utility function to search for Jobs based on criteria */
-  export async function searchJobs(criteria: Partial<JobNode>): Promise<(JobNode & NodeWithId)[]> {
-    let whereClause = Object.entries(criteria)
-      .map(([key, value]) => {
-        if (typeof value === 'string') {
-          return `j.${key} =~ '(?i).*${value}.*'`; // Case-insensitive partial match for strings
-        } else {
-          return `j.${key} = $${key}`;
-        }
-      })
-      .join(" AND ");
-  
-    const query = `
+}
+
+/* Utility function to search for Jobs based on criteria */
+export async function searchJobs(
+  criteria: Partial<JobNode>
+): Promise<(JobNode & NodeWithId)[]> {
+  let whereClause = Object.entries(criteria)
+    .map(([key, value]) => {
+      if (typeof value === "string") {
+        return `j.${key} =~ '(?i).*${value}.*'`; // Case-insensitive partial match for strings
+      } else {
+        return `j.${key} = $${key}`;
+      }
+    })
+    .join(" AND ");
+
+  const query = `
       MATCH (j:Job)
       WHERE ${whereClause}
       RETURN j, ID(j) as nodeId
     `;
-  
-    try {
-      const result = await read(query, criteria);
-      return result.map((record: any) => ({
-        ...record.j.properties,
-        labels: ["Job"],
-        _id: record.nodeId instanceof Integer ? record.nodeId.toNumber() : record.nodeId,
-      }));
-    } catch (error) {
-      console.error("Error searching for Jobs:", error);
-      throw error;
-    }
+
+  try {
+    const result = await read(query, criteria);
+    return result.map((record: any) => ({
+      ...record.j.properties,
+      labels: ["Job"],
+      _id:
+        record.nodeId instanceof Integer
+          ? record.nodeId.toNumber()
+          : record.nodeId,
+    }));
+  } catch (error) {
+    console.error("Error searching for Jobs:", error);
+    throw error;
   }
-  
-  /* Utility function to get similar Jobs based on embedding */
-  export async function getSimilarJobs(jobId: string, limit: number = 5): Promise<(JobNode & NodeWithId)[]> {
-    const query = `
+}
+
+/* Utility function to get similar Jobs based on embedding */
+export async function getSimilarJobs(
+  jobId: string,
+  limit: number = 5
+): Promise<(JobNode & NodeWithId)[]> {
+  const query = `
       MATCH (j1:Job {job_id: $jobId})
       MATCH (j2:Job)
       WHERE j1 <> j2
@@ -641,71 +681,82 @@ export async function addRequiredEducation(
       LIMIT $limit
       RETURN j2, ID(j2) as nodeId, similarity
     `;
-  
-    try {
-      const result = await read(query, { jobId, limit });
-      return result.map((record: any) => ({
-        ...record.j2.properties,
-        labels: ["Job"],
-        _id: record.nodeId instanceof Integer ? record.nodeId.toNumber() : record.nodeId,
-        similarity: record.similarity,
-      }));
-    } catch (error) {
-      console.error("Error getting similar Jobs:", error);
-      throw error;
-    }
+
+  try {
+    const result = await read(query, { jobId, limit });
+    return result.map((record: any) => ({
+      ...record.j2.properties,
+      labels: ["Job"],
+      _id:
+        record.nodeId instanceof Integer
+          ? record.nodeId.toNumber()
+          : record.nodeId,
+      similarity: record.similarity,
+    }));
+  } catch (error) {
+    console.error("Error getting similar Jobs:", error);
+    throw error;
   }
-  
-  /* Utility function to get Jobs by employer */
-  export async function getJobsByEmployer(employerId: string): Promise<(JobNode & NodeWithId)[]> {
-    const query = `
+}
+
+/* Utility function to get Jobs by employer */
+export async function getJobsByEmployer(
+  employerId: string
+): Promise<(JobNode & NodeWithId)[]> {
+  const query = `
       MATCH (j:Job {employer_id: $employerId})
       RETURN j, ID(j) as nodeId
     `;
-  
-    try {
-      const result = await read(query, { employerId });
-      return result.map((record: any) => ({
-        ...record.j.properties,
-        labels: ["Job"],
-        _id: record.nodeId instanceof Integer ? record.nodeId.toNumber() : record.nodeId,
-      }));
-    } catch (error) {
-      console.error("Error getting Jobs by employer:", error);
-      throw error;
-    }
+
+  try {
+    const result = await read(query, { employerId });
+    return result.map((record: any) => ({
+      ...record.j.properties,
+      labels: ["Job"],
+      _id:
+        record.nodeId instanceof Integer
+          ? record.nodeId.toNumber()
+          : record.nodeId,
+    }));
+  } catch (error) {
+    console.error("Error getting Jobs by employer:", error);
+    throw error;
   }
-  
-  /* Utility function to get job count by various criteria */
-  export async function getJobCount(criteria: {
-    byEmployer?: string;
-    byJobType?: string;
-    byLocation?: string;
-    bySalaryRange?: { min: number; max: number };
-  }): Promise<number> {
-    let whereClause = [];
-    if (criteria.byEmployer) whereClause.push("j.employer_id = $employerId");
-    if (criteria.byJobType) whereClause.push("j.job_type = $jobType");
-    if (criteria.byLocation) whereClause.push("j.location CONTAINS $location");
-    if (criteria.bySalaryRange) whereClause.push("j.starting_salary >= $minSalary AND j.maximum_salary <= $maxSalary");
-  
-    const query = `
+}
+
+/* Utility function to get job count by various criteria */
+export async function getJobCount(criteria: {
+  byEmployer?: string;
+  byJobType?: string;
+  byLocation?: string;
+  bySalaryRange?: { min: number; max: number };
+}): Promise<number> {
+  let whereClause = [];
+  if (criteria.byEmployer) whereClause.push("j.employer_id = $employerId");
+  if (criteria.byJobType) whereClause.push("j.job_type = $jobType");
+  if (criteria.byLocation) whereClause.push("j.location CONTAINS $location");
+  if (criteria.bySalaryRange)
+    whereClause.push(
+      "j.starting_salary >= $minSalary AND j.maximum_salary <= $maxSalary"
+    );
+
+  const query = `
       MATCH (j:Job)
-      ${whereClause.length > 0 ? 'WHERE ' + whereClause.join(' AND ') : ''}
+      ${whereClause.length > 0 ? "WHERE " + whereClause.join(" AND ") : ""}
       RETURN count(j) as jobCount
     `;
-  
-    try {
-      const result = await read(query, {
-        employerId: criteria.byEmployer,
-        jobType: criteria.byJobType,
-        location: criteria.byLocation,
-        minSalary: criteria.bySalaryRange?.min,
-        maxSalary: criteria.bySalaryRange?.max,
-      });
-      return result[0].jobCount.low;
-    } catch (error) {
-      console.error("Error getting job count:", error);
-      throw error;
-    }
+
+  try {
+    const result = await read(query, {
+      employerId: criteria.byEmployer,
+      jobType: criteria.byJobType,
+      location: criteria.byLocation,
+      minSalary: criteria.bySalaryRange?.min,
+      maxSalary: criteria.bySalaryRange?.max,
+    });
+    return result[0].jobCount.low;
+  } catch (error) {
+    console.error("Error getting job count:", error);
+    throw error;
   }
+}

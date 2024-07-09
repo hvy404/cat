@@ -16,9 +16,13 @@ interface JobDescription {
   responsibilities: string[];
 }
 
+interface KeywordResponse {
+  similarJobTitle: string[];
+}
+
 export async function generateJobRoleKeywords(
   jobDesc: JobDescription
-): Promise<string> {
+): Promise<KeywordResponse> {
   const togetherai = new OpenAI({
     apiKey: process.env.TOGETHER_API_KEY,
     baseURL: "https://api.together.xyz/v1",
@@ -34,7 +38,7 @@ export async function generateJobRoleKeywords(
 - Focus on identifying roles that broadly match the job description.
 - The goal is to generate keywords that users can find when searching for a job. We want relevant matches but not so specific that they are rarely searched for.
     
-    Response Rule: Your answer must strictly be valid JSON only. The roles are will be a JSON array.
+    Response Rule: Your answer must strictly be valid JSON only. The roles will be a JSON array.
     
     Required Response JSON Format: 
     {
@@ -64,15 +68,33 @@ export async function generateJobRoleKeywords(
       max_tokens: 3900,
     });
 
-    const detectedRoles = extract.choices[0].message.content ?? "";
+    if (!extract.choices[0].message.content) {
+      throw new Error("No content in the API response");
+    }
 
-    console.log("Extract", extract.choices[0].message.content);
+    const detectedRoles = JSON.parse(
+      extract.choices[0].message.content
+    ) as KeywordResponse;
 
-    // Save the detected roles to the database
+    if (!Array.isArray(detectedRoles.similarJobTitle)) {
+      throw new Error(
+        "Invalid response format: similarJobTitle is not an array"
+      );
+    }
 
     return detectedRoles;
   } catch (error) {
-    console.error("Error generating keywords", error);
-    throw new Error("Failed to generate keywords.");
+    if (error instanceof SyntaxError) {
+      console.error("Error parsing JSON response", error);
+      throw new Error(
+        "Failed to parse the generated keywords. The response was not valid JSON."
+      );
+    } else if (error instanceof Error) {
+      console.error("Error generating keywords", error);
+      throw new Error(`Failed to generate keywords: ${error.message}`);
+    } else {
+      console.error("Unknown error", error);
+      throw new Error("An unknown error occurred while generating keywords.");
+    }
   }
 }

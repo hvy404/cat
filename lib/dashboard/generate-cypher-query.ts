@@ -32,7 +32,6 @@ export type JobDescription = {
   preferredSkills: string[];
   responsibilities: string[];
   clearanceLevel?: "none" | "basic" | "elevated" | "high";
-  technicalDemand?: string;
   embedding?: number[];
   remoteFlexibility?: boolean;
   suitablePastRoles?: string[];
@@ -45,11 +44,20 @@ export type JobDescription = {
   certifications?: string[];
   maxSalary?: number;
   minSalary?: number;
+  similarJobTitle?: string[];
 };
 
 // Helper function to format the embedding array
-function formatArrayForCypher(array: number[]) {
-  return `[${array.join(", ")}]`; // Adds a space after each comma
+function formatArrayForCypher(array: string[] | number[]) {
+  return `[${array
+    .map((item) =>
+      typeof item === "string" ? `"${escapeString(item)}"` : item
+    )
+    .join(", ")}]`;
+}
+
+function formatStringArrayForCypher(array: string[]) {
+  return `[${array.map((item) => `"${escapeString(item)}"`).join(", ")}]`;
 }
 
 // Helper function to escape double quotes in strings
@@ -81,7 +89,6 @@ export function generateJobCypherQuery(
       starting_salary: ${jd.minSalary ?? "null"}, 
       company_overview: "${escapeString(jd.companyOverview || "")}", 
       security_clearance: "${escapeString(jd.clearanceLevel || "none")}", 
-      technical_demand: "${escapeString(jd.technicalDemand || "")}", 
       remote_flexibility: ${jd.remoteFlexibility ?? "null"}, 
       advancement_potential: ${jd.advancementPotential ?? "null"}, 
       leadership_opportunity: ${jd.leadershipOpportunity ?? "null"},
@@ -92,7 +99,13 @@ export function generateJobCypherQuery(
       compensation_type: "${escapeString(jd.compensationType || "")}",
       hourly_comp_min: ${jd.hourlyCompMin ?? "null"},
       hourly_comp_max: ${jd.hourlyCompMax ?? "null"},
-      private_employer: ${jd.privateEmployer ?? "null"}
+      private_employer: ${jd.privateEmployer ?? "null"},
+      benefits: ${jd.benefits ? formatStringArrayForCypher(jd.benefits) : "[]"},
+      responsibilities: ${formatStringArrayForCypher(
+        jd.responsibilities || []
+      )},
+      education: ${formatStringArrayForCypher(jd.education || [])},
+      qualifications: ${formatStringArrayForCypher(jd.qualifications || [])}
     })
     WITH j
     OPTIONAL MATCH (c:Company {id: "${companyId}"})
@@ -103,13 +116,12 @@ export function generateJobCypherQuery(
 
   // Append relationships for arrays
   cypher += appendArrayNodes(jd.skills, "Skill", "REQUIRES_SKILL", true);
-  cypher += appendArrayNodes(jd.benefits, "Benefit", "OFFERS_BENEFIT", true);
-  cypher += appendArrayNodes(
+  /*   cypher += appendArrayNodes(
     jd.qualifications,
     "Qualification",
     "REQUIRES_QUALIFICATION",
     true
-  );
+  ); */
   cypher += appendArrayNodes(
     jd.preferredSkills,
     "Skill",
@@ -118,27 +130,27 @@ export function generateJobCypherQuery(
   );
 
   cypher += appendArrayNodes(
-    jd.responsibilities,
-    "Responsibility",
-    "HAS_RESPONSIBILITY",
-    true
-  );
-  cypher += appendArrayNodes(
     jd.suitablePastRoles,
     "Role",
     "SUITABLE_FOR_ROLE",
     true
   );
-  cypher += appendArrayNodes(
+  /*   cypher += appendArrayNodes(
     jd.education,
     "Education",
     "REQUIRED_EDUCATION",
     true
-  );
+  ); */
   cypher += appendArrayNodes(
     jd.certifications,
     "Certification",
     "REQUIRED_CERTIFICATION",
+    true
+  );
+  cypher += appendArrayNodes(
+    jd.similarJobTitle,
+    "AlternativeTitle",
+    "HAS_ALTERNATIVE_TITLE",
     true
   );
 

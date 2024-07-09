@@ -97,7 +97,7 @@ export async function findSimilarJobs(
   threshold: number
 ): Promise<DetailedJobResult[]> {
   const query = `
-      CALL db.index.vector.queryNodes('job-embeddings', 50, $embedding)
+      CALL db.index.vector.queryNodes('job-embeddings', 100, $embedding)
       YIELD node AS similarJob, score
       WHERE score >= $threshold AND similarJob:Job
       RETURN 
@@ -129,8 +129,6 @@ export async function findSimilarJobs(
         } AS similarJob,
         score
     `;
-
-    // location_type = 'remote' OR location_type = 'onsite' OR location_type = 'hybrid'
 
 
   const params = { embedding, threshold };

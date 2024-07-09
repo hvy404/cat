@@ -3,6 +3,7 @@
 import { inngest } from "@/lib/inngest/client";
 import { referenceFunction } from "inngest";
 import { type generateJobDescriptionCypher } from "@/inngest/job-description-gen-cypher";
+import { type jobDescriptionGenerateKeyworks } from "@/inngest/job-description-keyword-builder";
 import { type jobDescriptionEmbeddings } from "@/inngest/job-generate-embeddings";
 import { type jobDescriptionGenerateCompleted } from "@/inngest/job-description-completed";
 
@@ -17,8 +18,28 @@ export const jobDescriptionOnboardStage2 = inngest.createFunction(
     const session = event.data.job_description.session;
     const company = event.data.job_description.company;
 
-    console.log("Onboarding job description stage 2.", company);
+    // Generate keywords for job description
+    try {
+      const buildJobKeywords = await step.invoke(
+        "job-description-generate-role-keywords",
+        {
+          function: referenceFunction<typeof jobDescriptionGenerateKeyworks>({
+            functionId: "job-description-generate-role-keywords",
+          }),
+          data: {
+            job_description: {
+              id: jobDescriptionID,
+              employer: employerID,
+              company: company,
+            },
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Error generating keywords for job description.", error);
+    }
 
+    // Build cypher for Neo
     try {
       const buildCypherForNeo = await step.invoke(
         "job-description-add-to-neo-workflow",

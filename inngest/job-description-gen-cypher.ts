@@ -26,7 +26,7 @@ export const generateJobDescriptionCypher = inngest.createFunction(
       const { data, error } = await supabase
         .from("job_postings")
         .select(
-          "static, inferred, salary_disclose, compensation_type, hourly_comp_min, hourly_comp_max, private_employer, title, location_type, min_salary, max_salary, security_clearance, commission_pay, commission_percent, ote_salary, location"
+          "static, inferred, role_names, salary_disclose, compensation_type, hourly_comp_min, hourly_comp_max, private_employer, title, location_type, min_salary, max_salary, security_clearance, commission_pay, commission_percent, ote_salary, location"
         )
         .eq("jd_id", jobDescriptionID);
 
@@ -40,7 +40,12 @@ export const generateJobDescriptionCypher = inngest.createFunction(
       // We need to merge this data with the user edited data to get the final job description data
       const staticData = data[0].static;
       const inferredData = data[0].inferred;
-      const jobDescriptionData = { ...staticData, ...inferredData };
+      const roleNames = data[0].role_names;
+      const jobDescriptionData = {
+        ...staticData,
+        ...inferredData,
+        ...roleNames,
+      };
 
       // Update jobDescriptionData with newer data that user may have edited
       jobDescriptionData.salaryDisclose = data[0].salary_disclose;
@@ -70,10 +75,10 @@ export const generateJobDescriptionCypher = inngest.createFunction(
         jobDescriptionData,
         jobDescriptionID,
         employerID,
-        companyID,
+        companyID
       );
 
-      console.log(cypherQuery);
+      //console.log(cypherQuery);
 
       // Run the Cypher query and wait for it to complete successfully
       // TODO: Write doesn't return an error and thus does not throw an error. This needs enhancement

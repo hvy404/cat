@@ -20,12 +20,6 @@ export const assumedDetailsSchema = z
       .describe(
         "Potential for remote work or flexibility in work location, explicitly mentioned or implied."
       ),
-    technicalDemand: z
-      .string()
-      .optional()
-      .describe(
-        "Level of technical expertise required, inferred from the qualifications and skills listed."
-      ),
     suitablePastRoles: z
       .array(z.string())
       .optional()

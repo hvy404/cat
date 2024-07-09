@@ -15,7 +15,6 @@ export interface JobDescription {
   leadershipOpportunity?: boolean;
   advancementPotential?: boolean;
   remoteFlexibility?: boolean;
-  technicalDemand?: string;
   suitablePastRoles?: string[];
   jobTitle: string;
   company: string;
@@ -32,38 +31,7 @@ export interface JobDescription {
   experience?: string;
   preferredSkills?: string[];
   summary?: string;
-}
-
-function formatJobDescription(json: JobDescription): string {
-  let formattedText = "";
-
-  for (const key in json) {
-    if (json.hasOwnProperty(key)) {
-      formattedText += `${key.charAt(0).toUpperCase() + key.slice(1)}:\n`; // Capitalize key and add a newline
-
-      const value = json[key];
-      if (Array.isArray(value)) {
-        // Format as list if the value is an array
-        formattedText += value.map((item: string) => `  - ${item}`).join("\n");
-      } else if (typeof value === "object" && value !== null) {
-        // Recursively format if the value is an object (excluding arrays)
-        formattedText += formatJobDescription(value as JobDescription).replace(
-          /^/gm,
-          "  "
-        ); // Indent nested objects
-      } else if (value === null) {
-        // Handle null values by displaying "Not specified"
-        formattedText += "Not specified";
-      } else {
-        // Append other types (e.g., strings, numbers)
-        formattedText += value;
-      }
-
-      formattedText += "\n\n"; // Add double newline for separation
-    }
-  }
-
-  return formattedText;
+  similarJobTitle?: string[];
 }
 
 export async function generateJobDescriptionEmbeddings(jd_id: string) {
@@ -78,7 +46,7 @@ export async function generateJobDescriptionEmbeddings(jd_id: string) {
   const { data, error } = await supabase
     .from("job_postings")
     .select(
-      "static, inferred, salary_disclose, compensation_type, hourly_comp_min, hourly_comp_max, private_employer, title, location_type, min_salary, max_salary, security_clearance, commission_pay, commission_percent, ote_salary, location"
+      "static, inferred, role_names ,salary_disclose, compensation_type, hourly_comp_min, hourly_comp_max, private_employer, title, location_type, min_salary, max_salary, security_clearance, commission_pay, commission_percent, ote_salary, location"
     )
     .eq("jd_id", jd_id); // TODO: change this to dynamic jd_id
 
@@ -93,7 +61,8 @@ export async function generateJobDescriptionEmbeddings(jd_id: string) {
   // We need to merge this data with the user edited data to get the final job description data
   const staticData = data[0].static;
   const inferredData = data[0].inferred;
-  const jobDescriptionData = { ...staticData, ...inferredData };
+  const roleNames = data[0].role_names;
+  const jobDescriptionData = { ...staticData, ...inferredData, ...roleNames };
 
   // Update jobDescriptionData with newer data that user may have edited (from the user confirmatio form)
   jobDescriptionData.salaryDisclose = data[0].salary_disclose;
@@ -142,23 +111,17 @@ export async function generateJobDescriptionEmbeddings(jd_id: string) {
   }
 
   // Format the job description data
-  //const humanReadable = generateHumanReadableJobDescription(jobDescriptionData);
+  const humanReadableAndSearchOptimized =
+    generateHumanReadableJobDescription(jobDescriptionData);
 
-  //console.log("Human", humanReadable);
-
-  console.log("generate-jd-embeddings.ts", jobDescriptionData);
-
-  const jdEmbedd = formatJobDescription(jobDescriptionData);
-
-  /*   const embeddingsResponse = await togetherai.embeddings.create({
+  const embeddingsResponse = await togetherai.embeddings.create({
     model: "togethercomputer/m2-bert-80M-8k-retrieval",
-    input: jdEmbedd,
+    input: humanReadableAndSearchOptimized,
   });
 
   // Extract the embeddings from the response
-  const embeddings = embeddingsResponse.data[0].embedding; */
+  const embeddings = embeddingsResponse.data[0].embedding;
 
   // return the embeddings
-  /* return embeddings; */
-  return;
+  return embeddings;
 }
