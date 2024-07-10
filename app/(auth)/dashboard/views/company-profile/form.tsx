@@ -138,12 +138,18 @@ export default function EditCompanyProfile({
       try {
         const processedData = processCompanyData(formData);
 
-        // Use addCompanyNode with simplified admin and manager assignment
-        const companyNode = await addCompanyNode({
-          ...processedData,
-          admin: processedData.admin || [],
-          manager: processedData.manager || [],
-        });
+        // Handle the admin property
+        if (createNew && isInitialOwner) {
+          // For new companies, set the admin to the current user
+          processedData.admin = [employerId];
+        } else if (!createNew) {
+          // For updates, keep the existing admin data
+          // Assuming formData.admin contains the current admin data
+          processedData.admin = formData.admin;
+        }
+
+        // Use addCompanyNode with the correctly handled admin property
+        const companyNode = await addCompanyNode(processedData);
 
         if (createNew) {
           // Additional steps for new company creation

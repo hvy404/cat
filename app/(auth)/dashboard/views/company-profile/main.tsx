@@ -21,6 +21,8 @@ enum CompanyState {
 }
 
 export default function EmployerDashboardCompanyProfile() {
+  const { isExpanded, setExpanded, user } = useStore();
+
   const defaultFormData: CompanyProfileData = {
     id: createId(),
     name: "",
@@ -45,7 +47,6 @@ export default function EmployerDashboardCompanyProfile() {
     manager: [],
   };
 
-  const { isExpanded, setExpanded, user } = useStore();
   const [companyState, setCompanyState] = useState<CompanyState>(
     CompanyState.LOADING
   );
@@ -81,14 +82,13 @@ export default function EmployerDashboardCompanyProfile() {
         setCompanyState(CompanyState.INITIAL);
       }
     };
-  
+
     checkCompany();
-  
+
     return () => {
       setExpanded(false);
     };
   }, [user?.uuid, setExpanded]);
-
 
   // Early return if user is not logged in
   if (!user?.uuid) {

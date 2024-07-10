@@ -55,13 +55,17 @@ export async function addCompanyNode(
   company: CompanyNode
 ): Promise<CompanyNode & { _id: number }> {
   const properties = Object.entries(company)
+    .filter(([key]) => key !== 'admin') // Exclude admin from general properties
     .map(([key, value]) => `c.${key} = ${formatValue(value)}`)
     .join(",\n    ");
 
+  const adminArray = Array.isArray(company.admin) ? company.admin : [company.admin].filter(Boolean);
+  
   const cypher = `
     MERGE (c:Company {id: ${formatValue(company.id)}})
     SET
-        ${properties}
+        ${properties},
+        c.admin = ${formatValue(adminArray)}
     RETURN c, ID(c) as nodeId
   `;
 
