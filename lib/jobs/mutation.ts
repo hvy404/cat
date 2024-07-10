@@ -2,13 +2,12 @@
 import { write, read } from "@/lib/neo4j/utils";
 import { Integer, RecordShape } from "neo4j-driver";
 
-// Define interfaces for our data structures
+// Updated JobNode interface to match the new structure
 export interface JobNode {
   job_title: string;
   job_id: string;
   employer_id: string;
   embedding: number[];
-  client: string;
   company: string;
   job_type: string;
   location_type: string;
@@ -19,9 +18,6 @@ export interface JobNode {
   starting_salary: number;
   company_overview: string;
   security_clearance: string;
-  application_deadline: string;
-  technical_demand: string;
-  client_interaction: boolean;
   remote_flexibility: boolean;
   advancement_potential: boolean;
   leadership_opportunity: boolean;
@@ -33,6 +29,7 @@ export interface JobNode {
   hourly_comp_min: number;
   hourly_comp_max: number;
   private_employer: boolean;
+  benefits: string[];
 }
 
 export interface SkillNode {
@@ -61,6 +58,10 @@ export interface EducationNode {
 }
 
 export interface CertificationNode {
+  name: string;
+}
+
+export interface AlternativeTitleNode {
   name: string;
 }
 
@@ -122,6 +123,7 @@ function isValidRelationshipType(type: string): type is RelationshipType {
     "SUITABLE_FOR_ROLE",
     "REQUIRED_EDUCATION",
     "REQUIRED_CERTIFICATION",
+    "HAS_ALTERNATIVE_TITLE"
   ].includes(type);
 }
 
@@ -223,6 +225,12 @@ export async function getJobRequiredCertifications(
   );
 }
 
+export async function getJobAlternativeTitles(
+  jobId: string
+): Promise<(AlternativeTitleNode & NodeWithId)[]> {
+  return getRelationshipNodes<AlternativeTitleNode>(jobId, "HAS_ALTERNATIVE_TITLE");
+}
+
 /* CRUD - Create operation for Job node */
 export async function createJobNode(
   jobData: JobNode
@@ -273,7 +281,6 @@ export async function getJobNode(
         "job_title",
         "job_id",
         "employer_id",
-        "client",
         "company",
         "job_type",
         "location_type",
@@ -284,8 +291,6 @@ export async function getJobNode(
         "starting_salary",
         "company_overview",
         "security_clearance",
-        "application_deadline",
-        "client_interaction",
         "remote_flexibility",
         "advancement_potential",
         "leadership_opportunity",
@@ -297,6 +302,7 @@ export async function getJobNode(
         "hourly_comp_min",
         "hourly_comp_max",
         "private_employer",
+        "benefits"
       ];
 
       // Create an object with all required properties
@@ -320,46 +326,6 @@ export async function getJobNode(
     return null;
   } catch (error) {
     console.error("Error retrieving Job node:", error);
-    throw error;
-  }
-}
-
-/* CRUD - Update operation for any node property */
-export async function updateNodeProperty<T>({
-  nodeId,
-  propertyName,
-  propertyValue,
-}: {
-  nodeId: number;
-  propertyName: keyof T;
-  propertyValue: T[keyof T];
-}): Promise<boolean> {
-  const query = `
-    MATCH (n)
-    WHERE ID(n) = $nodeId
-    SET n.${String(propertyName)} = $propertyValue
-    RETURN n
-  `;
-
-  try {
-    const result = await write(query, { nodeId, propertyValue });
-
-    if (result && result.length > 0) {
-      console.log(
-        `Successfully updated ${String(
-          propertyName
-        )} for node with ID ${nodeId}`
-      );
-      return true;
-    } else {
-      console.warn(`No node found with ID ${nodeId}`);
-      return false;
-    }
-  } catch (error) {
-    console.error(
-      `Error updating ${String(propertyName)} for node with ID ${nodeId}:`,
-      error
-    );
     throw error;
   }
 }
@@ -514,7 +480,6 @@ export async function removeResponsibility(nodeId: number): Promise<boolean> {
   return removeRelationship(nodeId, "Responsibility");
 }
 
-/* CRUD - Add/Remove Suitable Role */
 export async function addSuitableRole(
   jobId: string,
   roleData: RoleNode
@@ -569,6 +534,23 @@ export async function removeRequiredCertification(
   return removeRelationship(nodeId, "Certification");
 }
 
+/* CRUD - Add/Remove Alternative Title */
+export async function addAlternativeTitle(
+  jobId: string,
+  titleData: AlternativeTitleNode
+): Promise<(AlternativeTitleNode & NodeWithId) | null> {
+  return addRelationship<AlternativeTitleNode>(
+    jobId,
+    "AlternativeTitle",
+    titleData,
+    "HAS_ALTERNATIVE_TITLE"
+  );
+}
+
+export async function removeAlternativeTitle(nodeId: number): Promise<boolean> {
+  return removeRelationship(nodeId, "AlternativeTitle");
+}
+
 /* Utility function to get all relationships for a Job */
 export async function getAllJobRelationships(
   jobId: string
@@ -605,6 +587,9 @@ export async function getAllJobRelationships(
       case "REQUIRED_CERTIFICATION":
         relationships[type] = await getJobRequiredCertifications(jobId);
         break;
+      case "HAS_ALTERNATIVE_TITLE":
+        relationships[type] = await getJobAlternativeTitles(jobId);
+        break;
     }
   }
 
@@ -617,10 +602,10 @@ export async function updateJobProperties(
   properties: Partial<JobNode>
 ): Promise<boolean> {
   const query = `
-      MATCH (j:Job {job_id: $jobId})
-      SET j += $properties
-      RETURN j
-    `;
+    MATCH (j:Job {job_id: $jobId})
+    SET j += $properties
+    RETURN j
+  `;
 
   try {
     const result = await write(query, { jobId, properties });
@@ -646,10 +631,10 @@ export async function searchJobs(
     .join(" AND ");
 
   const query = `
-      MATCH (j:Job)
-      WHERE ${whereClause}
-      RETURN j, ID(j) as nodeId
-    `;
+    MATCH (j:Job)
+    WHERE ${whereClause}
+    RETURN j, ID(j) as nodeId
+  `;
 
   try {
     const result = await read(query, criteria);
@@ -673,14 +658,14 @@ export async function getSimilarJobs(
   limit: number = 5
 ): Promise<(JobNode & NodeWithId)[]> {
   const query = `
-      MATCH (j1:Job {job_id: $jobId})
-      MATCH (j2:Job)
-      WHERE j1 <> j2
-      WITH j1, j2, gds.similarity.cosine(j1.embedding, j2.embedding) AS similarity
-      ORDER BY similarity DESC
-      LIMIT $limit
-      RETURN j2, ID(j2) as nodeId, similarity
-    `;
+    MATCH (j1:Job {job_id: $jobId})
+    MATCH (j2:Job)
+    WHERE j1 <> j2
+    WITH j1, j2, gds.similarity.cosine(j1.embedding, j2.embedding) AS similarity
+    ORDER BY similarity DESC
+    LIMIT $limit
+    RETURN j2, ID(j2) as nodeId, similarity
+  `;
 
   try {
     const result = await read(query, { jobId, limit });
@@ -704,9 +689,9 @@ export async function getJobsByEmployer(
   employerId: string
 ): Promise<(JobNode & NodeWithId)[]> {
   const query = `
-      MATCH (j:Job {employer_id: $employerId})
-      RETURN j, ID(j) as nodeId
-    `;
+    MATCH (j:Job {employer_id: $employerId})
+    RETURN j, ID(j) as nodeId
+  `;
 
   try {
     const result = await read(query, { employerId });
@@ -741,10 +726,10 @@ export async function getJobCount(criteria: {
     );
 
   const query = `
-      MATCH (j:Job)
-      ${whereClause.length > 0 ? "WHERE " + whereClause.join(" AND ") : ""}
-      RETURN count(j) as jobCount
-    `;
+    MATCH (j:Job)
+    ${whereClause.length > 0 ? "WHERE " + whereClause.join(" AND ") : ""}
+    RETURN count(j) as jobCount
+  `;
 
   try {
     const result = await read(query, {
