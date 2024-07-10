@@ -216,31 +216,24 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="description" className="mt-4">
-                <h3 className="text-base font-semibold mb-2 text-gray-700">
-                  Job Description
-                </h3>
                 <p className="text-sm text-gray-600">{jobDetails.summary}</p>
-                {jobRelationships.HAS_RESPONSIBILITY && (
-                  <>
-                    <h4 className="text-sm font-semibold mt-3 mb-1 text-gray-700">
-                      Responsibilities
-                    </h4>
-                    <ul className="text-sm text-gray-600 list-disc pl-5 space-y-1">
-                      {jobRelationships.HAS_RESPONSIBILITY.map(
-                        (resp: any, index: number) => (
-                          <li key={index}>
-                            {capitalizeFirstLetter(resp.description)}
-                          </li>
-                        )
-                      )}
-                    </ul>
-                  </>
-                )}
+                {jobDetails.responsibilities &&
+                  jobDetails.responsibilities.length > 0 && (
+                    <>
+                      <h4 className="text-sm font-semibold mt-3 mb-1 text-gray-700">
+                        Responsibilities
+                      </h4>
+                      <ul className="text-sm text-gray-600 list-disc pl-5 space-y-1">
+                        {jobDetails.responsibilities.map(
+                          (resp: string, index: number) => (
+                            <li key={index}>{capitalizeFirstLetter(resp)}</li>
+                          )
+                        )}
+                      </ul>
+                    </>
+                  )}
               </TabsContent>
               <TabsContent value="requirements" className="mt-4">
-                <h3 className="text-base font-semibold mb-2 text-gray-700">
-                  Requirements
-                </h3>
                 {jobRelationships.REQUIRES_SKILL && (
                   <>
                     <h4 className="text-sm font-semibold mt-3 mb-1 text-gray-700">
@@ -327,9 +320,6 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
                 )}
               </TabsContent>
               <TabsContent value="benefits" className="mt-4">
-                <h3 className="text-base font-semibold mb-2 text-gray-700">
-                  Benefits
-                </h3>
                 {jobDetails.benefits && jobDetails.benefits.length > 0 && (
                   <ul className="text-sm text-gray-600 list-disc pl-5 space-y-1">
                     {jobDetails.benefits.map(
@@ -342,11 +332,6 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
                 {jobDetails.remote_flexibility && (
                   <p className="text-sm text-gray-600 mt-2">
                     This position offers remote work flexibility.
-                  </p>
-                )}
-                {jobDetails.advancement_potential && (
-                  <p className="text-sm text-gray-600 mt-2">
-                    This role offers potential for career advancement.
                   </p>
                 )}
                 {jobDetails.leadership_opportunity && (

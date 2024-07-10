@@ -35,12 +35,13 @@ export async function fetchJobDetails(jobId: string) {
       details.security_clearance
     );
 
-    // Create a new object with remapped properties
+    // Create a new object with remapped properties and responsibilities
     const jobDetails: JobNodeWithoutEmbedding & NodeWithId = {
       ...details,
       job_type: remappedProperties.jobType,
       location_type: remappedProperties.locationType,
       security_clearance: remappedProperties.securityClearance,
+      responsibilities: details.responsibilities || [],  // Ensure responsibilities are included
     };
 
     return {

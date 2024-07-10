@@ -30,6 +30,7 @@ export interface JobNode {
   hourly_comp_max: number;
   private_employer: boolean;
   benefits: string[];
+  responsibilities: string[];
 }
 
 export interface SkillNode {
@@ -76,7 +77,6 @@ type RelationshipType =
   | "OFFERS_BENEFIT"
   | "REQUIRES_QUALIFICATION"
   | "PREFERS_SKILL"
-  | "HAS_RESPONSIBILITY"
   | "SUITABLE_FOR_ROLE"
   | "REQUIRED_EDUCATION"
   | "REQUIRED_CERTIFICATION"
@@ -119,11 +119,10 @@ function isValidRelationshipType(type: string): type is RelationshipType {
     "OFFERS_BENEFIT",
     "REQUIRES_QUALIFICATION",
     "PREFERS_SKILL",
-    "HAS_RESPONSIBILITY",
     "SUITABLE_FOR_ROLE",
     "REQUIRED_EDUCATION",
     "REQUIRED_CERTIFICATION",
-    "HAS_ALTERNATIVE_TITLE"
+    "HAS_ALTERNATIVE_TITLE",
   ].includes(type);
 }
 
@@ -198,12 +197,6 @@ export async function getJobPreferredSkills(
   return getRelationshipNodes<SkillNode>(jobId, "PREFERS_SKILL");
 }
 
-export async function getJobResponsibilities(
-  jobId: string
-): Promise<(ResponsibilityNode & NodeWithId)[]> {
-  return getRelationshipNodes<ResponsibilityNode>(jobId, "HAS_RESPONSIBILITY");
-}
-
 export async function getJobSuitableRoles(
   jobId: string
 ): Promise<(RoleNode & NodeWithId)[]> {
@@ -228,7 +221,10 @@ export async function getJobRequiredCertifications(
 export async function getJobAlternativeTitles(
   jobId: string
 ): Promise<(AlternativeTitleNode & NodeWithId)[]> {
-  return getRelationshipNodes<AlternativeTitleNode>(jobId, "HAS_ALTERNATIVE_TITLE");
+  return getRelationshipNodes<AlternativeTitleNode>(
+    jobId,
+    "HAS_ALTERNATIVE_TITLE"
+  );
 }
 
 /* CRUD - Create operation for Job node */
@@ -302,7 +298,8 @@ export async function getJobNode(
         "hourly_comp_min",
         "hourly_comp_max",
         "private_employer",
-        "benefits"
+        "benefits",
+        "responsibilities", // Add responsibilities here
       ];
 
       // Create an object with all required properties
@@ -310,7 +307,12 @@ export async function getJobNode(
         Partial<Omit<JobNode, "embedding">>
       >((acc, prop) => {
         const value = jobNode[prop];
-        acc[prop] = value instanceof Integer ? value.toNumber() : value ?? null;
+        if (prop === "responsibilities" || prop === "benefits") {
+          acc[prop] = Array.isArray(value) ? value : [];
+        } else {
+          acc[prop] =
+            value instanceof Integer ? value.toNumber() : value ?? null;
+        }
         return acc;
       }, {});
 
@@ -463,23 +465,6 @@ export async function removePreferredSkill(nodeId: number): Promise<boolean> {
   return removeRelationship(nodeId, "Skill");
 }
 
-/* CRUD - Add/Remove Responsibility */
-export async function addResponsibility(
-  jobId: string,
-  responsibilityData: ResponsibilityNode
-): Promise<(ResponsibilityNode & NodeWithId) | null> {
-  return addRelationship<ResponsibilityNode>(
-    jobId,
-    "Responsibility",
-    responsibilityData,
-    "HAS_RESPONSIBILITY"
-  );
-}
-
-export async function removeResponsibility(nodeId: number): Promise<boolean> {
-  return removeRelationship(nodeId, "Responsibility");
-}
-
 export async function addSuitableRole(
   jobId: string,
   roleData: RoleNode
@@ -574,9 +559,6 @@ export async function getAllJobRelationships(
         break;
       case "PREFERS_SKILL":
         relationships[type] = await getJobPreferredSkills(jobId);
-        break;
-      case "HAS_RESPONSIBILITY":
-        relationships[type] = await getJobResponsibilities(jobId);
         break;
       case "SUITABLE_FOR_ROLE":
         relationships[type] = await getJobSuitableRoles(jobId);
