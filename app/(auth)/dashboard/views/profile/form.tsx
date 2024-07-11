@@ -1,227 +1,168 @@
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import {
-  getJobEmbedding,
-  findSimilarTalents,
-  getTalentProperties,
-  getTalentRelationships,
-  getTalentRelationshipDetails,
-} from "@/lib/engine/retreive-talent";
-import {
-  getJobByJobID,
-  getJobRelationships,
-  getJobRelationshipDetails,
-} from "@/lib/engine/retrieve-job";
-import { evaluateTalentMatch } from "@/lib/engine/evaluate-talent-match";
-import { calculateEnhancedScore } from "@/lib/engine/final-calculation";
+  updatePersonalProfile,
+  retrievePersonalProfile,
+} from "@/lib/employer/personal-profile";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import { useState, useEffect } from "react";
+import useStore from "@/app/state/useStore";
 
-//test
-import { generateJobDescriptionEmbeddings } from "@/lib/dashboard/generate-jd-embeddings";
+interface ActivePanelProps {
+  onMouseEnter: (panel: string) => void;
+  onMouseLeave: () => void;
+}
 
-export function MyProfileForm() {
-  const handleClick = async () => {
-    const jobID = "4634e82f-abb1-4058-ad6f-9df7bfb2ef2f";
-    try {
-      const embedding = await getJobEmbedding(jobID);
-      if (!embedding) {
-        console.log("No embedding found for the specified job.");
+export function MyProfileForm({
+  onMouseEnter,
+  onMouseLeave,
+}: ActivePanelProps) {
+  const [profile, setProfile] = useState({
+    first_name: "",
+    last_name: "",
+    contact_email: "",
+    email_match: false,
+    email_applicant: false,
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  const { user } = useStore();
+
+  useEffect(() => {
+    async function fetchProfile() {
+      if (!user || !user.uuid) {
+        setIsLoading(false);
+        toast.error("Please log in to view your profile.");
         return;
       }
 
-      const threshold = 0.695;
-
-      const similarTalents = await findSimilarTalents(embedding, threshold);
-      console.log("Similar Talents:", similarTalents);
-      // Handle the retrieved similar talents data as needed
-    } catch (error) {
-      console.error("Error retrieving similar talents:", error);
-      // Handle the error appropriately (e.g., display an error message)
+      try {
+        const data = await retrievePersonalProfile(user.uuid);
+        setProfile(data);
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+        toast.error("Failed to load profile. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
     }
+    fetchProfile();
+  }, [user]);
+
+  if (!user || !user.uuid) {
+    return <div>Please log in to view your profile.</div>;
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
-  const grabTalentProperties = async () => {
-    const applicantID = "96eda40b-5fd1-4378-a4dd-e2ef63dc7a75";
+  const handleSwitchChange = (name: string) => {
+    setProfile((prev) => ({
+      ...prev,
+      [name]: !prev[name as keyof typeof prev],
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      const talentProperties = await getTalentProperties(applicantID);
-      console.log("Talent Properties:", talentProperties);
-      // Handle the retrieved talent properties data as needed
+      await updatePersonalProfile(user.uuid, profile);
+      toast.success("Profile updated successfully!");
     } catch (error) {
-      console.error("Error retrieving talent properties:", error);
-      // Handle the error appropriately (e.g., display an error message)
+      console.error("Error updating profile:", error);
+      toast.error("Failed to update profile. Please try again.");
     }
   };
 
-  const grabTalentRelationships = async () => {
-    const applicantID = "96eda40b-5fd1-4378-a4dd-e2ef63dc7a75";
-    try {
-      const talentRelationships = await getTalentRelationships(applicantID);
-      console.log("Talent Relationships:", talentRelationships);
-      // Handle the retrieved talent relationships data as needed
-    } catch (error) {
-      console.error("Error retrieving talent relationships:", error);
-      // Handle the error appropriately (e.g., display an error message)
-    }
-  };
-
-  const getJobByID = async () => {
-    const jobID = "6540e175-f9d4-48d9-acac-76f24917f16d";
-    try {
-      const job = await getJobByJobID(jobID);
-      console.log("Job:", job);
-      // Handle the retrieved job data as needed
-    } catch (error) {
-      console.error("Error retrieving job:", error);
-      // Handle the error appropriately (e.g., display an error message)
-    }
-  };
-
-  const getJobRelationshipsProps = async () => {
-    const jobID = "6540e175-f9d4-48d9-acac-76f24917f16d";
-    try {
-      const jobRelationships = await getJobRelationships(jobID);
-      console.log("Job Relationships:", jobRelationships);
-      // Handle the retrieved job relationships data as needed
-    } catch (error) {
-      console.error("Error retrieving job relationships:", error);
-      // Handle the error appropriately (e.g., display an error message)
-    }
-  };
-
-  // getJobResponsibilities
-  const getJobResponsibilitiesProps = async () => {
-    const jobID = "6540e175-f9d4-48d9-acac-76f24917f16d";
-    const relationshipType = "REQUIRES_QUALIFICATION";
-    try {
-      const jobResponsibilities = await getJobRelationshipDetails(
-        jobID,
-        relationshipType
-      );
-      console.log("Job Responsibilities:", jobResponsibilities);
-      // Handle the retrieved job responsibilities data as needed
-    } catch (error) {
-      console.error("Error retrieving job responsibilities:", error);
-      // Handle the error appropriately (e.g., display an error message)
-    }
-  };
-
-  const getTalentRelationshipDeets = async () => {
-    const applicantID = "70689ca0-ea2c-4a92-ac06-84ecfcd0a08e";
-    const relationshipType = "WORKED_AT";
-    try {
-      const talentRelationshipDetails = await getTalentRelationshipDetails(
-        applicantID,
-        relationshipType
-      );
-      console.log("Talent Relationship Details:", talentRelationshipDetails);
-      // Handle the retrieved talent relationship details data as needed
-    } catch (error) {
-      console.error("Error retrieving talent relationship details:", error);
-      // Handle the error appropriately (e.g., display an error message)
-    }
-  };
-
-  const evaluateTalent = async () => {
-    const applicantID = "60515f58-2239-4c9e-abeb-cf2431c3f593";
-    try {
-      const combo = "E"; // or "B" or "C"
-
-      const evals = await evaluateTalentMatch(
-        applicantID,
-        "5114feed-285d-4dbb-9316-3d8e2ca9e4f7",
-        combo
-      );
-
-      console.log("Score", evals.evaluated, evals.score);
-    } catch (error) {
-      console.error("Error evaluating talent match:", error);
-      // Handle the error appropriately (e.g., display an error message)
-    }
-  };
-
-  const getEmbeds = async () => {
-    const jd_id = "9ea71021-f145-4413-ace8-ff066d269b99";
-    try {
-      const embeddings = await generateJobDescriptionEmbeddings(jd_id);
-      console.log("Embeddings:", embeddings);
-    } catch (error) {
-      console.error("Error generating job description embeddings:", error);
-      // Handle the error appropriately (e.g., display an error message)
-    }
-  };
-
-  const scores = {
-    original: 0.8, // Example original cosine similarity score
-    A: 0.7, // Example REQUIRES_SKILL - HAS_SKILL match score
-    B: 0.6, // Example REQUIRES_SKILL - HAS_SOFT_SKILL match score
-    C: 0.9, // Example REQUIRES_QUALIFICATION - WORKED_AT match score
-    D: 0.8, // Example REQUIRES_QUALIFICATION - STUDIED_AT match score
-    E: 0.75, // Example REQUIRED_EDUCATION - STUDIED_AT match score
-    F: 0.85, // Example REQUIRED_CERTIFICATION - HAS_CERTIFICATION match score
-    G: 0.6, // Example PREFERS_SKILL - HAS_SOFT_SKILL match score
-    H: 0.7, // Example REQUIRES_QUALIFICATION - HAS_INDUSTRY_EXPERIENCE match score
-    I: 0.65, // Example SUITABLE_FOR_ROLE - HAS_POTENTIAL_ROLE match score
-  };
-
-  const handleGetFinalScore = async () => {
-    const finalScore = calculateEnhancedScore(scores);
-    console.log("Final Score:", finalScore);
-  };
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-6">
+        <Skeleton className="h-[200px] w-full rounded-lg" />
+        <Skeleton className="h-[150px] w-full rounded-lg" />
+        <Skeleton className="h-[40px] w-[100px]" />
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Personal */}
-      {/* TODO: Populate this from token, etc after auth is implemented */}
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       <div className="rounded-lg border p-4 space-y-4">
         <h2 className="text-gray-800 text-sm font-semibold">Personal</h2>
         <div className="flex flex-col sm:flex-row gap-2">
-          <Input type="firstName" id="firstName" placeholder="First name" />
-          <Input type="lastName" id="lastName" placeholder="Last name" />
+          <Input
+            type="text"
+            id="first_name"
+            name="first_name"
+            placeholder="First name"
+            value={profile.first_name}
+            onChange={handleInputChange}
+          />
+          <Input
+            type="text"
+            id="last_name"
+            name="last_name"
+            placeholder="Last name"
+            value={profile.last_name}
+            onChange={handleInputChange}
+          />
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
-          <Input type="email" id="email" placeholder="Email" />
+          <Input
+            type="email"
+            id="contact_email"
+            name="contact_email"
+            placeholder="Email"
+            value={profile.contact_email}
+            onChange={handleInputChange}
+          />
         </div>
       </div>
-      {/* Notications */}
+      {/* Notifications */}
       <div className="rounded-lg border p-4 space-y-4">
         <h2 className="text-gray-800 text-sm font-semibold">Notifications</h2>
         <div className="flex flex-col gap-4">
-          {/* Switch 2 */}
-          <div className="flex flex-row justify-between border border-1 border-gray-2oo rounded-md p-4">
+          {/* Switch 1 */}
+          <div
+            onMouseEnter={() => onMouseEnter("ai-match")}
+            onMouseLeave={onMouseLeave}
+            className="flex flex-row justify-between border border-1 border-gray-200 hover:border-2 hover:border-gray-800 rounded-md p-4"
+          >
             <p className="text-sm text-gray-700 font-normal">
-              Receive email alerts for AI candidate matches
+              Get emails for AI talent matches
             </p>
             <div className="flex items-center space-x-2">
-              <Switch id="airplane-mode" />
+              <Switch
+                id="email_match"
+                checked={profile.email_match}
+                onCheckedChange={() => handleSwitchChange("email_match")}
+              />
             </div>
           </div>
 
           {/* Switch 2 */}
-          <div className="flex flex-row justify-between border border-1 border-gray-2oo rounded-md p-4">
+          <div
+            onMouseEnter={() => onMouseEnter("applicant-alert")}
+            onMouseLeave={onMouseLeave}
+            className="flex flex-row justify-between border border-1 border-gray-200 hover:border-2 hover:border-gray-800 rounded-md p-4"
+          >
             <p className="text-sm text-gray-700 font-normal">
-              Receive email alerts of new job applicants
+              Email alerts for new applicants
             </p>
             <div className="flex items-center space-x-2">
-              <Switch id="airplane-mode" />
+              <Switch
+                id="email_applicant"
+                checked={profile.email_applicant}
+                onCheckedChange={() => handleSwitchChange("email_applicant")}
+              />
             </div>
           </div>
         </div>
       </div>
-      <div className="flex flex-col">
-        <button
-          onClick={handleClick}
-          className="bg-blue-500 text-white rounded-md p-2"
-        >
-          Get Talent Matches
-        </button>
-        <button
-          onClick={evaluateTalent}
-          className="bg-blue-500 text-white rounded-md p-2"
-        >
-          Evaluate Talent Match
-        </button>
-        <button onClick={handleGetFinalScore}>Get Final Score</button>
-        <button onClick={getEmbeds}>Get Embeddings</button>
-      </div>
-    </div>
+      <div className="flex flex-row justify-end"><Button type="submit">Save Changes</Button></div>
+    </form>
   );
 }

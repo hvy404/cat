@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import useStore from "@/app/state/useStore";
 import { Button } from "@/components/ui/button";
-import { fetchJobPostSpecifics, jobPostStatus } from "@/lib/overview/fetchRoles";
+import {
+  fetchJobPostSpecifics,
+  jobPostStatus,
+} from "@/lib/overview/fetchRoles";
 import { ArrowLeft, Settings } from "lucide-react";
 import {
   DropdownMenu,
@@ -11,7 +14,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
 import {
   Tooltip,
   TooltipContent,
@@ -44,6 +46,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import AIMatchCandidateOverview from "@/app/(auth)/dashboard/views/overview/mods/match-candidate-grid";
 import { deleteJobPost } from "@/lib/gui/delete-job";
+import { toast } from "sonner";
 
 interface JobDetails {
   description: string;
@@ -161,7 +164,8 @@ export default function EmployerDashboardOverviewRoles() {
           user.uuid
         );
         if (success) {
-          console.log("Job post deleted successfully");
+          toast.success("Job post deleted successfully");
+
           // Redirect to dashboard
           setDashboardRoleOverview({
             active: false,
@@ -169,13 +173,13 @@ export default function EmployerDashboardOverviewRoles() {
             active_role_name: null,
           });
         } else {
-          console.error("Failed to delete job post");
+          toast.error("Failed to delete job post");
         }
       } catch (error) {
-        console.error("Error deleting job post:", error);
+        //console.error("Error deleting job post:", error);
       }
     } else {
-      console.log("User, UUID or active role ID is missing");
+      //console.log("User, UUID or active role ID is missing");
     }
   };
 

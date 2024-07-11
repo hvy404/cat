@@ -22,8 +22,14 @@ export const staticSchema = z.object({
       z.object({
         institution: z.string(),
         degree: z.string(),
-        start_date: z.string(),
-        end_date: z.string().optional(),
+        start_date: z
+          .string()
+          .regex(/^\d{4}-\d{2}$/)
+          .optional(),
+        end_date: z
+          .string()
+          .regex(/^\d{4}-\d{2}$/)
+          .optional(),
       })
     )
     .describe("Education history."),
@@ -46,11 +52,39 @@ export const staticSchema = z.object({
       "List of specific knowledge areas in which the candidate has experience."
     ),
   clearance_level: z
-  .enum(["none", "basic", "confidential", "critical", "paramount", "q_clearance", "l_clearance"])
+    .enum([
+      "none",
+      "basic",
+      "confidential",
+      "critical",
+      "paramount",
+      "q_clearance",
+      "l_clearance",
+    ])
     .optional()
     .describe("Clearance level, if applicable."),
   professional_certifications: z
     .array(z.string())
     .optional()
     .describe("List of professional certifications if applicable."),
+});
+
+export const staticSchemaSecondary = z.object({
+  work_experience: z
+    .array(
+      z.object({
+        organization: z.string(),
+        job_title: z.string(),
+        responsibilities: z.string(),
+        start_date: z
+          .string()
+          .regex(/^\d{4}-\d{2}$/)
+          .optional(),
+        end_date: z
+          .string()
+          .regex(/^\d{4}-\d{2}$/)
+          .optional(),
+      })
+    )
+    .describe("Comprehensive list of work experiences."),
 });
