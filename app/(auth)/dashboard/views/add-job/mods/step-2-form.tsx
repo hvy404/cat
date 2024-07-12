@@ -86,29 +86,27 @@ export default function AddJDStep2Form() {
     user: state.user,
   }));
 
-  if (!user || !user.uuid) {
-    return null;
-  }
-
-  const empployerId = user?.uuid;
-
-  // State dropdown
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
-
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({
     jobTitle: "",
     location_type: "",
     security_clearance: "",
     compensation: "",
     commission_percent: "",
-    // Add other fields as needed
   });
+  const [employerId, setEmployerId] = useState("");
+
+  useEffect(() => {
+    if (user && user.uuid) {
+      setEmployerId(user.uuid);
+    }
+  }, [user]);
 
   useEffect(() => {
     let isMounted = true;
 
-    if (!user || !user.uuid || !addJD || !addJD.jdEntryID) {
+    if (!employerId || !addJD || !addJD.jdEntryID) {
       console.log("User or user UUID not set yet.");
       return;
     }
@@ -119,7 +117,7 @@ export default function AddJDStep2Form() {
         return;
       }
 
-      const result = await AddJDGetDataPoints(addJD.jdEntryID, empployerId);
+      const result = await AddJDGetDataPoints(addJD.jdEntryID, employerId);
 
       console.log("Data fetched:", result);
 
@@ -167,28 +165,25 @@ export default function AddJDStep2Form() {
       isMounted = false;
       console.log("Component unmounting");
     };
-  }, []);
+  }, [addJD, employerId, setAddJD]);
 
   const handleSubmit = async () => {
     try {
       schema.parse(addJD.jobDetails[0]);
-      // Save the job details if validation passes
       const result = await SaveJobDetails(
         addJD.jobDetails[0],
         addJD.jdEntryID!
       );
 
-      // if result.error cosole.log error
       if (result.error) {
         console.error("Error saving job details: ", result.error);
         return;
       }
 
-      // if result.success is true then console.log success
       if (result.success) {
         console.log("Job details saved successfully");
         console.log(addJD.jobDetails[0]);
-        setValidationErrors({}); // Clear validation errors on successful submission
+        setValidationErrors({});
         setAddJD({
           step: 3,
           publishingRunnerID: null,
@@ -196,7 +191,6 @@ export default function AddJDStep2Form() {
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
-        // Handle validation errors
         const errors = error.errors.reduce((acc: ValidationErrors, err) => {
           acc[err.path[0]] = err.message;
           return acc;
@@ -204,7 +198,6 @@ export default function AddJDStep2Form() {
         setValidationErrors(errors);
         console.log(errors);
       } else {
-        // Handle other errors
         console.log(error);
       }
     }
@@ -213,6 +206,10 @@ export default function AddJDStep2Form() {
   const handleFocus = (fieldName: string) => {
     setAddJD({ activeField: fieldName });
   };
+
+  if (!user || !user.uuid) {
+    return null;
+  }
 
   return (
     <Card className="w-full">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -23,38 +23,67 @@ interface ResumeBuilderProps {
   selectedItems?: Item[];
 }
 
-const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ 
-  talentProfile, 
+interface HistoryEntry {
+  action: "add" | "remove" | "reorder";
+  itemId: string;
+  timestamp: number;
+}
+
+const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
+  talentProfile,
   onSelectedItemsChange,
-  selectedItems = []
+  selectedItems = [],
 }) => {
   const [items, setItems] = useState<Record<string, Item[]>>({
     available: [],
     preview: selectedItems,
   });
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates
+      coordinateGetter: sortableKeyboardCoordinates,
     })
   );
 
   useEffect(() => {
     if (talentProfile) {
       const availableItems: Item[] = [
-        { id: 'personal', type: 'personal', content: talentProfile.talent },
-        ...talentProfile.workExperiences.map((exp, index) => ({ id: `experience-${index}`, type: 'experience' as ItemType, content: exp })),
-        ...talentProfile.education.map((edu, index) => ({ id: `education-${index}`, type: 'education' as ItemType, content: edu })),
-        { id: 'skills', type: 'skills', content: talentProfile.skills },
-        ...talentProfile.certifications.map((cert, index) => ({ id: `certification-${index}`, type: 'certifications' as ItemType, content: cert })),
-        ...talentProfile.projects.map((proj, index) => ({ id: `project-${index}`, type: 'projects' as ItemType, content: proj })),
-        ...talentProfile.publications.map((pub, index) => ({ id: `publication-${index}`, type: 'publications' as ItemType, content: pub })),
+        { id: "personal", type: "personal", content: talentProfile.talent },
+        ...talentProfile.workExperiences.map((exp, index) => ({
+          id: `experience-${index}`,
+          type: "experience" as ItemType,
+          content: exp,
+        })),
+        ...talentProfile.education.map((edu, index) => ({
+          id: `education-${index}`,
+          type: "education" as ItemType,
+          content: edu,
+        })),
+        { id: "skills", type: "skills", content: talentProfile.skills },
+        ...talentProfile.certifications.map((cert, index) => ({
+          id: `certification-${index}`,
+          type: "certifications" as ItemType,
+          content: cert,
+        })),
+        ...talentProfile.projects.map((proj, index) => ({
+          id: `project-${index}`,
+          type: "projects" as ItemType,
+          content: proj,
+        })),
+        ...talentProfile.publications.map((pub, index) => ({
+          id: `publication-${index}`,
+          type: "publications" as ItemType,
+          content: pub,
+        })),
       ];
-      setItems(prev => ({ 
-        available: availableItems.filter(item => !selectedItems.some(selected => selected.id === item.id)),
-        preview: selectedItems 
+      setItems((prev) => ({
+        available: availableItems.filter(
+          (item) => !selectedItems.some((selected) => selected.id === item.id)
+        ),
+        preview: selectedItems,
       }));
     }
   }, [talentProfile, selectedItems]);
@@ -65,11 +94,17 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     }
   }, [items.preview, onSelectedItemsChange]);
 
+  useEffect(() => {
+    console.log("Current history:", history);
+  }, [history]);
+
   const findContainer = (id: string) => {
     if (id in items) {
       return id;
     }
-    return Object.keys(items).find((key) => items[key].some(item => item.id === id));
+    return Object.keys(items).find((key) =>
+      items[key].some((item) => item.id === id)
+    );
   };
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -85,16 +120,20 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     const activeContainer = findContainer(id);
     const overContainer = findContainer(overId);
 
-    if (!activeContainer || !overContainer || activeContainer === overContainer) {
+    if (
+      !activeContainer ||
+      !overContainer ||
+      activeContainer === overContainer
+    ) {
       return;
     }
 
-    setItems(prev => {
+    setItems((prev) => {
       const activeItems = prev[activeContainer];
       const overItems = prev[overContainer];
 
-      const activeIndex = activeItems.findIndex(item => item.id === id);
-      const overIndex = overItems.findIndex(item => item.id === overId);
+      const activeIndex = activeItems.findIndex((item) => item.id === id);
+      const overIndex = overItems.findIndex((item) => item.id === overId);
 
       let newIndex: number;
       if (overId in prev) {
@@ -104,17 +143,29 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         newIndex = isBelowLastItem ? overIndex + 1 : overIndex;
       }
 
-      return {
+      const newItems = {
         ...prev,
         [activeContainer]: [
-          ...prev[activeContainer].filter(item => item.id !== active.id)
+          ...prev[activeContainer].filter((item) => item.id !== active.id),
         ],
         [overContainer]: [
           ...prev[overContainer].slice(0, newIndex),
           activeItems[activeIndex],
-          ...prev[overContainer].slice(newIndex, prev[overContainer].length)
-        ]
+          ...prev[overContainer].slice(newIndex, prev[overContainer].length),
+        ],
       };
+
+      // Update history
+      const action =
+        activeContainer === "available" && overContainer === "preview"
+          ? "add"
+          : "remove";
+      setHistory((prevHistory) => [
+        ...prevHistory,
+        { action, itemId: id, timestamp: Date.now() },
+      ]);
+
+      return newItems;
     });
   };
 
@@ -126,23 +177,40 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     const activeContainer = findContainer(id);
     const overContainer = findContainer(overId);
 
-    if (!activeContainer || !overContainer || activeContainer !== overContainer) {
+    if (
+      !activeContainer ||
+      !overContainer ||
+      activeContainer !== overContainer
+    ) {
       return;
     }
 
-    const activeIndex = items[activeContainer].findIndex(item => item.id === id);
-    const overIndex = items[overContainer].findIndex(item => item.id === overId);
+    const activeIndex = items[activeContainer].findIndex(
+      (item) => item.id === id
+    );
+    const overIndex = items[overContainer].findIndex(
+      (item) => item.id === overId
+    );
 
     if (activeIndex !== overIndex) {
-      setItems(items => ({
+      setItems((items) => ({
         ...items,
-        [overContainer]: arrayMove(items[overContainer], activeIndex, overIndex)
+        [overContainer]: arrayMove(
+          items[overContainer],
+          activeIndex,
+          overIndex
+        ),
       }));
+
+      // Update history for reordering
+      setHistory((prevHistory) => [
+        ...prevHistory,
+        { action: "reorder", itemId: id, timestamp: Date.now() },
+      ]);
     }
 
     setActiveId(null);
   };
-
   const renderCondensedItemContent = (item: Item) => {
     const renderLabel = (label: string) => (
       <span className="inline-block bg-gray-100 rounded-full px-3 py-1 text-xs font-medium text-gray-700 mr-2 mb-2">
@@ -151,58 +219,74 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     );
 
     switch (item.type) {
-      case 'personal':
+      case "personal":
         return (
           <div className="space-y-1">
-            {renderLabel('Personal')}
-            <h3 className="text-lg font-semibold text-gray-800">{item.content.name}</h3>
+            {renderLabel("Personal")}
+            <h3 className="text-lg font-semibold text-gray-800">
+              {item.content.name}
+            </h3>
             <p className="text-sm text-gray-600">{item.content.title}</p>
           </div>
         );
-      case 'experience':
+      case "experience":
         return (
           <div className="space-y-1">
-            {renderLabel('Experience')}
-            <h4 className="text-base font-semibold text-gray-800">{item.content.job_title}</h4>
+            {renderLabel("Experience")}
+            <h4 className="text-base font-semibold text-gray-800">
+              {item.content.job_title}
+            </h4>
             <p className="text-sm text-gray-600">{item.content.organization}</p>
           </div>
         );
-      case 'education':
+      case "education":
         return (
           <div className="space-y-1">
-            {renderLabel('Education')}
-            <h4 className="text-base font-semibold text-gray-800">{item.content.degree}</h4>
+            {renderLabel("Education")}
+            <h4 className="text-base font-semibold text-gray-800">
+              {item.content.degree}
+            </h4>
             <p className="text-sm text-gray-600">{item.content.institution}</p>
           </div>
         );
-      case 'skills':
+      case "skills":
         return (
           <div className="space-y-1">
-            {renderLabel('Skills')}
+            {renderLabel("Skills")}
             <h4 className="text-base font-semibold text-gray-800">Skills</h4>
-            <p className="text-sm text-gray-600">{item.content.length} skills</p>
+            <p className="text-sm text-gray-600">
+              {item.content.length} skills
+            </p>
           </div>
         );
-      case 'certifications':
+      case "certifications":
         return (
           <div className="space-y-1">
-            {renderLabel('Certification')}
-            <h4 className="text-base font-semibold text-gray-800">{item.content.name}</h4>
-            <p className="text-sm text-gray-600">{item.content.issuing_organization}</p>
+            {renderLabel("Certification")}
+            <h4 className="text-base font-semibold text-gray-800">
+              {item.content.name}
+            </h4>
+            <p className="text-sm text-gray-600">
+              {item.content.issuing_organization}
+            </p>
           </div>
         );
-      case 'projects':
+      case "projects":
         return (
           <div className="space-y-1">
-            {renderLabel('Project')}
-            <h4 className="text-base font-semibold text-gray-800">{item.content.title}</h4>
+            {renderLabel("Project")}
+            <h4 className="text-base font-semibold text-gray-800">
+              {item.content.title}
+            </h4>
           </div>
         );
-      case 'publications':
+      case "publications":
         return (
           <div className="space-y-1">
-            {renderLabel('Publication')}
-            <h4 className="text-base font-semibold text-gray-800">{item.content.title}</h4>
+            {renderLabel("Publication")}
+            <h4 className="text-base font-semibold text-gray-800">
+              {item.content.title}
+            </h4>
           </div>
         );
       default:
@@ -212,32 +296,44 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
 
   const renderItemContent = (item: Item) => {
     switch (item.type) {
-      case 'personal':
+      case "personal":
         return (
           <div className="space-y-1">
-            <h3 className="text-2xl font-bold text-gray-800">{item.content.name}</h3>
+            <h3 className="text-2xl font-bold text-gray-800">
+              {item.content.name}
+            </h3>
             <p className="text-lg text-gray-600">{item.content.title}</p>
             <p className="text-base text-gray-500">{item.content.email}</p>
           </div>
         );
-      case 'experience':
+      case "experience":
         return (
           <div className="space-y-1 mb-4">
-            <h4 className="text-lg font-semibold text-gray-800">{item.content.job_title}</h4>
-            <p className="text-base font-medium text-gray-700">{item.content.organization}</p>
+            <h4 className="text-lg font-semibold text-gray-800">
+              {item.content.job_title}
+            </h4>
+            <p className="text-base font-medium text-gray-700">
+              {item.content.organization}
+            </p>
             <p className="text-sm text-gray-600">{`${item.content.start_date} - ${item.content.end_date}`}</p>
-            <p className="text-sm text-gray-700 mt-2">{item.content.responsibilities}</p>
+            <p className="text-sm text-gray-700 mt-2">
+              {item.content.responsibilities}
+            </p>
           </div>
         );
-      case 'education':
+      case "education":
         return (
           <div className="space-y-1 mb-4">
-            <h4 className="text-lg font-semibold text-gray-800">{item.content.degree}</h4>
-            <p className="text-base font-medium text-gray-700">{item.content.institution}</p>
+            <h4 className="text-lg font-semibold text-gray-800">
+              {item.content.degree}
+            </h4>
+            <p className="text-base font-medium text-gray-700">
+              {item.content.institution}
+            </p>
             <p className="text-sm text-gray-600">{`${item.content.start_date} - ${item.content.end_date}`}</p>
           </div>
         );
-      case 'skills':
+      case "skills":
         return (
           <div className="space-y-1">
             <ul className="list-disc list-inside text-sm text-gray-700 columns-2">
@@ -247,26 +343,36 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             </ul>
           </div>
         );
-      case 'certifications':
+      case "certifications":
         return (
           <div className="space-y-1 mb-2">
-            <h4 className="text-base font-semibold text-gray-800">{item.content.name}</h4>
-            <p className="text-sm text-gray-700">{item.content.issuing_organization}</p>
+            <h4 className="text-base font-semibold text-gray-800">
+              {item.content.name}
+            </h4>
+            <p className="text-sm text-gray-700">
+              {item.content.issuing_organization}
+            </p>
             <p className="text-sm text-gray-600">{`Obtained: ${item.content.date_obtained}`}</p>
           </div>
         );
-      case 'projects':
+      case "projects":
         return (
           <div className="space-y-1 mb-4">
-            <h4 className="text-lg font-semibold text-gray-800">{item.content.title}</h4>
+            <h4 className="text-lg font-semibold text-gray-800">
+              {item.content.title}
+            </h4>
             <p className="text-sm text-gray-700">{item.content.description}</p>
           </div>
         );
-      case 'publications':
+      case "publications":
         return (
           <div className="space-y-1 mb-4">
-            <h4 className="text-base font-semibold text-gray-800">{item.content.title}</h4>
-            <p className="text-sm text-gray-700">{item.content.journal_or_conference}</p>
+            <h4 className="text-base font-semibold text-gray-800">
+              {item.content.title}
+            </h4>
+            <p className="text-sm text-gray-700">
+              {item.content.journal_or_conference}
+            </p>
             <p className="text-sm text-gray-600">{`Published: ${item.content.publication_date}`}</p>
           </div>
         );
@@ -284,18 +390,32 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       return acc;
     }, {} as Record<ItemType, Item[]>);
 
-    const sectionOrder: ItemType[] = ['personal', 'experience', 'education', 'skills', 'certifications', 'projects', 'publications'];
+    const sectionOrder: ItemType[] = [
+      "personal",
+      "experience",
+      "education",
+      "skills",
+      "certifications",
+      "projects",
+      "publications",
+    ];
 
     return (
       <div className="bg-white shadow-lg rounded-lg p-8 space-y-6 w-full">
         {sectionOrder.map((sectionType) => {
-          if (!groupedItems[sectionType] || groupedItems[sectionType].length === 0) {
+          if (
+            !groupedItems[sectionType] ||
+            groupedItems[sectionType].length === 0
+          ) {
             return null;
           }
 
           return (
-            <div key={sectionType} className="pb-4 border-b border-gray-200 last:border-b-0">
-              {sectionType !== 'personal' && (
+            <div
+              key={sectionType}
+              className="pb-4 border-b border-gray-200 last:border-b-0"
+            >
+              {sectionType !== "personal" && (
                 <h2 className="text-xl font-bold text-gray-800 mb-4 uppercase">
                   {sectionType}
                 </h2>
@@ -320,9 +440,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-     <div className="flex gap-6 h-[calc(100vh-12rem)] overflow-hidden">
+      <div className="flex gap-6 h-[calc(100vh-12rem)] overflow-hidden">
         <div className="w-1/3 flex flex-col">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Available Items</h2>
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+            Available Items
+          </h2>
           <div className="flex-1 overflow-y-auto pr-4">
             <Container id="available" items={items.available}>
               {items.available.map((item) => (
@@ -334,7 +456,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           </div>
         </div>
         <div className="w-2/3 flex flex-col">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Resume Preview</h2>
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+            Resume Preview
+          </h2>
           <div className="flex-1 overflow-y-auto pr-4">
             <Container id="preview" items={items.preview}>
               {renderPreview()}
@@ -345,7 +469,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       <DragOverlay>
         {activeId ? (
           <div className="bg-white shadow-lg rounded-lg p-4">
-            {renderItemContent(items[findContainer(activeId)!].find(item => item.id === activeId)!)}
+            {renderItemContent(
+              items[findContainer(activeId)!].find(
+                (item) => item.id === activeId
+              )!
+            )}
           </div>
         ) : null}
       </DragOverlay>
