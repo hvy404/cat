@@ -21,6 +21,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { WorkExperience } from "@/app/(auth)/dashboard/views/candidate/experience/panel";
+import { MonthYearPicker } from "@/app/(auth)/dashboard/views/candidate/assets/date-picker-my";
 
 // Define the base WorkExperience type without _id
 type BaseWorkExperience = Omit<WorkExperienceNode, "_id"> & {
@@ -101,6 +102,18 @@ export default function WorkExperiences(props: {
     setWorkExperiences((prevExperiences) =>
       prevExperiences.map((exp) =>
         exp._id === id ? { ...exp, [field]: value } : exp
+      )
+    );
+  };
+
+  const handleDateChange = (
+    id: string | number,
+    field: "start_date" | "end_date",
+    value: string | undefined
+  ) => {
+    setWorkExperiences((prevExperiences) =>
+      prevExperiences.map((exp) =>
+        exp._id === id ? { ...exp, [field]: value || "" } : exp
       )
     );
   };
@@ -269,30 +282,22 @@ export default function WorkExperiences(props: {
             </div>
             <div>
               <Label htmlFor={`start-date-${experience._id}`}>Start Date</Label>
-              <Input
-                id={`start-date-${experience._id}`}
+              <MonthYearPicker
                 value={experience.start_date}
-                onChange={(e) =>
-                  handleInputChange(
-                    experience._id,
-                    "start_date",
-                    e.target.value
-                  )
+                onChange={(value) =>
+                  handleDateChange(experience._id, "start_date", value)
                 }
-                placeholder="eg. 7/2024 or July 2024"
-                disabled={loadingStates[experience._id.toString()]}
+                allowPresent={false}
               />
             </div>
             <div>
               <Label htmlFor={`end-date-${experience._id}`}>End Date</Label>
-              <Input
-                id={`end-date-${experience._id}`}
+              <MonthYearPicker
                 value={experience.end_date}
-                onChange={(e) =>
-                  handleInputChange(experience._id, "end_date", e.target.value)
+                onChange={(value) =>
+                  handleDateChange(experience._id, "end_date", value)
                 }
-                placeholder="eg. 7/2024, July 2024, or Present"
-                disabled={loadingStates[experience._id.toString()]}
+                allowPresent={true}
               />
             </div>
           </div>

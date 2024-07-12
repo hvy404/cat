@@ -20,6 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { MonthYearPicker } from "@/app/(auth)/dashboard/views/candidate/assets/date-picker-my";
 
 type BaseEducation = Omit<EducationNode, "_id"> & {
   labels?: string[];
@@ -80,6 +81,18 @@ export default function Education() {
     setEducations((prevEducations) =>
       prevEducations.map((edu) =>
         edu._id === id ? { ...edu, [field]: value } : edu
+      )
+    );
+  };
+
+  const handleDateChange = (
+    id: string | number,
+    field: "start_date" | "end_date",
+    value: string | undefined
+  ) => {
+    setEducations((prevEducations) =>
+      prevEducations.map((edu) =>
+        edu._id === id ? { ...edu, [field]: value || "" } : edu
       )
     );
   };
@@ -209,47 +222,55 @@ export default function Education() {
               />
             </div>
             <div>
-              <Label htmlFor={`institution-${education._id}`}>Institution</Label>
+              <Label htmlFor={`institution-${education._id}`}>
+                Institution
+              </Label>
               <Input
                 id={`institution-${education._id}`}
                 value={education.institution}
                 onChange={(e) =>
-                  handleInputChange(education._id, "institution", e.target.value)
+                  handleInputChange(
+                    education._id,
+                    "institution",
+                    e.target.value
+                  )
                 }
                 disabled={loadingStates[education._id.toString()]}
               />
             </div>
             <div>
               <Label htmlFor={`start-date-${education._id}`}>Start Date</Label>
-              <Input
-                id={`start-date-${education._id}`}
+              <MonthYearPicker
                 value={education.start_date}
-                onChange={(e) =>
-                  handleInputChange(education._id, "start_date", e.target.value)
+                onChange={(value) =>
+                  handleDateChange(education._id, "start_date", value)
                 }
-                placeholder="eg. 9/2020 or September 2020"
-                disabled={loadingStates[education._id.toString()]}
+                allowPresent={false}
               />
             </div>
             <div>
               <Label htmlFor={`end-date-${education._id}`}>End Date</Label>
-              <Input
-                id={`end-date-${education._id}`}
+              <MonthYearPicker
                 value={education.end_date}
-                onChange={(e) =>
-                  handleInputChange(education._id, "end_date", e.target.value)
+                onChange={(value) =>
+                  handleDateChange(education._id, "end_date", value)
                 }
-                placeholder="eg. 5/2024, May 2024, or Present"
-                disabled={loadingStates[education._id.toString()]}
+                allowPresent={true}
               />
             </div>
             <div className="col-span-2">
-              <Label htmlFor={`honors-awards-${education._id}`}>Honors, Awards & Relevant Coursework</Label>
+              <Label htmlFor={`honors-awards-${education._id}`}>
+                Honors, Awards & Relevant Coursework
+              </Label>
               <Textarea
                 id={`honors-awards-${education._id}`}
-                value={education.honors_awards_coursework || ''}
+                value={education.honors_awards_coursework || ""}
                 onChange={(e) =>
-                  handleInputChange(education._id, "honors_awards_coursework", e.target.value)
+                  handleInputChange(
+                    education._id,
+                    "honors_awards_coursework",
+                    e.target.value
+                  )
                 }
                 placeholder="e.g., Dean's List, Advanced Machine Learning Course"
                 disabled={loadingStates[education._id.toString()]}
