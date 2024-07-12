@@ -2,12 +2,7 @@ import React, { useEffect, useState } from "react";
 import useStore from "@/app/state/useStore";
 import { getCompleteTalentProfile, TalentProfile } from "./get-data";
 import ResumeBuilder from "./builder";
-
-interface Item {
-  id: string;
-  type: string;
-  content: any;
-}
+import { Item } from "./types";
 
 export default function CandidateResumeCopilot() {
   const { isExpanded, setExpanded, toggleExpansion, user } = useStore();
@@ -67,6 +62,7 @@ export default function CandidateResumeCopilot() {
             <ResumeBuilder
               talentProfile={talentProfile}
               onSelectedItemsChange={handleSelectedItemsChange}
+              selectedItems={selectedItems}
             />
           )}
         </div>
@@ -83,7 +79,7 @@ export default function CandidateResumeCopilot() {
               <ResumeBuilder
                 talentProfile={talentProfile}
                 previewMode={true}
-                onSelectedItemsChange={handleSelectedItemsChange}
+                selectedItems={selectedItems}
               />
             )}
           </div>

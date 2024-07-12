@@ -15,25 +15,24 @@ import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { TalentProfile } from "./get-data";
 import Container from "./container";
 import SortableItem from "./sortable";
+import { Item, ItemType } from "./types";
 
 interface ResumeBuilderProps {
   talentProfile: TalentProfile;
   previewMode?: boolean;
   onSelectedItemsChange?: (items: Item[]) => void;
+  selectedItems?: Item[];
 }
 
-type ItemType = 'personal' | 'experience' | 'education' | 'skills' | 'certifications' | 'projects' | 'publications';
-
-interface Item {
-  id: string;
-  type: ItemType;
-  content: any;
-}
-
-const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ talentProfile, previewMode = false, onSelectedItemsChange }) => {
+const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ 
+  talentProfile, 
+  previewMode = false, 
+  onSelectedItemsChange,
+  selectedItems = []
+}) => {
   const [items, setItems] = useState<Record<string, Item[]>>({
     available: [],
-    selected: [],
+    selected: selectedItems,
   });
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -48,16 +47,19 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ talentProfile, previewMod
     if (talentProfile) {
       const availableItems: Item[] = [
         { id: 'personal', type: 'personal', content: talentProfile.talent },
-        ...talentProfile.workExperiences.map((exp, index) => ({ id: `experience-${index}`, type: 'experience' as const, content: exp })),
-        ...talentProfile.education.map((edu, index) => ({ id: `education-${index}`, type: 'education' as const, content: edu })),
+        ...talentProfile.workExperiences.map((exp, index) => ({ id: `experience-${index}`, type: 'experience' as ItemType, content: exp })),
+        ...talentProfile.education.map((edu, index) => ({ id: `education-${index}`, type: 'education' as ItemType, content: edu })),
         { id: 'skills', type: 'skills', content: talentProfile.skills },
-        ...talentProfile.certifications.map((cert, index) => ({ id: `certification-${index}`, type: 'certifications' as const, content: cert })),
-        ...talentProfile.projects.map((proj, index) => ({ id: `project-${index}`, type: 'projects' as const, content: proj })),
-        ...talentProfile.publications.map((pub, index) => ({ id: `publication-${index}`, type: 'publications' as const, content: pub })),
+        ...talentProfile.certifications.map((cert, index) => ({ id: `certification-${index}`, type: 'certifications' as ItemType, content: cert })),
+        ...talentProfile.projects.map((proj, index) => ({ id: `project-${index}`, type: 'projects' as ItemType, content: proj })),
+        ...talentProfile.publications.map((pub, index) => ({ id: `publication-${index}`, type: 'publications' as ItemType, content: pub })),
       ];
-      setItems({ available: availableItems, selected: [] });
+      setItems(prev => ({ 
+        available: availableItems.filter(item => !selectedItems.some(selected => selected.id === item.id)),
+        selected: selectedItems 
+      }));
     }
-  }, [talentProfile]);
+  }, [talentProfile, selectedItems]);
 
   useEffect(() => {
     if (onSelectedItemsChange) {
@@ -151,34 +153,33 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ talentProfile, previewMod
     switch (item.type) {
       case 'personal':
         return (
-          <div>
-            <h3 className="text-xl font-bold">{item.content.name}</h3>
-            <p className="text-lg">{item.content.title}</p>
-            <p>{item.content.email}</p>
+          <div className="space-y-1">
+            <h3 className="text-2xl font-bold text-gray-800">{item.content.name}</h3>
+            <p className="text-lg text-gray-600">{item.content.title}</p>
+            <p className="text-base text-gray-500">{item.content.email}</p>
           </div>
         );
       case 'experience':
         return (
-          <div>
-            <h4 className="text-lg font-semibold">{item.content.job_title}</h4>
-            <p>{item.content.organization}</p>
-            <p>{`${item.content.start_date} - ${item.content.end_date}`}</p>
-            <p>{item.content.responsibilities}</p>
+          <div className="space-y-1 mb-4">
+            <h4 className="text-lg font-semibold text-gray-800">{item.content.job_title}</h4>
+            <p className="text-base font-medium text-gray-700">{item.content.organization}</p>
+            <p className="text-sm text-gray-600">{`${item.content.start_date} - ${item.content.end_date}`}</p>
+            <p className="text-sm text-gray-700 mt-2">{item.content.responsibilities}</p>
           </div>
         );
       case 'education':
         return (
-          <div>
-            <h4 className="text-lg font-semibold">{item.content.degree}</h4>
-            <p>{item.content.institution}</p>
-            <p>{`${item.content.start_date} - ${item.content.end_date}`}</p>
+          <div className="space-y-1 mb-4">
+            <h4 className="text-lg font-semibold text-gray-800">{item.content.degree}</h4>
+            <p className="text-base font-medium text-gray-700">{item.content.institution}</p>
+            <p className="text-sm text-gray-600">{`${item.content.start_date} - ${item.content.end_date}`}</p>
           </div>
         );
       case 'skills':
         return (
-          <div>
-            <h4 className="text-lg font-semibold">Skills</h4>
-            <ul className="list-disc list-inside">
+          <div className="space-y-1">
+            <ul className="list-disc list-inside text-sm text-gray-700 columns-2">
               {item.content.map((skill: { name: string }, index: number) => (
                 <li key={index}>{skill.name}</li>
               ))}
@@ -187,25 +188,25 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ talentProfile, previewMod
         );
       case 'certifications':
         return (
-          <div>
-            <h4 className="text-lg font-semibold">{item.content.name}</h4>
-            <p>{item.content.issuing_organization}</p>
-            <p>{`Obtained: ${item.content.date_obtained}`}</p>
+          <div className="space-y-1 mb-2">
+            <h4 className="text-base font-semibold text-gray-800">{item.content.name}</h4>
+            <p className="text-sm text-gray-700">{item.content.issuing_organization}</p>
+            <p className="text-sm text-gray-600">{`Obtained: ${item.content.date_obtained}`}</p>
           </div>
         );
       case 'projects':
         return (
-          <div>
-            <h4 className="text-lg font-semibold">{item.content.title}</h4>
-            <p>{item.content.description}</p>
+          <div className="space-y-1 mb-4">
+            <h4 className="text-lg font-semibold text-gray-800">{item.content.title}</h4>
+            <p className="text-sm text-gray-700">{item.content.description}</p>
           </div>
         );
       case 'publications':
         return (
-          <div>
-            <h4 className="text-lg font-semibold">{item.content.title}</h4>
-            <p>{item.content.journal_or_conference}</p>
-            <p>{`Published: ${item.content.publication_date}`}</p>
+          <div className="space-y-1 mb-4">
+            <h4 className="text-base font-semibold text-gray-800">{item.content.title}</h4>
+            <p className="text-sm text-gray-700">{item.content.journal_or_conference}</p>
+            <p className="text-sm text-gray-600">{`Published: ${item.content.publication_date}`}</p>
           </div>
         );
       default:
@@ -213,16 +214,43 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ talentProfile, previewMod
     }
   };
 
-  if (previewMode) {
+  const renderPreview = () => {
+    const groupedItems = items.selected.reduce((acc, item) => {
+      if (!acc[item.type]) {
+        acc[item.type] = [];
+      }
+      acc[item.type].push(item);
+      return acc;
+    }, {} as Record<ItemType, Item[]>);
+
+    const sectionOrder: ItemType[] = ['personal', 'experience', 'education', 'skills', 'certifications', 'projects', 'publications'];
+
     return (
-      <div className="bg-white shadow-lg rounded-lg p-4">
-        {items.selected.map((item) => (
-          <div key={item.id} className="mb-4">
-            {renderItemContent(item)}
-          </div>
-        ))}
+      <div className="bg-white shadow-lg rounded-lg p-8 space-y-6 max-w-3xl mx-auto">
+        {sectionOrder.map((sectionType) => {
+          if (!groupedItems[sectionType] || groupedItems[sectionType].length === 0) {
+            return null;
+          }
+
+          return (
+            <div key={sectionType} className="pb-4 border-b border-gray-200 last:border-b-0">
+              {sectionType !== 'personal' && (
+                <h2 className="text-xl font-bold text-gray-800 mb-4 uppercase">
+                  {sectionType}
+                </h2>
+              )}
+              {groupedItems[sectionType].map((item) => (
+                <div key={item.id}>{renderItemContent(item)}</div>
+              ))}
+            </div>
+          );
+        })}
       </div>
     );
+  };
+
+  if (previewMode) {
+    return renderPreview();
   }
 
   return (
@@ -233,9 +261,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ talentProfile, previewMod
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-4">
+      <div className="flex gap-6">
         <div className="flex-1">
-          <h2 className="text-xl font-bold mb-4">Available Items</h2>
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Available Items</h2>
           <Container id="available" items={items.available}>
             {items.available.map((item) => (
               <SortableItem key={item.id} id={item.id}>
@@ -245,7 +273,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ talentProfile, previewMod
           </Container>
         </div>
         <div className="flex-1">
-          <h2 className="text-xl font-bold mb-4">Selected Items</h2>
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Selected Items</h2>
           <Container id="selected" items={items.selected}>
             {items.selected.map((item) => (
               <SortableItem key={item.id} id={item.id}>

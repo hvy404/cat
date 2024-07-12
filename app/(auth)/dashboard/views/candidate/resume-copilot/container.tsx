@@ -20,7 +20,7 @@ const Container: React.FC<ContainerProps> = ({ id, items, children }) => {
       items={items}
       strategy={verticalListSortingStrategy}
     >
-      <div ref={setNodeRef} className="bg-gray-100 p-4 rounded-lg min-h-[200px]">
+      <div ref={setNodeRef} className="bg-gray-50 p-4 rounded-lg min-h-[200px] border border-gray-200">
         {children}
       </div>
     </SortableContext>
