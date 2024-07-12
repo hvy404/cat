@@ -3,8 +3,34 @@
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 
-interface CandidateData {
-  static: Record<string, unknown>;
+export interface CandidateData {
+  static: {
+    name: string;
+    email: string;
+    phone: string;
+    title?: string;
+    location?: {
+      city: string;
+      state: string;
+      zipcode: string;
+    };
+    education?: Array<{
+      degree: string;
+      end_date: string;
+      start_date: string;
+      institution: string;
+    }>;
+    work_experience?: Array<{
+      end_date: string;
+      job_title: string;
+      start_date: string;
+      organization: string;
+      responsibilities: string;
+    }>;
+    technical_skills?: string[];
+    professional_certifications?: string[];
+    clearance_level?: string;
+  };
 }
 
 function remapClearanceLevel(level: string) {

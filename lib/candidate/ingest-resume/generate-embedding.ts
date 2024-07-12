@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import OpenAI from "openai";
-import { read, write } from "@/lib/neo4j/utils";
+import { convertResumeToText, ResumeData } from "./build-human-readable";
 
 export async function generateCandidateEmbeddings(applicant_id: string) {
   const cookieStore = cookies();
@@ -14,7 +14,7 @@ export async function generateCandidateEmbeddings(applicant_id: string) {
 
   const { data, error } = await supabase
     .from("candidate_resume")
-    .select("raw")
+    .select("static, inferred")
     .eq("user", applicant_id);
 
   if (error) {
@@ -24,12 +24,32 @@ export async function generateCandidateEmbeddings(applicant_id: string) {
     };
   }
 
-  // Extract the resume text from the response
-  const resumeText = data[0].raw;
+  const staticData = data[0].static;
+  const inferredData = data[0].inferred;
+  const candidateData = { ...staticData, ...inferredData };
+
+  // Remove irrelevant fields
+  const { name, company, contact, location, ...relevantData } = candidateData;
+
+  // Ensure all required fields are present
+  const resumeData: ResumeData = {
+    education: relevantData.education || [],
+    clearance_level: relevantData.clearance_level || "none",
+    work_experience: relevantData.work_experience || [],
+    technical_skills: relevantData.technical_skills || [],
+    industry_experience: relevantData.industry_experience || [],
+    professional_certifications: relevantData.professional_certifications || [],
+    soft_skills: relevantData.soft_skills || [],
+    potential_roles: relevantData.potential_roles || [],
+  };
+
+  const humanReadableText = convertResumeToText(resumeData);
+
+  console.log(humanReadableText);
 
   const embeddingsResponse = await togetherai.embeddings.create({
     model: "togethercomputer/m2-bert-80M-8k-retrieval",
-    input: resumeText,
+    input: humanReadableText,
   });
 
   // Extract the embeddings from the response

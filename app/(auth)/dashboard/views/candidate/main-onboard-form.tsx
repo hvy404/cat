@@ -38,7 +38,7 @@ import {
 import { toast } from "sonner";
 import CandidateOnboardingDialog from "@/app/(auth)/dashboard/views/candidate/onboarding-dialog";
 import { handleUpload } from "@/lib/dashboard/candidate/onboard-confirm-profile";
-import { validateForm } from "@/app/(auth)/dashboard/views/candidate/helpers/form-validation";
+import { MonthYearPicker } from "@/app/(auth)/dashboard/views/candidate/assets/date-picker-my";
 
 interface Education {
   institution: string;
@@ -63,7 +63,6 @@ interface FormData {
   name: string;
   phone: string;
   email: string;
-  //title: string;
   clearance_level: string;
   city: string;
   state: string;
@@ -77,10 +76,8 @@ interface CandidateData {
   name?: string;
   title?: string;
   company?: string;
-  contact?: {
-    phone?: string;
-    email?: string;
-  };
+  phone?: string;
+  email?: string;
   clearance_level?: string;
   location?: {
     city?: string;
@@ -104,6 +101,12 @@ interface CandidateData {
   technical_skills?: string[];
   industry_experience?: string[];
 }
+
+type InputChangeEvent = 
+    | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    | { target: { name: string; value: string | undefined } };
+
+  type ArrayField = "education" | "work_experience" | "certifications";
 
 export function CandidateOnboardingForm() {
   const user = useStore((state) => state.user?.uuid);
@@ -136,30 +139,36 @@ export function CandidateOnboardingForm() {
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    e: InputChangeEvent,
     index?: number,
-    field?: keyof Pick<
-      FormData,
-      "education" | "work_experience" | "certifications"
-    >
+    field?: ArrayField
   ) => {
     const { name, value } = e.target;
+
     if (index !== undefined && field !== undefined) {
       setFormData((prev) => {
-        const arrayField = prev[field] as Array<any>;
-        const newArray = arrayField.map((item, i) =>
-          i === index ? { ...item, [name]: value } : item
-        );
+        const arrayField = prev[field];
+        const newArray = arrayField.map((item, i) => {
+          if (i === index) {
+            return { ...item, [name]: value ?? "" };
+          }
+          return item;
+        });
+        console.log(`Updated ${field} ${name} for index ${index}:`, value);
         return { ...prev, [field]: newArray };
       });
     } else {
-      let newValue = value;
-      if (name === "zipcode") {
-        newValue = value.replace(/\D/g, "").slice(0, 5);
-      } else if (name === "name" || name === "city") {
-        newValue = value.replace(/[^a-zA-Z0-9.\- ]/g, "");
-      }
-      setFormData((prev) => ({ ...prev, [name]: newValue }));
+      setFormData((prev) => {
+        let newValue: string = typeof value === 'string' ? value : '';
+
+        if (name === "zipcode") {
+          newValue = newValue.replace(/\D/g, "").slice(0, 5);
+        } else if (name === "name" || name === "city") {
+          newValue = newValue.replace(/[^a-zA-Z0-9.\- ]/g, "");
+        }
+
+        return { ...prev, [name]: newValue };
+      });
     }
   };
 
@@ -221,8 +230,8 @@ export function CandidateOnboardingForm() {
       setOriginalData(data); // Save original data
       setFormData({
         name: data.name || "",
-        phone: data.contact?.phone || "",
-        email: data.contact?.email || "",
+        phone: data.phone || "",
+        email: data.email || "",
         //title: data.title || "",
         clearance_level: data.clearance_level || "",
         city: data.location?.city || "",
@@ -243,7 +252,7 @@ export function CandidateOnboardingForm() {
       toast.error("Unable to save profile. Please try again later.");
       return;
     }
-  
+
     const result = await handleUpload(formData, originalData, user);
     if (result.success) {
       toast.success(result.message);
@@ -252,7 +261,6 @@ export function CandidateOnboardingForm() {
       toast.error(result.message);
     }
   };
-  
 
   // if formLoaded is false return <div>Loading...</div>
 
@@ -450,14 +458,14 @@ export function CandidateOnboardingForm() {
           Education <span className="text-xs font-normal">(optional)</span>
         </h2>
         {formData.education.map((edu, index) => (
-          <>
-            {index > 0 && (
-              <hr
-                key={`hr-${index}`}
-                className="my-6 border-t border-dashed border-gray-400"
-              />
+          <div
+            key={index}
+            className={cn(
+              "p-4 rounded-md mb-4",
+              index % 2 === 0 ? "bg-gray-50" : "bg-white"
             )}
-            <div key={index} className="flex flex-col space-y-4 mb-4">
+          >
+            <div className="flex flex-col space-y-4">
               <div className="flex items-end space-x-4">
                 <div className="flex-grow">
                   <Label className="text-sm" htmlFor={`institution-${index}`}>
@@ -504,13 +512,15 @@ export function CandidateOnboardingForm() {
                     Start Date{" "}
                     <span className="text-xs font-normal">(optional)</span>
                   </Label>
-                  <Input
-                    id={`start_date-${index}`}
-                    name="start_date"
-                    type="text"
+                  <MonthYearPicker
                     value={edu.start_date}
-                    onChange={(e) => handleInputChange(e, index, "education")}
-                    placeholder="e.g., Sep 2010 or 2010-09-01"
+                    onChange={(value) =>
+                      handleInputChange(
+                        { target: { name: "start_date", value } },
+                        index,
+                        "education"
+                      )
+                    }
                   />
                 </div>
                 <div className="flex-grow">
@@ -518,18 +528,21 @@ export function CandidateOnboardingForm() {
                     End Date{" "}
                     <span className="text-xs font-normal">(optional)</span>
                   </Label>
-                  <Input
-                    id={`end_date-${index}`}
-                    name="end_date"
-                    type="text"
+                  <MonthYearPicker
                     value={edu.end_date}
-                    onChange={(e) => handleInputChange(e, index, "education")}
-                    placeholder="e.g., May 2014 or 2014-05-01"
+                    onChange={(value) =>
+                      handleInputChange(
+                        { target: { name: "end_date", value } },
+                        index,
+                        "education"
+                      )
+                    }
+                    allowPresent={true}
                   />
                 </div>
               </div>
             </div>
-          </>
+          </div>
         ))}
         <Button
           type="button"
@@ -546,14 +559,14 @@ export function CandidateOnboardingForm() {
           Work Experience
         </h2>
         {formData.work_experience.map((exp, index) => (
-          <>
-            {index > 0 && (
-              <hr
-                key={`hr-${index}`}
-                className="my-6 border-t border-dashed border-gray-400"
-              />
+          <div
+            key={index}
+            className={cn(
+              "p-4 rounded-md mb-4",
+              index % 2 === 0 ? "bg-gray-50" : "bg-white"
             )}
-            <div key={index} className="flex flex-col space-y-4 mb-6">
+          >
+            <div className="flex flex-col space-y-4">
               <div className="flex items-end space-x-4">
                 <div className="flex-grow">
                   <Label className="text-sm" htmlFor={`organization-${index}`}>
@@ -623,15 +636,15 @@ export function CandidateOnboardingForm() {
                     Start Date{" "}
                     <span className="text-xs font-normal">(optional)</span>
                   </Label>
-                  <Input
-                    id={`start_date-${index}`}
-                    name="start_date"
-                    type="text"
+                  <MonthYearPicker
                     value={exp.start_date}
-                    onChange={(e) =>
-                      handleInputChange(e, index, "work_experience")
+                    onChange={(value) =>
+                      handleInputChange(
+                        { target: { name: "start_date", value } },
+                        index,
+                        "work_experience"
+                      )
                     }
-                    placeholder="e.g., May 2018 or 05-01-2018"
                   />
                 </div>
                 <div className="flex-grow">
@@ -639,20 +652,21 @@ export function CandidateOnboardingForm() {
                     End Date{" "}
                     <span className="text-xs font-normal">(optional)</span>
                   </Label>
-                  <Input
-                    id={`end_date-${index}`}
-                    name="end_date"
-                    type="text"
+                  <MonthYearPicker
                     value={exp.end_date}
-                    onChange={(e) =>
-                      handleInputChange(e, index, "work_experience")
+                    onChange={(value) =>
+                      handleInputChange(
+                        { target: { name: "end_date", value } },
+                        index,
+                        "work_experience"
+                      )
                     }
-                    placeholder="e.g., Apr 2024 or 07-04-2024"
+                    allowPresent={true}
                   />
                 </div>
               </div>
             </div>
-          </>
+          </div>
         ))}
         <Button
           type="button"

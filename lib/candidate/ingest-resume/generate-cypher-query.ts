@@ -5,11 +5,6 @@
  * @returns The Cypher query string.
  */
 
-export type ContactInfo = {
-  phone: string;
-  email: string;
-};
-
 export type Location = {
   city?: string | null;
   state?: string | null;
@@ -62,7 +57,8 @@ export type Publication = {
 
 export type Data = {
   name: string;
-  contact: ContactInfo;
+  email: string;
+  phone: string;
   education: Education[];
   professional_certifications: string[];
   work_experience: WorkExperience[];
@@ -113,8 +109,8 @@ export function generateCandidateCypherQuery(data: Data, userId: string) {
   let cypher = `
   CREATE (t:Talent {
     name: "${escapeString(data.name || "")}",
-    phone: "${escapeString(data.contact.phone || "")}",
-    email: "${escapeString(data.contact.email || "")}",
+    phone: "${escapeString(data.phone || "")}",
+    email: "${escapeString(data.email || "")}",
     applicant_id: "${userId}",
     company: "${escapeString(data.company || "")}",
     title: "${escapeString(data.title || "")}",

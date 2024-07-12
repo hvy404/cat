@@ -16,16 +16,27 @@ export async function generateLiftedInferred(resume: string, id: string) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  const systemPrompt =
-    `The following context is a resume. Your task is to use your knowlege to infer details about the resume and provide the information in JSON format, strictly adhering to the provided JSON schema. If a field cannot be inferred or is not applicable based on the resume, do not include it in the JSON output. Do not make up any details or include fields that are not specified in the schema. 
-    
+  const systemPrompt = `You are a resume analyst with expertise in career development and job market trends. Your task is to analyze the provided resume and extract key insights about the candidate's potential. Focus on identifying transferable skills and possible career paths based on the candidate's experience and qualifications. 
+
+Adhere to these guidelines:
+1: Your response must be in JSON format, strictly adhering to the provided JSON schema.
+1. Analyze the entire resume thoroughly, considering all aspects of the candidate's background.
+2. Infer soft skills and potential roles based solely on the information provided in the resume.
+3. Do not invent or assume any details not explicitly stated or strongly implied by the resume content.
+4. Provide your analysis in a structured format that matches the given schema exactly.
+5. If you cannot confidently infer information for a field, omit it from your output.
+6. Ensure all inferred information is directly relevant to the candidate's professional profile.
+
+Your output must strictly conform to the provided JSON schema, including only the fields specified and respecting their optionality.
+
     Guidelines:
-    - soft_skills: Review all past job history to determine soft skills that can be inferred from the candidate's work experience. List the soft skills without descriptions. Maximum of 10 soft skills.
-    - potential_roles: Review all past job history to determine potential roles the candidate would be a good fit for based on past experience and industry experience. List the roles only, without descriptions. Maximum of 10 potential roles.
+    - soft_skills (optional): Review all past job history to determine soft skills that can be inferred from the candidate's work experience. List up to 10 soft skills without descriptions.
+    - potential_roles (optional): Review all past job history to determine potential roles the candidate would be a good fit for based on past experience and industry experience. List up to 15 roles without descriptions.
 
     Be concise and only include relevant information from the provided resume. Omit any fields for which no information is available.`;
 
-  const userPrompt = `Context: ${JSON.stringify(resume)}`;
+  const userPrompt = `Resume: 
+  ${JSON.stringify(resume)}`;
 
   try {
     const extract = await togetherai.chat.completions.create({
@@ -41,7 +52,7 @@ export async function generateLiftedInferred(resume: string, id: string) {
       ],
       model: "togethercomputer/CodeLlama-34b-Instruct",
       temperature: 0.6,
-      max_tokens: 3900,
+      max_tokens: 5000,
       // @ts-ignore – Together.ai supports schema while OpenAI does not
       response_format: { type: "json_object", schema: jsonSchema },
     });

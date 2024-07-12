@@ -12,14 +12,15 @@ import { referenceFunction } from "inngest";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { resumeParserUpload } from "@/lib/candidate/ingest-resume/retrieve-resume";
-import { type resumeGenerateStatic } from "@/inngest/resume-static";
-import { type resumeGenerateInferred } from "@/inngest/resume-inferred";
-import { type generateCandidateCypher } from "@/inngest/resume-generate-cypher"; // Should be part 2
-import { type resumeGenerateEmbeddings } from "@/inngest/resume-embeddings"; // Should be part 2
-import { type resumeOnboardBooleanStatus } from "@/inngest/resume-onboard-boolean";
+import { type resumeGenerateStatic } from "@/inngest/resume-static"; // Part 1
+import { type resumeGenerateInferred } from "@/inngest/resume-inferred"; // Part 1
+import { type generateCandidateCypher } from "@/inngest/resume-generate-cypher"; // Part 2
+import { type resumeGenerateEmbeddings } from "@/inngest/resume-embeddings"; // Part 2
+import { type resumeOnboardBooleanStatus } from "@/inngest/resume-onboard-boolean"; // Part 2
 
 /**
  * Extracts resume information and performs additional processing steps.
+ * Part 1 of the onboarding process.
  *
  * @param event - The event triggering the function.
  * @param step - The step object used for invoking other functions.
@@ -93,6 +94,7 @@ export const resumeExtract = inngest.createFunction(
 
 /**
  * Finalizes the onboarding process for a candidate.
+ * Part 2 of the onboarding process.
  * @param event - The event triggering the onboarding process.
  * @param step - The step in the onboarding process.
  * @returns A message indicating the success of the resume upload.

@@ -24,21 +24,16 @@ export default function JDBuilderRightUpload() {
       opacity: 1,
       transition: {
         when: "beforeChildren",
-        staggerChildren: 0.5,
+        staggerChildren: 0.1,
       },
     },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
+    hidden: { opacity: 0, y: 0 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 70,
-        damping: 20,
-      },
     },
   };
 

@@ -32,10 +32,8 @@ interface OriginalData {
   name?: string;
   title?: string;
   company?: string;
-  contact?: {
-    phone?: string;
-    email?: string;
-  };
+  phone?: string;
+  email?: string;
   clearance_level?: string;
   location?: {
     city?: string;
@@ -96,23 +94,15 @@ export async function handleUpload(
     const mergedData = {
       ...originalData,
       name: formData.name,
-      title: originalData?.title || "", // Keeping original title if exists
-      company: originalData?.company || "", // Keeping original company if exists
-      contact: {
-        phone: formData.phone,
-        email: formData.email,
-      },
+      title: originalData?.title || "",
+      company: originalData?.company || "",
+      phone: formData.phone,
+      email: formData.email,
       education: formData.education.map((edu) => ({
         institution: edu.institution,
         degree: edu.degree,
-        start_date:
-          originalData?.education?.find(
-            (e) => e.institution === edu.institution
-          )?.start_date || "",
-        end_date:
-          originalData?.education?.find(
-            (e) => e.institution === edu.institution
-          )?.end_date || "",
+        start_date: edu.start_date || "",
+        end_date: edu.end_date || "",
       })),
       location: {
         city: formData.city,
@@ -123,14 +113,8 @@ export async function handleUpload(
         organization: exp.organization,
         job_title: exp.job_title,
         responsibilities: exp.responsibilities,
-        start_date:
-          originalData?.work_experience?.find(
-            (e) => e.organization === exp.organization
-          )?.start_date || "",
-        end_date:
-          originalData?.work_experience?.find(
-            (e) => e.organization === exp.organization
-          )?.end_date || "",
+        start_date: exp.start_date || "",
+        end_date: exp.end_date || "",
       })),
       technical_skills: originalData?.technical_skills || [],
       industry_experience: originalData?.industry_experience || [],
@@ -147,7 +131,7 @@ export async function handleUpload(
         .eq("user", user);
 
       if (error) {
-        throw error; // Throw error to be caught by the catch block
+        throw error;
       }
 
       return { success: true, message: "Profile saved successfully!" };

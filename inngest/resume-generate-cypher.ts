@@ -9,7 +9,7 @@ import { inngest } from "@/lib/inngest/client";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { generateCandidateCypherQuery } from "@/lib/candidate/ingest-resume/generate-cypher-query";
-import { read, write } from "@/lib/neo4j/utils";
+import { write } from "@/lib/neo4j/utils";
 
 export const generateCandidateCypher = inngest.createFunction(
   { id: "candidate-add-to-neo-workflow" },
@@ -31,10 +31,6 @@ export const generateCandidateCypher = inngest.createFunction(
       const inferredData = data[0].inferred;
       const candidateData = { ...staticData, ...inferredData };
       const cypherQuery = generateCandidateCypherQuery(candidateData, userId);
-
-      console.log(
-        "Writing then sending cypher query to Neo4j from candidate-add-to-neo-workflow Inngest function."
-      );
 
       // Run the Cypher query and wait for it to complete successfully
       // TODO: Write doesn't return an error and thus does not throw an error. This needs enhancement

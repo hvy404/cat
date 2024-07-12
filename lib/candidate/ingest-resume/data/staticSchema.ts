@@ -1,35 +1,28 @@
-import { z } from "zod";
+import { optional, z } from "zod";
 
 export const staticSchema = z.object({
   name: z.string().describe("Full name of the candidate."),
   title: z
     .string()
     .describe(
-      "Role title of the candidate, either from their most recent position or based on their overall experience and qualifications."
+      "Role title of the candidate, from their overall experience and qualifications."
     ),
   company: z
     .string()
     .optional()
     .describe("Name of the current or most recent company."),
-  contact: z
-    .object({
-      phone: z.string().optional(),
-      email: z.string(),
-    })
-    .describe("Contact information."),
+  phone: z
+    .string()
+    .optional()
+    .describe("Phone number in XXXXXXXXXX format (10 digits, no separators)"),
+  email: z.string().optional().describe("Email address of the candidate"),
   education: z
     .array(
       z.object({
         institution: z.string(),
         degree: z.string(),
-        start_date: z
-          .string()
-          .regex(/^\d{4}-\d{2}$/)
-          .optional(),
-        end_date: z
-          .string()
-          .regex(/^\d{4}-\d{2}$/)
-          .optional(),
+        start_date: z.string().optional(),
+        end_date: z.string().optional(),
       })
     )
     .describe("Education history."),
@@ -78,13 +71,12 @@ export const staticSchemaSecondary = z.object({
         responsibilities: z.string(),
         start_date: z
           .string()
-          .regex(/^\d{4}-\d{2}$/)
-          .optional(),
-        end_date: z
-          .string()
-          .regex(/^\d{4}-\d{2}$/)
-          .optional(),
+          .optional()
+          .describe("Start date in YYYY-MM format"),
+        end_date: z.string().optional().describe("End date in YYYY-MM format"),
       })
     )
-    .describe("Comprehensive list of work experiences."),
+    .describe(
+      "Comprehensive list of work experiences, including job title, responsibilities, and dates."
+    ),
 });
