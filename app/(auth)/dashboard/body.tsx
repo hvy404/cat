@@ -12,6 +12,7 @@ import CandidateDashboardEducation from "@/app/(auth)/dashboard/views/candidate/
 import CandidateDashboardProfile from "@/app/(auth)/dashboard/views/candidate/profile/main";
 import CandidateDashboardCertifications from "@/app/(auth)/dashboard/views/candidate/certifications/main";
 import CandidateDashboardJobSearch from "@/app/(auth)/dashboard/views/candidate/search/main";
+import CandidateResumeCopilot from "@/app/(auth)/dashboard/views/candidate/resume-copilot/main";
 import useStore from "@/app/state/useStore";
 
 /**
@@ -54,6 +55,8 @@ export default function EmployerDashboardBody() {
         return <CandidateDashboardCertifications />;
       case "talent-search":
         return <CandidateDashboardJobSearch />;
+      case "resume-copilot":
+        return <CandidateResumeCopilot />;
       // Add more cases as needed for other components
       default:
         return <EmployerDashboardMain />; // TODO: Update this to the default component to handle role type: candidate or employer

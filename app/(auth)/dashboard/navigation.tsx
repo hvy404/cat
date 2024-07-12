@@ -8,7 +8,7 @@ import {
 import {
   UserRoundPlus,
   LifeBuoy,
-  Folder,
+  WandSparkles,
   Settings2,
   Home,
   SquareUser,
@@ -23,6 +23,7 @@ import {
   Award,
   Compass,
   Building,
+  Wand,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { clearDashboardWidgetPanel } from "@/lib/dashboard/janitor";
@@ -93,7 +94,11 @@ export default function EmployerDashboardNavigation() {
               label="Post New Job"
               icon={UserRoundPlus}
             />
-            <TooltipButton item="jd-builder" label="Job Description Wizard" icon={Zap} />
+            <TooltipButton
+              item="jd-builder"
+              label="Job Description Wizard"
+              icon={Zap}
+            />
             <TooltipButton
               item="documents"
               label="Collection"
@@ -136,6 +141,11 @@ export default function EmployerDashboardNavigation() {
                 item="talent-certifications"
                 label="Certifications"
                 icon={Award}
+              />
+              <TooltipButton
+                item="resume-copilot"
+                label="Resume Copilot"
+                icon={WandSparkles}
               />
               <TooltipButton
                 item="talent-profile"
