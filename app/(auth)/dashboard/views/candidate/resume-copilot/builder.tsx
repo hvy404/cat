@@ -19,20 +19,18 @@ import { Item, ItemType } from "./types";
 
 interface ResumeBuilderProps {
   talentProfile: TalentProfile;
-  previewMode?: boolean;
   onSelectedItemsChange?: (items: Item[]) => void;
   selectedItems?: Item[];
 }
 
 const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ 
   talentProfile, 
-  previewMode = false, 
   onSelectedItemsChange,
   selectedItems = []
 }) => {
   const [items, setItems] = useState<Record<string, Item[]>>({
     available: [],
-    selected: selectedItems,
+    preview: selectedItems,
   });
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -56,16 +54,16 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       ];
       setItems(prev => ({ 
         available: availableItems.filter(item => !selectedItems.some(selected => selected.id === item.id)),
-        selected: selectedItems 
+        preview: selectedItems 
       }));
     }
   }, [talentProfile, selectedItems]);
 
   useEffect(() => {
     if (onSelectedItemsChange) {
-      onSelectedItemsChange(items.selected);
+      onSelectedItemsChange(items.preview);
     }
-  }, [items.selected, onSelectedItemsChange]);
+  }, [items.preview, onSelectedItemsChange]);
 
   const findContainer = (id: string) => {
     if (id in items) {
@@ -80,8 +78,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   };
 
   const handleDragOver = (event: DragOverEvent) => {
-    if (previewMode) return;
-
     const { active, over } = event;
     const id = active.id as string;
     const overId = over?.id as string;
@@ -123,8 +119,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    if (previewMode) return;
-
     const { active, over } = event;
     const id = active.id as string;
     const overId = over?.id as string;
@@ -147,6 +141,73 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     }
 
     setActiveId(null);
+  };
+
+  const renderCondensedItemContent = (item: Item) => {
+    const renderLabel = (label: string) => (
+      <span className="inline-block bg-gray-100 rounded-full px-3 py-1 text-xs font-medium text-gray-700 mr-2 mb-2">
+        {label}
+      </span>
+    );
+
+    switch (item.type) {
+      case 'personal':
+        return (
+          <div className="space-y-1">
+            {renderLabel('Personal')}
+            <h3 className="text-lg font-semibold text-gray-800">{item.content.name}</h3>
+            <p className="text-sm text-gray-600">{item.content.title}</p>
+          </div>
+        );
+      case 'experience':
+        return (
+          <div className="space-y-1">
+            {renderLabel('Experience')}
+            <h4 className="text-base font-semibold text-gray-800">{item.content.job_title}</h4>
+            <p className="text-sm text-gray-600">{item.content.organization}</p>
+          </div>
+        );
+      case 'education':
+        return (
+          <div className="space-y-1">
+            {renderLabel('Education')}
+            <h4 className="text-base font-semibold text-gray-800">{item.content.degree}</h4>
+            <p className="text-sm text-gray-600">{item.content.institution}</p>
+          </div>
+        );
+      case 'skills':
+        return (
+          <div className="space-y-1">
+            {renderLabel('Skills')}
+            <h4 className="text-base font-semibold text-gray-800">Skills</h4>
+            <p className="text-sm text-gray-600">{item.content.length} skills</p>
+          </div>
+        );
+      case 'certifications':
+        return (
+          <div className="space-y-1">
+            {renderLabel('Certification')}
+            <h4 className="text-base font-semibold text-gray-800">{item.content.name}</h4>
+            <p className="text-sm text-gray-600">{item.content.issuing_organization}</p>
+          </div>
+        );
+      case 'projects':
+        return (
+          <div className="space-y-1">
+            {renderLabel('Project')}
+            <h4 className="text-base font-semibold text-gray-800">{item.content.title}</h4>
+          </div>
+        );
+      case 'publications':
+        return (
+          <div className="space-y-1">
+            {renderLabel('Publication')}
+            <h4 className="text-base font-semibold text-gray-800">{item.content.title}</h4>
+          </div>
+        );
+      default:
+        return null;
+    }
   };
 
   const renderItemContent = (item: Item) => {
@@ -215,7 +276,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   };
 
   const renderPreview = () => {
-    const groupedItems = items.selected.reduce((acc, item) => {
+    const groupedItems = items.preview.reduce((acc, item) => {
       if (!acc[item.type]) {
         acc[item.type] = [];
       }
@@ -226,7 +287,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     const sectionOrder: ItemType[] = ['personal', 'experience', 'education', 'skills', 'certifications', 'projects', 'publications'];
 
     return (
-      <div className="bg-white shadow-lg rounded-lg p-8 space-y-6 max-w-3xl mx-auto">
+      <div className="bg-white shadow-lg rounded-lg p-8 space-y-6 w-full">
         {sectionOrder.map((sectionType) => {
           if (!groupedItems[sectionType] || groupedItems[sectionType].length === 0) {
             return null;
@@ -240,7 +301,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
                 </h2>
               )}
               {groupedItems[sectionType].map((item) => (
-                <div key={item.id}>{renderItemContent(item)}</div>
+                <SortableItem key={item.id} id={item.id}>
+                  {renderItemContent(item)}
+                </SortableItem>
               ))}
             </div>
           );
@@ -248,10 +311,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       </div>
     );
   };
-
-  if (previewMode) {
-    return renderPreview();
-  }
 
   return (
     <DndContext
@@ -261,26 +320,26 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-6">
-        <div className="flex-1">
+     <div className="flex gap-6 h-[calc(100vh-12rem)] overflow-hidden">
+        <div className="w-1/3 flex flex-col">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Available Items</h2>
-          <Container id="available" items={items.available}>
-            {items.available.map((item) => (
-              <SortableItem key={item.id} id={item.id}>
-                {renderItemContent(item)}
-              </SortableItem>
-            ))}
-          </Container>
+          <div className="flex-1 overflow-y-auto pr-4">
+            <Container id="available" items={items.available}>
+              {items.available.map((item) => (
+                <SortableItem key={item.id} id={item.id}>
+                  {renderCondensedItemContent(item)}
+                </SortableItem>
+              ))}
+            </Container>
+          </div>
         </div>
-        <div className="flex-1">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Selected Items</h2>
-          <Container id="selected" items={items.selected}>
-            {items.selected.map((item) => (
-              <SortableItem key={item.id} id={item.id}>
-                {renderItemContent(item)}
-              </SortableItem>
-            ))}
-          </Container>
+        <div className="w-2/3 flex flex-col">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Resume Preview</h2>
+          <div className="flex-1 overflow-y-auto pr-4">
+            <Container id="preview" items={items.preview}>
+              {renderPreview()}
+            </Container>
+          </div>
         </div>
       </div>
       <DragOverlay>
