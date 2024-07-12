@@ -1,22 +1,30 @@
 import React from 'react';
-import { useDroppable } from '@dnd-kit/core';
+import { useDroppable } from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy
+} from "@dnd-kit/sortable";
 
-const containerStyle = {
-  width: '100%',
-  minHeight: '200px',
-  padding: '10px',
-  backgroundColor: '#f0f0f0',
-  borderRadius: '5px',
-};
+interface ContainerProps {
+  id: string;
+  items: any[];
+  children: React.ReactNode;
+}
 
-export function Container({ id, children }) {
-  const { setNodeRef } = useDroppable({
-    id,
-  });
+const Container: React.FC<ContainerProps> = ({ id, items, children }) => {
+  const { setNodeRef } = useDroppable({ id });
 
   return (
-    <div ref={setNodeRef} style={containerStyle}>
-      {children}
-    </div>
+    <SortableContext
+      id={id}
+      items={items}
+      strategy={verticalListSortingStrategy}
+    >
+      <div ref={setNodeRef} className="bg-gray-100 p-4 rounded-lg min-h-[200px]">
+        {children}
+      </div>
+    </SortableContext>
   );
-}
+};
+
+export default Container;
