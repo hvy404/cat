@@ -50,8 +50,41 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
 
   useEffect(() => {
     if (talentProfile) {
+      const { talent } = talentProfile as TalentProfile & {
+        talent: {
+          city: string | null;
+          state: string | null;
+          zipcode: string | null;
+        };
+      };
+
+      // Group city, state, and zip code
+      const locationItem: Item = {
+        id: "personal-location",
+        type: "personal",
+        content: {
+          key: "Location",
+          value: {
+            city: talent?.city ?? null,
+            state: talent?.state ?? null,
+            zipcode: talent?.zipcode ?? null,
+          },
+        },
+      };
+
+      const personalItems: Item[] = [
+        locationItem,
+        ...Object.entries(talent ?? {})
+          .filter(([key, _]) => !["city", "state", "zipcode"].includes(key))
+          .map(([key, value]) => ({
+            id: `personal-${key}`,
+            type: "personal" as ItemType,
+            content: { key, value: value ?? "" },
+          })),
+      ];
+
       const availableItems: Item[] = [
-        { id: "personal", type: "personal", content: talentProfile.talent },
+        ...personalItems,
         ...talentProfile.workExperiences.map((exp, index) => ({
           id: `experience-${index}`,
           type: "experience" as ItemType,
@@ -62,7 +95,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           type: "education" as ItemType,
           content: edu,
         })),
-        { id: "skills", type: "skills", content: talentProfile.skills },
+        {
+          id: "skills",
+          type: "skills",
+          content: { key: "Skills", value: talentProfile.skills },
+        },
         ...talentProfile.certifications.map((cert, index) => ({
           id: `certification-${index}`,
           type: "certifications" as ItemType,
@@ -79,6 +116,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           content: pub,
         })),
       ];
+
       setItems((prev) => ({
         available: availableItems.filter(
           (item) => !selectedItems.some((selected) => selected.id === item.id)
@@ -220,13 +258,33 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
 
     switch (item.type) {
       case "personal":
+        if (item.content.key === "Location") {
+          const { city, state, zipcode } = item.content.value as {
+            city: string | null;
+            state: string | null;
+            zipcode: string | null;
+          };
+          const locationParts = [city, state, zipcode].filter(Boolean);
+          const locationString = locationParts.join(", ");
+          return (
+            <div className="space-y-1">
+              {renderLabel("Personal")}
+              <h3 className="text-lg font-semibold text-gray-800">Location</h3>
+              <p className="text-sm text-gray-600">
+                {locationString || "Not specified"}
+              </p>
+            </div>
+          );
+        }
         return (
           <div className="space-y-1">
             {renderLabel("Personal")}
             <h3 className="text-lg font-semibold text-gray-800">
-              {item.content.name}
+              {item.content.key}
             </h3>
-            <p className="text-sm text-gray-600">{item.content.title}</p>
+            <p className="text-sm text-gray-600">
+              {item.content.value || "Not specified"}
+            </p>
           </div>
         );
       case "experience":
@@ -255,7 +313,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             {renderLabel("Skills")}
             <h4 className="text-base font-semibold text-gray-800">Skills</h4>
             <p className="text-sm text-gray-600">
-              {item.content.length} skills
+              {item.content.value.length} skills
             </p>
           </div>
         );
@@ -297,13 +355,31 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   const renderItemContent = (item: Item) => {
     switch (item.type) {
       case "personal":
+        if (item.content.key === "Location") {
+          const { city, state, zipcode } = item.content.value as {
+            city: string | null;
+            state: string | null;
+            zipcode: string | null;
+          };
+          const locationParts = [city, state, zipcode].filter(Boolean);
+          const locationString = locationParts.join(", ");
+          return (
+            <div className="space-y-1">
+              <h3 className="text-lg font-semibold text-gray-800">Location</h3>
+              <p className="text-base text-gray-600">
+                {locationString || "Not specified"}
+              </p>
+            </div>
+          );
+        }
         return (
           <div className="space-y-1">
-            <h3 className="text-2xl font-bold text-gray-800">
-              {item.content.name}
+            <h3 className="text-lg font-semibold text-gray-800">
+              {item.content.key}
             </h3>
-            <p className="text-lg text-gray-600">{item.content.title}</p>
-            <p className="text-base text-gray-500">{item.content.email}</p>
+            <p className="text-base text-gray-600">
+              {item.content.value || "Not specified"}
+            </p>
           </div>
         );
       case "experience":
@@ -337,9 +413,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         return (
           <div className="space-y-1">
             <ul className="list-disc list-inside text-sm text-gray-700 columns-2">
-              {item.content.map((skill: { name: string }, index: number) => (
-                <li key={index}>{skill.name}</li>
-              ))}
+              {item.content.value.map(
+                (skill: { name: string }, index: number) => (
+                  <li key={index}>{skill.name}</li>
+                )
+              )}
             </ul>
           </div>
         );
@@ -415,16 +493,24 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
               key={sectionType}
               className="pb-4 border-b border-gray-200 last:border-b-0"
             >
-              {sectionType !== "personal" && (
-                <h2 className="text-xl font-bold text-gray-800 mb-4 uppercase">
-                  {sectionType}
-                </h2>
+              <h2 className="text-xl font-bold text-gray-800 mb-4 uppercase">
+                {sectionType}
+              </h2>
+              {sectionType === "personal" ? (
+                <div className="grid grid-cols-2 gap-4">
+                  {groupedItems[sectionType].map((item) => (
+                    <SortableItem key={item.id} id={item.id}>
+                      {renderItemContent(item)}
+                    </SortableItem>
+                  ))}
+                </div>
+              ) : (
+                groupedItems[sectionType].map((item) => (
+                  <SortableItem key={item.id} id={item.id}>
+                    {renderItemContent(item)}
+                  </SortableItem>
+                ))
               )}
-              {groupedItems[sectionType].map((item) => (
-                <SortableItem key={item.id} id={item.id}>
-                  {renderItemContent(item)}
-                </SortableItem>
-              ))}
             </div>
           );
         })}
