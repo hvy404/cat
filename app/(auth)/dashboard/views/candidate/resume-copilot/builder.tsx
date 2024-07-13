@@ -16,6 +16,7 @@ import { TalentProfile } from "./get-data";
 import Container from "./container";
 import SortableItem from "./sortable";
 import { Item, ItemType } from "./types";
+import Alert from "./alert";
 
 interface ResumeBuilderProps {
   talentProfile: TalentProfile;
@@ -29,6 +30,12 @@ interface HistoryEntry {
   timestamp: number;
 }
 
+interface AlertState {
+  id: string;
+  message: string;
+  isMinimized: boolean;
+}
+
 const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   talentProfile,
   onSelectedItemsChange,
@@ -40,6 +47,10 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   });
   const [activeId, setActiveId] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [recentlyAddedItem, setRecentlyAddedItem] = useState<string | null>(
+    null
+  );
+  const [alerts, setAlerts] = useState<AlertState[]>([]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -130,7 +141,26 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     if (onSelectedItemsChange) {
       onSelectedItemsChange(items.preview);
     }
-  }, [items.preview, onSelectedItemsChange]);
+    // Dismiss the alert when a new item is added
+    if (
+      recentlyAddedItem &&
+      !items.preview.some((item) => item.id === recentlyAddedItem)
+    ) {
+      setRecentlyAddedItem(null);
+    }
+  }, [items.preview, onSelectedItemsChange, recentlyAddedItem]);
+
+  const dismissAlert = () => {
+    setRecentlyAddedItem(null);
+  };
+
+  const toggleAlertMinimize = (id: string) => {
+    setAlerts((prevAlerts) =>
+      prevAlerts.map((alert) =>
+        alert.id === id ? { ...alert, isMinimized: !alert.isMinimized } : alert
+      )
+    );
+  };
 
   useEffect(() => {
     console.log("Current history:", history);
@@ -203,6 +233,39 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         { action, itemId: id, timestamp: Date.now() },
       ]);
 
+      // Add or update alert when moving from available to preview
+      if (activeContainer === "available" && overContainer === "preview") {
+        setAlerts((prevAlerts) => {
+          // Minimize all existing alerts
+          const minimizedAlerts = prevAlerts.map((alert) => ({
+            ...alert,
+            isMinimized: true,
+          }));
+
+          const existingAlertIndex = minimizedAlerts.findIndex(
+            (alert) => alert.id === id
+          );
+          if (existingAlertIndex !== -1) {
+            // Update existing alert
+            return minimizedAlerts.map((alert, index) =>
+              index === existingAlertIndex
+                ? {
+                    ...alert,
+                    message: "Item added to resume",
+                    isMinimized: false,
+                  }
+                : alert
+            );
+          } else {
+            // Add new alert
+            return [
+              ...minimizedAlerts,
+              { id, message: "Item added to resume", isMinimized: false },
+            ];
+          }
+        });
+      }
+
       return newItems;
     });
   };
@@ -249,110 +312,122 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
 
     setActiveId(null);
   };
-  const renderCondensedItemContent = (item: Item) => {
-    const renderLabel = (label: string) => (
-      <span className="inline-block bg-gray-100 rounded-full px-3 py-1 text-xs font-medium text-gray-700 mr-2 mb-2">
-        {label}
-      </span>
-    );
 
-    switch (item.type) {
-      case "personal":
-        if (item.content.key === "Location") {
-          const { city, state, zipcode } = item.content.value as {
-            city: string | null;
-            state: string | null;
-            zipcode: string | null;
-          };
-          const locationParts = [city, state, zipcode].filter(Boolean);
-          const locationString = locationParts.join(", ");
-          return (
-            <div className="space-y-1">
-              {renderLabel("Personal")}
-              <h3 className="text-lg font-semibold text-gray-800">Location</h3>
-              <p className="text-sm text-gray-600">
-                {locationString || "Not specified"}
-              </p>
-            </div>
-          );
-        }
+  // Place this outside both functions
+const personalLabelMap: { [key: string]: string } = {
+  Location: "Address",
+  phone: "Phone Number",
+  clearance_level: "Security Clearance",
+  title: "Job Title",
+  email: "Email Address",
+  name: "Full Name"
+};
+
+const renderCondensedItemContent = (item: Item) => {
+  const renderLabel = (label: string) => (
+    <span className="inline-block bg-gray-100 rounded-full px-3 py-1 text-xs font-medium text-gray-700 mr-2 mb-2">
+      {label}
+    </span>
+  );
+
+  switch (item.type) {
+    case "personal":
+      if (item.content.key === "Location") {
+        const { city, state, zipcode } = item.content.value as {
+          city: string | null;
+          state: string | null;
+          zipcode: string | null;
+        };
+        const locationParts = [city, state, zipcode].filter(Boolean);
+        const locationString = locationParts.join(", ");
         return (
           <div className="space-y-1">
             {renderLabel("Personal")}
-            <h3 className="text-lg font-semibold text-gray-800">
-              {item.content.key}
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-800">Address</h3>
             <p className="text-sm text-gray-600">
-              {item.content.value || "Not specified"}
+              {locationString || "Not specified"}
             </p>
           </div>
         );
-      case "experience":
-        return (
-          <div className="space-y-1">
-            {renderLabel("Experience")}
-            <h4 className="text-base font-semibold text-gray-800">
-              {item.content.job_title}
-            </h4>
-            <p className="text-sm text-gray-600">{item.content.organization}</p>
-          </div>
-        );
-      case "education":
-        return (
-          <div className="space-y-1">
-            {renderLabel("Education")}
-            <h4 className="text-base font-semibold text-gray-800">
-              {item.content.degree}
-            </h4>
-            <p className="text-sm text-gray-600">{item.content.institution}</p>
-          </div>
-        );
-      case "skills":
-        return (
-          <div className="space-y-1">
-            {renderLabel("Skills")}
-            <h4 className="text-base font-semibold text-gray-800">Skills</h4>
-            <p className="text-sm text-gray-600">
-              {item.content.value.length} skills
-            </p>
-          </div>
-        );
-      case "certifications":
-        return (
-          <div className="space-y-1">
-            {renderLabel("Certification")}
-            <h4 className="text-base font-semibold text-gray-800">
-              {item.content.name}
-            </h4>
-            <p className="text-sm text-gray-600">
-              {item.content.issuing_organization}
-            </p>
-          </div>
-        );
-      case "projects":
-        return (
-          <div className="space-y-1">
-            {renderLabel("Project")}
-            <h4 className="text-base font-semibold text-gray-800">
-              {item.content.title}
-            </h4>
-          </div>
-        );
-      case "publications":
-        return (
-          <div className="space-y-1">
-            {renderLabel("Publication")}
-            <h4 className="text-base font-semibold text-gray-800">
-              {item.content.title}
-            </h4>
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
+      }
+      return (
+        <div className="space-y-1">
+          {renderLabel("Personal")}
+          <h3 className="text-lg font-semibold text-gray-800">
+            {personalLabelMap[item.content.key] || item.content.key}
+          </h3>
+          <p className="text-sm text-gray-600">
+            {item.content.value || "Not specified"}
+          </p>
+        </div>
+      );
+    case "experience":
+      return (
+        <div className="space-y-1">
+          {renderLabel("Experience")}
+          <h4 className="text-base font-semibold text-gray-800">
+            {item.content.job_title}
+          </h4>
+          <p className="text-sm text-gray-600">{item.content.organization}</p>
+        </div>
+      );
+    case "education":
+      return (
+        <div className="space-y-1">
+          {renderLabel("Education")}
+          <h4 className="text-base font-semibold text-gray-800">
+            {item.content.degree}
+          </h4>
+          <p className="text-sm text-gray-600">{item.content.institution}</p>
+        </div>
+      );
+    case "skills":
+      return (
+        <div className="space-y-1">
+          {renderLabel("Skills")}
+          <h4 className="text-base font-semibold text-gray-800">Skills</h4>
+          <p className="text-sm text-gray-600">
+            {item.content.value.length} skills
+          </p>
+        </div>
+      );
+    case "certifications":
+      return (
+        <div className="space-y-1">
+          {renderLabel("Certification")}
+          <h4 className="text-base font-semibold text-gray-800">
+            {item.content.name}
+          </h4>
+          <p className="text-sm text-gray-600">
+            {item.content.issuing_organization}
+          </p>
+        </div>
+      );
+    case "projects":
+      return (
+        <div className="space-y-1">
+          {renderLabel("Project")}
+          <h4 className="text-base font-semibold text-gray-800">
+            {item.content.title}
+          </h4>
+        </div>
+      );
+    case "publications":
+      return (
+        <div className="space-y-1">
+          {renderLabel("Publication")}
+          <h4 className="text-base font-semibold text-gray-800">
+            {item.content.title}
+          </h4>
+        </div>
+      );
+    default:
+      return null;
+  }
+};
 
-  const renderItemContent = (item: Item) => {
+const renderItemContent = (item: Item) => {
+  const content = (() => {
     switch (item.type) {
       case "personal":
         if (item.content.key === "Location") {
@@ -365,7 +440,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           const locationString = locationParts.join(", ");
           return (
             <div className="space-y-1">
-              <h3 className="text-lg font-semibold text-gray-800">Location</h3>
+              <h3 className="text-lg font-semibold text-gray-800">Address</h3>
               <p className="text-base text-gray-600">
                 {locationString || "Not specified"}
               </p>
@@ -375,7 +450,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         return (
           <div className="space-y-1">
             <h3 className="text-lg font-semibold text-gray-800">
-              {item.content.key}
+              {personalLabelMap[item.content.key] || item.content.key}
             </h3>
             <p className="text-base text-gray-600">
               {item.content.value || "Not specified"}
@@ -412,6 +487,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       case "skills":
         return (
           <div className="space-y-1">
+            <h3 className="text-lg font-semibold text-gray-800">Skills</h3>
             <ul className="list-disc list-inside text-sm text-gray-700 columns-2">
               {item.content.value.map(
                 (skill: { name: string }, index: number) => (
@@ -457,7 +533,25 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       default:
         return null;
     }
-  };
+  })();
+
+  const itemAlert = alerts.find((alert) => alert.id === item.id);
+
+  return (
+    <div className="relative">
+      {content}
+      {itemAlert && (
+        <div className="mt-1.5">
+          <Alert
+            message={itemAlert.message}
+            isMinimized={itemAlert.isMinimized}
+            onToggleMinimize={() => toggleAlertMinimize(item.id)}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
 
   const renderPreview = () => {
     const groupedItems = items.preview.reduce((acc, item) => {

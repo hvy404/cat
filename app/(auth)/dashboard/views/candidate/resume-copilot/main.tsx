@@ -40,7 +40,7 @@ export default function CandidateResumeCopilot() {
     <main className="flex flex-1 p-4 max-h-screen overflow-hidden">
       <div className="w-full">
         <div className="flex justify-between items-center gap-6 rounded-lg border p-4 bg-white shadow-sm mb-4">
-          <h2 className="text-xl font-bold text-gray-900">Resume Builder</h2>
+          <h2 className="text-xl font-bold text-gray-900">Resume Coach</h2>
         </div>
         <div className="bg-white rounded-lg p-6 shadow-sm">
           {isLoading && <p className="text-gray-600">Loading talent profile...</p>}
