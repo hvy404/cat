@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -62,6 +62,29 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     })
   );
 
+  // Presets
+  const moveItemsToPreview = (itemKeys: string[]) => {
+    setItems((prevItems) => {
+      const newAvailable = [...prevItems.available];
+      const newPreview = [...prevItems.preview];
+
+      itemKeys.forEach((key) => {
+        const index = newAvailable.findIndex(
+          (item) => item.type === "personal" && item.content.key === key
+        );
+        if (index !== -1) {
+          const [item] = newAvailable.splice(index, 1);
+          newPreview.push(item);
+        }
+      });
+
+      return {
+        available: newAvailable,
+        preview: newPreview,
+      };
+    });
+  };
+
   useEffect(() => {
     if (talentProfile) {
       const generateId = (type: string, index: number) => `${type}-${index}`;
@@ -122,6 +145,13 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     }
   }, [talentProfile, selectedItems]);
 
+  // Move items to preview when talentProfile is loaded
+  useEffect(() => {
+    if (talentProfile) {
+      moveItemsToPreview(["name", "email", "city", "state", "zipcode"]);
+    }
+  }, []);
+
   const debouncedBuildAndLogPrompt = useDebounce(
     (items, history, talentProfile) => {
       buildAndLogPrompt(items, history, talentProfile);
@@ -154,10 +184,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     recentlyAddedItem,
   ]);
 
-  const dismissAlert = () => {
-    setRecentlyAddedItem(null);
-  };
-
   const toggleAlertMinimize = (id: string) => {
     setAlerts((prevAlerts) =>
       prevAlerts.map((alert) =>
@@ -165,10 +191,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       )
     );
   };
-
-  useEffect(() => {
-    console.log("Current history:", history);
-  }, [history]);
 
   const findContainer = (id: string) => {
     if (id in items) {
@@ -398,18 +420,14 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         return (
           <div className="space-y-1 select-none">
             {renderLabel("Skill")}
-            <h4 className="text-sm text-gray-800">
-              {item.content.value}
-            </h4>
+            <h4 className="text-sm text-gray-800">{item.content.value}</h4>
           </div>
         );
       case "certifications":
         return (
           <div className="space-y-1 select-none">
             {renderLabel("Certification")}
-            <h4 className="text-sm text-gray-800">
-              {item.content.name}
-            </h4>
+            <h4 className="text-sm text-gray-800">{item.content.name}</h4>
             <p className="text-sm text-gray-600">
               {item.content.issuing_organization}
             </p>
@@ -547,15 +565,15 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
 
     return (
       <div>
-      {content}
-      {itemAlert && (
-        <Alert
-          message={itemAlert.message}
-          isMinimized={itemAlert.isMinimized}
-          onToggleMinimize={() => toggleAlertMinimize(item.id)}
-        />
-      )}
-    </div>
+        {content}
+        {itemAlert && (
+          <Alert
+            message={itemAlert.message}
+            isMinimized={itemAlert.isMinimized}
+            onToggleMinimize={() => toggleAlertMinimize(item.id)}
+          />
+        )}
+      </div>
     );
   };
 
