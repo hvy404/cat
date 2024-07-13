@@ -17,6 +17,8 @@ import Container from "./container";
 import SortableItem from "./sortable";
 import { Item, ItemType } from "./types";
 import Alert from "./alert";
+import { buildAndLogPrompt } from "./promptBuilder";
+import { useDebounce } from "./useDebounce";
 
 interface ResumeBuilderProps {
   talentProfile: TalentProfile;
@@ -59,75 +61,59 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     })
   );
 
+
+
   useEffect(() => {
     if (talentProfile) {
-      const { talent } = talentProfile as TalentProfile & {
-        talent: {
-          city: string | null;
-          state: string | null;
-          zipcode: string | null;
-        };
-      };
-
-      // Group city, state, and zip code
-      const locationItem: Item = {
-        id: "personal-location",
-        type: "personal",
-        content: {
-          key: "Location",
-          value: {
-            city: talent?.city ?? null,
-            state: talent?.state ?? null,
-            zipcode: talent?.zipcode ?? null,
-          },
-        },
-      };
-
-      const personalItems: Item[] = [
-        locationItem,
-        ...Object.entries(talent ?? {})
-          .filter(([key, _]) => !["city", "state", "zipcode"].includes(key))
-          .map(([key, value]) => ({
-            id: `personal-${key}`,
+      const generateId = (type: string, index: number) => `${type}-${index}`;
+  
+      const availableItems: Item[] = [
+        // Personal items
+        ...Object.entries(talentProfile.talent ?? {}).map(
+          ([key, value], index) => ({
+            id: generateId("personal", index),
             type: "personal" as ItemType,
             content: { key, value: value ?? "" },
-          })),
-      ];
-
-      const availableItems: Item[] = [
-        ...personalItems,
+          })
+        ),
+        // Work experiences
         ...talentProfile.workExperiences.map((exp, index) => ({
-          id: `experience-${index}`,
+          id: generateId("experience", index),
           type: "experience" as ItemType,
           content: exp,
         })),
+        // Education
         ...talentProfile.education.map((edu, index) => ({
-          id: `education-${index}`,
+          id: generateId("education", index),
           type: "education" as ItemType,
           content: edu,
         })),
-        {
-          id: "skills",
-          type: "skills",
-          content: { key: "Skills", value: talentProfile.skills },
-        },
+        // Skills - Create a separate item for each skill
+        ...talentProfile.skills.map((skill, index) => ({
+          id: generateId("skill", index),
+          type: "skills" as ItemType,
+          content: { key: "Skill", value: skill.name },
+        })),
+        // Certifications
         ...talentProfile.certifications.map((cert, index) => ({
-          id: `certification-${index}`,
+          id: generateId("certification", index),
           type: "certifications" as ItemType,
           content: cert,
         })),
+        // Projects
         ...talentProfile.projects.map((proj, index) => ({
-          id: `project-${index}`,
+          id: generateId("project", index),
           type: "projects" as ItemType,
           content: proj,
         })),
+        // Publications
         ...talentProfile.publications.map((pub, index) => ({
-          id: `publication-${index}`,
+          id: generateId("publication", index),
           type: "publications" as ItemType,
           content: pub,
         })),
       ];
-
+  
       setItems((prev) => ({
         available: availableItems.filter(
           (item) => !selectedItems.some((selected) => selected.id === item.id)
@@ -137,10 +123,23 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     }
   }, [talentProfile, selectedItems]);
 
+  const debouncedBuildAndLogPrompt = useDebounce(
+    (items, history, talentProfile) => {
+      buildAndLogPrompt(items, history, talentProfile);
+    },
+    3000 // 3 seconds delay
+  );
+
   useEffect(() => {
     if (onSelectedItemsChange) {
       onSelectedItemsChange(items.preview);
     }
+
+    // Call the debounced version of buildAndLogPrompt
+    if (items.preview.length > 0 && history.length > 0) {
+      debouncedBuildAndLogPrompt(items, history, talentProfile);
+    }
+
     // Dismiss the alert when a new item is added
     if (
       recentlyAddedItem &&
@@ -148,7 +147,13 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     ) {
       setRecentlyAddedItem(null);
     }
-  }, [items.preview, onSelectedItemsChange, recentlyAddedItem]);
+  }, [
+    items.preview,
+    onSelectedItemsChange,
+    history,
+    talentProfile,
+    recentlyAddedItem,
+  ]);
 
   const dismissAlert = () => {
     setRecentlyAddedItem(null);
@@ -251,7 +256,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
               index === existingAlertIndex
                 ? {
                     ...alert,
-                    message: "Item added to resume",
+                    message: "Item added to resume, Item added to resume, Item added to resume, Item added to resume",
                     isMinimized: false,
                   }
                 : alert
@@ -260,7 +265,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             // Add new alert
             return [
               ...minimizedAlerts,
-              { id, message: "Item added to resume", isMinimized: false },
+              { id, message: "Item added to resume, Item added to resume, Item added to resume, Item added to resume", isMinimized: false },
             ];
           }
         });
@@ -314,120 +319,22 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   };
 
   // Place this outside both functions
-const personalLabelMap: { [key: string]: string } = {
-  Location: "Address",
-  phone: "Phone Number",
-  clearance_level: "Security Clearance",
-  title: "Job Title",
-  email: "Email Address",
-  name: "Full Name"
-};
+  const personalLabelMap: { [key: string]: string } = {
+    Location: "Address",
+    phone: "Phone Number",
+    clearance_level: "Security Clearance",
+    title: "Job Title",
+    email: "Email Address",
+    name: "Full Name",
+  };
 
-const renderCondensedItemContent = (item: Item) => {
-  const renderLabel = (label: string) => (
-    <span className="inline-block bg-gray-100 rounded-full px-3 py-1 text-xs font-medium text-gray-700 mr-2 mb-2">
-      {label}
-    </span>
-  );
+  const renderCondensedItemContent = (item: Item) => {
+    const renderLabel = (label: string) => (
+      <span className="inline-block bg-gray-100 rounded-full px-3 py-1 text-xs font-medium text-gray-700 mr-2 mb-2">
+        {label}
+      </span>
+    );
 
-  switch (item.type) {
-    case "personal":
-      if (item.content.key === "Location") {
-        const { city, state, zipcode } = item.content.value as {
-          city: string | null;
-          state: string | null;
-          zipcode: string | null;
-        };
-        const locationParts = [city, state, zipcode].filter(Boolean);
-        const locationString = locationParts.join(", ");
-        return (
-          <div className="space-y-1">
-            {renderLabel("Personal")}
-            <h3 className="text-lg font-semibold text-gray-800">Address</h3>
-            <p className="text-sm text-gray-600">
-              {locationString || "Not specified"}
-            </p>
-          </div>
-        );
-      }
-      return (
-        <div className="space-y-1">
-          {renderLabel("Personal")}
-          <h3 className="text-lg font-semibold text-gray-800">
-            {personalLabelMap[item.content.key] || item.content.key}
-          </h3>
-          <p className="text-sm text-gray-600">
-            {item.content.value || "Not specified"}
-          </p>
-        </div>
-      );
-    case "experience":
-      return (
-        <div className="space-y-1">
-          {renderLabel("Experience")}
-          <h4 className="text-base font-semibold text-gray-800">
-            {item.content.job_title}
-          </h4>
-          <p className="text-sm text-gray-600">{item.content.organization}</p>
-        </div>
-      );
-    case "education":
-      return (
-        <div className="space-y-1">
-          {renderLabel("Education")}
-          <h4 className="text-base font-semibold text-gray-800">
-            {item.content.degree}
-          </h4>
-          <p className="text-sm text-gray-600">{item.content.institution}</p>
-        </div>
-      );
-    case "skills":
-      return (
-        <div className="space-y-1">
-          {renderLabel("Skills")}
-          <h4 className="text-base font-semibold text-gray-800">Skills</h4>
-          <p className="text-sm text-gray-600">
-            {item.content.value.length} skills
-          </p>
-        </div>
-      );
-    case "certifications":
-      return (
-        <div className="space-y-1">
-          {renderLabel("Certification")}
-          <h4 className="text-base font-semibold text-gray-800">
-            {item.content.name}
-          </h4>
-          <p className="text-sm text-gray-600">
-            {item.content.issuing_organization}
-          </p>
-        </div>
-      );
-    case "projects":
-      return (
-        <div className="space-y-1">
-          {renderLabel("Project")}
-          <h4 className="text-base font-semibold text-gray-800">
-            {item.content.title}
-          </h4>
-        </div>
-      );
-    case "publications":
-      return (
-        <div className="space-y-1">
-          {renderLabel("Publication")}
-          <h4 className="text-base font-semibold text-gray-800">
-            {item.content.title}
-          </h4>
-        </div>
-      );
-    default:
-      return null;
-  }
-};
-
-const renderItemContent = (item: Item) => {
-  const content = (() => {
     switch (item.type) {
       case "personal":
         if (item.content.key === "Location") {
@@ -440,8 +347,9 @@ const renderItemContent = (item: Item) => {
           const locationString = locationParts.join(", ");
           return (
             <div className="space-y-1">
+              {renderLabel("Personal")}
               <h3 className="text-lg font-semibold text-gray-800">Address</h3>
-              <p className="text-base text-gray-600">
+              <p className="text-sm text-gray-600">
                 {locationString || "Not specified"}
               </p>
             </div>
@@ -449,109 +357,201 @@ const renderItemContent = (item: Item) => {
         }
         return (
           <div className="space-y-1">
+            {renderLabel("Personal")}
             <h3 className="text-lg font-semibold text-gray-800">
               {personalLabelMap[item.content.key] || item.content.key}
             </h3>
-            <p className="text-base text-gray-600">
+            <p className="text-sm text-gray-600">
               {item.content.value || "Not specified"}
             </p>
           </div>
         );
       case "experience":
         return (
-          <div className="space-y-1 mb-4">
-            <h4 className="text-lg font-semibold text-gray-800">
+          <div className="space-y-1">
+            {renderLabel("Experience")}
+            <h4 className="text-base font-semibold text-gray-800">
               {item.content.job_title}
             </h4>
-            <p className="text-base font-medium text-gray-700">
-              {item.content.organization}
-            </p>
-            <p className="text-sm text-gray-600">{`${item.content.start_date} - ${item.content.end_date}`}</p>
-            <p className="text-sm text-gray-700 mt-2">
-              {item.content.responsibilities}
-            </p>
+            <p className="text-sm text-gray-600">{item.content.organization}</p>
           </div>
         );
       case "education":
         return (
-          <div className="space-y-1 mb-4">
-            <h4 className="text-lg font-semibold text-gray-800">
+          <div className="space-y-1">
+            {renderLabel("Education")}
+            <h4 className="text-base font-semibold text-gray-800">
               {item.content.degree}
             </h4>
-            <p className="text-base font-medium text-gray-700">
-              {item.content.institution}
-            </p>
-            <p className="text-sm text-gray-600">{`${item.content.start_date} - ${item.content.end_date}`}</p>
+            <p className="text-sm text-gray-600">{item.content.institution}</p>
           </div>
         );
-      case "skills":
-        return (
-          <div className="space-y-1">
-            <h3 className="text-lg font-semibold text-gray-800">Skills</h3>
-            <ul className="list-disc list-inside text-sm text-gray-700 columns-2">
-              {item.content.value.map(
-                (skill: { name: string }, index: number) => (
-                  <li key={index}>{skill.name}</li>
-                )
-              )}
-            </ul>
-          </div>
-        );
+        case "skills":
+          return (
+            <div className="space-y-1">
+              {renderLabel("Skill")}
+              <h4 className="text-base font-semibold text-gray-800">
+                {item.content.value}
+              </h4>
+            </div>
+          );
       case "certifications":
         return (
-          <div className="space-y-1 mb-2">
+          <div className="space-y-1">
+            {renderLabel("Certification")}
             <h4 className="text-base font-semibold text-gray-800">
               {item.content.name}
             </h4>
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-gray-600">
               {item.content.issuing_organization}
             </p>
-            <p className="text-sm text-gray-600">{`Obtained: ${item.content.date_obtained}`}</p>
           </div>
         );
       case "projects":
         return (
-          <div className="space-y-1 mb-4">
-            <h4 className="text-lg font-semibold text-gray-800">
+          <div className="space-y-1">
+            {renderLabel("Project")}
+            <h4 className="text-base font-semibold text-gray-800">
               {item.content.title}
             </h4>
-            <p className="text-sm text-gray-700">{item.content.description}</p>
           </div>
         );
       case "publications":
         return (
-          <div className="space-y-1 mb-4">
+          <div className="space-y-1">
+            {renderLabel("Publication")}
             <h4 className="text-base font-semibold text-gray-800">
               {item.content.title}
             </h4>
-            <p className="text-sm text-gray-700">
-              {item.content.journal_or_conference}
-            </p>
-            <p className="text-sm text-gray-600">{`Published: ${item.content.publication_date}`}</p>
           </div>
         );
       default:
         return null;
     }
-  })();
+  };
 
-  const itemAlert = alerts.find((alert) => alert.id === item.id);
+  const renderItemContent = (item: Item) => {
+    const content = (() => {
+      switch (item.type) {
+        case "personal":
+          if (item.content.key === "Location") {
+            const { city, state, zipcode } = item.content.value as {
+              city: string | null;
+              state: string | null;
+              zipcode: string | null;
+            };
+            const locationParts = [city, state, zipcode].filter(Boolean);
+            const locationString = locationParts.join(", ");
+            return (
+              <div className="space-y-1">
+                <h3 className="text-lg font-semibold text-gray-800">Address</h3>
+                <p className="text-base text-gray-600">
+                  {locationString || "Not specified"}
+                </p>
+              </div>
+            );
+          }
+          return (
+            <div className="space-y-1">
+              <h3 className="text-lg font-semibold text-gray-800">
+                {personalLabelMap[item.content.key] || item.content.key}
+              </h3>
+              <p className="text-base text-gray-600">
+                {item.content.value || "Not specified"}
+              </p>
+            </div>
+          );
+        case "experience":
+          return (
+            <div className="space-y-1 mb-4">
+              <h4 className="text-lg font-semibold text-gray-800">
+                {item.content.job_title}
+              </h4>
+              <p className="text-base font-medium text-gray-700">
+                {item.content.organization}
+              </p>
+              <p className="text-sm text-gray-600">{`${item.content.start_date} - ${item.content.end_date}`}</p>
+              <p className="text-sm text-gray-700 mt-2">
+                {item.content.responsibilities}
+              </p>
+            </div>
+          );
+        case "education":
+          return (
+            <div className="space-y-1 mb-4">
+              <h4 className="text-lg font-semibold text-gray-800">
+                {item.content.degree}
+              </h4>
+              <p className="text-base font-medium text-gray-700">
+                {item.content.institution}
+              </p>
+              <p className="text-sm text-gray-600">{`${item.content.start_date} - ${item.content.end_date}`}</p>
+            </div>
+          );
+          case "skills":
+            return (
+              <div className="space-y-1">
+                <h3 className="text-lg font-semibold text-gray-800">Skill</h3>
+                <p className="text-base text-gray-600">{item.content.value}</p>
+              </div>
+            );
+        case "certifications":
+          return (
+            <div className="space-y-1 mb-2">
+              <h4 className="text-base font-semibold text-gray-800">
+                {item.content.name}
+              </h4>
+              <p className="text-sm text-gray-700">
+                {item.content.issuing_organization}
+              </p>
+              <p className="text-sm text-gray-600">{`Obtained: ${item.content.date_obtained}`}</p>
+            </div>
+          );
+        case "projects":
+          return (
+            <div className="space-y-1 mb-4">
+              <h4 className="text-lg font-semibold text-gray-800">
+                {item.content.title}
+              </h4>
+              <p className="text-sm text-gray-700">
+                {item.content.description}
+              </p>
+            </div>
+          );
+        case "publications":
+          return (
+            <div className="space-y-1 mb-4">
+              <h4 className="text-base font-semibold text-gray-800">
+                {item.content.title}
+              </h4>
+              <p className="text-sm text-gray-700">
+                {item.content.journal_or_conference}
+              </p>
+              <p className="text-sm text-gray-600">{`Published: ${item.content.publication_date}`}</p>
+            </div>
+          );
+        default:
+          return null;
+      }
+    })();
 
-  return (
-    <div className="relative">
-      {content}
-      {itemAlert && (
-        <div className="mt-1.5">
-          <Alert
-            message={itemAlert.message}
-            isMinimized={itemAlert.isMinimized}
-            onToggleMinimize={() => toggleAlertMinimize(item.id)}
-          />
-        </div>
-      )}
-    </div>
-  );
-};
+    const itemAlert = alerts.find((alert) => alert.id === item.id);
+
+    return (
+      <div className="relative">
+        {content}
+        {itemAlert && (
+          <div className="mt-1.5">
+            <Alert
+              message={itemAlert.message}
+              isMinimized={itemAlert.isMinimized}
+              onToggleMinimize={() => toggleAlertMinimize(item.id)}
+            />
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const renderPreview = () => {
     const groupedItems = items.preview.reduce((acc, item) => {
@@ -662,3 +662,4 @@ const renderItemContent = (item: Item) => {
 };
 
 export default ResumeBuilder;
+

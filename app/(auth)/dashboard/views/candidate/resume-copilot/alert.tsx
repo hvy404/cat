@@ -21,7 +21,7 @@ const Alert: React.FC<AlertProps> = ({ message, isMinimized, onToggleMinimize })
             style={{ maxWidth: '250px', minHeight: '16px' }}
           >
             <div className="w-4 h-4 rounded-full bg-blue-400 flex-shrink-0" />
-            <p className="text-blue-700 text-xs font-medium truncate px-2">{message}</p>
+            <p className="text-blue-700 text-xs font-medium px-2">{message}</p>
           </motion.div>
         )}
       </AnimatePresence>
