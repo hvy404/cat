@@ -9,26 +9,35 @@ interface AlertProps {
 
 const Alert: React.FC<AlertProps> = ({ message, isMinimized, onToggleMinimize }) => {
   return (
-    <div className="relative" style={{ height: '16px' }}>
+    <div className="mt-2">
       <AnimatePresence>
-        {!isMinimized && (
+        {isMinimized ? (
           <motion.div
-            initial={{ width: 16, opacity: 0 }}
-            animate={{ width: 'auto', opacity: 1 }}
-            exit={{ width: 16, opacity: 0 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="bg-blue-50 shadow-sm rounded-full overflow-hidden border border-blue-100 absolute left-0 top-0 flex items-center"
-            style={{ maxWidth: '250px', minHeight: '16px' }}
+            key="minimized"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="w-4 h-4 rounded-full bg-blue-400 cursor-pointer"
+            onClick={onToggleMinimize}
+          />
+        ) : (
+          <motion.div
+            key="expanded"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="bg-blue-50 shadow-sm rounded-lg overflow-hidden border border-blue-100"
           >
-            <div className="w-4 h-4 rounded-full bg-blue-400 flex-shrink-0" />
-            <p className="text-blue-700 text-xs font-medium px-2">{message}</p>
+            <div className="flex items-start p-2">
+              <div 
+                className="w-4 h-4 rounded-full bg-blue-400 cursor-pointer flex-shrink-0 mt-0.5 mr-2"
+                onClick={onToggleMinimize}
+              />
+              <p className="text-blue-700 text-xs font-medium flex-grow">{message}</p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
-      <div 
-        className={`w-4 h-4 rounded-full bg-blue-400 cursor-pointer absolute left-0 top-0 ${isMinimized ? '' : 'z-10'}`}
-        onClick={onToggleMinimize}
-      />
     </div>
   );
 };

@@ -546,18 +546,16 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     const itemAlert = alerts.find((alert) => alert.id === item.id);
 
     return (
-      <div className="relative">
-        {content}
-        {itemAlert && (
-          <div className="mt-1.5">
-            <Alert
-              message={itemAlert.message}
-              isMinimized={itemAlert.isMinimized}
-              onToggleMinimize={() => toggleAlertMinimize(item.id)}
-            />
-          </div>
-        )}
-      </div>
+      <div>
+      {content}
+      {itemAlert && (
+        <Alert
+          message={itemAlert.message}
+          isMinimized={itemAlert.isMinimized}
+          onToggleMinimize={() => toggleAlertMinimize(item.id)}
+        />
+      )}
+    </div>
     );
   };
 
@@ -630,7 +628,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     >
       <div className="flex gap-6 h-[calc(100vh-12rem)] overflow-hidden">
         <div className="w-1/3 flex flex-col">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          <h2 className="text-md font-semibold text-gray-800 mb-4">
             Available Items
           </h2>
           <div className="flex-1 overflow-y-auto pr-4">
@@ -644,7 +642,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           </div>
         </div>
         <div className="w-2/3 flex flex-col">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          <h2 className="text-md font-semibold text-gray-800 mb-4">
             Resume Preview
           </h2>
           <div className="flex-1 overflow-y-auto pr-4">
