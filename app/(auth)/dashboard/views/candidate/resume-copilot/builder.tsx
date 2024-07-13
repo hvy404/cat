@@ -19,6 +19,7 @@ import { Item, ItemType } from "./types";
 import Alert from "./alert";
 import { buildAndLogPrompt } from "./promptBuilder";
 import { useDebounce } from "./useDebounce";
+import { z } from "zod";
 
 interface ResumeBuilderProps {
   talentProfile: TalentProfile;
@@ -61,12 +62,10 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     })
   );
 
-
-
   useEffect(() => {
     if (talentProfile) {
       const generateId = (type: string, index: number) => `${type}-${index}`;
-  
+
       const availableItems: Item[] = [
         // Personal items
         ...Object.entries(talentProfile.talent ?? {}).map(
@@ -113,7 +112,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           content: pub,
         })),
       ];
-  
+
       setItems((prev) => ({
         available: availableItems.filter(
           (item) => !selectedItems.some((selected) => selected.id === item.id)
@@ -256,7 +255,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
               index === existingAlertIndex
                 ? {
                     ...alert,
-                    message: "Item added to resume, Item added to resume, Item added to resume, Item added to resume",
+                    message:
+                      "Item added to resume, Item added to resume, Item added to resume, Item added to resume",
                     isMinimized: false,
                   }
                 : alert
@@ -265,7 +265,12 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             // Add new alert
             return [
               ...minimizedAlerts,
-              { id, message: "Item added to resume, Item added to resume, Item added to resume, Item added to resume", isMinimized: false },
+              {
+                id,
+                message:
+                  "Item added to resume, Item added to resume, Item added to resume, Item added to resume",
+                isMinimized: false,
+              },
             ];
           }
         });
@@ -326,11 +331,14 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     title: "Job Title",
     email: "Email Address",
     name: "Full Name",
+    zipcode: "Zip Code",
+    city: "City",
+    state: "State",
   };
 
   const renderCondensedItemContent = (item: Item) => {
     const renderLabel = (label: string) => (
-      <span className="inline-block bg-gray-100 rounded-full px-3 py-1 text-xs font-medium text-gray-700 mr-2 mb-2">
+      <span className="inline-block bg-gray-100 rounded-full px-3 py-1 text-xs font-medium text-gray-700 mr-2 mb-2 select-none">
         {label}
       </span>
     );
@@ -346,9 +354,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           const locationParts = [city, state, zipcode].filter(Boolean);
           const locationString = locationParts.join(", ");
           return (
-            <div className="space-y-1">
+            <div className="space-y-1 select-none">
               {renderLabel("Personal")}
-              <h3 className="text-lg font-semibold text-gray-800">Address</h3>
+              <h3 className="text-md font-semibold text-gray-800">Address</h3>
               <p className="text-sm text-gray-600">
                 {locationString || "Not specified"}
               </p>
@@ -356,9 +364,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           );
         }
         return (
-          <div className="space-y-1">
+          <div className="space-y-1 select-none">
             {renderLabel("Personal")}
-            <h3 className="text-lg font-semibold text-gray-800">
+            <h3 className="text-md font-semibold text-gray-800">
               {personalLabelMap[item.content.key] || item.content.key}
             </h3>
             <p className="text-sm text-gray-600">
@@ -368,9 +376,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         );
       case "experience":
         return (
-          <div className="space-y-1">
+          <div className="space-y-1 select-none">
             {renderLabel("Experience")}
-            <h4 className="text-base font-semibold text-gray-800">
+            <h4 className="text-md font-semibold text-gray-800">
               {item.content.job_title}
             </h4>
             <p className="text-sm text-gray-600">{item.content.organization}</p>
@@ -378,28 +386,28 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         );
       case "education":
         return (
-          <div className="space-y-1">
+          <div className="space-y-1 select-none">
             {renderLabel("Education")}
-            <h4 className="text-base font-semibold text-gray-800">
+            <h4 className="text-md font-semibold text-gray-800">
               {item.content.degree}
             </h4>
             <p className="text-sm text-gray-600">{item.content.institution}</p>
           </div>
         );
-        case "skills":
-          return (
-            <div className="space-y-1">
-              {renderLabel("Skill")}
-              <h4 className="text-base font-semibold text-gray-800">
-                {item.content.value}
-              </h4>
-            </div>
-          );
+      case "skills":
+        return (
+          <div className="space-y-1 select-none">
+            {renderLabel("Skill")}
+            <h4 className="text-sm text-gray-800">
+              {item.content.value}
+            </h4>
+          </div>
+        );
       case "certifications":
         return (
-          <div className="space-y-1">
+          <div className="space-y-1 select-none">
             {renderLabel("Certification")}
-            <h4 className="text-base font-semibold text-gray-800">
+            <h4 className="text-sm text-gray-800">
               {item.content.name}
             </h4>
             <p className="text-sm text-gray-600">
@@ -409,18 +417,18 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         );
       case "projects":
         return (
-          <div className="space-y-1">
+          <div className="space-y-1 select-none">
             {renderLabel("Project")}
-            <h4 className="text-base font-semibold text-gray-800">
+            <h4 className="text-md font-semibold text-gray-800">
               {item.content.title}
             </h4>
           </div>
         );
       case "publications":
         return (
-          <div className="space-y-1">
+          <div className="space-y-1 select-none">
             {renderLabel("Publication")}
-            <h4 className="text-base font-semibold text-gray-800">
+            <h4 className="text-md font-semibold text-gray-800">
               {item.content.title}
             </h4>
           </div>
@@ -443,31 +451,31 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             const locationParts = [city, state, zipcode].filter(Boolean);
             const locationString = locationParts.join(", ");
             return (
-              <div className="space-y-1">
-                <h3 className="text-lg font-semibold text-gray-800">Address</h3>
-                <p className="text-base text-gray-600">
+              <div className="space-y-1 select-none">
+                <h3 className="text-md font-semibold text-gray-800">Address</h3>
+                <p className="text-sm text-gray-600">
                   {locationString || "Not specified"}
                 </p>
               </div>
             );
           }
           return (
-            <div className="space-y-1">
-              <h3 className="text-lg font-semibold text-gray-800">
+            <div className="space-y-1 select-none">
+              <h3 className="text-md font-semibold text-gray-800">
                 {personalLabelMap[item.content.key] || item.content.key}
               </h3>
-              <p className="text-base text-gray-600">
+              <p className="text-sm text-gray-600">
                 {item.content.value || "Not specified"}
               </p>
             </div>
           );
         case "experience":
           return (
-            <div className="space-y-1 mb-4">
-              <h4 className="text-lg font-semibold text-gray-800">
+            <div className="space-y-1 mb-4 select-none">
+              <h4 className="text-md font-semibold text-gray-800">
                 {item.content.job_title}
               </h4>
-              <p className="text-base font-medium text-gray-700">
+              <p className="text-sm font-medium text-gray-700">
                 {item.content.organization}
               </p>
               <p className="text-sm text-gray-600">{`${item.content.start_date} - ${item.content.end_date}`}</p>
@@ -478,27 +486,27 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           );
         case "education":
           return (
-            <div className="space-y-1 mb-4">
-              <h4 className="text-lg font-semibold text-gray-800">
+            <div className="space-y-1 mb-4 select-none">
+              <h4 className="text-md font-semibold text-gray-800">
                 {item.content.degree}
               </h4>
-              <p className="text-base font-medium text-gray-700">
+              <p className="text-sm font-medium text-gray-700">
                 {item.content.institution}
               </p>
               <p className="text-sm text-gray-600">{`${item.content.start_date} - ${item.content.end_date}`}</p>
             </div>
           );
-          case "skills":
-            return (
-              <div className="space-y-1">
-                <h3 className="text-lg font-semibold text-gray-800">Skill</h3>
-                <p className="text-base text-gray-600">{item.content.value}</p>
-              </div>
-            );
+        case "skills":
+          return (
+            <div className="space-y-1 select-none">
+              <h3 className="text-md font-semibold text-gray-800">Skill</h3>
+              <p className="text-sm text-gray-600">{item.content.value}</p>
+            </div>
+          );
         case "certifications":
           return (
-            <div className="space-y-1 mb-2">
-              <h4 className="text-base font-semibold text-gray-800">
+            <div className="space-y-1 mb-2 select-none">
+              <h4 className="text-sm font-semibold text-gray-800">
                 {item.content.name}
               </h4>
               <p className="text-sm text-gray-700">
@@ -509,8 +517,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           );
         case "projects":
           return (
-            <div className="space-y-1 mb-4">
-              <h4 className="text-lg font-semibold text-gray-800">
+            <div className="space-y-1 mb-4 select-none">
+              <h4 className="text-md font-semibold text-gray-800">
                 {item.content.title}
               </h4>
               <p className="text-sm text-gray-700">
@@ -520,8 +528,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           );
         case "publications":
           return (
-            <div className="space-y-1 mb-4">
-              <h4 className="text-base font-semibold text-gray-800">
+            <div className="space-y-1 mb-4 select-none">
+              <h4 className="text-sm font-semibold text-gray-800">
                 {item.content.title}
               </h4>
               <p className="text-sm text-gray-700">
@@ -587,7 +595,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
               key={sectionType}
               className="pb-4 border-b border-gray-200 last:border-b-0"
             >
-              <h2 className="text-xl font-bold text-gray-800 mb-4 uppercase">
+              <h2 className="text-lg font-bold text-gray-800 mb-4 uppercase">
                 {sectionType}
               </h2>
               {sectionType === "personal" ? (
@@ -662,4 +670,3 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
 };
 
 export default ResumeBuilder;
-
