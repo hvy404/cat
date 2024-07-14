@@ -55,7 +55,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       id: string;
       message: {
         recentEdit: string;
-        nextAction: "add" | "remove" | "modify";
+        nextAction: "add" | "remove" | "modify" | "none";
         nextReason: string;
       };
       isMinimized: boolean;

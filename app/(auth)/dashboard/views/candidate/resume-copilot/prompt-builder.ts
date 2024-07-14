@@ -5,7 +5,7 @@ import { Item } from "./types";
 import OpenAI from "openai";
 
 interface HistoryEntry {
-  action: "add" | "remove" | "reorder";
+  action: "add" | "remove" | "reorder | modify";
   itemId: string;
   timestamp: number;
 }
@@ -38,7 +38,7 @@ export const buildAndLogPrompt = async (
   role: string
 ): Promise<{
   recentEdit: string;
-  nextAction: "add" | "remove" | "modify";
+  nextAction: "add" | "remove" | "modify" | "none";
   nextItem: string;
   nextReason: string;
 } | null> => {
@@ -179,7 +179,7 @@ ${JSON.stringify(relevantTalentProfileData, null, 2)}`;
             // Transform to expected format
             return {
               recentEdit: parsedResponse.recentEdit,
-              nextAction: parsedResponse.nextAction === "none" ? "modify" : parsedResponse.nextAction,
+              nextAction: parsedResponse.nextAction,
               nextItem: parsedResponse.nextItem,
               nextReason: parsedResponse.nextReason,
             };
