@@ -50,12 +50,23 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   });
   const [activeId, setActiveId] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [alerts, setAlerts] = useState<AlertState[]>([]);
+  const [alerts, setAlerts] = useState<
+    {
+      id: string;
+      message: {
+        recentEdit: string;
+        nextAction: "add" | "remove" | "modify";
+        nextReason: string;
+      };
+      isMinimized: boolean;
+    }[]
+  >([]);
   const [lastModifiedItemId, setLastModifiedItemId] = useState<string | null>(
     null
   );
-  const [processingItems, setProcessingItems] = useState<Set<string>>(new Set());
-
+  const [processingItems, setProcessingItems] = useState<Set<string>>(
+    new Set()
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -164,11 +175,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         buildAndLogPrompt(items, history, talentProfile, "Data Scientist")
           .then((result) => {
             if (result) {
-              const { reason } = result;
+              const { recentEdit, nextAction, nextReason } = result;
               setAlerts((prevAlerts) => {
                 const newAlert = {
                   id: lastModifiedItemId,
-                  message: reason,
+                  message: { recentEdit, nextAction, nextReason },
                   isMinimized: false,
                 };
 
@@ -588,10 +599,10 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           return null;
       }
     })();
-  
+
     const itemAlert = alerts.find((alert) => alert.id === item.id);
     const isProcessing = processingItems.has(item.id);
-  
+
     return (
       <div className="flex flex-col h-full">
         <div className="flex-grow">{content}</div>

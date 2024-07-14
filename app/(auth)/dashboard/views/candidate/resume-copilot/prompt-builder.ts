@@ -37,9 +37,10 @@ export const buildAndLogPrompt = async (
   talentProfile: TalentProfile,
   role: string
 ): Promise<{
-  action: "add" | "remove" | "modify";
-  item: string;
-  reason: string;
+  recentEdit: string;
+  nextAction: "add" | "remove" | "modify";
+  nextItem: string;
+  nextReason: string;
 } | null> => {
   const findTalentProfileData = (item: Item): any => {
     const [type, indexStr] = item.id.split("-");
@@ -87,7 +88,7 @@ Recommend ONE of the following actions:
 a) Remove an existing item
 b) Add a new item from the Available Talent Resume Items
 c) Modify an existing item
-d) No action needed (only if the resume is optimal)
+d) No action needed (suggest that the user is on the right track and you have no specific recommendations at this time)
 
 Rules:
 Make only one suggestion per response.
@@ -162,25 +163,25 @@ ${JSON.stringify(relevantTalentProfileData, null, 2)}`;
             nextItem: string;
             nextReason: string;
           };
-
+    
           if (
             typeof parsedResponse === "object" &&
             parsedResponse !== null &&
+            "recentEdit" in parsedResponse &&
             "nextAction" in parsedResponse &&
             "nextItem" in parsedResponse &&
             "nextReason" in parsedResponse &&
+            typeof parsedResponse.recentEdit === "string" &&
             typeof parsedResponse.nextAction === "string" &&
             typeof parsedResponse.nextItem === "string" &&
             typeof parsedResponse.nextReason === "string"
           ) {
             // Transform to expected format
             return {
-              action:
-                parsedResponse.nextAction === "none"
-                  ? "modify"
-                  : parsedResponse.nextAction,
-              item: parsedResponse.nextItem,
-              reason: parsedResponse.nextReason,
+              recentEdit: parsedResponse.recentEdit,
+              nextAction: parsedResponse.nextAction === "none" ? "modify" : parsedResponse.nextAction,
+              nextItem: parsedResponse.nextItem,
+              nextReason: parsedResponse.nextReason,
             };
           }
         } catch (parseError) {
