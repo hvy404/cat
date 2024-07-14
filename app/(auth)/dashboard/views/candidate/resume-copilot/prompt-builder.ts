@@ -94,6 +94,8 @@ Rules:
 Make only one suggestion per response.
 Ensure your suggestion directly relates to the most recent edit.
 
+Tone: Friendly, supportive, and focused on the user's success.
+
 IMPORTANT: Always refer to items by their human-readable name or reference:
 Experiences: Use the job title (e.g., "VP, Software Engineer" instead of "experience-0")
 Education: Use the degree name (e.g., "Master of Sociology" instead of "education-0")
@@ -153,7 +155,7 @@ ${JSON.stringify(relevantTalentProfileData, null, 2)}`;
       });
 
       const aiResponse = response.choices[0].message.content;
-      console.log("AI Response:", aiResponse);
+      //console.log("AI Response:", aiResponse);
 
       if (typeof aiResponse === "string" && isValidJson(aiResponse)) {
         try {

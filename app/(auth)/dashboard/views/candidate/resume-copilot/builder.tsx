@@ -1,4 +1,4 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -67,6 +67,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   const [processingItems, setProcessingItems] = useState<Set<string>>(
     new Set()
   );
+  const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -172,6 +174,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   const debouncedBuildAndLogPrompt = useDebounce(
     (items, history, talentProfile, lastModifiedItemId) => {
       return new Promise<void>((resolve) => {
+        // Add the item to processingItems right before calling the AI
+        setProcessingItems((prevProcessing) => new Set(prevProcessing).add(lastModifiedItemId));
+  
         buildAndLogPrompt(items, history, talentProfile, "Data Scientist")
           .then((result) => {
             if (result) {
@@ -182,7 +187,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
                   message: { recentEdit, nextAction, nextReason },
                   isMinimized: false,
                 };
-
+  
                 const existingAlertIndex = prevAlerts.findIndex(
                   (alert) => alert.id === lastModifiedItemId
                 );
@@ -215,6 +220,16 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     }
 
     if (items.preview.length > 0 && history.length > 0 && lastModifiedItemId) {
+      // Clear any existing timeout
+      if (processingTimeoutRef.current) {
+        clearTimeout(processingTimeoutRef.current);
+      }
+
+      // Set a new timeout to add the item to processingItems after the debounce delay
+      processingTimeoutRef.current = setTimeout(() => {
+        setProcessingItems((prevProcessing) => new Set(prevProcessing).add(lastModifiedItemId));
+      }, 3000);
+
       debouncedBuildAndLogPrompt(
         items,
         history,
@@ -257,76 +272,79 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   };
 
   const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-    const id = active.id as string;
-    const overId = over?.id as string;
+  const { active, over } = event;
+  const id = active.id as string;
+  const overId = over?.id as string;
 
-    const activeContainer = findContainer(id);
-    const overContainer = findContainer(overId);
+  const activeContainer = findContainer(id);
+  const overContainer = findContainer(overId);
 
-    if (
-      !activeContainer ||
-      !overContainer ||
-      activeContainer === overContainer
-    ) {
-      return;
+  if (
+    !activeContainer ||
+    !overContainer ||
+    activeContainer === overContainer
+  ) {
+    return;
+  }
+
+  setItems((prev) => {
+    const activeItems = prev[activeContainer];
+    const overItems = prev[overContainer];
+
+    if (!activeItems || !overItems) {
+      console.error("Invalid containers:", {
+        activeContainer,
+        overContainer,
+        prev,
+      });
+      return prev;
     }
 
-    setItems((prev) => {
-      const activeItems = prev[activeContainer];
-      const overItems = prev[overContainer];
+    const activeIndex = activeItems.findIndex((item) => item.id === id);
+    const overIndex = overItems.findIndex((item) => item.id === overId);
 
-      if (!activeItems || !overItems) {
-        console.error("Invalid containers:", {
-          activeContainer,
-          overContainer,
-          prev,
-        });
-        return prev;
-      }
+    let newIndex: number;
+    if (overId in prev) {
+      newIndex = overItems.length + 1;
+    } else {
+      const isBelowLastItem = over && overIndex === overItems.length - 1;
+      newIndex = isBelowLastItem ? overIndex + 1 : overIndex;
+    }
 
-      const activeIndex = activeItems.findIndex((item) => item.id === id);
-      const overIndex = overItems.findIndex((item) => item.id === overId);
+    const newItems = {
+      ...prev,
+      [activeContainer]: [
+        ...prev[activeContainer].filter((item) => item.id !== active.id),
+      ],
+      [overContainer]: [
+        ...prev[overContainer].slice(0, newIndex),
+        activeItems[activeIndex],
+        ...prev[overContainer].slice(newIndex, prev[overContainer].length),
+      ],
+    };
 
-      let newIndex: number;
-      if (overId in prev) {
-        newIndex = overItems.length + 1;
-      } else {
-        const isBelowLastItem = over && overIndex === overItems.length - 1;
-        newIndex = isBelowLastItem ? overIndex + 1 : overIndex;
-      }
+    const action =
+      activeContainer === "available" && overContainer === "preview"
+        ? ("add" as const)
+        : ("remove" as const);
+    const newHistoryEntry: HistoryEntry = {
+      action,
+      itemId: id,
+      timestamp: Date.now(),
+    };
+    setHistory((prevHistory) => [...prevHistory, newHistoryEntry]);
+    setLastModifiedItemId(id);
 
-      const newItems = {
-        ...prev,
-        [activeContainer]: [
-          ...prev[activeContainer].filter((item) => item.id !== active.id),
-        ],
-        [overContainer]: [
-          ...prev[overContainer].slice(0, newIndex),
-          activeItems[activeIndex],
-          ...prev[overContainer].slice(newIndex, prev[overContainer].length),
-        ],
-      };
+    // Clear any existing timeout when a new drag occurs
+    if (processingTimeoutRef.current) {
+      clearTimeout(processingTimeoutRef.current);
+    }
 
-      const action =
-        activeContainer === "available" && overContainer === "preview"
-          ? ("add" as const)
-          : ("remove" as const);
-      const newHistoryEntry: HistoryEntry = {
-        action,
-        itemId: id,
-        timestamp: Date.now(),
-      };
-      setHistory((prevHistory) => [...prevHistory, newHistoryEntry]);
-      setLastModifiedItemId(id);
+    // Don't add to processingItems here anymore
 
-      if (activeContainer === "available" && overContainer === "preview") {
-        setProcessingItems((prevProcessing) => new Set(prevProcessing).add(id));
-      }
-
-      return newItems;
-    });
-  };
+    return newItems;
+  });
+};
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
