@@ -9,7 +9,7 @@ interface AlertProps {
 
 const Alert: React.FC<AlertProps> = ({ message, isMinimized, onToggleMinimize }) => {
   return (
-    <div className="mt-2">
+    <div className="w-full">
       <AnimatePresence>
         {isMinimized ? (
           <motion.div
@@ -17,7 +17,7 @@ const Alert: React.FC<AlertProps> = ({ message, isMinimized, onToggleMinimize })
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="w-4 h-4 rounded-full bg-green-400 cursor-pointer"
+            className="w-4 h-4 rounded-full bg-green-400 cursor-pointer ml-2 mb-2"
             onClick={onToggleMinimize}
           />
         ) : (
@@ -26,7 +26,7 @@ const Alert: React.FC<AlertProps> = ({ message, isMinimized, onToggleMinimize })
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="bg-green-50 shadow-sm rounded-lg overflow-hidden border border-green-100"
+            className="bg-green-50 shadow-sm rounded-lg overflow-hidden border border-green-100 mb-2"
           >
             <div className="flex items-start p-2">
               <div 

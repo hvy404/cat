@@ -17,9 +17,9 @@ import Container from "./container";
 import SortableItem from "./sortable";
 import { Item, ItemType } from "./types";
 import Alert from "./alert";
-import { buildAndLogPrompt } from "./promptBuilder";
-import { useDebounce } from "./useDebounce";
-import { z } from "zod";
+import { buildAndLogPrompt } from "./prompt-builder";
+import { useDebounce } from "./use-debounce";
+import Spinner from "./spinner";
 
 interface ResumeBuilderProps {
   talentProfile: TalentProfile;
@@ -50,10 +50,12 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   });
   const [activeId, setActiveId] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [recentlyAddedItem, setRecentlyAddedItem] = useState<string | null>(
+  const [alerts, setAlerts] = useState<AlertState[]>([]);
+  const [lastModifiedItemId, setLastModifiedItemId] = useState<string | null>(
     null
   );
-  const [alerts, setAlerts] = useState<AlertState[]>([]);
+  const [processingItems, setProcessingItems] = useState<Set<string>>(new Set());
+
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -61,6 +63,10 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  useEffect(() => {
+    console.log("Current alerts:", alerts);
+  }, [alerts]);
 
   // Presets
   const moveItemsToPreview = (itemKeys: string[]) => {
@@ -153,8 +159,41 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   }, []);
 
   const debouncedBuildAndLogPrompt = useDebounce(
-    (items, history, talentProfile) => {
-      buildAndLogPrompt(items, history, talentProfile);
+    (items, history, talentProfile, lastModifiedItemId) => {
+      return new Promise<void>((resolve) => {
+        buildAndLogPrompt(items, history, talentProfile, "Data Scientist")
+          .then((result) => {
+            if (result) {
+              const { reason } = result;
+              setAlerts((prevAlerts) => {
+                const newAlert = {
+                  id: lastModifiedItemId,
+                  message: reason,
+                  isMinimized: false,
+                };
+
+                const existingAlertIndex = prevAlerts.findIndex(
+                  (alert) => alert.id === lastModifiedItemId
+                );
+                if (existingAlertIndex !== -1) {
+                  return prevAlerts.map((alert, index) =>
+                    index === existingAlertIndex ? newAlert : alert
+                  );
+                } else {
+                  return [...prevAlerts, newAlert];
+                }
+              });
+            }
+          })
+          .finally(() => {
+            setProcessingItems((prevProcessing) => {
+              const newProcessing = new Set(prevProcessing);
+              newProcessing.delete(lastModifiedItemId);
+              return newProcessing;
+            });
+            resolve();
+          });
+      });
     },
     3000 // 3 seconds delay
   );
@@ -164,30 +203,30 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       onSelectedItemsChange(items.preview);
     }
 
-    // Call the debounced version of buildAndLogPrompt
-    if (items.preview.length > 0 && history.length > 0) {
-      debouncedBuildAndLogPrompt(items, history, talentProfile);
+    if (items.preview.length > 0 && history.length > 0 && lastModifiedItemId) {
+      debouncedBuildAndLogPrompt(
+        items,
+        history,
+        talentProfile,
+        lastModifiedItemId
+      );
     }
 
-    // Dismiss the alert when a new item is added
-    if (
-      recentlyAddedItem &&
-      !items.preview.some((item) => item.id === recentlyAddedItem)
-    ) {
-      setRecentlyAddedItem(null);
-    }
+    setLastModifiedItemId(null);
   }, [
     items.preview,
     onSelectedItemsChange,
     history,
     talentProfile,
-    recentlyAddedItem,
+    lastModifiedItemId,
   ]);
 
   const toggleAlertMinimize = (id: string) => {
     setAlerts((prevAlerts) =>
       prevAlerts.map((alert) =>
-        alert.id === id ? { ...alert, isMinimized: !alert.isMinimized } : alert
+        alert.id === id
+          ? { ...alert, isMinimized: !alert.isMinimized }
+          : { ...alert, isMinimized: true }
       )
     );
   };
@@ -226,6 +265,15 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       const activeItems = prev[activeContainer];
       const overItems = prev[overContainer];
 
+      if (!activeItems || !overItems) {
+        console.error("Invalid containers:", {
+          activeContainer,
+          overContainer,
+          prev,
+        });
+        return prev;
+      }
+
       const activeIndex = activeItems.findIndex((item) => item.id === id);
       const overIndex = overItems.findIndex((item) => item.id === overId);
 
@@ -249,53 +297,20 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         ],
       };
 
-      // Update history
       const action =
         activeContainer === "available" && overContainer === "preview"
-          ? "add"
-          : "remove";
-      setHistory((prevHistory) => [
-        ...prevHistory,
-        { action, itemId: id, timestamp: Date.now() },
-      ]);
+          ? ("add" as const)
+          : ("remove" as const);
+      const newHistoryEntry: HistoryEntry = {
+        action,
+        itemId: id,
+        timestamp: Date.now(),
+      };
+      setHistory((prevHistory) => [...prevHistory, newHistoryEntry]);
+      setLastModifiedItemId(id);
 
-      // Add or update alert when moving from available to preview
       if (activeContainer === "available" && overContainer === "preview") {
-        setAlerts((prevAlerts) => {
-          // Minimize all existing alerts
-          const minimizedAlerts = prevAlerts.map((alert) => ({
-            ...alert,
-            isMinimized: true,
-          }));
-
-          const existingAlertIndex = minimizedAlerts.findIndex(
-            (alert) => alert.id === id
-          );
-          if (existingAlertIndex !== -1) {
-            // Update existing alert
-            return minimizedAlerts.map((alert, index) =>
-              index === existingAlertIndex
-                ? {
-                    ...alert,
-                    message:
-                      "Item added to resume, Item added to resume, Item added to resume, Item added to resume",
-                    isMinimized: false,
-                  }
-                : alert
-            );
-          } else {
-            // Add new alert
-            return [
-              ...minimizedAlerts,
-              {
-                id,
-                message:
-                  "Item added to resume, Item added to resume, Item added to resume, Item added to resume",
-                isMinimized: false,
-              },
-            ];
-          }
-        });
+        setProcessingItems((prevProcessing) => new Set(prevProcessing).add(id));
       }
 
       return newItems;
@@ -318,29 +333,42 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       return;
     }
 
-    const activeIndex = items[activeContainer].findIndex(
-      (item) => item.id === id
-    );
-    const overIndex = items[overContainer].findIndex(
-      (item) => item.id === overId
-    );
+    setItems((prevItems) => {
+      if (!prevItems[overContainer]) {
+        console.error("Invalid container:", { overContainer, prevItems });
+        return prevItems;
+      }
 
-    if (activeIndex !== overIndex) {
-      setItems((items) => ({
-        ...items,
-        [overContainer]: arrayMove(
-          items[overContainer],
-          activeIndex,
-          overIndex
-        ),
-      }));
+      const activeIndex = prevItems[overContainer].findIndex(
+        (item) => item.id === id
+      );
+      const overIndex = prevItems[overContainer].findIndex(
+        (item) => item.id === overId
+      );
 
-      // Update history for reordering
-      setHistory((prevHistory) => [
-        ...prevHistory,
-        { action: "reorder", itemId: id, timestamp: Date.now() },
-      ]);
-    }
+      if (activeIndex !== overIndex) {
+        const newItems = {
+          ...prevItems,
+          [overContainer]: arrayMove(
+            prevItems[overContainer],
+            activeIndex,
+            overIndex
+          ),
+        };
+
+        const newHistoryEntry: HistoryEntry = {
+          action: "reorder",
+          itemId: id,
+          timestamp: Date.now(),
+        };
+        setHistory((prevHistory) => [...prevHistory, newHistoryEntry]);
+        setLastModifiedItemId(id);
+
+        return newItems;
+      }
+
+      return prevItems;
+    });
 
     setActiveId(null);
   };
@@ -489,7 +517,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           );
         case "experience":
           return (
-            <div className="space-y-1 mb-4 select-none">
+            <div className="space-y-1 select-none">
               <h4 className="text-md font-semibold text-gray-800">
                 {item.content.job_title}
               </h4>
@@ -504,7 +532,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           );
         case "education":
           return (
-            <div className="space-y-1 mb-4 select-none">
+            <div className="space-y-1 select-none">
               <h4 className="text-md font-semibold text-gray-800">
                 {item.content.degree}
               </h4>
@@ -523,7 +551,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           );
         case "certifications":
           return (
-            <div className="space-y-1 mb-2 select-none">
+            <div className="space-y-1 select-none">
               <h4 className="text-sm font-semibold text-gray-800">
                 {item.content.name}
               </h4>
@@ -535,7 +563,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           );
         case "projects":
           return (
-            <div className="space-y-1 mb-4 select-none">
+            <div className="space-y-1 select-none">
               <h4 className="text-md font-semibold text-gray-800">
                 {item.content.title}
               </h4>
@@ -546,7 +574,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           );
         case "publications":
           return (
-            <div className="space-y-1 mb-4 select-none">
+            <div className="space-y-1 select-none">
               <h4 className="text-sm font-semibold text-gray-800">
                 {item.content.title}
               </h4>
@@ -560,24 +588,36 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           return null;
       }
     })();
-
+  
     const itemAlert = alerts.find((alert) => alert.id === item.id);
-
+    const isProcessing = processingItems.has(item.id);
+  
     return (
-      <div>
-        {content}
-        {itemAlert && (
-          <Alert
-            message={itemAlert.message}
-            isMinimized={itemAlert.isMinimized}
-            onToggleMinimize={() => toggleAlertMinimize(item.id)}
-          />
-        )}
+      <div className="flex flex-col h-full">
+        <div className="flex-grow">{content}</div>
+        <div className="mt-auto pt-2">
+          {isProcessing ? (
+            <div className="flex items-center justify-center h-8">
+              <Spinner />
+            </div>
+          ) : itemAlert ? (
+            <Alert
+              message={itemAlert.message}
+              isMinimized={itemAlert.isMinimized}
+              onToggleMinimize={() => toggleAlertMinimize(item.id)}
+            />
+          ) : null}
+        </div>
       </div>
     );
   };
 
   const renderPreview = () => {
+    if (!items.preview) {
+      console.error("Preview items are undefined");
+      return null;
+    }
+
     const groupedItems = items.preview.reduce((acc, item) => {
       if (!acc[item.type]) {
         acc[item.type] = [];
@@ -618,14 +658,14 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
                 <div className="grid grid-cols-2 gap-4">
                   {groupedItems[sectionType].map((item) => (
                     <SortableItem key={item.id} id={item.id}>
-                      {renderItemContent(item)}
+                      <div className="relative">{renderItemContent(item)}</div>
                     </SortableItem>
                   ))}
                 </div>
               ) : (
                 groupedItems[sectionType].map((item) => (
                   <SortableItem key={item.id} id={item.id}>
-                    {renderItemContent(item)}
+                    <div className="relative">{renderItemContent(item)}</div>
                   </SortableItem>
                 ))
               )}
@@ -650,8 +690,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             Available Items
           </h2>
           <div className="flex-1 overflow-y-auto pr-4">
-            <Container id="available" items={items.available}>
-              {items.available.map((item) => (
+            <Container id="available" items={items.available || []}>
+              {(items.available || []).map((item) => (
                 <SortableItem key={item.id} id={item.id}>
                   {renderCondensedItemContent(item)}
                 </SortableItem>
@@ -664,7 +704,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             Resume Preview
           </h2>
           <div className="flex-1 overflow-y-auto pr-4">
-            <Container id="preview" items={items.preview}>
+            <Container id="preview" items={items.preview || []}>
               {renderPreview()}
             </Container>
           </div>
@@ -674,7 +714,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         {activeId ? (
           <div className="bg-white shadow-lg rounded-lg p-4">
             {renderItemContent(
-              items[findContainer(activeId)!].find(
+              items[findContainer(activeId)!]?.find(
                 (item) => item.id === activeId
               )!
             )}
