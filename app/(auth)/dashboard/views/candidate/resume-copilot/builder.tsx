@@ -20,6 +20,15 @@ import Alert from "./alert";
 import { buildAndLogPrompt } from "./prompt-builder";
 import { useDebounce } from "./use-debounce";
 import Spinner from "./spinner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface ResumeBuilderProps {
   talentProfile: TalentProfile;
@@ -48,6 +57,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     available: [],
     preview: selectedItems,
   });
+  const [editedItems, setEditedItems] = useState<Record<string, Item>>({});
+  const [editingItem, setEditingItem] = useState<Item | null>(null);
+
   const [activeId, setActiveId] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [alerts, setAlerts] = useState<
@@ -68,7 +80,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     new Set()
   );
   const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -175,8 +186,10 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     (items, history, talentProfile, lastModifiedItemId) => {
       return new Promise<void>((resolve) => {
         // Add the item to processingItems right before calling the AI
-        setProcessingItems((prevProcessing) => new Set(prevProcessing).add(lastModifiedItemId));
-  
+        setProcessingItems((prevProcessing) =>
+          new Set(prevProcessing).add(lastModifiedItemId)
+        );
+
         buildAndLogPrompt(items, history, talentProfile, "Data Scientist")
           .then((result) => {
             if (result) {
@@ -187,7 +200,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
                   message: { recentEdit, nextAction, nextReason },
                   isMinimized: false,
                 };
-  
+
                 const existingAlertIndex = prevAlerts.findIndex(
                   (alert) => alert.id === lastModifiedItemId
                 );
@@ -227,7 +240,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
 
       // Set a new timeout to add the item to processingItems after the debounce delay
       processingTimeoutRef.current = setTimeout(() => {
-        setProcessingItems((prevProcessing) => new Set(prevProcessing).add(lastModifiedItemId));
+        setProcessingItems((prevProcessing) =>
+          new Set(prevProcessing).add(lastModifiedItemId)
+        );
       }, 3000);
 
       debouncedBuildAndLogPrompt(
@@ -272,79 +287,79 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   };
 
   const handleDragOver = (event: DragOverEvent) => {
-  const { active, over } = event;
-  const id = active.id as string;
-  const overId = over?.id as string;
+    const { active, over } = event;
+    const id = active.id as string;
+    const overId = over?.id as string;
 
-  const activeContainer = findContainer(id);
-  const overContainer = findContainer(overId);
+    const activeContainer = findContainer(id);
+    const overContainer = findContainer(overId);
 
-  if (
-    !activeContainer ||
-    !overContainer ||
-    activeContainer === overContainer
-  ) {
-    return;
-  }
-
-  setItems((prev) => {
-    const activeItems = prev[activeContainer];
-    const overItems = prev[overContainer];
-
-    if (!activeItems || !overItems) {
-      console.error("Invalid containers:", {
-        activeContainer,
-        overContainer,
-        prev,
-      });
-      return prev;
+    if (
+      !activeContainer ||
+      !overContainer ||
+      activeContainer === overContainer
+    ) {
+      return;
     }
 
-    const activeIndex = activeItems.findIndex((item) => item.id === id);
-    const overIndex = overItems.findIndex((item) => item.id === overId);
+    setItems((prev) => {
+      const activeItems = prev[activeContainer];
+      const overItems = prev[overContainer];
 
-    let newIndex: number;
-    if (overId in prev) {
-      newIndex = overItems.length + 1;
-    } else {
-      const isBelowLastItem = over && overIndex === overItems.length - 1;
-      newIndex = isBelowLastItem ? overIndex + 1 : overIndex;
-    }
+      if (!activeItems || !overItems) {
+        console.error("Invalid containers:", {
+          activeContainer,
+          overContainer,
+          prev,
+        });
+        return prev;
+      }
 
-    const newItems = {
-      ...prev,
-      [activeContainer]: [
-        ...prev[activeContainer].filter((item) => item.id !== active.id),
-      ],
-      [overContainer]: [
-        ...prev[overContainer].slice(0, newIndex),
-        activeItems[activeIndex],
-        ...prev[overContainer].slice(newIndex, prev[overContainer].length),
-      ],
-    };
+      const activeIndex = activeItems.findIndex((item) => item.id === id);
+      const overIndex = overItems.findIndex((item) => item.id === overId);
 
-    const action =
-      activeContainer === "available" && overContainer === "preview"
-        ? ("add" as const)
-        : ("remove" as const);
-    const newHistoryEntry: HistoryEntry = {
-      action,
-      itemId: id,
-      timestamp: Date.now(),
-    };
-    setHistory((prevHistory) => [...prevHistory, newHistoryEntry]);
-    setLastModifiedItemId(id);
+      let newIndex: number;
+      if (overId in prev) {
+        newIndex = overItems.length + 1;
+      } else {
+        const isBelowLastItem = over && overIndex === overItems.length - 1;
+        newIndex = isBelowLastItem ? overIndex + 1 : overIndex;
+      }
 
-    // Clear any existing timeout when a new drag occurs
-    if (processingTimeoutRef.current) {
-      clearTimeout(processingTimeoutRef.current);
-    }
+      const newItems = {
+        ...prev,
+        [activeContainer]: [
+          ...prev[activeContainer].filter((item) => item.id !== active.id),
+        ],
+        [overContainer]: [
+          ...prev[overContainer].slice(0, newIndex),
+          activeItems[activeIndex],
+          ...prev[overContainer].slice(newIndex, prev[overContainer].length),
+        ],
+      };
 
-    // Don't add to processingItems here anymore
+      const action =
+        activeContainer === "available" && overContainer === "preview"
+          ? ("add" as const)
+          : ("remove" as const);
+      const newHistoryEntry: HistoryEntry = {
+        action,
+        itemId: id,
+        timestamp: Date.now(),
+      };
+      setHistory((prevHistory) => [...prevHistory, newHistoryEntry]);
+      setLastModifiedItemId(id);
 
-    return newItems;
-  });
-};
+      // Clear any existing timeout when a new drag occurs
+      if (processingTimeoutRef.current) {
+        clearTimeout(processingTimeoutRef.current);
+      }
+
+      // Don't add to processingItems here anymore
+
+      return newItems;
+    });
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -513,12 +528,113 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     }
   };
 
+  /* Editor */
+  const handleEdit = (item: Item) => {
+    setEditingItem(item);
+  };
+
+  const handleSaveEdit = (editedItem: Item) => {
+    setEditedItems((prev) => ({
+      ...prev,
+      [editedItem.id]: editedItem,
+    }));
+    setEditingItem(null);
+    setLastModifiedItemId(editedItem.id);
+  };
+
+  const renderEditDialog = () => {
+    if (!editingItem) return null;
+
+    const fields = getFieldsForItemType(editingItem.type);
+
+    return (
+      <Dialog open={!!editingItem} onOpenChange={() => setEditingItem(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit {editingItem.type}</DialogTitle>
+          </DialogHeader>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSaveEdit(editingItem);
+            }}
+          >
+            {fields.map((field) => (
+              <div key={field} className="mb-4">
+                <label
+                  htmlFor={field}
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  {field}
+                </label>
+                <Input
+                  type="text"
+                  id={field}
+                  value={editingItem.content[field] || ""}
+                  onChange={(e) =>
+                    setEditingItem({
+                      ...editingItem,
+                      content: {
+                        ...editingItem.content,
+                        [field]: e.target.value,
+                      },
+                    })
+                  }
+                />
+              </div>
+            ))}
+            <Button type="submit">Save</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
+  const getFieldsForItemType = (type: ItemType): string[] => {
+    switch (type) {
+      case "personal":
+        return [
+          "name",
+          "email",
+          "phone",
+          "city",
+          "state",
+          "zipcode",
+          "title",
+          "clearance_level",
+        ];
+      case "experience":
+        return [
+          "job_title",
+          "organization",
+          "start_date",
+          "end_date",
+          "responsibilities",
+        ];
+      case "education":
+        return ["degree", "institution", "start_date", "end_date"];
+      case "skills":
+        return ["value"];
+      case "certifications":
+        return ["name", "issuing_organization", "date_obtained"];
+      case "projects":
+        return ["title", "description"];
+      case "publications":
+        return ["title", "journal_or_conference", "publication_date"];
+      default:
+        return [];
+    }
+  };
+  /* Editor End */
+
   const renderItemContent = (item: Item) => {
+    const editedItem = editedItems[item.id] || item;
+
     const content = (() => {
-      switch (item.type) {
+      switch (editedItem.type) {
         case "personal":
-          if (item.content.key === "Location") {
-            const { city, state, zipcode } = item.content.value as {
+          if (editedItem.content.key === "Location") {
+            const { city, state, zipcode } = editedItem.content.value as {
               city: string | null;
               state: string | null;
               zipcode: string | null;
@@ -537,10 +653,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           return (
             <div className="space-y-1 select-none">
               <h3 className="text-md font-semibold text-gray-800">
-                {personalLabelMap[item.content.key] || item.content.key}
+                {personalLabelMap[editedItem.content.key] ||
+                  editedItem.content.key}
               </h3>
               <p className="text-sm text-gray-600">
-                {item.content.value || "Not specified"}
+                {editedItem.content.value || "Not specified"}
               </p>
             </div>
           );
@@ -548,14 +665,14 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           return (
             <div className="space-y-1 select-none">
               <h4 className="text-md font-semibold text-gray-800">
-                {item.content.job_title}
+                {editedItem.content.job_title}
               </h4>
               <p className="text-sm font-medium text-gray-700">
-                {item.content.organization}
+                {editedItem.content.organization}
               </p>
-              <p className="text-sm text-gray-600">{`${item.content.start_date} - ${item.content.end_date}`}</p>
+              <p className="text-sm text-gray-600">{`${editedItem.content.start_date} - ${editedItem.content.end_date}`}</p>
               <p className="text-sm text-gray-700 mt-2">
-                {item.content.responsibilities}
+                {editedItem.content.responsibilities}
               </p>
             </div>
           );
@@ -563,41 +680,43 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           return (
             <div className="space-y-1 select-none">
               <h4 className="text-md font-semibold text-gray-800">
-                {item.content.degree}
+                {editedItem.content.degree}
               </h4>
               <p className="text-sm font-medium text-gray-700">
-                {item.content.institution}
+                {editedItem.content.institution}
               </p>
-              <p className="text-sm text-gray-600">{`${item.content.start_date} - ${item.content.end_date}`}</p>
+              <p className="text-sm text-gray-600">{`${editedItem.content.start_date} - ${editedItem.content.end_date}`}</p>
             </div>
           );
         case "skills":
           return (
             <div className="space-y-1 select-none">
               <h3 className="text-md font-semibold text-gray-800">Skill</h3>
-              <p className="text-sm text-gray-600">{item.content.value}</p>
+              <p className="text-sm text-gray-600">
+                {editedItem.content.value}
+              </p>
             </div>
           );
         case "certifications":
           return (
             <div className="space-y-1 select-none">
               <h4 className="text-sm font-semibold text-gray-800">
-                {item.content.name}
+                {editedItem.content.name}
               </h4>
               <p className="text-sm text-gray-700">
-                {item.content.issuing_organization}
+                {editedItem.content.issuing_organization}
               </p>
-              <p className="text-sm text-gray-600">{`Obtained: ${item.content.date_obtained}`}</p>
+              <p className="text-sm text-gray-600">{`Obtained: ${editedItem.content.date_obtained}`}</p>
             </div>
           );
         case "projects":
           return (
             <div className="space-y-1 select-none">
               <h4 className="text-md font-semibold text-gray-800">
-                {item.content.title}
+                {editedItem.content.title}
               </h4>
               <p className="text-sm text-gray-700">
-                {item.content.description}
+                {editedItem.content.description}
               </p>
             </div>
           );
@@ -605,12 +724,12 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           return (
             <div className="space-y-1 select-none">
               <h4 className="text-sm font-semibold text-gray-800">
-                {item.content.title}
+                {editedItem.content.title}
               </h4>
               <p className="text-sm text-gray-700">
-                {item.content.journal_or_conference}
+                {editedItem.content.journal_or_conference}
               </p>
-              <p className="text-sm text-gray-600">{`Published: ${item.content.publication_date}`}</p>
+              <p className="text-sm text-gray-600">{`Published: ${editedItem.content.publication_date}`}</p>
             </div>
           );
         default:
@@ -618,13 +737,14 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       }
     })();
 
-    const itemAlert = alerts.find((alert) => alert.id === item.id);
-    const isProcessing = processingItems.has(item.id);
+    const itemAlert = alerts.find((alert) => alert.id === editedItem.id);
+    const isProcessing = processingItems.has(editedItem.id);
 
     return (
       <div className="flex flex-col h-full">
         <div className="flex-grow">{content}</div>
         <div className="mt-auto pt-2">
+          <Button onClick={() => handleEdit(editedItem)}>Edit</Button>
           {isProcessing ? (
             <div className="flex items-center justify-center h-8">
               <Spinner />
@@ -633,7 +753,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             <Alert
               message={itemAlert.message}
               isMinimized={itemAlert.isMinimized}
-              onToggleMinimize={() => toggleAlertMinimize(item.id)}
+              onToggleMinimize={() => toggleAlertMinimize(editedItem.id)}
             />
           ) : null}
         </div>
@@ -713,6 +833,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
+      {renderEditDialog()}
       <div className="flex gap-6 h-[calc(100vh-12rem)] overflow-hidden">
         <div className="w-1/3 flex flex-col">
           <h2 className="text-md font-semibold text-gray-800 mb-4">
