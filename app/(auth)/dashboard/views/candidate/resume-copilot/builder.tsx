@@ -30,7 +30,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Edit2, Plus } from "lucide-react";
+import { Edit2, Plus, Trash2 } from "lucide-react";
 
 interface ResumeBuilderProps {
   talentProfile: TalentProfile;
@@ -98,6 +98,15 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   const [isAddingSectionDialogOpen, setIsAddingSectionDialogOpen] =
     useState(false);
   const [newSectionTitle, setNewSectionTitle] = useState("");
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    itemToDelete: (CustomItem & { sectionId: string }) | null;
+    sectionToDelete: CustomSection | null;
+  }>({
+    isOpen: false,
+    itemToDelete: null,
+    sectionToDelete: null,
+  });
 
   const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -340,6 +349,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       id: `custom-item-${Date.now()}`,
       type: "custom",
       content: { text: "" },
+      sectionId, // Added this line
     };
     setCustomSections(
       customSections.map((section) =>
@@ -421,10 +431,13 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
-    const activeItem = Object.values(items)
-      .flat()
-      .find((item) => item.id === active.id) || 
-      customSections.flatMap(section => section.items).find(item => item.id === active.id);
+    const activeItem =
+      Object.values(items)
+        .flat()
+        .find((item) => item.id === active.id) ||
+      customSections
+        .flatMap((section) => section.items)
+        .find((item) => item.id === active.id);
     if (activeItem) {
       setActiveId(active.id as string);
     } else {
@@ -433,51 +446,60 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     }
   };
 
-const handleDragOver = (event: DragOverEvent) => {
-  const { active, over } = event;
-  const id = active.id as string;
-  const overId = over?.id as string;
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+    const id = active.id as string;
+    const overId = over?.id as string;
 
-  // Handle custom items
-  const sourceSection = customSections.find((section) =>
-    section.items.some((item) => item.id === id)
-  );
-  const targetSection = customSections.find((section) =>
-    section.items.some((item) => item.id === overId)
-  );
-
-  if (sourceSection && targetSection) {
-    setCustomSections((prevSections) =>
-      prevSections.map((section) => {
-        if (section.id === sourceSection.id && section.id === targetSection.id) {
-          // Reorder within the same section
-          const oldIndex = section.items.findIndex((item) => item.id === id);
-          const newIndex = section.items.findIndex((item) => item.id === overId);
-          const newItems = arrayMove(section.items, oldIndex, newIndex);
-          return { ...section, items: newItems };
-        } else if (section.id === sourceSection.id) {
-          // Remove item from source section
-          return {
-            ...section,
-            items: section.items.filter((item) => item.id !== id),
-          };
-        } else if (section.id === targetSection.id) {
-          // Add item to target section
-          const itemToMove = sourceSection.items.find((item) => item.id === id)!;
-          const overIndex = section.items.findIndex((item) => item.id === overId);
-          const newItems = [...section.items];
-          newItems.splice(overIndex, 0, itemToMove);
-          return { ...section, items: newItems };
-        }
-        return section;
-      })
+    // Handle custom items
+    const sourceSection = customSections.find((section) =>
+      section.items.some((item) => item.id === id)
     );
-    return;
-  }
-  
+    const targetSection = customSections.find((section) =>
+      section.items.some((item) => item.id === overId)
+    );
+
+    if (sourceSection && targetSection) {
+      setCustomSections((prevSections) =>
+        prevSections.map((section) => {
+          if (
+            section.id === sourceSection.id &&
+            section.id === targetSection.id
+          ) {
+            // Reorder within the same section
+            const oldIndex = section.items.findIndex((item) => item.id === id);
+            const newIndex = section.items.findIndex(
+              (item) => item.id === overId
+            );
+            const newItems = arrayMove(section.items, oldIndex, newIndex);
+            return { ...section, items: newItems };
+          } else if (section.id === sourceSection.id) {
+            // Remove item from source section
+            return {
+              ...section,
+              items: section.items.filter((item) => item.id !== id),
+            };
+          } else if (section.id === targetSection.id) {
+            // Add item to target section
+            const itemToMove = sourceSection.items.find(
+              (item) => item.id === id
+            )!;
+            const overIndex = section.items.findIndex(
+              (item) => item.id === overId
+            );
+            const newItems = [...section.items];
+            newItems.splice(overIndex, 0, itemToMove);
+            return { ...section, items: newItems };
+          }
+          return section;
+        })
+      );
+      return;
+    }
+
     const activeContainer = findContainer(id);
     const overContainer = findContainer(overId);
-  
+
     if (
       !activeContainer ||
       !overContainer ||
@@ -485,11 +507,11 @@ const handleDragOver = (event: DragOverEvent) => {
     ) {
       return;
     }
-  
+
     setItems((prev) => {
       const activeItems = prev[activeContainer];
       const overItems = prev[overContainer];
-  
+
       if (!activeItems || !overItems) {
         console.error("Invalid containers:", {
           activeContainer,
@@ -498,10 +520,10 @@ const handleDragOver = (event: DragOverEvent) => {
         });
         return prev;
       }
-  
+
       const activeIndex = activeItems.findIndex((item) => item.id === id);
       const overIndex = overItems.findIndex((item) => item.id === overId);
-  
+
       let newIndex: number;
       if (overId in prev) {
         newIndex = overItems.length + 1;
@@ -509,7 +531,7 @@ const handleDragOver = (event: DragOverEvent) => {
         const isBelowLastItem = over && overIndex === overItems.length - 1;
         newIndex = isBelowLastItem ? overIndex + 1 : overIndex;
       }
-  
+
       const newItems = {
         ...prev,
         [activeContainer]: [
@@ -521,12 +543,12 @@ const handleDragOver = (event: DragOverEvent) => {
           ...prev[overContainer].slice(newIndex, prev[overContainer].length),
         ],
       };
-  
+
       const draggedItem = activeItems[activeIndex];
       const isExcludedPersonalItem =
         draggedItem.type === "personal" &&
         excludedPersonalItems.includes(draggedItem.content.key);
-  
+
       if (!isExcludedPersonalItem) {
         const action =
           activeContainer === "available" && overContainer === "preview"
@@ -540,12 +562,12 @@ const handleDragOver = (event: DragOverEvent) => {
         setHistory((prevHistory) => [...prevHistory, newHistoryEntry]);
         setLastModifiedItemId(id);
       }
-  
+
       // Clear any existing timeout when a new drag occurs
       if (processingTimeoutRef.current) {
         clearTimeout(processingTimeoutRef.current);
       }
-  
+
       return newItems;
     });
   };
@@ -554,7 +576,7 @@ const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
     const id = active.id as string;
     const overId = over?.id as string;
-  
+
     if (id === "custom-card" && overId) {
       const targetSection = customSections.find((section) =>
         section.items.some((item) => item.id === overId)
@@ -574,7 +596,7 @@ const handleDragOver = (event: DragOverEvent) => {
       }
       return;
     }
-  
+
     // Handle custom items
     const sourceSection = customSections.find((section) =>
       section.items.some((item) => item.id === id)
@@ -582,14 +604,19 @@ const handleDragOver = (event: DragOverEvent) => {
     const targetSection = customSections.find((section) =>
       section.items.some((item) => item.id === overId)
     );
-  
+
     if (sourceSection && targetSection) {
       setCustomSections((prevSections) =>
         prevSections.map((section) => {
-          if (section.id === sourceSection.id && section.id === targetSection.id) {
+          if (
+            section.id === sourceSection.id &&
+            section.id === targetSection.id
+          ) {
             // Reorder within the same section
             const oldIndex = section.items.findIndex((item) => item.id === id);
-            const newIndex = section.items.findIndex((item) => item.id === overId);
+            const newIndex = section.items.findIndex(
+              (item) => item.id === overId
+            );
             const newItems = arrayMove(section.items, oldIndex, newIndex);
             return { ...section, items: newItems };
           } else if (section.id === sourceSection.id) {
@@ -600,8 +627,12 @@ const handleDragOver = (event: DragOverEvent) => {
             };
           } else if (section.id === targetSection.id) {
             // Add item to target section
-            const itemToMove = sourceSection.items.find((item) => item.id === id)!;
-            const overIndex = section.items.findIndex((item) => item.id === overId);
+            const itemToMove = sourceSection.items.find(
+              (item) => item.id === id
+            )!;
+            const overIndex = section.items.findIndex(
+              (item) => item.id === overId
+            );
             const newItems = [...section.items];
             newItems.splice(overIndex, 0, itemToMove);
             return { ...section, items: newItems };
@@ -612,10 +643,10 @@ const handleDragOver = (event: DragOverEvent) => {
       setLastModifiedItemId(id);
       return;
     }
-  
+
     const activeContainer = findContainer(id);
     const overContainer = findContainer(overId);
-  
+
     if (
       !activeContainer ||
       !overContainer ||
@@ -623,11 +654,11 @@ const handleDragOver = (event: DragOverEvent) => {
     ) {
       return;
     }
-  
+
     setItems((prevItems) => {
       const activeItems = prevItems[activeContainer];
       const overItems = prevItems[overContainer];
-  
+
       if (!activeItems || !overItems) {
         console.error("Invalid containers:", {
           activeContainer,
@@ -636,10 +667,10 @@ const handleDragOver = (event: DragOverEvent) => {
         });
         return prevItems;
       }
-  
+
       const activeIndex = activeItems.findIndex((item) => item.id === id);
       const overIndex = overItems.findIndex((item) => item.id === overId);
-  
+
       if (activeIndex !== overIndex) {
         const newItems = {
           ...prevItems,
@@ -649,12 +680,12 @@ const handleDragOver = (event: DragOverEvent) => {
             overIndex
           ),
         };
-  
+
         const movedItem = activeItems[activeIndex];
         const isExcludedPersonalItem =
           movedItem.type === "personal" &&
           excludedPersonalItems.includes(movedItem.content.key);
-  
+
         if (!isExcludedPersonalItem) {
           const newHistoryEntry: HistoryEntry = {
             action: activeContainer === "available" ? "add" : "remove",
@@ -664,13 +695,13 @@ const handleDragOver = (event: DragOverEvent) => {
           setHistory((prevHistory) => [...prevHistory, newHistoryEntry]);
           setLastModifiedItemId(id);
         }
-  
+
         return newItems;
       }
-  
+
       return prevItems;
     });
-  
+
     setActiveId(null);
   };
 
@@ -1108,7 +1139,7 @@ const handleDragOver = (event: DragOverEvent) => {
       console.error("Preview items are undefined");
       return null;
     }
-  
+
     const groupedItems = items.preview.reduce((acc, item) => {
       if (!acc[item.type]) {
         acc[item.type] = [];
@@ -1116,7 +1147,7 @@ const handleDragOver = (event: DragOverEvent) => {
       acc[item.type].push(item);
       return acc;
     }, {} as Record<ItemType, Item[]>);
-  
+
     const sectionOrder: ItemType[] = [
       "personal",
       "experience",
@@ -1126,7 +1157,7 @@ const handleDragOver = (event: DragOverEvent) => {
       "projects",
       "publications",
     ];
-  
+
     return (
       <div className="bg-white shadow-lg rounded-lg p-8 space-y-6 w-full">
         {sectionOrder.map((sectionType) => {
@@ -1136,7 +1167,7 @@ const handleDragOver = (event: DragOverEvent) => {
           ) {
             return null;
           }
-  
+
           return (
             <div
               key={sectionType}
@@ -1163,26 +1194,55 @@ const handleDragOver = (event: DragOverEvent) => {
             </div>
           );
         })}
-  
+
         {/* Render custom sections */}
         {customSections.map((section) => (
           <div
             key={section.id}
             className="pb-4 border-b border-gray-200 last:border-b-0"
           >
-            <h2 className="text-lg font-bold text-gray-800 mb-4 uppercase">
-              {section.title}
-            </h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-gray-800 uppercase">
+                {section.title}
+              </h2>
+              <Button
+                onClick={() => handleDeleteCustomSection(section.id)}
+                variant="ghost"
+                size="sm"
+              >
+                <Trash2 size={16} className="text-gray-400" />
+              </Button>
+            </div>
             {section.items.map((item) => (
               <SortableItem key={item.id} id={item.id}>
                 <div className="relative">
-                  <Textarea
-                    value={item.content.text}
-                    onChange={(e) =>
-                      handleEditCustomItem(section.id, item.id, e.target.value)
-                    }
-                    className="w-full p-2 border rounded"
-                  />
+                  <div className="flex justify-between items-start">
+                    <Textarea
+                      value={item.content.text}
+                      onChange={(e) =>
+                        handleEditCustomItem(
+                          section.id,
+                          item.id,
+                          e.target.value
+                        )
+                      }
+                      className="w-full p-2 border rounded"
+                    />
+                    <Button
+                      onClick={() =>
+                        setDeleteConfirmation({
+                          isOpen: true,
+                          itemToDelete: { ...item, sectionId: section.id },
+                          sectionToDelete: null,
+                        })
+                      }
+                      variant="ghost"
+                      size="sm"
+                      className="ml-2"
+                    >
+                      <Trash2 size={16} className="text-gray-400" />
+                    </Button>
+                  </div>
                 </div>
               </SortableItem>
             ))}
@@ -1195,7 +1255,7 @@ const handleDragOver = (event: DragOverEvent) => {
             </Button>
           </div>
         ))}
-  
+
         {/* Add Custom Section button */}
         <Button
           onClick={() => setIsAddingSectionDialogOpen(true)}
@@ -1204,7 +1264,93 @@ const handleDragOver = (event: DragOverEvent) => {
         >
           <Plus className="mr-2 h-4 w-4" /> Add Custom Section
         </Button>
+        <DeleteConfirmationDialog
+          isOpen={deleteConfirmation.isOpen}
+          onClose={() =>
+            setDeleteConfirmation({
+              isOpen: false,
+              itemToDelete: null,
+              sectionToDelete: null,
+            })
+          }
+          onConfirm={confirmDelete}
+          itemType={deleteConfirmation.itemToDelete ? "item" : "section"}
+        />
       </div>
+    );
+  };
+
+  const handleDeleteCustomItem = (sectionId: string, itemId: string) => {
+    setCustomSections((prevSections) =>
+      prevSections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              items: section.items.filter((item) => item.id !== itemId),
+            }
+          : section
+      )
+    );
+    setLastModifiedItemId(itemId);
+  };
+
+  const handleDeleteCustomSection = (sectionId: string) => {
+    const sectionToDelete = customSections.find(
+      (section) => section.id === sectionId
+    );
+    setDeleteConfirmation({
+      isOpen: true,
+      itemToDelete: null,
+      sectionToDelete: sectionToDelete || null, // Use null if section is not found
+    });
+  };
+
+  const confirmDelete = () => {
+    if (deleteConfirmation.itemToDelete) {
+      handleDeleteCustomItem(
+        deleteConfirmation.itemToDelete.sectionId,
+        deleteConfirmation.itemToDelete.id
+      );
+    } else if (deleteConfirmation.sectionToDelete) {
+      setCustomSections((prevSections) =>
+        prevSections.filter(
+          (section) => section.id !== deleteConfirmation.sectionToDelete!.id
+        )
+      );
+    }
+    setDeleteConfirmation({
+      isOpen: false,
+      itemToDelete: null,
+      sectionToDelete: null,
+    });
+  };
+
+  const DeleteConfirmationDialog: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
+    itemType: "item" | "section";
+  }> = ({ isOpen, onClose, onConfirm, itemType }) => {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm">
+            Are you sure you want to delete this {itemType}?
+            {itemType === "section" && " This will delete all items within it."}
+          </p>
+          <div className="flex justify-end space-x-2">
+            <Button onClick={onClose} variant="outline">
+              Cancel
+            </Button>
+            <Button onClick={onConfirm} variant="destructive">
+              Delete
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     );
   };
 
@@ -1249,7 +1395,13 @@ const handleDragOver = (event: DragOverEvent) => {
             Resume Preview
           </h2>
           <div className="flex-1 overflow-y-auto pr-4">
-            <Container id="preview" items={[...items.preview, ...customSections.flatMap(section => section.items)]}>
+            <Container
+              id="preview"
+              items={[
+                ...items.preview,
+                ...customSections.flatMap((section) => section.items),
+              ]}
+            >
               {renderPreview()}
             </Container>
           </div>
@@ -1274,8 +1426,10 @@ const handleDragOver = (event: DragOverEvent) => {
               (() => {
                 const container = findContainer(activeId);
                 const item = container
-                  ? items[container]?.find((item) => item.id === activeId) || 
-                    customSections.flatMap(section => section.items).find(item => item.id === activeId)
+                  ? items[container]?.find((item) => item.id === activeId) ||
+                    customSections
+                      .flatMap((section) => section.items)
+                      .find((item) => item.id === activeId)
                   : undefined;
                 return renderItemContent(item);
               })()
@@ -1288,4 +1442,3 @@ const handleDragOver = (event: DragOverEvent) => {
 };
 
 export default ResumeBuilder;
-
