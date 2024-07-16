@@ -233,38 +233,39 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     "zipcode",
     "location",
     "phone",
+    "clearance_level",
   ];
 
   useEffect(() => {
     if (onSelectedItemsChange) {
       onSelectedItemsChange(items.preview);
     }
-  
+
     if (items.preview.length > 0 && history.length > 0 && lastModifiedItemId) {
       const lastModifiedItem = items.preview.find(
         (item) => item.id === lastModifiedItemId
       );
-  
+
       const isExcludedPersonalItem =
         lastModifiedItem?.type === "personal" &&
         excludedPersonalItems.includes(lastModifiedItem.content.key);
-  
+
       if (!isExcludedPersonalItem) {
         if (processingTimeoutRef.current) {
           clearTimeout(processingTimeoutRef.current);
         }
-  
+
         processingTimeoutRef.current = setTimeout(() => {
           setProcessingItems((prevProcessing) =>
             new Set(prevProcessing).add(lastModifiedItemId)
           );
         }, 3000);
-  
+
         const updatedItems = {
           ...items,
           preview: items.preview.map((item) => editedItems[item.id] || item),
         };
-  
+
         debouncedBuildAndLogPrompt(
           updatedItems,
           history,
@@ -273,7 +274,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         );
       }
     }
-  
+
     setLastModifiedItemId(null);
   }, [
     items.preview,
@@ -624,20 +625,30 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
                 >
                   {editingItem.type === "personal" && field === "value"
                     ? editingItem.content.key
+                    : editingItem.type === "skills"
+                    ? "Skills"
                     : fieldLabels[field] || field}
                 </label>
                 {field === "honors_awards_coursework" ||
-                field === "responsibilities" ? (
+                field === "responsibilities" ||
+                editingItem.type === "skills" ? (
                   <Textarea
                     id={field}
-                    value={editingItem.content[field] || ""}
+                    value={
+                      editingItem.type === "skills"
+                        ? editingItem.content.value
+                        : editingItem.content[field] || ""
+                    }
                     onChange={(e) =>
                       setEditingItem({
                         ...editingItem,
-                        content: {
-                          ...editingItem.content,
-                          [field]: e.target.value,
-                        },
+                        content:
+                          editingItem.type === "skills"
+                            ? { ...editingItem.content, value: e.target.value }
+                            : {
+                                ...editingItem.content,
+                                [field]: e.target.value,
+                              },
                       })
                     }
                   />
