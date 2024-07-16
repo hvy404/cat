@@ -30,6 +30,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Edit2 } from "lucide-react";
 
 interface ResumeBuilderProps {
   talentProfile: TalentProfile;
@@ -228,35 +229,48 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     3000 // 3 seconds delay
   );
 
+  const excludedPersonalItems = ["name", "email", "city", "state", "zipcode"];
+
   useEffect(() => {
     if (onSelectedItemsChange) {
       onSelectedItemsChange(items.preview);
     }
 
     if (items.preview.length > 0 && history.length > 0 && lastModifiedItemId) {
-      // Clear any existing timeout
-      if (processingTimeoutRef.current) {
-        clearTimeout(processingTimeoutRef.current);
-      }
-
-      // Set a new timeout to add the item to processingItems after the debounce delay
-      processingTimeoutRef.current = setTimeout(() => {
-        setProcessingItems((prevProcessing) =>
-          new Set(prevProcessing).add(lastModifiedItemId)
-        );
-      }, 3000);
-
-      const updatedItems = {
-        ...items,
-        preview: items.preview.map((item) => editedItems[item.id] || item),
-      };
-
-      debouncedBuildAndLogPrompt(
-        updatedItems,
-        history,
-        talentProfile,
-        lastModifiedItemId
+      const lastModifiedItem = items.preview.find(
+        (item) => item.id === lastModifiedItemId
       );
+
+      // Check if the item is a personal item and if it's in the excluded list
+      const isExcludedPersonalItem =
+        lastModifiedItem?.type === "personal" &&
+        excludedPersonalItems.includes(lastModifiedItem.content.key);
+
+      if (!isExcludedPersonalItem) {
+        // Clear any existing timeout
+        if (processingTimeoutRef.current) {
+          clearTimeout(processingTimeoutRef.current);
+        }
+
+        // Set a new timeout to add the item to processingItems after the debounce delay
+        processingTimeoutRef.current = setTimeout(() => {
+          setProcessingItems((prevProcessing) =>
+            new Set(prevProcessing).add(lastModifiedItemId)
+          );
+        }, 3000);
+
+        const updatedItems = {
+          ...items,
+          preview: items.preview.map((item) => editedItems[item.id] || item),
+        };
+
+        debouncedBuildAndLogPrompt(
+          updatedItems,
+          history,
+          talentProfile,
+          lastModifiedItemId
+        );
+      }
     }
 
     setLastModifiedItemId(null);
@@ -345,24 +359,29 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         ],
       };
 
-      const action =
-        activeContainer === "available" && overContainer === "preview"
-          ? ("add" as const)
-          : ("remove" as const);
-      const newHistoryEntry: HistoryEntry = {
-        action,
-        itemId: id,
-        timestamp: Date.now(),
-      };
-      setHistory((prevHistory) => [...prevHistory, newHistoryEntry]);
-      setLastModifiedItemId(id);
+      const draggedItem = activeItems[activeIndex];
+      const isExcludedPersonalItem =
+        draggedItem.type === "personal" &&
+        excludedPersonalItems.includes(draggedItem.content.key);
+
+      if (!isExcludedPersonalItem) {
+        const action =
+          activeContainer === "available" && overContainer === "preview"
+            ? ("add" as const)
+            : ("remove" as const);
+        const newHistoryEntry: HistoryEntry = {
+          action,
+          itemId: id,
+          timestamp: Date.now(),
+        };
+        setHistory((prevHistory) => [...prevHistory, newHistoryEntry]);
+        setLastModifiedItemId(id);
+      }
 
       // Clear any existing timeout when a new drag occurs
       if (processingTimeoutRef.current) {
         clearTimeout(processingTimeoutRef.current);
       }
-
-      // Don't add to processingItems here anymore
 
       return newItems;
     });
@@ -407,13 +426,20 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           ),
         };
 
-        const newHistoryEntry: HistoryEntry = {
-          action: "reorder",
-          itemId: id,
-          timestamp: Date.now(),
-        };
-        setHistory((prevHistory) => [...prevHistory, newHistoryEntry]);
-        setLastModifiedItemId(id);
+        const reorderedItem = prevItems[overContainer][activeIndex];
+        const isExcludedPersonalItem =
+          reorderedItem.type === "personal" &&
+          excludedPersonalItems.includes(reorderedItem.content.key);
+
+        if (!isExcludedPersonalItem) {
+          const newHistoryEntry: HistoryEntry = {
+            action: "reorder",
+            itemId: id,
+            timestamp: Date.now(),
+          };
+          setHistory((prevHistory) => [...prevHistory, newHistoryEntry]);
+          setLastModifiedItemId(id);
+        }
 
         return newItems;
       }
@@ -809,11 +835,21 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     const itemAlert = alerts.find((alert) => alert.id === editedItem.id);
     const isProcessing = processingItems.has(editedItem.id);
 
+    
+
     return (
-      <div className="flex flex-col h-full">
-        <div className="flex-grow">{content}</div>
+<div className="flex flex-col h-full">
+        <div className="flex justify-between items-start mb-2">
+          <div className="flex-grow pr-10">{content}</div>
+          <Button
+            onClick={() => handleEdit(editedItem)}
+            className="flex-shrink-0 p-1 h-8 w-8"
+            variant="ghost"
+          >
+            <Edit2 size={16} />
+          </Button>
+        </div>
         <div className="mt-auto pt-2">
-          <Button onClick={() => handleEdit(editedItem)}>Edit</Button>
           {isProcessing ? (
             <div className="flex items-center justify-center h-8">
               <Spinner />
@@ -894,6 +930,18 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     );
   };
 
+  const handleCreateResume = () => {
+    const resumeData = items.preview.map((item) => {
+      const editedItem = editedItems[item.id] || item;
+      return {
+        type: editedItem.type,
+        content: editedItem.content,
+      };
+    });
+
+    console.log(JSON.stringify(resumeData, null, 2));
+  };
+
   return (
     <DndContext
       sensors={sensors}
@@ -927,6 +975,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
               {renderPreview()}
             </Container>
           </div>
+          <div className="flex justify-end mt-4">
+  <Button onClick={handleCreateResume}>Create Resume</Button>
+</div>
         </div>
       </div>
       <DragOverlay>
