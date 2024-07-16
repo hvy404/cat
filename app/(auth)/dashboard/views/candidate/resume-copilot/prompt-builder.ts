@@ -79,10 +79,10 @@ export const buildAndLogPrompt = async (
   const lastFiveHistory = history.slice(-5).reverse();
 
   // Build the prompt
-  const sysPrompt = `You are an AI resume coach assisting in building a resume for a ${role} role. Your task is to analyze the most recent edit to the resume and recommend the next action to improve it.
+  const sysPrompt = `You are an resume coach that is currently helping a user with writing their resume for a ${role} role. You are to guide the user by evaluating the most recent edit to the resume, analyzing its impact, and recommend the next best action to improve the resume for the ${role} position.
 
 Instructions:
-Carefully review the most recent edit to the resume.
+Carefully review the recent edit to the resume.
 Analyze how this edit affects the overall quality and relevance of the resume for the ${role} position.
 Recommend ONE of the following actions:
 a) Remove an existing item
@@ -109,7 +109,7 @@ Output Format:
 Respond ONLY with valid JSON matching this schema:
 
 {
-  "recentEdit": "Detailed evaluation of the recent edit and its impact on the resume",
+  "recentEdit": "Evaluation of the recent edit and its impact on the resume",
   "nextAction": "add" | "remove" | "modify" | "none",
   "nextItem": "Human-readable name or reference of the item to be acted upon",
   "nextReason": "Concise explanation for the recommended action, focusing on its relevance to the ${role} position and overall resume improvement"
@@ -165,7 +165,7 @@ ${JSON.stringify(relevantTalentProfileData, null, 2)}`;
             nextItem: string;
             nextReason: string;
           };
-    
+
           if (
             typeof parsedResponse === "object" &&
             parsedResponse !== null &&

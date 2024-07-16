@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ResumeBuilderProps {
   talentProfile: TalentProfile;
@@ -245,8 +246,13 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         );
       }, 3000);
 
+      const updatedItems = {
+        ...items,
+        preview: items.preview.map((item) => editedItems[item.id] || item),
+      };
+
       debouncedBuildAndLogPrompt(
-        items,
+        updatedItems,
         history,
         talentProfile,
         lastModifiedItemId
@@ -260,6 +266,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     history,
     talentProfile,
     lastModifiedItemId,
+    editedItems,
   ]);
 
   const toggleAlertMinimize = (id: string) => {
@@ -538,6 +545,24 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       ...prev,
       [editedItem.id]: editedItem,
     }));
+
+    if (editedItem.type === "personal") {
+      setItems((prevItems) => ({
+        ...prevItems,
+        preview: prevItems.preview.map((item) =>
+          item.id === editedItem.id
+            ? {
+                ...item,
+                content: {
+                  ...item.content,
+                  value: editedItem.content.value,
+                },
+              }
+            : item
+        ),
+      }));
+    }
+
     setEditingItem(null);
     setLastModifiedItemId(editedItem.id);
   };
@@ -545,7 +570,10 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   const renderEditDialog = () => {
     if (!editingItem) return null;
 
-    const fields = getFieldsForItemType(editingItem.type);
+    const fields = getFieldsForItemType(
+      editingItem.type,
+      editingItem.content.key
+    );
 
     return (
       <Dialog open={!!editingItem} onOpenChange={() => setEditingItem(null)}>
@@ -565,22 +593,48 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
                   htmlFor={field}
                   className="block text-sm font-medium text-gray-700"
                 >
-                  {field}
+                  {editingItem.type === "personal" && field === "value"
+                    ? editingItem.content.key
+                    : fieldLabels[field] || field}
                 </label>
-                <Input
-                  type="text"
-                  id={field}
-                  value={editingItem.content[field] || ""}
-                  onChange={(e) =>
-                    setEditingItem({
-                      ...editingItem,
-                      content: {
-                        ...editingItem.content,
-                        [field]: e.target.value,
-                      },
-                    })
-                  }
-                />
+                {field === "honors_awards_coursework" ||
+                field === "responsibilities" ? (
+                  <Textarea
+                    id={field}
+                    value={editingItem.content[field] || ""}
+                    onChange={(e) =>
+                      setEditingItem({
+                        ...editingItem,
+                        content: {
+                          ...editingItem.content,
+                          [field]: e.target.value,
+                        },
+                      })
+                    }
+                  />
+                ) : (
+                  <Input
+                    type="text"
+                    id={field}
+                    value={
+                      editingItem.type === "personal"
+                        ? editingItem.content.value
+                        : editingItem.content[field] || ""
+                    }
+                    onChange={(e) =>
+                      setEditingItem({
+                        ...editingItem,
+                        content:
+                          editingItem.type === "personal"
+                            ? { ...editingItem.content, value: e.target.value }
+                            : {
+                                ...editingItem.content,
+                                [field]: e.target.value,
+                              },
+                      })
+                    }
+                  />
+                )}
               </div>
             ))}
             <Button type="submit">Save</Button>
@@ -590,19 +644,10 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     );
   };
 
-  const getFieldsForItemType = (type: ItemType): string[] => {
+  const getFieldsForItemType = (type: ItemType, key?: string): string[] => {
     switch (type) {
       case "personal":
-        return [
-          "name",
-          "email",
-          "phone",
-          "city",
-          "state",
-          "zipcode",
-          "title",
-          "clearance_level",
-        ];
+        return [key || ""];
       case "experience":
         return [
           "job_title",
@@ -612,7 +657,13 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           "responsibilities",
         ];
       case "education":
-        return ["degree", "institution", "start_date", "end_date"];
+        return [
+          "degree",
+          "institution",
+          "start_date",
+          "end_date",
+          "honors_awards_coursework",
+        ];
       case "skills":
         return ["value"];
       case "certifications":
@@ -624,6 +675,24 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       default:
         return [];
     }
+  };
+
+  const fieldLabels: Record<string, string> = {
+    job_title: "Job Title",
+    organization: "Organization",
+    start_date: "Start Date",
+    end_date: "End Date",
+    responsibilities: "Responsibilities",
+    degree: "Degree",
+    institution: "Institution",
+    honors_awards_coursework: "Honors, Awards & Coursework",
+    name: "Name",
+    issuing_organization: "Issuing Organization",
+    date_obtained: "Date Obtained",
+    title: "Title",
+    description: "Description",
+    journal_or_conference: "Journal/Conference",
+    publication_date: "Publication Date",
   };
   /* Editor End */
 
