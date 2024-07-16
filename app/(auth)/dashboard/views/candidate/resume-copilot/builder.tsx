@@ -46,7 +46,11 @@ interface HistoryEntry {
 
 interface AlertState {
   id: string;
-  message: string;
+  message: {
+    recentEdit: string;
+    nextAction: "add" | "remove" | "modify" | "none";
+    nextReason: string;
+  };
   isMinimized: boolean;
 }
 
@@ -186,84 +190,81 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
 
   const debouncedBuildAndLogPrompt = useDebounce(
     (items, history, talentProfile, lastModifiedItemId) => {
-      return new Promise<void>((resolve) => {
-        // Add the item to processingItems right before calling the AI
-        setProcessingItems((prevProcessing) =>
-          new Set(prevProcessing).add(lastModifiedItemId)
-        );
+      setProcessingItems((prevProcessing) =>
+        new Set(prevProcessing).add(lastModifiedItemId)
+      );
 
-        buildAndLogPrompt(items, history, talentProfile, "Data Scientist")
-          .then((result) => {
-            if (result) {
-              const { recentEdit, nextAction, nextReason } = result;
-              setAlerts((prevAlerts) => {
-                const newAlert = {
-                  id: lastModifiedItemId,
-                  message: { recentEdit, nextAction, nextReason },
-                  isMinimized: false,
-                };
+      return buildAndLogPrompt(items, history, talentProfile, "Data Scientist")
+        .then((result) => {
+          if (result) {
+            const { recentEdit, nextAction, nextReason } = result;
+            setAlerts((prevAlerts) => {
+              const newAlert: AlertState = {
+                id: lastModifiedItemId,
+                message: { recentEdit, nextAction, nextReason },
+                isMinimized: false,
+              };
 
-                const existingAlertIndex = prevAlerts.findIndex(
-                  (alert) => alert.id === lastModifiedItemId
-                );
-                if (existingAlertIndex !== -1) {
-                  return prevAlerts.map((alert, index) =>
-                    index === existingAlertIndex ? newAlert : alert
-                  );
-                } else {
-                  return [...prevAlerts, newAlert];
-                }
-              });
-            }
-          })
-          .finally(() => {
-            setProcessingItems((prevProcessing) => {
-              const newProcessing = new Set(prevProcessing);
-              newProcessing.delete(lastModifiedItemId);
-              return newProcessing;
+              const updatedAlerts = prevAlerts.map((alert) => ({
+                ...alert,
+                isMinimized: true,
+              }));
+
+              return [...updatedAlerts, newAlert];
             });
-            resolve();
+          }
+        })
+        .finally(() => {
+          setProcessingItems((prevProcessing) => {
+            const newProcessing = new Set(prevProcessing);
+            newProcessing.delete(lastModifiedItemId);
+            return newProcessing;
           });
-      });
+        });
     },
-    3000 // 3 seconds delay
+    3000
   );
 
-  const excludedPersonalItems = ["name", "email", "city", "state", "zipcode"];
+  const excludedPersonalItems = [
+    "name",
+    "email",
+    "city",
+    "state",
+    "zipcode",
+    "location",
+    "phone",
+  ];
 
   useEffect(() => {
     if (onSelectedItemsChange) {
       onSelectedItemsChange(items.preview);
     }
-
+  
     if (items.preview.length > 0 && history.length > 0 && lastModifiedItemId) {
       const lastModifiedItem = items.preview.find(
         (item) => item.id === lastModifiedItemId
       );
-
-      // Check if the item is a personal item and if it's in the excluded list
+  
       const isExcludedPersonalItem =
         lastModifiedItem?.type === "personal" &&
         excludedPersonalItems.includes(lastModifiedItem.content.key);
-
+  
       if (!isExcludedPersonalItem) {
-        // Clear any existing timeout
         if (processingTimeoutRef.current) {
           clearTimeout(processingTimeoutRef.current);
         }
-
-        // Set a new timeout to add the item to processingItems after the debounce delay
+  
         processingTimeoutRef.current = setTimeout(() => {
           setProcessingItems((prevProcessing) =>
             new Set(prevProcessing).add(lastModifiedItemId)
           );
         }, 3000);
-
+  
         const updatedItems = {
           ...items,
           preview: items.preview.map((item) => editedItems[item.id] || item),
         };
-
+  
         debouncedBuildAndLogPrompt(
           updatedItems,
           history,
@@ -272,7 +273,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         );
       }
     }
-
+  
     setLastModifiedItemId(null);
   }, [
     items.preview,
@@ -281,6 +282,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     talentProfile,
     lastModifiedItemId,
     editedItems,
+    debouncedBuildAndLogPrompt,
+    excludedPersonalItems,
   ]);
 
   const toggleAlertMinimize = (id: string) => {
@@ -835,18 +838,16 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     const itemAlert = alerts.find((alert) => alert.id === editedItem.id);
     const isProcessing = processingItems.has(editedItem.id);
 
-    
-
     return (
-<div className="flex flex-col h-full">
+      <div className="flex flex-col h-full">
         <div className="flex justify-between items-start mb-2">
           <div className="flex-grow pr-10">{content}</div>
           <Button
             onClick={() => handleEdit(editedItem)}
-            className="flex-shrink-0 p-1 h-8 w-8"
+            className="flex-shrink-0 p-1 h-6 w-6"
             variant="ghost"
           >
-            <Edit2 size={16} />
+            <Edit2 size={16} className="text-gray-400" />
           </Button>
         </div>
         <div className="mt-auto pt-2">
@@ -976,8 +977,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             </Container>
           </div>
           <div className="flex justify-end mt-4">
-  <Button onClick={handleCreateResume}>Create Resume</Button>
-</div>
+            <Button onClick={handleCreateResume}>Create Resume</Button>
+          </div>
         </div>
       </div>
       <DragOverlay>

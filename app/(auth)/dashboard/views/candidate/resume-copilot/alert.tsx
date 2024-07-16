@@ -83,6 +83,7 @@ const Alert: React.FC<AlertProps> = ({
                   className="flex-shrink-0 text-green-600 mt-0.5 mr-2"
                 />
                 <p className="text-green-700 text-xs font-medium">
+                  <span className="font-semibold mr-1">Recent:</span>{" "}
                   {message.recentEdit}
                 </p>
               </div>
@@ -91,6 +92,7 @@ const Alert: React.FC<AlertProps> = ({
                   {getActionIcon(message.nextAction)}
                 </div>
                 <p className="text-green-700 text-xs font-medium">
+                  <span className="font-semibold mr-1">Next Steps:</span>
                   {message.nextReason}
                 </p>
               </div>

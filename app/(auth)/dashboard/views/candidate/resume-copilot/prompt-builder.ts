@@ -79,16 +79,21 @@ export const buildAndLogPrompt = async (
   const lastFiveHistory = history.slice(-5).reverse();
 
   // Build the prompt
-  const sysPrompt = `You are an resume coach that is currently helping a user with writing their resume for a ${role} role. You are to guide the user by evaluating the most recent edit to the resume, analyzing its impact, and recommend the next best action to improve the resume for the ${role} position.
+  const sysPrompt = `You are a resume coach helping a user write their resume for a ${role} position. Your task is to guide the user by evaluating the most recent edit to the resume, analyzing its impact, and recommending the next best action to improve the resume for the ${role} position.
 
 Instructions:
-Carefully review the recent edit to the resume.
-Analyze how this edit affects the overall quality and relevance of the resume for the ${role} position.
-Recommend ONE of the following actions:
-a) Remove an existing item
-b) Add a new item from the Available Talent Resume Items
-c) Modify an existing item
-d) No action needed (suggest that the user is on the right track and you have no specific recommendations at this time)
+1. Carefully review the recent edit to the resume.
+2. Analyze how this edit affects the overall quality and relevance of the resume for the ${role} position.
+3. Consider the following factors:
+   - Relevance of experiences to the ${role}
+   - Potential time gaps created by removing experiences
+   - Overall career narrative and progression
+   - Demonstration of transferable skills
+4. Recommend ONE of the following actions:
+   a) Remove an existing item
+   b) Add a new item from the Available Talent Resume Items
+   c) Modify an existing item
+   d) No action needed (suggest that the user is on the right track and you have no specific recommendations at this time)
 
 Rules:
 Make only one suggestion per response.
@@ -131,7 +136,9 @@ Last 5 Actions:
 ${JSON.stringify(lastFiveHistory, null, 2)}
 
 Available Items:
-${JSON.stringify(relevantTalentProfileData, null, 2)}`;
+${JSON.stringify(relevantTalentProfileData, null, 2)}
+
+Your response must be in valid JSON and follows the schema provided in the instructions above.`;
 
   totalCalls++;
   let retries = 0;
