@@ -15,7 +15,7 @@ import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { TalentProfile } from "./get-data";
 import Container from "./container";
 import SortableItem from "./sortable";
-import { Item, ItemType } from "./types";
+import { Item, ItemType, CustomItem } from "./types";
 import Alert from "./alert";
 import { buildAndLogPrompt } from "./prompt-builder";
 import { useDebounce } from "./use-debounce";
@@ -30,7 +30,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Edit2 } from "lucide-react";
+import { Edit2, Plus } from "lucide-react";
 
 interface ResumeBuilderProps {
   talentProfile: TalentProfile;
@@ -52,6 +52,13 @@ interface AlertState {
     nextReason: string;
   };
   isMinimized: boolean;
+}
+
+// Add new interfaces for custom sections and items
+interface CustomSection {
+  id: string;
+  title: string;
+  items: CustomItem[];
 }
 
 const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
@@ -85,6 +92,13 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   const [processingItems, setProcessingItems] = useState<Set<string>>(
     new Set()
   );
+
+  // Add new state for custom sections
+  const [customSections, setCustomSections] = useState<CustomSection[]>([]);
+  const [isAddingSectionDialogOpen, setIsAddingSectionDialogOpen] =
+    useState(false);
+  const [newSectionTitle, setNewSectionTitle] = useState("");
+
   const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const sensors = useSensors(
@@ -306,19 +320,164 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     );
   };
 
-  const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    setActiveId(active.id as string);
+  /* Custom cards */
+  // Add new functions for custom sections and items
+  const handleAddCustomSection = () => {
+    if (newSectionTitle.trim()) {
+      const newSection: CustomSection = {
+        id: `custom-section-${Date.now()}`,
+        title: newSectionTitle.trim(),
+        items: [],
+      };
+      setCustomSections([...customSections, newSection]);
+      setNewSectionTitle("");
+      setIsAddingSectionDialogOpen(false);
+    }
   };
 
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-    const id = active.id as string;
-    const overId = over?.id as string;
+  const handleAddCustomItem = (sectionId: string) => {
+    const newItem: CustomItem = {
+      id: `custom-item-${Date.now()}`,
+      type: "custom",
+      content: { text: "" },
+    };
+    setCustomSections(
+      customSections.map((section) =>
+        section.id === sectionId
+          ? { ...section, items: [...section.items, newItem] }
+          : section
+      )
+    );
+  };
 
+  const handleEditCustomItem = (
+    sectionId: string,
+    itemId: string,
+    text: string
+  ) => {
+    setCustomSections(
+      customSections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              items: section.items.map((item) =>
+                item.id === itemId ? { ...item, content: { text } } : item
+              ),
+            }
+          : section
+      )
+    );
+  };
+  /* End custom cards */
+
+  /* Custom cards dialog */
+  // Add Custom Section Dialog
+  const renderAddSectionDialog = () => (
+    <Dialog
+      open={isAddingSectionDialogOpen}
+      onOpenChange={setIsAddingSectionDialogOpen}
+    >
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add Custom Section</DialogTitle>
+        </DialogHeader>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleAddCustomSection();
+          }}
+        >
+          <Input
+            type="text"
+            value={newSectionTitle}
+            onChange={(e) => setNewSectionTitle(e.target.value)}
+            placeholder="Enter section title"
+            className="mb-4"
+          />
+          <Button type="submit">Add Section</Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+
+  // Modify the Available Items section to include a Custom Card
+  const renderAvailableItems = () => (
+    <div className="w-1/3 flex flex-col">
+      <h2 className="text-md font-semibold text-gray-800 mb-4">
+        Available Items
+      </h2>
+      <div className="flex-1 overflow-y-auto pr-4">
+        <Container id="available" items={items.available}>
+          {items.available.map((item) => (
+            <SortableItem key={item.id} id={item.id}>
+              {renderCondensedItemContent(item)}
+            </SortableItem>
+          ))}
+        </Container>
+      </div>
+    </div>
+  );
+  /* End custom card diaglog */
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const activeItem = Object.values(items)
+      .flat()
+      .find((item) => item.id === active.id) || 
+      customSections.flatMap(section => section.items).find(item => item.id === active.id);
+    if (activeItem) {
+      setActiveId(active.id as string);
+    } else {
+      console.warn(`Attempted to drag item with unknown id: ${active.id}`);
+      setActiveId(null);
+    }
+  };
+
+const handleDragOver = (event: DragOverEvent) => {
+  const { active, over } = event;
+  const id = active.id as string;
+  const overId = over?.id as string;
+
+  // Handle custom items
+  const sourceSection = customSections.find((section) =>
+    section.items.some((item) => item.id === id)
+  );
+  const targetSection = customSections.find((section) =>
+    section.items.some((item) => item.id === overId)
+  );
+
+  if (sourceSection && targetSection) {
+    setCustomSections((prevSections) =>
+      prevSections.map((section) => {
+        if (section.id === sourceSection.id && section.id === targetSection.id) {
+          // Reorder within the same section
+          const oldIndex = section.items.findIndex((item) => item.id === id);
+          const newIndex = section.items.findIndex((item) => item.id === overId);
+          const newItems = arrayMove(section.items, oldIndex, newIndex);
+          return { ...section, items: newItems };
+        } else if (section.id === sourceSection.id) {
+          // Remove item from source section
+          return {
+            ...section,
+            items: section.items.filter((item) => item.id !== id),
+          };
+        } else if (section.id === targetSection.id) {
+          // Add item to target section
+          const itemToMove = sourceSection.items.find((item) => item.id === id)!;
+          const overIndex = section.items.findIndex((item) => item.id === overId);
+          const newItems = [...section.items];
+          newItems.splice(overIndex, 0, itemToMove);
+          return { ...section, items: newItems };
+        }
+        return section;
+      })
+    );
+    return;
+  }
+  
     const activeContainer = findContainer(id);
     const overContainer = findContainer(overId);
-
+  
     if (
       !activeContainer ||
       !overContainer ||
@@ -326,11 +485,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     ) {
       return;
     }
-
+  
     setItems((prev) => {
       const activeItems = prev[activeContainer];
       const overItems = prev[overContainer];
-
+  
       if (!activeItems || !overItems) {
         console.error("Invalid containers:", {
           activeContainer,
@@ -339,10 +498,10 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         });
         return prev;
       }
-
+  
       const activeIndex = activeItems.findIndex((item) => item.id === id);
       const overIndex = overItems.findIndex((item) => item.id === overId);
-
+  
       let newIndex: number;
       if (overId in prev) {
         newIndex = overItems.length + 1;
@@ -350,7 +509,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         const isBelowLastItem = over && overIndex === overItems.length - 1;
         newIndex = isBelowLastItem ? overIndex + 1 : overIndex;
       }
-
+  
       const newItems = {
         ...prev,
         [activeContainer]: [
@@ -362,12 +521,12 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           ...prev[overContainer].slice(newIndex, prev[overContainer].length),
         ],
       };
-
+  
       const draggedItem = activeItems[activeIndex];
       const isExcludedPersonalItem =
         draggedItem.type === "personal" &&
         excludedPersonalItems.includes(draggedItem.content.key);
-
+  
       if (!isExcludedPersonalItem) {
         const action =
           activeContainer === "available" && overContainer === "preview"
@@ -381,12 +540,12 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         setHistory((prevHistory) => [...prevHistory, newHistoryEntry]);
         setLastModifiedItemId(id);
       }
-
+  
       // Clear any existing timeout when a new drag occurs
       if (processingTimeoutRef.current) {
         clearTimeout(processingTimeoutRef.current);
       }
-
+  
       return newItems;
     });
   };
@@ -395,31 +554,92 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     const { active, over } = event;
     const id = active.id as string;
     const overId = over?.id as string;
-
+  
+    if (id === "custom-card" && overId) {
+      const targetSection = customSections.find((section) =>
+        section.items.some((item) => item.id === overId)
+      );
+      if (targetSection) {
+        handleAddCustomItem(targetSection.id);
+      } else {
+        // If dropped outside a custom section, create a new custom section
+        const newSectionId = `custom-section-${Date.now()}`;
+        const newSection: CustomSection = {
+          id: newSectionId,
+          title: "New Custom Section",
+          items: [],
+        };
+        setCustomSections([...customSections, newSection]);
+        handleAddCustomItem(newSectionId);
+      }
+      return;
+    }
+  
+    // Handle custom items
+    const sourceSection = customSections.find((section) =>
+      section.items.some((item) => item.id === id)
+    );
+    const targetSection = customSections.find((section) =>
+      section.items.some((item) => item.id === overId)
+    );
+  
+    if (sourceSection && targetSection) {
+      setCustomSections((prevSections) =>
+        prevSections.map((section) => {
+          if (section.id === sourceSection.id && section.id === targetSection.id) {
+            // Reorder within the same section
+            const oldIndex = section.items.findIndex((item) => item.id === id);
+            const newIndex = section.items.findIndex((item) => item.id === overId);
+            const newItems = arrayMove(section.items, oldIndex, newIndex);
+            return { ...section, items: newItems };
+          } else if (section.id === sourceSection.id) {
+            // Remove item from source section
+            return {
+              ...section,
+              items: section.items.filter((item) => item.id !== id),
+            };
+          } else if (section.id === targetSection.id) {
+            // Add item to target section
+            const itemToMove = sourceSection.items.find((item) => item.id === id)!;
+            const overIndex = section.items.findIndex((item) => item.id === overId);
+            const newItems = [...section.items];
+            newItems.splice(overIndex, 0, itemToMove);
+            return { ...section, items: newItems };
+          }
+          return section;
+        })
+      );
+      setLastModifiedItemId(id);
+      return;
+    }
+  
     const activeContainer = findContainer(id);
     const overContainer = findContainer(overId);
-
+  
     if (
       !activeContainer ||
       !overContainer ||
-      activeContainer !== overContainer
+      activeContainer === overContainer
     ) {
       return;
     }
-
+  
     setItems((prevItems) => {
-      if (!prevItems[overContainer]) {
-        console.error("Invalid container:", { overContainer, prevItems });
+      const activeItems = prevItems[activeContainer];
+      const overItems = prevItems[overContainer];
+  
+      if (!activeItems || !overItems) {
+        console.error("Invalid containers:", {
+          activeContainer,
+          overContainer,
+          prevItems,
+        });
         return prevItems;
       }
-
-      const activeIndex = prevItems[overContainer].findIndex(
-        (item) => item.id === id
-      );
-      const overIndex = prevItems[overContainer].findIndex(
-        (item) => item.id === overId
-      );
-
+  
+      const activeIndex = activeItems.findIndex((item) => item.id === id);
+      const overIndex = overItems.findIndex((item) => item.id === overId);
+  
       if (activeIndex !== overIndex) {
         const newItems = {
           ...prevItems,
@@ -429,28 +649,28 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             overIndex
           ),
         };
-
-        const reorderedItem = prevItems[overContainer][activeIndex];
+  
+        const movedItem = activeItems[activeIndex];
         const isExcludedPersonalItem =
-          reorderedItem.type === "personal" &&
-          excludedPersonalItems.includes(reorderedItem.content.key);
-
+          movedItem.type === "personal" &&
+          excludedPersonalItems.includes(movedItem.content.key);
+  
         if (!isExcludedPersonalItem) {
           const newHistoryEntry: HistoryEntry = {
-            action: "reorder",
+            action: activeContainer === "available" ? "add" : "remove",
             itemId: id,
             timestamp: Date.now(),
           };
           setHistory((prevHistory) => [...prevHistory, newHistoryEntry]);
           setLastModifiedItemId(id);
         }
-
+  
         return newItems;
       }
-
+  
       return prevItems;
     });
-
+  
     setActiveId(null);
   };
 
@@ -736,7 +956,12 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   };
   /* Editor End */
 
-  const renderItemContent = (item: Item) => {
+  const renderItemContent = (item: Item | undefined) => {
+    if (!item) {
+      console.warn("Attempted to render undefined item");
+      return null;
+    }
+
     const editedItem = editedItems[item.id] || item;
 
     const content = (() => {
@@ -883,7 +1108,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       console.error("Preview items are undefined");
       return null;
     }
-
+  
     const groupedItems = items.preview.reduce((acc, item) => {
       if (!acc[item.type]) {
         acc[item.type] = [];
@@ -891,7 +1116,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       acc[item.type].push(item);
       return acc;
     }, {} as Record<ItemType, Item[]>);
-
+  
     const sectionOrder: ItemType[] = [
       "personal",
       "experience",
@@ -901,7 +1126,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       "projects",
       "publications",
     ];
-
+  
     return (
       <div className="bg-white shadow-lg rounded-lg p-8 space-y-6 w-full">
         {sectionOrder.map((sectionType) => {
@@ -911,7 +1136,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           ) {
             return null;
           }
-
+  
           return (
             <div
               key={sectionType}
@@ -938,6 +1163,47 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             </div>
           );
         })}
+  
+        {/* Render custom sections */}
+        {customSections.map((section) => (
+          <div
+            key={section.id}
+            className="pb-4 border-b border-gray-200 last:border-b-0"
+          >
+            <h2 className="text-lg font-bold text-gray-800 mb-4 uppercase">
+              {section.title}
+            </h2>
+            {section.items.map((item) => (
+              <SortableItem key={item.id} id={item.id}>
+                <div className="relative">
+                  <Textarea
+                    value={item.content.text}
+                    onChange={(e) =>
+                      handleEditCustomItem(section.id, item.id, e.target.value)
+                    }
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+              </SortableItem>
+            ))}
+            <Button
+              onClick={() => handleAddCustomItem(section.id)}
+              className="mt-2"
+              variant="outline"
+            >
+              Add Custom Item
+            </Button>
+          </div>
+        ))}
+  
+        {/* Add Custom Section button */}
+        <Button
+          onClick={() => setIsAddingSectionDialogOpen(true)}
+          className="mt-4"
+          variant="outline"
+        >
+          <Plus className="mr-2 h-4 w-4" /> Add Custom Section
+        </Button>
       </div>
     );
   };
@@ -951,7 +1217,19 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       };
     });
 
-    console.log(JSON.stringify(resumeData, null, 2));
+    // Add custom sections and items to the resumeData
+    const customSectionsData = customSections.map((section) => ({
+      type: "custom",
+      title: section.title,
+      items: section.items.map((item) => ({
+        type: "custom",
+        content: item.content,
+      })),
+    }));
+
+    const fullResumeData = [...resumeData, ...customSectionsData];
+
+    console.log(JSON.stringify(fullResumeData, null, 2));
   };
 
   return (
@@ -963,27 +1241,15 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       onDragEnd={handleDragEnd}
     >
       {renderEditDialog()}
+      {renderAddSectionDialog()}
       <div className="flex gap-6 h-[calc(100vh-12rem)] overflow-hidden">
-        <div className="w-1/3 flex flex-col">
-          <h2 className="text-md font-semibold text-gray-800 mb-4">
-            Available Items
-          </h2>
-          <div className="flex-1 overflow-y-auto pr-4">
-            <Container id="available" items={items.available || []}>
-              {(items.available || []).map((item) => (
-                <SortableItem key={item.id} id={item.id}>
-                  {renderCondensedItemContent(item)}
-                </SortableItem>
-              ))}
-            </Container>
-          </div>
-        </div>
+        {renderAvailableItems()}
         <div className="w-2/3 flex flex-col">
           <h2 className="text-md font-semibold text-gray-800 mb-4">
             Resume Preview
           </h2>
           <div className="flex-1 overflow-y-auto pr-4">
-            <Container id="preview" items={items.preview || []}>
+            <Container id="preview" items={[...items.preview, ...customSections.flatMap(section => section.items)]}>
               {renderPreview()}
             </Container>
           </div>
@@ -995,10 +1261,24 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       <DragOverlay>
         {activeId ? (
           <div className="bg-white shadow-lg rounded-lg p-4">
-            {renderItemContent(
-              items[findContainer(activeId)!]?.find(
-                (item) => item.id === activeId
-              )!
+            {activeId === "custom-card" ? (
+              <div className="bg-gray-100 p-4 rounded-lg">
+                <h3 className="text-md font-semibold text-gray-800">
+                  Custom Card
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Drag to add a custom item
+                </p>
+              </div>
+            ) : (
+              (() => {
+                const container = findContainer(activeId);
+                const item = container
+                  ? items[container]?.find((item) => item.id === activeId) || 
+                    customSections.flatMap(section => section.items).find(item => item.id === activeId)
+                  : undefined;
+                return renderItemContent(item);
+              })()
             )}
           </div>
         ) : null}
@@ -1008,3 +1288,4 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
 };
 
 export default ResumeBuilder;
+
