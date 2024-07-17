@@ -1,11 +1,17 @@
-import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Item } from './types';
-import { getFieldsForItemType, fieldLabels } from './item-fields';
-import { personalLabelMap } from './personal-labels';
+import React from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Item } from "./types";
+import { getFieldsForItemType, fieldLabels } from "./item-fields";
+import { personalLabelMap } from "./personal-labels";
+import { MonthYearPicker } from "@/app/(auth)/dashboard/views/candidate/assets/date-picker-my";
 
 interface EditDialogProps {
   editingItem: Item | null;
@@ -20,16 +26,31 @@ const EditDialog: React.FC<EditDialogProps> = ({
 }) => {
   if (!editingItem) return null;
 
-  const fields = getFieldsForItemType(editingItem.type, editingItem.content.key);
+  const fields = getFieldsForItemType(
+    editingItem.type,
+    editingItem.content.key
+  );
 
   const getFieldLabel = (field: string) => {
     if (editingItem.type === "personal") {
-      return personalLabelMap[editingItem.content.key] || editingItem.content.key;
+      return (
+        personalLabelMap[editingItem.content.key] || editingItem.content.key
+      );
     }
     if (editingItem.type === "skills" && field === "value") {
       return "Skills";
     }
     return fieldLabels[field] || field;
+  };
+
+  const handleDateChange = (field: string) => (value: string | undefined) => {
+    setEditingItem({
+      ...editingItem,
+      content: {
+        ...editingItem.content,
+        [field]: value,
+      },
+    });
   };
 
   return (
@@ -52,9 +73,18 @@ const EditDialog: React.FC<EditDialogProps> = ({
               >
                 {getFieldLabel(field)}
               </label>
-              {field === "honors_awards_coursework" ||
-              field === "responsibilities" ||
-              editingItem.type === "skills" ? (
+              {field === "start_date" ||
+              field === "end_date" ||
+              (editingItem.type === "certifications" &&
+                field === "date_obtained") ? (
+                <MonthYearPicker
+                  value={editingItem.content[field]}
+                  onChange={handleDateChange(field)}
+                  allowPresent={field === "end_date"}
+                />
+              ) : field === "honors_awards_coursework" ||
+                field === "responsibilities" ||
+                editingItem.type === "skills" ? (
                 <Textarea
                   id={field}
                   value={

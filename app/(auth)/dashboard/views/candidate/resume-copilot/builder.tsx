@@ -22,14 +22,11 @@ import {
   AlertState,
   ResumeBuilderProps,
 } from "./types";
-import Alert from "./alert";
 import { buildAndLogPrompt } from "./prompt-builder";
 import { useDebounce } from "./use-debounce";
-import Spinner from "./spinner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Edit2, Plus, Trash2 } from "lucide-react";
-import { personalLabelMap } from "./personal-labels";
+import { Plus, Trash2 } from "lucide-react";
 import { DeleteConfirmationDialog } from "./delete-dialog";
 import { AvailableItems } from "./available-items";
 import AddSectionDialog from "./add-section-dialog";

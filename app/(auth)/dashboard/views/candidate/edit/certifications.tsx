@@ -3,7 +3,7 @@ import useStore from "@/app/state/useStore";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Save, Calendar as CalendarIcon } from "lucide-react";
+import { Plus, Trash2, Save } from "lucide-react";
 import {
   getTalentCertifications,
   addCertification,
@@ -19,14 +19,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { format, parse } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { MonthYearPicker } from "../assets/date-picker-my";
 
 type CertificationWithId = CertificationNode & NodeWithId;
 
@@ -91,11 +84,11 @@ export default function Certifications() {
     setCertifications(updatedCertifications);
   };
 
-  const handleDateChange = (index: number, field: "date_obtained" | "expiration_date", date: Date | undefined) => {
+  const handleDateChange = (index: number, field: "date_obtained" | "expiration_date", value: string | undefined) => {
     const updatedCertifications = [...certifications];
     updatedCertifications[index] = {
       ...updatedCertifications[index],
-      [field]: date ? format(date, "yyyy-MM-dd") : "",
+      [field]: value || "",
     };
     setCertifications(updatedCertifications);
   };
@@ -148,36 +141,6 @@ export default function Certifications() {
     return <div>Loading certifications...</div>;
   }
 
-  const DateInput = ({ index, field, label, value }: { index: number, field: "date_obtained" | "expiration_date", label: string, value?: string }) => (
-    <div className="space-y-2 w-full">
-      <Label htmlFor={`cert-${field}-${index}`}>{label}</Label>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            id={`cert-${field}-${index}`}
-            variant={"outline"}
-            className={cn(
-              "w-full justify-start text-left font-normal",
-              !value && "text-muted-foreground"
-            )}
-            disabled={savingStates[certifications[index]._id]}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {value ? format(parse(value, "yyyy-MM-dd", new Date()), "PPP") : <span>Pick a date</span>}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0">
-          <Calendar
-            mode="single"
-            selected={value ? parse(value, "yyyy-MM-dd", new Date()) : undefined}
-            onSelect={(date) => handleDateChange(index, field, date)}
-            initialFocus
-          />
-        </PopoverContent>
-      </Popover>
-    </div>
-  );
-
   return (
     <div className="space-y-6">
       {certifications.map((cert, index) => (
@@ -228,8 +191,21 @@ export default function Certifications() {
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <DateInput index={index} field="date_obtained" label="Date Obtained" value={cert.date_obtained} />
-            <DateInput index={index} field="expiration_date" label="Expiration Date" value={cert.expiration_date} />
+            <div className="space-y-2">
+              <Label htmlFor={`cert-date-obtained-${index}`}>Date Obtained</Label>
+              <MonthYearPicker
+                value={cert.date_obtained}
+                onChange={(value) => handleDateChange(index, "date_obtained", value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={`cert-expiration-date-${index}`}>Expiration Date</Label>
+              <MonthYearPicker
+                value={cert.expiration_date}
+                onChange={(value) => handleDateChange(index, "expiration_date", value)}
+                allowPresent
+              />
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor={`cert-url-${index}`}>Credential URL</Label>

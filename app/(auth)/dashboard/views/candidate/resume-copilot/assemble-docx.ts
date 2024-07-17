@@ -6,6 +6,7 @@ import {
   AlignmentType,
   Packer,
 } from "docx";
+import { parse, format, isValid } from 'date-fns';
 
 export interface ResumeItem {
   type: string;
@@ -36,6 +37,13 @@ interface PersonalInfo {
   zipcode?: string;
   title?: string;
   clearance_level?: string;
+}
+
+function formatDate(dateString: string): string {
+  if (!dateString) return '';
+  const parsedDate = parse(dateString, 'yyyy-MM', new Date());
+  if (!isValid(parsedDate)) return dateString;
+  return format(parsedDate, 'MMMM yyyy');
 }
 
 export async function generateResume(resumeData: ResumeData): Promise<string> {
@@ -86,7 +94,6 @@ const generateHeader = (resumeData: ResumeData): Paragraph[] => {
 
   const headerParagraphs: Paragraph[] = [];
 
-  // Name
   if (personalInfo.name) {
     headerParagraphs.push(
       new Paragraph({
@@ -98,7 +105,6 @@ const generateHeader = (resumeData: ResumeData): Paragraph[] => {
     );
   }
 
-  // Title
   if (personalInfo.title) {
     headerParagraphs.push(
       new Paragraph({
@@ -110,7 +116,6 @@ const generateHeader = (resumeData: ResumeData): Paragraph[] => {
     );
   }
 
-  // Contact Information
   const contactInfo: string[] = [];
   if (personalInfo.email) contactInfo.push(personalInfo.email);
   if (personalInfo.phone) contactInfo.push(personalInfo.phone);
@@ -125,7 +130,6 @@ const generateHeader = (resumeData: ResumeData): Paragraph[] => {
     );
   }
 
-  // Address
   const addressParts: string[] = [];
   if (personalInfo.city) addressParts.push(personalInfo.city);
   if (personalInfo.state) addressParts.push(personalInfo.state);
@@ -139,7 +143,6 @@ const generateHeader = (resumeData: ResumeData): Paragraph[] => {
     );
   }
 
-  // Add a blank line after the header
   headerParagraphs.push(new Paragraph({}));
 
   return headerParagraphs;
@@ -248,7 +251,7 @@ const generateExperience = (content: ResumeItem["content"]): Paragraph[] => {
     new Paragraph({
       children: [
         new TextRun({
-          text: `${content.start_date || ""} - ${content.end_date || ""}`,
+          text: `${formatDate(content.start_date || "")} - ${formatDate(content.end_date || "")}`,
         }),
         content.location
           ? new TextRun({ text: ` | ${content.location}` })
@@ -279,7 +282,7 @@ const generateEducation = (content: ResumeItem["content"]): Paragraph[] => {
     new Paragraph({
       children: [
         new TextRun({
-          text: `${content.start_date || ""} - ${content.end_date || ""}`,
+          text: `${formatDate(content.start_date || "")} - ${formatDate(content.end_date || "")}`,
         }),
       ],
     }),
@@ -322,7 +325,7 @@ const generateCertification = (content: ResumeItem["content"]): Paragraph[] => {
     new Paragraph({
       children: [
         new TextRun({
-          text: `Date Obtained: ${content.date_obtained || "N/A"}`,
+          text: `Date Obtained: ${formatDate(content.date_obtained || "")}`,
         }),
       ],
     }),
@@ -330,7 +333,7 @@ const generateCertification = (content: ResumeItem["content"]): Paragraph[] => {
       ? new Paragraph({
           children: [
             new TextRun({
-              text: `Expiration Date: ${content.expiration_date}`,
+              text: `Expiration Date: ${formatDate(content.expiration_date)}`,
             }),
           ],
         })

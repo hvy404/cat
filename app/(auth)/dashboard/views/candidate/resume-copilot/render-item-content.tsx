@@ -1,4 +1,5 @@
 import React from 'react';
+import { parse, format, isValid } from 'date-fns';
 import { Item } from './types';
 import { personalLabelMap } from './personal-labels';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,17 @@ interface RenderItemContentProps {
   handleEdit: (item: Item) => void;
   toggleAlertMinimize: (id: string) => void;
 }
+
+const formatDate = (dateString: string): string => {
+  if (dateString.toLowerCase() === 'present') {
+    return 'Present';
+  }
+  const date = parse(dateString, 'yyyy-MM', new Date());
+  if (isValid(date)) {
+    return format(date, 'MMMM yyyy');
+  }
+  return dateString; // Return original string if parsing fails
+};
 
 export const createRenderItemContent = (
   editedItems: Record<string, Item>,
@@ -78,7 +90,9 @@ export const createRenderItemContent = (
               <p className="text-sm font-medium text-gray-700">
                 {editedItem.content.organization}
               </p>
-              <p className="text-sm text-gray-600">{`${editedItem.content.start_date} - ${editedItem.content.end_date}`}</p>
+              <p className="text-sm text-gray-600">
+                {`${formatDate(editedItem.content.start_date)} - ${formatDate(editedItem.content.end_date)}`}
+              </p>
               <p className="text-sm text-gray-700 mt-2">
                 {editedItem.content.responsibilities}
               </p>
@@ -93,7 +107,9 @@ export const createRenderItemContent = (
               <p className="text-sm font-medium text-gray-700">
                 {editedItem.content.institution}
               </p>
-              <p className="text-sm text-gray-600">{`${editedItem.content.start_date} - ${editedItem.content.end_date}`}</p>
+              <p className="text-sm text-gray-600">
+                {`${formatDate(editedItem.content.start_date)} - ${formatDate(editedItem.content.end_date)}`}
+              </p>
             </div>
           );
         case "skills":
@@ -114,7 +130,7 @@ export const createRenderItemContent = (
               <p className="text-sm text-gray-700">
                 {editedItem.content.issuing_organization}
               </p>
-              <p className="text-sm text-gray-600">{`Obtained: ${editedItem.content.date_obtained}`}</p>
+              <p className="text-sm text-gray-600">{`Obtained: ${formatDate(editedItem.content.date_obtained)}`}</p>
             </div>
           );
         case "projects":
@@ -137,7 +153,7 @@ export const createRenderItemContent = (
               <p className="text-sm text-gray-700">
                 {editedItem.content.journal_or_conference}
               </p>
-              <p className="text-sm text-gray-600">{`Published: ${editedItem.content.publication_date}`}</p>
+              <p className="text-sm text-gray-600">{`Published: ${formatDate(editedItem.content.publication_date)}`}</p>
             </div>
           );
         default:
