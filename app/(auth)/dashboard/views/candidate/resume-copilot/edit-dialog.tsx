@@ -26,19 +26,11 @@ const EditDialog: React.FC<EditDialogProps> = ({
 }) => {
   if (!editingItem) return null;
 
-  const fields = getFieldsForItemType(
-    editingItem.type,
-    editingItem.content.key
-  );
+  const fields = getFieldsForItemType(editingItem.type);
 
   const getFieldLabel = (field: string) => {
     if (editingItem.type === "personal") {
-      return (
-        personalLabelMap[editingItem.content.key] || editingItem.content.key
-      );
-    }
-    if (editingItem.type === "skills" && field === "value") {
-      return "Skills";
+      return editingItem.content.key;
     }
     return fieldLabels[field] || field;
   };
@@ -51,6 +43,65 @@ const EditDialog: React.FC<EditDialogProps> = ({
         [field]: value,
       },
     });
+  };
+
+  const handleInputChange = (field: string) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setEditingItem({
+      ...editingItem,
+      content:
+        editingItem.type === "personal" || editingItem.type === "skills"
+          ? { ...editingItem.content, value: e.target.value }
+          : { ...editingItem.content, [field]: e.target.value },
+    });
+  };
+
+  const renderField = (field: string) => {
+    const value =
+      editingItem.type === "personal" || editingItem.type === "skills"
+        ? editingItem.content.value
+        : editingItem.content[field] || "";
+
+    if (
+      field === "start_date" ||
+      field === "end_date" ||
+      field === "date_obtained" ||
+      field === "expiration_date" ||
+      field === "publication_date"
+    ) {
+      return (
+        <MonthYearPicker
+          value={value}
+          onChange={handleDateChange(field)}
+          allowPresent={field === "end_date" || field === "expiration_date"}
+        />
+      );
+    }
+
+    if (
+      field === "honors_awards_coursework" ||
+      field === "responsibilities" ||
+      field === "description" ||
+      editingItem.type === "skills"
+    ) {
+      return (
+        <Textarea
+          id={field}
+          value={value}
+          onChange={handleInputChange(field)}
+        />
+      );
+    }
+
+    return (
+      <Input
+        type={field === "credential_url" ? "url" : "text"}
+        id={field}
+        value={value}
+        onChange={handleInputChange(field)}
+      />
+    );
   };
 
   return (
@@ -73,61 +124,7 @@ const EditDialog: React.FC<EditDialogProps> = ({
               >
                 {getFieldLabel(field)}
               </label>
-              {field === "start_date" ||
-              field === "end_date" ||
-              (editingItem.type === "certifications" &&
-                field === "date_obtained") ? (
-                <MonthYearPicker
-                  value={editingItem.content[field]}
-                  onChange={handleDateChange(field)}
-                  allowPresent={field === "end_date"}
-                />
-              ) : field === "honors_awards_coursework" ||
-                field === "responsibilities" ||
-                editingItem.type === "skills" ? (
-                <Textarea
-                  id={field}
-                  value={
-                    editingItem.type === "skills"
-                      ? editingItem.content.value
-                      : editingItem.content[field] || ""
-                  }
-                  onChange={(e) =>
-                    setEditingItem({
-                      ...editingItem,
-                      content:
-                        editingItem.type === "skills"
-                          ? { ...editingItem.content, value: e.target.value }
-                          : {
-                              ...editingItem.content,
-                              [field]: e.target.value,
-                            },
-                    })
-                  }
-                />
-              ) : (
-                <Input
-                  type="text"
-                  id={field}
-                  value={
-                    editingItem.type === "personal"
-                      ? editingItem.content.value
-                      : editingItem.content[field] || ""
-                  }
-                  onChange={(e) =>
-                    setEditingItem({
-                      ...editingItem,
-                      content:
-                        editingItem.type === "personal"
-                          ? { ...editingItem.content, value: e.target.value }
-                          : {
-                              ...editingItem.content,
-                              [field]: e.target.value,
-                            },
-                    })
-                  }
-                />
-              )}
+              {renderField(field)}
             </div>
           ))}
           <Button type="submit">Save</Button>

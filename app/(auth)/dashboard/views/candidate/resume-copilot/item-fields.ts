@@ -23,7 +23,14 @@ export const getFieldsForItemType = (type: ItemType, key?: string): string[] => 
     case "skills":
       return ["value"];
     case "certifications":
-      return ["name", "issuing_organization", "date_obtained"];
+      return [
+        "name",
+        "issuing_organization",
+        "date_obtained",
+        "expiration_date",
+        "credential_id",
+        "credential_url"
+      ];
     case "projects":
       return ["title", "description"];
     case "publications":
@@ -45,6 +52,9 @@ export const fieldLabels: Record<string, string> = {
   name: "Name",
   issuing_organization: "Issuing Organization",
   date_obtained: "Date Obtained",
+  expiration_date: "Expiration Date",
+  credential_id: "Credential ID",
+  credential_url: "Credential URL",
   title: "Title",
   description: "Description",
   journal_or_conference: "Journal/Conference",

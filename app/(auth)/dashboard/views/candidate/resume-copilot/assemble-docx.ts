@@ -345,13 +345,6 @@ const generateCertification = (content: ResumeItem["content"]): Paragraph[] => {
           ],
         })
       : null,
-    content.credential_url
-      ? new Paragraph({
-          children: [
-            new TextRun({ text: `Credential URL: ${content.credential_url}` }),
-          ],
-        })
-      : null,
     new Paragraph({}),
   ].filter((p): p is Paragraph => p !== null);
 };
