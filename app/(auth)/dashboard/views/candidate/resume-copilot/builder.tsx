@@ -36,6 +36,8 @@ import AddSectionDialog from "./add-section-dialog";
 import EditDialog from "./edit-dialog";
 import { renderCondensedItemContent } from "./condensed-content";
 import { createRenderItemContent } from "./render-item-content";
+import { generateResume, ResumeData, ResumeItem, DocxCustomSection } from './assemble-docx';
+
 
 // Add new interfaces for custom sections and items
 interface CustomSection {
@@ -881,28 +883,57 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     });
   };
 
-  const handleCreateResume = () => {
-    const resumeData = items.preview.map((item) => {
-      const editedItem = editedItems[item.id] || item;
-      return {
-        type: editedItem.type,
-        content: editedItem.content,
-      };
-    });
+  const handleCreateResume = async () => {
+    try {
+      const resumeData: ResumeData = items.preview.map((item): ResumeItem => {
+        const editedItem = editedItems[item.id] || item;
+        return {
+          type: editedItem.type,
+          content: editedItem.content,
+        };
+      });
 
-    // Add custom sections and items to the resumeData
-    const customSectionsData = customSections.map((section) => ({
-      type: "custom",
-      title: section.title,
-      items: section.items.map((item) => ({
-        type: "custom",
-        content: item.content,
-      })),
-    }));
-
-    const fullResumeData = [...resumeData, ...customSectionsData];
-
-    console.log(JSON.stringify(fullResumeData, null, 2));
+      console.log(resumeData);
+  
+      // Add custom sections to the resumeData
+      customSections.forEach((section) => {
+        resumeData.push({
+          type: 'custom',
+          title: section.title,
+          items: section.items.map((item) => ({
+            type: 'custom',
+            content: { text: item.content.text },
+          })),
+        } as DocxCustomSection);
+      });
+  
+      const base64Data = await generateResume(resumeData);
+      
+      if (!base64Data) {
+        throw new Error('Failed to generate resume: base64Data is empty');
+      }
+  
+      // Convert base64 to Blob
+      const binaryString = window.atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+  
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = 'resume.docx';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error generating resume:', error);
+      // You might want to show an error message to the user here
+    }
   };
 
   return (
@@ -931,7 +962,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             </Container>
           </div>
           <div className="flex justify-end mt-4">
-            <Button onClick={handleCreateResume}>Create Resume</Button>
+          <Button onClick={handleCreateResume}>Create Resume</Button>
           </div>
         </div>
       </div>
