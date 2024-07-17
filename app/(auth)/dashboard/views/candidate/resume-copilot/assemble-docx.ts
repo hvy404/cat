@@ -1,4 +1,11 @@
-import { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, Packer } from 'docx';
+import {
+  Document,
+  Paragraph,
+  TextRun,
+  HeadingLevel,
+  AlignmentType,
+  Packer,
+} from "docx";
 
 export interface ResumeItem {
   type: string;
@@ -8,7 +15,7 @@ export interface ResumeItem {
 }
 
 export interface DocxCustomSection {
-  type: 'custom';
+  type: "custom";
   title: string;
   items: {
     type: string;
@@ -83,7 +90,9 @@ const generateHeader = (resumeData: ResumeData): Paragraph[] => {
   if (personalInfo.name) {
     headerParagraphs.push(
       new Paragraph({
-        children: [new TextRun({ text: personalInfo.name, bold: true, size: 28 })],
+        children: [
+          new TextRun({ text: personalInfo.name, bold: true, size: 28 }),
+        ],
         alignment: AlignmentType.CENTER,
       })
     );
@@ -93,7 +102,9 @@ const generateHeader = (resumeData: ResumeData): Paragraph[] => {
   if (personalInfo.title) {
     headerParagraphs.push(
       new Paragraph({
-        children: [new TextRun({ text: personalInfo.title, italics: true, size: 24 })],
+        children: [
+          new TextRun({ text: personalInfo.title, italics: true, size: 24 }),
+        ],
         alignment: AlignmentType.CENTER,
       })
     );
@@ -103,11 +114,12 @@ const generateHeader = (resumeData: ResumeData): Paragraph[] => {
   const contactInfo: string[] = [];
   if (personalInfo.email) contactInfo.push(personalInfo.email);
   if (personalInfo.phone) contactInfo.push(personalInfo.phone);
-  if (personalInfo.clearance_level) contactInfo.push(`Clearance: ${personalInfo.clearance_level}`);
+  if (personalInfo.clearance_level)
+    contactInfo.push(`Clearance: ${personalInfo.clearance_level}`);
   if (contactInfo.length > 0) {
     headerParagraphs.push(
       new Paragraph({
-        children: [new TextRun({ text: contactInfo.join(' | '), size: 22 })],
+        children: [new TextRun({ text: contactInfo.join(" | "), size: 22 })],
         alignment: AlignmentType.CENTER,
       })
     );
@@ -121,7 +133,7 @@ const generateHeader = (resumeData: ResumeData): Paragraph[] => {
   if (addressParts.length > 0) {
     headerParagraphs.push(
       new Paragraph({
-        children: [new TextRun({ text: addressParts.join(', '), size: 22 })],
+        children: [new TextRun({ text: addressParts.join(", "), size: 22 })],
         alignment: AlignmentType.CENTER,
       })
     );
@@ -152,7 +164,11 @@ const generateSections = (resumeData: ResumeData): Paragraph[] => {
       (item): item is ResumeItem => item.type === sectionType
     );
     if (sectionItems.length > 0) {
-      sections.push(...generateSection(sectionType, sectionItems));
+      if (sectionType === "skills") {
+        sections.push(...generateMergedSkills(sectionItems));
+      } else {
+        sections.push(...generateSection(sectionType, sectionItems));
+      }
     }
   });
 
@@ -163,6 +179,25 @@ const generateSections = (resumeData: ResumeData): Paragraph[] => {
   });
 
   return sections;
+};
+
+const generateMergedSkills = (skillItems: ResumeItem[]): Paragraph[] => {
+  const allSkills = skillItems
+    .map((item) => item.content.value || item.content.name || "")
+    .filter(Boolean)
+    .join(", ");
+
+  return [
+    new Paragraph({
+      text: "SKILLS",
+      heading: HeadingLevel.HEADING_2,
+      thematicBreak: true,
+    }),
+    new Paragraph({
+      children: [new TextRun({ text: allSkills })],
+    }),
+    new Paragraph({}),
+  ];
 };
 
 const generateSection = (title: string, items: ResumeItem[]): Paragraph[] => {
@@ -201,7 +236,7 @@ const generateSection = (title: string, items: ResumeItem[]): Paragraph[] => {
   return paragraphs;
 };
 
-const generateExperience = (content: ResumeItem['content']): Paragraph[] => {
+const generateExperience = (content: ResumeItem["content"]): Paragraph[] => {
   return [
     new Paragraph({
       children: [
@@ -212,8 +247,12 @@ const generateExperience = (content: ResumeItem['content']): Paragraph[] => {
     }),
     new Paragraph({
       children: [
-        new TextRun({ text: `${content.start_date || ""} - ${content.end_date || ""}` }),
-        content.location ? new TextRun({ text: ` | ${content.location}` }) : null,
+        new TextRun({
+          text: `${content.start_date || ""} - ${content.end_date || ""}`,
+        }),
+        content.location
+          ? new TextRun({ text: ` | ${content.location}` })
+          : null,
       ].filter((run): run is TextRun => run !== null),
     }),
     ...(content.responsibilities
@@ -228,7 +267,7 @@ const generateExperience = (content: ResumeItem['content']): Paragraph[] => {
   ];
 };
 
-const generateEducation = (content: ResumeItem['content']): Paragraph[] => {
+const generateEducation = (content: ResumeItem["content"]): Paragraph[] => {
   return [
     new Paragraph({
       children: [
@@ -239,14 +278,19 @@ const generateEducation = (content: ResumeItem['content']): Paragraph[] => {
     }),
     new Paragraph({
       children: [
-        new TextRun({ text: `${content.start_date || ""} - ${content.end_date || ""}` }),
+        new TextRun({
+          text: `${content.start_date || ""} - ${content.end_date || ""}`,
+        }),
       ],
     }),
     content.honors_awards_coursework
       ? new Paragraph({
           children: [
             new TextRun({ text: "Honors/Awards/Coursework: " }),
-            new TextRun({ text: content.honors_awards_coursework, italics: true }),
+            new TextRun({
+              text: content.honors_awards_coursework,
+              italics: true,
+            }),
           ],
         })
       : null,
@@ -254,7 +298,7 @@ const generateEducation = (content: ResumeItem['content']): Paragraph[] => {
   ].filter((p): p is Paragraph => p !== null);
 };
 
-const generateSkills = (content: ResumeItem['content']): Paragraph[] => {
+const generateSkills = (content: ResumeItem["content"]): Paragraph[] => {
   return [
     new Paragraph({
       children: [new TextRun({ text: content.value || content.name || "" })],
@@ -263,50 +307,67 @@ const generateSkills = (content: ResumeItem['content']): Paragraph[] => {
   ];
 };
 
-const generateCertification = (content: ResumeItem['content']): Paragraph[] => {
+const generateCertification = (content: ResumeItem["content"]): Paragraph[] => {
   return [
     new Paragraph({
+      children: [new TextRun({ text: content.name || "", bold: true })],
+    }),
+    new Paragraph({
       children: [
-        new TextRun({ text: content.name || "", bold: true }),
+        new TextRun({
+          text: `Issued by: ${content.issuing_organization || "N/A"}`,
+        }),
       ],
     }),
     new Paragraph({
       children: [
-        new TextRun({ text: `Issued by: ${content.issuing_organization || 'N/A'}` }),
+        new TextRun({
+          text: `Date Obtained: ${content.date_obtained || "N/A"}`,
+        }),
       ],
     }),
-    new Paragraph({
-      children: [
-        new TextRun({ text: `Date Obtained: ${content.date_obtained || 'N/A'}` }),
-      ],
-    }),
-    content.expiration_date ? new Paragraph({
-      children: [
-        new TextRun({ text: `Expiration Date: ${content.expiration_date}` }),
-      ],
-    }) : null,
-    content.credential_id ? new Paragraph({
-      children: [
-        new TextRun({ text: `Credential ID: ${content.credential_id}` }),
-      ],
-    }) : null,
-    content.credential_url ? new Paragraph({
-      children: [
-        new TextRun({ text: `Credential URL: ${content.credential_url}` }),
-      ],
-    }) : null,
+    content.expiration_date
+      ? new Paragraph({
+          children: [
+            new TextRun({
+              text: `Expiration Date: ${content.expiration_date}`,
+            }),
+          ],
+        })
+      : null,
+    content.credential_id
+      ? new Paragraph({
+          children: [
+            new TextRun({ text: `Credential ID: ${content.credential_id}` }),
+          ],
+        })
+      : null,
+    content.credential_url
+      ? new Paragraph({
+          children: [
+            new TextRun({ text: `Credential URL: ${content.credential_url}` }),
+          ],
+        })
+      : null,
     new Paragraph({}),
   ].filter((p): p is Paragraph => p !== null);
 };
 
-const generateListItem = (content: ResumeItem['content']): Paragraph[] => {
+const generateListItem = (content: ResumeItem["content"]): Paragraph[] => {
   return [
     new Paragraph({
-      children: [new TextRun({ text: `• ${content.title || content.name || ""}`, bold: true })],
+      children: [
+        new TextRun({
+          text: `• ${content.title || content.name || ""}`,
+          bold: true,
+        }),
+      ],
     }),
-    content.description ? new Paragraph({
-      children: [new TextRun({ text: content.description })],
-    }) : null,
+    content.description
+      ? new Paragraph({
+          children: [new TextRun({ text: content.description })],
+        })
+      : null,
     new Paragraph({}),
   ].filter((p): p is Paragraph => p !== null);
 };
