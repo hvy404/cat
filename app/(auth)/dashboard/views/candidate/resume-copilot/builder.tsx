@@ -48,6 +48,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   talentProfile,
   onSelectedItemsChange,
   selectedItems = [],
+  selectedRole,
 }) => {
   const [items, setItems] = useState<Record<string, Item[]>>({
     available: [],
@@ -200,7 +201,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         new Set(prevProcessing).add(lastModifiedItemId)
       );
 
-      return buildAndLogPrompt(items, history, talentProfile, "Data Scientist")
+      if (!selectedRole) {
+        return;
+      }
+
+      return buildAndLogPrompt(items, history, talentProfile, selectedRole)
         .then((result) => {
           if (result) {
             const { recentEdit, nextAction, nextReason } = result;

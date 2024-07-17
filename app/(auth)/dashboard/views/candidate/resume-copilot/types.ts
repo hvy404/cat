@@ -50,4 +50,5 @@ export interface ResumeBuilderProps {
   talentProfile: TalentProfile;
   onSelectedItemsChange?: (items: Item[]) => void;
   selectedItems?: Item[];
+  selectedRole?: string | null;
 }
