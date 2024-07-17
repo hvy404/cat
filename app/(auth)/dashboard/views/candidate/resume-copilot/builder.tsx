@@ -12,47 +12,30 @@ import {
   DragEndEvent,
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { TalentProfile } from "./get-data";
 import Container from "./container";
 import SortableItem from "./sortable";
-import { Item, ItemType, CustomItem } from "./types";
+import {
+  Item,
+  ItemType,
+  CustomItem,
+  HistoryEntry,
+  AlertState,
+  ResumeBuilderProps,
+} from "./types";
 import Alert from "./alert";
 import { buildAndLogPrompt } from "./prompt-builder";
 import { useDebounce } from "./use-debounce";
 import Spinner from "./spinner";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Edit2, Plus, Trash2 } from "lucide-react";
-
-interface ResumeBuilderProps {
-  talentProfile: TalentProfile;
-  onSelectedItemsChange?: (items: Item[]) => void;
-  selectedItems?: Item[];
-}
-
-interface HistoryEntry {
-  action: "add" | "remove" | "reorder";
-  itemId: string;
-  timestamp: number;
-}
-
-interface AlertState {
-  id: string;
-  message: {
-    recentEdit: string;
-    nextAction: "add" | "remove" | "modify" | "none";
-    nextReason: string;
-  };
-  isMinimized: boolean;
-}
+import { personalLabelMap } from "./personal-labels";
+import { DeleteConfirmationDialog } from "./delete-dialog";
+import { AvailableItems } from "./available-items";
+import AddSectionDialog from "./add-section-dialog";
+import EditDialog from "./edit-dialog";
+import { renderCondensedItemContent } from "./condensed-content";
+import { createRenderItemContent } from "./render-item-content";
 
 // Add new interfaces for custom sections and items
 interface CustomSection {
@@ -329,7 +312,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     );
   };
 
-  /* Custom cards */
   // Add new functions for custom sections and items
   const handleAddCustomSection = () => {
     if (newSectionTitle.trim()) {
@@ -378,56 +360,14 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       )
     );
   };
-  /* End custom cards */
-
-  /* Custom cards dialog */
-  // Add Custom Section Dialog
-  const renderAddSectionDialog = () => (
-    <Dialog
-      open={isAddingSectionDialogOpen}
-      onOpenChange={setIsAddingSectionDialogOpen}
-    >
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add Custom Section</DialogTitle>
-        </DialogHeader>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleAddCustomSection();
-          }}
-        >
-          <Input
-            type="text"
-            value={newSectionTitle}
-            onChange={(e) => setNewSectionTitle(e.target.value)}
-            placeholder="Enter section title"
-            className="mb-4"
-          />
-          <Button type="submit">Add Section</Button>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
 
   // Modify the Available Items section to include a Custom Card
   const renderAvailableItems = () => (
-    <div className="w-1/3 flex flex-col">
-      <h2 className="text-md font-semibold text-gray-800 mb-4">
-        Available Items
-      </h2>
-      <div className="flex-1 overflow-y-auto pr-4">
-        <Container id="available" items={items.available}>
-          {items.available.map((item) => (
-            <SortableItem key={item.id} id={item.id}>
-              {renderCondensedItemContent(item)}
-            </SortableItem>
-          ))}
-        </Container>
-      </div>
-    </div>
+    <AvailableItems
+      items={items.available}
+      renderCondensedItemContent={renderCondensedItemContent}
+    />
   );
-  /* End custom card diaglog */
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
@@ -705,117 +645,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     setActiveId(null);
   };
 
-  // Place this outside both functions
-  const personalLabelMap: { [key: string]: string } = {
-    Location: "Address",
-    phone: "Phone Number",
-    clearance_level: "Security Clearance",
-    title: "Job Title",
-    email: "Email Address",
-    name: "Full Name",
-    zipcode: "Zip Code",
-    city: "City",
-    state: "State",
-  };
-
-  const renderCondensedItemContent = (item: Item) => {
-    const renderLabel = (label: string) => (
-      <span className="inline-block bg-gray-100 rounded-full px-3 py-1 text-xs font-medium text-gray-700 mr-2 mb-2 select-none">
-        {label}
-      </span>
-    );
-
-    switch (item.type) {
-      case "personal":
-        if (item.content.key === "Location") {
-          const { city, state, zipcode } = item.content.value as {
-            city: string | null;
-            state: string | null;
-            zipcode: string | null;
-          };
-          const locationParts = [city, state, zipcode].filter(Boolean);
-          const locationString = locationParts.join(", ");
-          return (
-            <div className="space-y-1 select-none">
-              {renderLabel("Personal")}
-              <h3 className="text-md font-semibold text-gray-800">Address</h3>
-              <p className="text-sm text-gray-600">
-                {locationString || "Not specified"}
-              </p>
-            </div>
-          );
-        }
-        return (
-          <div className="space-y-1 select-none">
-            {renderLabel("Personal")}
-            <h3 className="text-md font-semibold text-gray-800">
-              {personalLabelMap[item.content.key] || item.content.key}
-            </h3>
-            <p className="text-sm text-gray-600">
-              {item.content.value || "Not specified"}
-            </p>
-          </div>
-        );
-      case "experience":
-        return (
-          <div className="space-y-1 select-none">
-            {renderLabel("Experience")}
-            <h4 className="text-md font-semibold text-gray-800">
-              {item.content.job_title}
-            </h4>
-            <p className="text-sm text-gray-600">{item.content.organization}</p>
-          </div>
-        );
-      case "education":
-        return (
-          <div className="space-y-1 select-none">
-            {renderLabel("Education")}
-            <h4 className="text-md font-semibold text-gray-800">
-              {item.content.degree}
-            </h4>
-            <p className="text-sm text-gray-600">{item.content.institution}</p>
-          </div>
-        );
-      case "skills":
-        return (
-          <div className="space-y-1 select-none">
-            {renderLabel("Skill")}
-            <h4 className="text-sm text-gray-800">{item.content.value}</h4>
-          </div>
-        );
-      case "certifications":
-        return (
-          <div className="space-y-1 select-none">
-            {renderLabel("Certification")}
-            <h4 className="text-sm text-gray-800">{item.content.name}</h4>
-            <p className="text-sm text-gray-600">
-              {item.content.issuing_organization}
-            </p>
-          </div>
-        );
-      case "projects":
-        return (
-          <div className="space-y-1 select-none">
-            {renderLabel("Project")}
-            <h4 className="text-md font-semibold text-gray-800">
-              {item.content.title}
-            </h4>
-          </div>
-        );
-      case "publications":
-        return (
-          <div className="space-y-1 select-none">
-            {renderLabel("Publication")}
-            <h4 className="text-md font-semibold text-gray-800">
-              {item.content.title}
-            </h4>
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
-
   /* Editor */
   const handleEdit = (item: Item) => {
     setEditingItem(item);
@@ -848,291 +677,13 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     setLastModifiedItemId(editedItem.id);
   };
 
-  const renderEditDialog = () => {
-    if (!editingItem) return null;
-
-    const fields = getFieldsForItemType(
-      editingItem.type,
-      editingItem.content.key
-    );
-
-    return (
-      <Dialog open={!!editingItem} onOpenChange={() => setEditingItem(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit {editingItem.type}</DialogTitle>
-          </DialogHeader>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSaveEdit(editingItem);
-            }}
-          >
-            {fields.map((field) => (
-              <div key={field} className="mb-4">
-                <label
-                  htmlFor={field}
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  {editingItem.type === "personal" && field === "value"
-                    ? editingItem.content.key
-                    : editingItem.type === "skills"
-                    ? "Skills"
-                    : fieldLabels[field] || field}
-                </label>
-                {field === "honors_awards_coursework" ||
-                field === "responsibilities" ||
-                editingItem.type === "skills" ? (
-                  <Textarea
-                    id={field}
-                    value={
-                      editingItem.type === "skills"
-                        ? editingItem.content.value
-                        : editingItem.content[field] || ""
-                    }
-                    onChange={(e) =>
-                      setEditingItem({
-                        ...editingItem,
-                        content:
-                          editingItem.type === "skills"
-                            ? { ...editingItem.content, value: e.target.value }
-                            : {
-                                ...editingItem.content,
-                                [field]: e.target.value,
-                              },
-                      })
-                    }
-                  />
-                ) : (
-                  <Input
-                    type="text"
-                    id={field}
-                    value={
-                      editingItem.type === "personal"
-                        ? editingItem.content.value
-                        : editingItem.content[field] || ""
-                    }
-                    onChange={(e) =>
-                      setEditingItem({
-                        ...editingItem,
-                        content:
-                          editingItem.type === "personal"
-                            ? { ...editingItem.content, value: e.target.value }
-                            : {
-                                ...editingItem.content,
-                                [field]: e.target.value,
-                              },
-                      })
-                    }
-                  />
-                )}
-              </div>
-            ))}
-            <Button type="submit">Save</Button>
-          </form>
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  const getFieldsForItemType = (type: ItemType, key?: string): string[] => {
-    switch (type) {
-      case "personal":
-        return [key || ""];
-      case "experience":
-        return [
-          "job_title",
-          "organization",
-          "start_date",
-          "end_date",
-          "responsibilities",
-        ];
-      case "education":
-        return [
-          "degree",
-          "institution",
-          "start_date",
-          "end_date",
-          "honors_awards_coursework",
-        ];
-      case "skills":
-        return ["value"];
-      case "certifications":
-        return ["name", "issuing_organization", "date_obtained"];
-      case "projects":
-        return ["title", "description"];
-      case "publications":
-        return ["title", "journal_or_conference", "publication_date"];
-      default:
-        return [];
-    }
-  };
-
-  const fieldLabels: Record<string, string> = {
-    job_title: "Job Title",
-    organization: "Organization",
-    start_date: "Start Date",
-    end_date: "End Date",
-    responsibilities: "Responsibilities",
-    degree: "Degree",
-    institution: "Institution",
-    honors_awards_coursework: "Honors, Awards & Coursework",
-    name: "Name",
-    issuing_organization: "Issuing Organization",
-    date_obtained: "Date Obtained",
-    title: "Title",
-    description: "Description",
-    journal_or_conference: "Journal/Conference",
-    publication_date: "Publication Date",
-  };
-  /* Editor End */
-
-  const renderItemContent = (item: Item | undefined) => {
-    if (!item) {
-      console.warn("Attempted to render undefined item");
-      return null;
-    }
-
-    const editedItem = editedItems[item.id] || item;
-
-    const content = (() => {
-      switch (editedItem.type) {
-        case "personal":
-          if (editedItem.content.key === "Location") {
-            const { city, state, zipcode } = editedItem.content.value as {
-              city: string | null;
-              state: string | null;
-              zipcode: string | null;
-            };
-            const locationParts = [city, state, zipcode].filter(Boolean);
-            const locationString = locationParts.join(", ");
-            return (
-              <div className="space-y-1 select-none">
-                <h3 className="text-md font-semibold text-gray-800">Address</h3>
-                <p className="text-sm text-gray-600">
-                  {locationString || "Not specified"}
-                </p>
-              </div>
-            );
-          }
-          return (
-            <div className="space-y-1 select-none">
-              <h3 className="text-md font-semibold text-gray-800">
-                {personalLabelMap[editedItem.content.key] ||
-                  editedItem.content.key}
-              </h3>
-              <p className="text-sm text-gray-600">
-                {editedItem.content.value || "Not specified"}
-              </p>
-            </div>
-          );
-        case "experience":
-          return (
-            <div className="space-y-1 select-none">
-              <h4 className="text-md font-semibold text-gray-800">
-                {editedItem.content.job_title}
-              </h4>
-              <p className="text-sm font-medium text-gray-700">
-                {editedItem.content.organization}
-              </p>
-              <p className="text-sm text-gray-600">{`${editedItem.content.start_date} - ${editedItem.content.end_date}`}</p>
-              <p className="text-sm text-gray-700 mt-2">
-                {editedItem.content.responsibilities}
-              </p>
-            </div>
-          );
-        case "education":
-          return (
-            <div className="space-y-1 select-none">
-              <h4 className="text-md font-semibold text-gray-800">
-                {editedItem.content.degree}
-              </h4>
-              <p className="text-sm font-medium text-gray-700">
-                {editedItem.content.institution}
-              </p>
-              <p className="text-sm text-gray-600">{`${editedItem.content.start_date} - ${editedItem.content.end_date}`}</p>
-            </div>
-          );
-        case "skills":
-          return (
-            <div className="space-y-1 select-none">
-              <h3 className="text-md font-semibold text-gray-800">Skill</h3>
-              <p className="text-sm text-gray-600">
-                {editedItem.content.value}
-              </p>
-            </div>
-          );
-        case "certifications":
-          return (
-            <div className="space-y-1 select-none">
-              <h4 className="text-sm font-semibold text-gray-800">
-                {editedItem.content.name}
-              </h4>
-              <p className="text-sm text-gray-700">
-                {editedItem.content.issuing_organization}
-              </p>
-              <p className="text-sm text-gray-600">{`Obtained: ${editedItem.content.date_obtained}`}</p>
-            </div>
-          );
-        case "projects":
-          return (
-            <div className="space-y-1 select-none">
-              <h4 className="text-md font-semibold text-gray-800">
-                {editedItem.content.title}
-              </h4>
-              <p className="text-sm text-gray-700">
-                {editedItem.content.description}
-              </p>
-            </div>
-          );
-        case "publications":
-          return (
-            <div className="space-y-1 select-none">
-              <h4 className="text-sm font-semibold text-gray-800">
-                {editedItem.content.title}
-              </h4>
-              <p className="text-sm text-gray-700">
-                {editedItem.content.journal_or_conference}
-              </p>
-              <p className="text-sm text-gray-600">{`Published: ${editedItem.content.publication_date}`}</p>
-            </div>
-          );
-        default:
-          return null;
-      }
-    })();
-
-    const itemAlert = alerts.find((alert) => alert.id === editedItem.id);
-    const isProcessing = processingItems.has(editedItem.id);
-
-    return (
-      <div className="flex flex-col h-full">
-        <div className="flex justify-between items-start mb-2">
-          <div className="flex-grow pr-10">{content}</div>
-          <Button
-            onClick={() => handleEdit(editedItem)}
-            className="flex-shrink-0 p-1 h-6 w-6"
-            variant="ghost"
-          >
-            <Edit2 size={16} className="text-gray-400" />
-          </Button>
-        </div>
-        <div className="mt-auto pt-2">
-          {isProcessing ? (
-            <div className="flex items-center justify-center h-8">
-              <Spinner />
-            </div>
-          ) : itemAlert ? (
-            <Alert
-              message={itemAlert.message}
-              isMinimized={itemAlert.isMinimized}
-              onToggleMinimize={() => toggleAlertMinimize(editedItem.id)}
-            />
-          ) : null}
-        </div>
-      </div>
-    );
-  };
+  const renderItemContent = createRenderItemContent(
+    editedItems,
+    alerts,
+    processingItems,
+    handleEdit,
+    toggleAlertMinimize
+  );
 
   const renderPreview = () => {
     if (!items.preview) {
@@ -1325,35 +876,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     });
   };
 
-  const DeleteConfirmationDialog: React.FC<{
-    isOpen: boolean;
-    onClose: () => void;
-    onConfirm: () => void;
-    itemType: "item" | "section";
-  }> = ({ isOpen, onClose, onConfirm, itemType }) => {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm">
-            Are you sure you want to delete this {itemType}?
-            {itemType === "section" && " This will delete all items within it."}
-          </p>
-          <div className="flex justify-end space-x-2">
-            <Button onClick={onClose} variant="outline">
-              Cancel
-            </Button>
-            <Button onClick={onConfirm} variant="destructive">
-              Delete
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
   const handleCreateResume = () => {
     const resumeData = items.preview.map((item) => {
       const editedItem = editedItems[item.id] || item;
@@ -1386,8 +908,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      {renderEditDialog()}
-      {renderAddSectionDialog()}
       <div className="flex gap-6 h-[calc(100vh-12rem)] overflow-hidden">
         {renderAvailableItems()}
         <div className="w-2/3 flex flex-col">
@@ -1437,6 +957,19 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           </div>
         ) : null}
       </DragOverlay>
+      <AddSectionDialog
+        isOpen={isAddingSectionDialogOpen}
+        onOpenChange={setIsAddingSectionDialogOpen}
+        newSectionTitle={newSectionTitle}
+        setNewSectionTitle={setNewSectionTitle}
+        handleAddCustomSection={handleAddCustomSection}
+      />
+
+      <EditDialog
+        editingItem={editingItem}
+        setEditingItem={setEditingItem}
+        handleSaveEdit={handleSaveEdit}
+      />
     </DndContext>
   );
 };
