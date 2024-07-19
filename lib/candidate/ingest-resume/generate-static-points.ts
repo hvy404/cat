@@ -37,10 +37,15 @@ export async function generateLiftedStatic(resume: string, id: string) {
   - technical_skills: An array of strings listing hard skills, tools, and technologies from previous work experience.
   - industry_experience: (optional) An array of strings listing specific knowledge areas in which the candidate has experience.
   - clearance_level: (optional) If applicable, should be one of: "none", "basic", "confidential", "critical", "paramount", "q_clearance", or "l_clearance".
-  - professional_certifications: (optional) An array of strings listing professional certifications. These are industry certifications that the candidate has earned and not academic degrees.
+  - professional_certifications: (optional) An array of objects, each containing:
+    - name: Name of the certification.
+    - issuing_organization: (optional) Organization that issued the certification.
+    - date_obtained: (optional) Date when the certification was obtained in "YYYY-MM" format (e.g., "2017-07").
+    - expiration_date: (optional) Expiration date of the certification, if applicable, in "YYYY-MM" format.
+    - credential_id: (optional) Unique identifier for the certification, if available.
   
   Important notes:
-  1. For education start_date and end_date, always use the "YYYY-MM" format. If only a year is provided, use "YYYY-01" to represent January of that year. For ongoing education, use "present" as the end_date.
+  1. For all dates, always use the "YYYY-MM" format. If only a year is provided, use "YYYY-01" to represent January of that year.
   2. Do not make up any details or include fields that are not specified in the schema.
   3. Be concise and only include relevant information from the provided resume.
   4. Omit any fields for which no information is available.

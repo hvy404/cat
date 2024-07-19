@@ -28,7 +28,13 @@ export interface CandidateData {
       responsibilities: string;
     }>;
     technical_skills?: string[];
-    professional_certifications?: string[];
+    professional_certifications?: Array<{
+      name: string;
+      issuing_organization?: string;
+      date_obtained?: string;
+      expiration_date?: string;
+      credential_id?: string;
+    }>;
     clearance_level?: string;
   };
 }
@@ -81,15 +87,10 @@ export async function fetchCandidatePreliminaryData(candidateId: string) {
 
     const cleanedDataset = data.map((item: CandidateData) => ({
       ...item.static,
+      clearance_level: item.static.clearance_level
+        ? remapClearanceLevel(item.static.clearance_level)
+        : remapClearanceLevel("none"),
     }));
-
-    cleanedDataset.forEach((item: { clearance_level?: string | unknown }) => {
-      if (item.clearance_level && typeof item.clearance_level === 'string') {
-        item.clearance_level = remapClearanceLevel(item.clearance_level);
-      } else {
-        item.clearance_level = remapClearanceLevel('none');
-      }
-    });
 
     return {
       success: true,
@@ -100,7 +101,7 @@ export async function fetchCandidatePreliminaryData(candidateId: string) {
     return {
       success: false,
       error:
-        "An unexpected error occurred while fetching candidate data. Please try again later."
+        "An unexpected error occurred while fetching candidate data. Please try again later.",
     };
   }
 }

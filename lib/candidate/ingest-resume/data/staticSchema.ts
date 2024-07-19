@@ -57,9 +57,33 @@ export const staticSchema = z.object({
     .optional()
     .describe("Clearance level, if applicable."),
   professional_certifications: z
-    .array(z.string())
+    .array(
+      z.object({
+        name: z.string().describe("Name of the certification"),
+        issuing_organization: z
+          .string()
+          .optional()
+          .describe("Organization that issued the certification"),
+        date_obtained: z
+          .string()
+          .optional()
+          .describe(
+            "Date when the certification was obtained (YYYY-MM format)"
+          ),
+        expiration_date: z
+          .string()
+          .optional()
+          .describe(
+            "Expiration date of the certification, if applicable (YYYY-MM format)"
+          ),
+        credential_id: z
+          .string()
+          .optional()
+          .describe("Unique identifier for the certification, if available"),
+      })
+    )
     .optional()
-    .describe("List of professional certifications if applicable."),
+    .describe("List of professional certifications with detailed information"),
 });
 
 export const staticSchemaSecondary = z.object({

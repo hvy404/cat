@@ -25,7 +25,13 @@ interface FormData {
     start_date?: string;
     end_date?: string;
   }>;
-  certifications: Array<{ name: string }>;
+  certifications: Array<{
+    name: string;
+    issuing_organization?: string;
+    date_obtained?: string;
+    expiration_date?: string;
+    credential_id?: string;
+  }>;
 }
 
 interface OriginalData {
@@ -55,7 +61,13 @@ interface OriginalData {
   }>;
   technical_skills?: string[];
   industry_experience?: string[];
-  professional_certifications?: string[];
+  professional_certifications?: Array<{
+    name: string;
+    issuing_organization?: string;
+    date_obtained?: string;
+    expiration_date?: string;
+    credential_id?: string;
+  }>;
 }
 
 // Remap back to the original clearance obfuscated level codes
@@ -119,9 +131,13 @@ export async function handleUpload(
       technical_skills: originalData?.technical_skills || [],
       industry_experience: originalData?.industry_experience || [],
       clearance_level: remapClearanceLevelToCode(formData.clearance_level),
-      professional_certifications: formData.certifications.map(
-        (cert) => cert.name
-      ),
+      professional_certifications: formData.certifications.map((cert) => ({
+        name: cert.name,
+        issuing_organization: cert.issuing_organization || "",
+        date_obtained: cert.date_obtained || "",
+        expiration_date: cert.expiration_date || "",
+        credential_id: cert.credential_id || "",
+      })),
     };
 
     try {

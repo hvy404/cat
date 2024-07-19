@@ -57,6 +57,10 @@ interface WorkExperience {
 
 interface Certification {
   name: string;
+  issuing_organization?: string;
+  date_obtained?: string;
+  expiration_date?: string;
+  credential_id?: string;
 }
 
 interface FormData {
@@ -84,20 +88,9 @@ interface CandidateData {
     state?: string;
     zipcode?: string;
   };
-  education?: Array<{
-    institution: string;
-    degree: string;
-    start_date?: string;
-    end_date?: string;
-  }>;
-  work_experience?: Array<{
-    organization: string;
-    job_title: string;
-    responsibilities: string;
-    start_date?: string;
-    end_date?: string;
-  }>;
-  professional_certifications?: string[];
+  education?: Education[];
+  work_experience?: WorkExperience[];
+  professional_certifications?: Certification[]; // Change this line
   technical_skills?: string[];
   industry_experience?: string[];
 }
@@ -203,7 +196,7 @@ export function CandidateOnboardingForm() {
               start_date: "",
               end_date: "",
             }
-          : { name: "" },
+          : { name: "", issuing_organization: "", date_obtained: "", expiration_date: "", credential_id: "" },
       ],
     }));
   };
@@ -232,16 +225,13 @@ export function CandidateOnboardingForm() {
         name: data.name || "",
         phone: data.phone || "",
         email: data.email || "",
-        //title: data.title || "",
         clearance_level: data.clearance_level || "",
         city: data.location?.city || "",
         state: data.location?.state || "",
         zipcode: data.location?.zipcode || "",
         education: data.education || [],
         work_experience: data.work_experience || [],
-        certifications:
-          data.professional_certifications?.map((cert) => ({ name: cert })) ||
-          [],
+        certifications: data.professional_certifications || [],
       });
       setFormLoaded(true);
     }
@@ -679,47 +669,108 @@ export function CandidateOnboardingForm() {
 
       {/* Certifications */}
       <div className="rounded-lg border hover:border-2 hover:border-slate-800 p-4">
-        <h2 className="text-md font-semibold mb-4 text-gray-700">
-          Certifications <span className="text-xs font-normal">(optional)</span>
-        </h2>
-        {formData.certifications.map((cert, index) => (
-          <div key={index} className="flex items-end space-x-4 mb-4">
-            <div className="flex-grow">
-              <Label className="text-sm" htmlFor={`certification-${index}`}>
-                Certification Name
-              </Label>
-              <Input
-                id={`certification-${index}`}
-                name="name"
-                value={cert.name}
-                onChange={(e) => handleInputChange(e, index, "certifications")}
-              />
-              {renderError(`certification_${index}_name`)}
-            </div>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  onClick={() => handleArrayRemove("certifications", index)}
-                  className="h-10 w-10 p-0 flex-shrink-0 mb-[2px]"
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="bg-black text-white border-black">
-                <p>Remove {cert.name}</p>
-              </TooltipContent>
-            </Tooltip>
+  <h2 className="text-md font-semibold mb-4 text-gray-700">
+    Certifications <span className="text-xs font-normal">(optional)</span>
+  </h2>
+  {formData.certifications.map((cert, index) => (
+    <div key={index} className="p-4 rounded-md mb-4 bg-gray-50">
+      <div className="flex flex-col space-y-4">
+        <div className="flex items-end space-x-4">
+          <div className="flex-grow">
+            <Label className="text-sm" htmlFor={`certification-${index}`}>
+              Certification Name
+            </Label>
+            <Input
+              id={`certification-${index}`}
+              name="name"
+              value={cert.name}
+              onChange={(e) => handleInputChange(e, index, "certifications")}
+            />
+            {renderError(`certification_${index}_name`)}
           </div>
-        ))}
-        <Button
-          type="button"
-          onClick={() => handleArrayAdd("certifications")}
-          className="mt-2"
-        >
-          <Plus className="h-4 w-4" /> Add Certification
-        </Button>
+          <div className="flex-grow">
+            <Label className="text-sm" htmlFor={`issuing-org-${index}`}>
+              Issuing Organization
+            </Label>
+            <Input
+              id={`issuing-org-${index}`}
+              name="issuing_organization"
+              value={cert.issuing_organization}
+              onChange={(e) => handleInputChange(e, index, "certifications")}
+            />
+          </div>
+        </div>
+        <div className="flex items-end space-x-4">
+          <div className="flex-grow">
+            <Label className="text-sm" htmlFor={`date-obtained-${index}`}>
+              Date Obtained
+            </Label>
+            <MonthYearPicker
+              value={cert.date_obtained}
+              onChange={(value) =>
+                handleInputChange(
+                  { target: { name: "date_obtained", value } },
+                  index,
+                  "certifications"
+                )
+              }
+            />
+          </div>
+          <div className="flex-grow">
+            <Label className="text-sm" htmlFor={`expiration-date-${index}`}>
+              Expiration Date
+            </Label>
+            <MonthYearPicker
+              value={cert.expiration_date}
+              onChange={(value) =>
+                handleInputChange(
+                  { target: { name: "expiration_date", value } },
+                  index,
+                  "certifications"
+                )
+              }
+              allowPresent={true}
+            />
+          </div>
+        </div>
+        <div className="flex items-end space-x-4">
+          <div className="flex-grow">
+            <Label className="text-sm" htmlFor={`credential-id-${index}`}>
+              Credential ID
+            </Label>
+            <Input
+              id={`credential-id-${index}`}
+              name="credential_id"
+              value={cert.credential_id}
+              onChange={(e) => handleInputChange(e, index, "certifications")}
+            />
+          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                onClick={() => handleArrayRemove("certifications", index)}
+                className="h-10 w-10 p-0 flex-shrink-0 mb-[2px]"
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="bg-black text-white border-black">
+              <p>Remove {cert.name}</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
       </div>
+    </div>
+  ))}
+  <Button
+    type="button"
+    onClick={() => handleArrayAdd("certifications")}
+    className="mt-2"
+  >
+    <Plus className="h-4 w-4" /> Add Certification
+  </Button>
+</div>
 
       {/* Action Buttons */}
       <div className="flex justify-between">
