@@ -2,11 +2,11 @@ import {
   Document,
   Paragraph,
   TextRun,
-  HeadingLevel,
   AlignmentType,
   Packer,
 } from "docx";
 import { parse, format, isValid } from "date-fns";
+import { layouts, LayoutConfig } from "./templates/docx-template";
 
 export interface ResumeItem {
   type: string;
@@ -46,16 +46,17 @@ function formatDate(dateString: string): string {
   return format(parsedDate, "MMMM yyyy");
 }
 
-export async function generateResume(resumeData: ResumeData): Promise<string> {
+export async function generateResume(resumeData: ResumeData, layoutName: keyof typeof layouts = "classic"): Promise<string> {
   try {
+    const layout = layouts[layoutName];
     const doc = new Document({
       sections: [
         {
           properties: {},
           children: [
-            ...generateHeader(resumeData),
-            ...generateIntroduction(resumeData),
-            ...generateSections(resumeData),
+            ...generateHeader(resumeData, layout),
+            ...generateIntroduction(resumeData, layout),
+            ...generateSections(resumeData, layout),
           ],
         },
       ],
@@ -82,28 +83,7 @@ export async function generateResume(resumeData: ResumeData): Promise<string> {
   }
 }
 
-const generateIntroduction = (resumeData: ResumeData): Paragraph[] => {
-  const introItem = resumeData.find(
-    (item): item is ResumeItem =>
-      item.type === "personal" && item.content.key === "intro"
-  );
-
-  if (!introItem) return [];
-
-  return [
-    new Paragraph({
-      text: "INTRODUCTION",
-      heading: HeadingLevel.HEADING_2,
-      thematicBreak: true,
-    }),
-    new Paragraph({
-      children: [new TextRun({ text: introItem.content.value || "" })],
-    }),
-    new Paragraph({}),
-  ];
-};
-
-const generateHeader = (resumeData: ResumeData): Paragraph[] => {
+const generateHeader = (resumeData: ResumeData, layout: LayoutConfig): Paragraph[] => {
   const personalItems = resumeData.filter(
     (item): item is ResumeItem => item.type === "personal"
   );
@@ -120,9 +100,13 @@ const generateHeader = (resumeData: ResumeData): Paragraph[] => {
     headerParagraphs.push(
       new Paragraph({
         children: [
-          new TextRun({ text: personalInfo.name, bold: true, size: 28 }),
+          new TextRun({ 
+            text: personalInfo.name, 
+            ...layout.fontStyles.name,
+            size: layout.fontSizes.name
+          }),
         ],
-        alignment: AlignmentType.CENTER,
+        alignment: layout.alignments.header,
       })
     );
   }
@@ -131,9 +115,13 @@ const generateHeader = (resumeData: ResumeData): Paragraph[] => {
     headerParagraphs.push(
       new Paragraph({
         children: [
-          new TextRun({ text: personalInfo.title, italics: true, size: 24 }),
+          new TextRun({ 
+            text: personalInfo.title, 
+            ...layout.fontStyles.title,
+            size: layout.fontSizes.title
+          }),
         ],
-        alignment: AlignmentType.CENTER,
+        alignment: layout.alignments.header,
       })
     );
   }
@@ -146,8 +134,12 @@ const generateHeader = (resumeData: ResumeData): Paragraph[] => {
   if (contactInfo.length > 0) {
     headerParagraphs.push(
       new Paragraph({
-        children: [new TextRun({ text: contactInfo.join(" | "), size: 22 })],
-        alignment: AlignmentType.CENTER,
+        children: [new TextRun({ 
+          text: contactInfo.join(" | "), 
+          size: layout.fontSizes.contactInfo,
+          ...layout.fontStyles.contactInfo
+        })],
+        alignment: layout.alignments.header,
       })
     );
   }
@@ -159,18 +151,48 @@ const generateHeader = (resumeData: ResumeData): Paragraph[] => {
   if (addressParts.length > 0) {
     headerParagraphs.push(
       new Paragraph({
-        children: [new TextRun({ text: addressParts.join(", "), size: 22 })],
-        alignment: AlignmentType.CENTER,
+        children: [new TextRun({ 
+          text: addressParts.join(", "), 
+          size: layout.fontSizes.contactInfo,
+          ...layout.fontStyles.contactInfo
+        })],
+        alignment: layout.alignments.header,
       })
     );
   }
 
-  headerParagraphs.push(new Paragraph({}));
+  headerParagraphs.push(new Paragraph({ spacing: { after: layout.spacing.afterSection } }));
 
   return headerParagraphs;
 };
 
-const generateSections = (resumeData: ResumeData): Paragraph[] => {
+const generateIntroduction = (resumeData: ResumeData, layout: LayoutConfig): Paragraph[] => {
+  const introItem = resumeData.find(
+    (item): item is ResumeItem =>
+      item.type === "personal" && item.content.key === "intro"
+  );
+
+  if (!introItem) return [];
+
+  return [
+    new Paragraph({
+      text: "INTRODUCTION",
+      heading: layout.headingLevel.sectionHeading,
+      thematicBreak: layout.useThematicBreak,
+      alignment: layout.alignments.sectionHeading,
+      ...layout.fontStyles.sectionHeading,
+    }),
+    new Paragraph({
+      children: [new TextRun({ 
+        text: introItem.content.value || "",
+        size: layout.fontSizes.normal
+      })],
+    }),
+    new Paragraph({ spacing: { after: layout.spacing.afterSection } }),
+  ];
+};
+
+const generateSections = (resumeData: ResumeData, layout: LayoutConfig): Paragraph[] => {
   const sections: Paragraph[] = [];
 
   const sectionOrder = [
@@ -190,23 +212,23 @@ const generateSections = (resumeData: ResumeData): Paragraph[] => {
     );
     if (sectionItems.length > 0) {
       if (sectionType === "skills") {
-        sections.push(...generateMergedSkills(sectionItems));
+        sections.push(...generateMergedSkills(sectionItems, layout));
       } else {
-        sections.push(...generateSection(sectionType, sectionItems));
+        sections.push(...generateSection(sectionType, sectionItems, layout));
       }
     }
   });
 
   resumeData.forEach((item) => {
     if (item.type === "custom" && "title" in item && "items" in item) {
-      sections.push(...generateCustomSection(item));
+      sections.push(...generateCustomSection(item, layout));
     }
   });
 
   return sections;
 };
 
-const generateMergedSkills = (skillItems: ResumeItem[]): Paragraph[] => {
+const generateMergedSkills = (skillItems: ResumeItem[], layout: LayoutConfig): Paragraph[] => {
   const allSkills = skillItems
     .map((item) => item.content.value || item.content.name || "")
     .filter(Boolean)
@@ -215,59 +237,66 @@ const generateMergedSkills = (skillItems: ResumeItem[]): Paragraph[] => {
   return [
     new Paragraph({
       text: "SKILLS",
-      heading: HeadingLevel.HEADING_2,
-      thematicBreak: true,
+      heading: layout.headingLevel.sectionHeading,
+      thematicBreak: layout.useThematicBreak,
+      alignment: layout.alignments.sectionHeading,
+      ...layout.fontStyles.sectionHeading,
     }),
     new Paragraph({
-      children: [new TextRun({ text: allSkills })],
+      children: [new TextRun({ 
+        text: allSkills,
+        size: layout.fontSizes.normal
+      })],
     }),
-    new Paragraph({}),
+    new Paragraph({ spacing: { after: layout.spacing.afterSection } }),
   ];
 };
 
-const generateSection = (title: string, items: ResumeItem[]): Paragraph[] => {
+const generateSection = (title: string, items: ResumeItem[], layout: LayoutConfig): Paragraph[] => {
   const paragraphs: Paragraph[] = [
     new Paragraph({
       text: title.toUpperCase(),
-      heading: HeadingLevel.HEADING_2,
-      thematicBreak: true,
+      heading: layout.headingLevel.sectionHeading,
+      thematicBreak: layout.useThematicBreak,
+      alignment: layout.alignments.sectionHeading,
+      ...layout.fontStyles.sectionHeading,
     }),
   ];
 
   items.forEach((item) => {
     switch (item.type) {
       case "experience":
-        paragraphs.push(...generateExperience(item.content));
+        paragraphs.push(...generateExperience(item.content, layout));
         break;
       case "education":
-        paragraphs.push(...generateEducation(item.content));
+        paragraphs.push(...generateEducation(item.content, layout));
         break;
       case "skills":
-        paragraphs.push(...generateSkills(item.content));
+        paragraphs.push(...generateSkills(item.content, layout));
         break;
       case "certifications":
-        paragraphs.push(...generateCertification(item.content));
+        paragraphs.push(...generateCertification(item.content, layout));
         break;
       case "projects":
       case "publications":
       case "industryExperiences":
       case "potentialRoles":
-        paragraphs.push(...generateListItem(item.content));
+        paragraphs.push(...generateListItem(item.content, layout));
         break;
     }
   });
 
-  paragraphs.push(new Paragraph({}));
+  paragraphs.push(new Paragraph({ spacing: { after: layout.spacing.afterSection } }));
   return paragraphs;
 };
 
-const generateExperience = (content: ResumeItem["content"]): Paragraph[] => {
+const generateExperience = (content: ResumeItem["content"], layout: LayoutConfig): Paragraph[] => {
   return [
     new Paragraph({
       children: [
-        new TextRun({ text: content.job_title || "", bold: true }),
-        new TextRun({ text: " | " }),
-        new TextRun({ text: content.organization || "", italics: true }),
+        new TextRun({ text: content.job_title || "", bold: true, size: layout.fontSizes.normal }),
+        new TextRun({ text: " | ", size: layout.fontSizes.normal }),
+        new TextRun({ text: content.organization || "", italics: true, size: layout.fontSizes.normal }),
       ],
     }),
     new Paragraph({
@@ -276,9 +305,10 @@ const generateExperience = (content: ResumeItem["content"]): Paragraph[] => {
           text: `${formatDate(content.start_date || "")} - ${formatDate(
             content.end_date || ""
           )}`,
+          size: layout.fontSizes.normal
         }),
         content.location
-          ? new TextRun({ text: ` | ${content.location}` })
+          ? new TextRun({ text: ` | ${content.location}`, size: layout.fontSizes.normal })
           : null,
       ].filter((run): run is TextRun => run !== null),
     }),
@@ -286,7 +316,7 @@ const generateExperience = (content: ResumeItem["content"]): Paragraph[] => {
       ? content.responsibilities.split("\n").map(
           (line: string) =>
             new Paragraph({
-              children: [new TextRun({ text: `• ${line.trim()}` })],
+              children: [new TextRun({ text: `• ${line.trim()}`, size: layout.fontSizes.normal })],
             })
         )
       : []),
@@ -294,13 +324,13 @@ const generateExperience = (content: ResumeItem["content"]): Paragraph[] => {
   ];
 };
 
-const generateEducation = (content: ResumeItem["content"]): Paragraph[] => {
+const generateEducation = (content: ResumeItem["content"], layout: LayoutConfig): Paragraph[] => {
   return [
     new Paragraph({
       children: [
-        new TextRun({ text: content.degree || "", bold: true }),
-        new TextRun({ text: " | " }),
-        new TextRun({ text: content.institution || "", italics: true }),
+        new TextRun({ text: content.degree || "", bold: true, size: layout.fontSizes.normal }),
+        new TextRun({ text: " | ", size: layout.fontSizes.normal }),
+        new TextRun({ text: content.institution || "", italics: true, size: layout.fontSizes.normal }),
       ],
     }),
     new Paragraph({
@@ -309,16 +339,18 @@ const generateEducation = (content: ResumeItem["content"]): Paragraph[] => {
           text: `${formatDate(content.start_date || "")} - ${formatDate(
             content.end_date || ""
           )}`,
+          size: layout.fontSizes.normal
         }),
       ],
     }),
     content.honors_awards_coursework
       ? new Paragraph({
           children: [
-            new TextRun({ text: "Honors/Awards/Coursework: " }),
+            new TextRun({ text: "Honors/Awards/Coursework: ", size: layout.fontSizes.normal }),
             new TextRun({
               text: content.honors_awards_coursework,
               italics: true,
+              size: layout.fontSizes.normal
             }),
           ],
         })
@@ -327,24 +359,25 @@ const generateEducation = (content: ResumeItem["content"]): Paragraph[] => {
   ].filter((p): p is Paragraph => p !== null);
 };
 
-const generateSkills = (content: ResumeItem["content"]): Paragraph[] => {
+const generateSkills = (content: ResumeItem["content"], layout: LayoutConfig): Paragraph[] => {
   return [
     new Paragraph({
-      children: [new TextRun({ text: content.value || content.name || "" })],
+      children: [new TextRun({ text: content.value || content.name || "", size: layout.fontSizes.normal })],
     }),
     new Paragraph({}),
   ];
 };
 
-const generateCertification = (content: ResumeItem["content"]): Paragraph[] => {
+const generateCertification = (content: ResumeItem["content"], layout: LayoutConfig): Paragraph[] => {
   return [
     new Paragraph({
-      children: [new TextRun({ text: content.name || "", bold: true })],
+      children: [new TextRun({ text: content.name || "", bold: true, size: layout.fontSizes.normal })],
     }),
     new Paragraph({
       children: [
         new TextRun({
           text: `Issued by: ${content.issuing_organization || "N/A"}`,
+          size: layout.fontSizes.normal
         }),
       ],
     }),
@@ -352,6 +385,7 @@ const generateCertification = (content: ResumeItem["content"]): Paragraph[] => {
       children: [
         new TextRun({
           text: `Date Obtained: ${formatDate(content.date_obtained || "")}`,
+          size: layout.fontSizes.normal
         }),
       ],
     }),
@@ -360,6 +394,7 @@ const generateCertification = (content: ResumeItem["content"]): Paragraph[] => {
           children: [
             new TextRun({
               text: `Expiration Date: ${formatDate(content.expiration_date)}`,
+              size: layout.fontSizes.normal
             }),
           ],
         })
@@ -367,7 +402,7 @@ const generateCertification = (content: ResumeItem["content"]): Paragraph[] => {
     content.credential_id
       ? new Paragraph({
           children: [
-            new TextRun({ text: `Credential ID: ${content.credential_id}` }),
+            new TextRun({ text: `Credential ID: ${content.credential_id}`, size: layout.fontSizes.normal }),
           ],
         })
       : null,
@@ -375,42 +410,45 @@ const generateCertification = (content: ResumeItem["content"]): Paragraph[] => {
   ].filter((p): p is Paragraph => p !== null);
 };
 
-const generateListItem = (content: ResumeItem["content"]): Paragraph[] => {
+const generateListItem = (content: ResumeItem["content"], layout: LayoutConfig): Paragraph[] => {
   return [
     new Paragraph({
       children: [
         new TextRun({
           text: `• ${content.title || content.name || ""}`,
           bold: true,
+          size: layout.fontSizes.normal
         }),
       ],
     }),
     content.description
       ? new Paragraph({
-          children: [new TextRun({ text: content.description })],
+          children: [new TextRun({ text: content.description, size: layout.fontSizes.normal })],
         })
       : null,
     new Paragraph({}),
   ].filter((p): p is Paragraph => p !== null);
 };
 
-const generateCustomSection = (section: DocxCustomSection): Paragraph[] => {
+const generateCustomSection = (section: DocxCustomSection, layout: LayoutConfig): Paragraph[] => {
   const paragraphs: Paragraph[] = [
     new Paragraph({
       text: section.title.toUpperCase(),
-      heading: HeadingLevel.HEADING_2,
-      thematicBreak: true,
+      heading: layout.headingLevel.sectionHeading,
+      thematicBreak: layout.useThematicBreak,
+      alignment: layout.alignments.sectionHeading,
+      ...layout.fontStyles.sectionHeading,
     }),
   ];
 
   section.items.forEach((item) => {
     paragraphs.push(
       new Paragraph({
-        children: [new TextRun({ text: `• ${item.content.text || ""}` })],
+        children: [new TextRun({ text: `• ${item.content.text || ""}`, size: layout.fontSizes.normal })],
       })
     );
   });
 
-  paragraphs.push(new Paragraph({}));
+  paragraphs.push(new Paragraph({ spacing: { after: layout.spacing.afterSection } }));
   return paragraphs;
 };

@@ -860,7 +860,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         } as DocxCustomSection);
       });
   
-      const base64Data = await generateResume(resumeData);
+      const base64Data = await generateResume(resumeData, "modern");
       
       if (!base64Data) {
         throw new Error('Failed to generate resume: base64Data is empty');
