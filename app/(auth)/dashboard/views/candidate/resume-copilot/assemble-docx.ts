@@ -6,7 +6,7 @@ import {
   AlignmentType,
   Packer,
 } from "docx";
-import { parse, format, isValid } from 'date-fns';
+import { parse, format, isValid } from "date-fns";
 
 export interface ResumeItem {
   type: string;
@@ -40,10 +40,10 @@ interface PersonalInfo {
 }
 
 function formatDate(dateString: string): string {
-  if (!dateString) return '';
-  const parsedDate = parse(dateString, 'yyyy-MM', new Date());
+  if (!dateString) return "";
+  const parsedDate = parse(dateString, "yyyy-MM", new Date());
   if (!isValid(parsedDate)) return dateString;
-  return format(parsedDate, 'MMMM yyyy');
+  return format(parsedDate, "MMMM yyyy");
 }
 
 export async function generateResume(resumeData: ResumeData): Promise<string> {
@@ -54,6 +54,7 @@ export async function generateResume(resumeData: ResumeData): Promise<string> {
           properties: {},
           children: [
             ...generateHeader(resumeData),
+            ...generateIntroduction(resumeData),
             ...generateSections(resumeData),
           ],
         },
@@ -80,6 +81,27 @@ export async function generateResume(resumeData: ResumeData): Promise<string> {
     throw error;
   }
 }
+
+const generateIntroduction = (resumeData: ResumeData): Paragraph[] => {
+  const introItem = resumeData.find(
+    (item): item is ResumeItem =>
+      item.type === "personal" && item.content.key === "intro"
+  );
+
+  if (!introItem) return [];
+
+  return [
+    new Paragraph({
+      text: "INTRODUCTION",
+      heading: HeadingLevel.HEADING_2,
+      thematicBreak: true,
+    }),
+    new Paragraph({
+      children: [new TextRun({ text: introItem.content.value || "" })],
+    }),
+    new Paragraph({}),
+  ];
+};
 
 const generateHeader = (resumeData: ResumeData): Paragraph[] => {
   const personalItems = resumeData.filter(
@@ -251,7 +273,9 @@ const generateExperience = (content: ResumeItem["content"]): Paragraph[] => {
     new Paragraph({
       children: [
         new TextRun({
-          text: `${formatDate(content.start_date || "")} - ${formatDate(content.end_date || "")}`,
+          text: `${formatDate(content.start_date || "")} - ${formatDate(
+            content.end_date || ""
+          )}`,
         }),
         content.location
           ? new TextRun({ text: ` | ${content.location}` })
@@ -282,7 +306,9 @@ const generateEducation = (content: ResumeItem["content"]): Paragraph[] => {
     new Paragraph({
       children: [
         new TextRun({
-          text: `${formatDate(content.start_date || "")} - ${formatDate(content.end_date || "")}`,
+          text: `${formatDate(content.start_date || "")} - ${formatDate(
+            content.end_date || ""
+          )}`,
         }),
       ],
     }),

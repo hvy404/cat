@@ -1,10 +1,11 @@
 import { serve } from "inngest/next";
 import { inngest } from "@/lib/inngest/client";
-import { resumeExtract } from "@/inngest/resume-start-onboard"; // Resume - Start onboarding Step 1
-import { finalizeOnboarding } from "@/inngest/resume-start-onboard"; // Resume - Start onboarding step 2
+import { resumeExtract } from "@/inngest/resume-start-onboard";
+import { finalizeOnboarding } from "@/inngest/resume-start-onboard";
 import { resumeGenerateStatic } from "@/inngest/resume-static";
 import { resumeGenerateInferred } from "@/inngest/resume-inferred";
-import { resumeOnboardBooleanStatus } from "@/inngest/resume-onboard-boolean"; // Resume - Start onboarding step 2
+import { resumeGenerateIntroduction } from "@/inngest/resume-candidate-intro";
+import { resumeOnboardBooleanStatus } from "@/inngest/resume-onboard-boolean";
 import { generateCandidateCypher } from "@/inngest/resume-generate-cypher";
 import { resumeGenerateEmbeddings } from "@/inngest/resume-embeddings";
 import { generateJobDescriptionCypher } from "@/inngest/job-description-gen-cypher";
@@ -40,6 +41,7 @@ export const { GET, POST, PUT } = serve({
     finalizeOnboarding,
     resumeGenerateStatic,
     resumeGenerateInferred,
+    resumeGenerateIntroduction,
     resumeOnboardBooleanStatus,
     generateCandidateCypher,
     resumeGenerateEmbeddings,

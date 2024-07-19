@@ -67,6 +67,7 @@ export type Data = {
   name: string;
   email: string;
   phone: string;
+  intro?: string;
   education: Education[];
   professional_certifications: Certification[];
   work_experience: WorkExperience[];
@@ -119,6 +120,7 @@ export function generateCandidateCypherQuery(data: Data, userId: string) {
     name: "${escapeString(data.name || "")}",
     phone: "${escapeString(data.phone || "")}",
     email: "${escapeString(data.email || "")}",
+    intro: "${escapeString(data.intro || "")}",
     applicant_id: "${userId}",
     company: "${escapeString(data.company || "")}",
     title: "${escapeString(data.title || "")}",

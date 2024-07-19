@@ -14,7 +14,7 @@ export async function generateCandidateEmbeddings(applicant_id: string) {
 
   const { data, error } = await supabase
     .from("candidate_resume")
-    .select("static, inferred")
+    .select("modified_static, inferred")
     .eq("user", applicant_id);
 
   if (error) {
@@ -24,9 +24,9 @@ export async function generateCandidateEmbeddings(applicant_id: string) {
     };
   }
 
-  const staticData = data[0].static;
+  const modified_staticData = data[0].modified_static;
   const inferredData = data[0].inferred;
-  const candidateData = { ...staticData, ...inferredData };
+  const candidateData = { ...modified_staticData, ...inferredData };
 
   // Remove irrelevant fields
   const { name, company, contact, location, ...relevantData } = candidateData;
@@ -44,8 +44,6 @@ export async function generateCandidateEmbeddings(applicant_id: string) {
   };
 
   const humanReadableText = convertResumeToText(resumeData);
-
-  console.log(humanReadableText);
 
   const embeddingsResponse = await togetherai.embeddings.create({
     model: "togethercomputer/m2-bert-80M-8k-retrieval",

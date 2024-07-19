@@ -1,5 +1,5 @@
 import React from 'react';
-import { Item, ItemType } from './types';
+import { Item } from './types';
 import { personalLabelMap } from './personal-labels';
 
 const renderLabel = (label: string) => (

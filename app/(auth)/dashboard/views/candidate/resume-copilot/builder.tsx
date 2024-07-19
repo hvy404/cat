@@ -100,10 +100,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     })
   );
 
-  useEffect(() => {
-    console.log("Current alerts:", alerts);
-  }, [alerts]);
-
   // Presets
   const moveItemsToPreview = (itemKeys: string[]) => {
     setItems((prevItems) => {
@@ -187,7 +183,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     }
   }, [talentProfile, selectedItems]);
 
-  // Move items to preview when talentProfile is loaded
+  // Autoload items to preview
   useEffect(() => {
     if (talentProfile) {
       moveItemsToPreview(["name", "email", "city", "state", "zipcode"]);
@@ -395,52 +391,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     const id = active.id as string;
     const overId = over?.id as string;
 
-    // Handle custom items
-    const sourceSection = customSections.find((section) =>
-      section.items.some((item) => item.id === id)
-    );
-    const targetSection = customSections.find((section) =>
-      section.items.some((item) => item.id === overId)
-    );
-
-    if (sourceSection && targetSection) {
-      setCustomSections((prevSections) =>
-        prevSections.map((section) => {
-          if (
-            section.id === sourceSection.id &&
-            section.id === targetSection.id
-          ) {
-            // Reorder within the same section
-            const oldIndex = section.items.findIndex((item) => item.id === id);
-            const newIndex = section.items.findIndex(
-              (item) => item.id === overId
-            );
-            const newItems = arrayMove(section.items, oldIndex, newIndex);
-            return { ...section, items: newItems };
-          } else if (section.id === sourceSection.id) {
-            // Remove item from source section
-            return {
-              ...section,
-              items: section.items.filter((item) => item.id !== id),
-            };
-          } else if (section.id === targetSection.id) {
-            // Add item to target section
-            const itemToMove = sourceSection.items.find(
-              (item) => item.id === id
-            )!;
-            const overIndex = section.items.findIndex(
-              (item) => item.id === overId
-            );
-            const newItems = [...section.items];
-            newItems.splice(overIndex, 0, itemToMove);
-            return { ...section, items: newItems };
-          }
-          return section;
-        })
-      );
-      return;
-    }
-
     const activeContainer = findContainer(id);
     const overContainer = findContainer(overId);
 
@@ -489,11 +439,12 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       };
 
       const draggedItem = activeItems[activeIndex];
+      const isIntroItem = draggedItem.type === "personal" && draggedItem.content.key === "intro";
       const isExcludedPersonalItem =
         draggedItem.type === "personal" &&
         excludedPersonalItems.includes(draggedItem.content.key);
 
-      if (!isExcludedPersonalItem) {
+      if (!isExcludedPersonalItem && !isIntroItem) {
         const action =
           activeContainer === "available" && overContainer === "preview"
             ? ("add" as const)
@@ -696,15 +647,19 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     }
 
     const groupedItems = items.preview.reduce((acc, item) => {
-      if (!acc[item.type]) {
-        acc[item.type] = [];
+      if (item.type === "personal" && item.content.key === "intro") {
+        if (!acc["introduction"]) acc["introduction"] = [];
+        acc["introduction"].push(item);
+      } else {
+        if (!acc[item.type]) acc[item.type] = [];
+        acc[item.type].push(item);
       }
-      acc[item.type].push(item);
       return acc;
-    }, {} as Record<ItemType, Item[]>);
+    }, {} as Record<ItemType | "introduction", Item[]>);
 
-    const sectionOrder: ItemType[] = [
+    const sectionOrder: (ItemType | "introduction")[] = [
       "personal",
+      "introduction",
       "experience",
       "education",
       "skills",
@@ -713,8 +668,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       "publications",
     ];
 
+
     return (
-      <div className="bg-white shadow-lg rounded-lg p-8 space-y-6 w-full">
+<div className="bg-white shadow-lg rounded-lg p-8 space-y-6 w-full">
         {sectionOrder.map((sectionType) => {
           if (
             !groupedItems[sectionType] ||
@@ -729,7 +685,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
               className="pb-4 border-b border-gray-200 last:border-b-0"
             >
               <h2 className="text-lg font-bold text-gray-800 mb-4 uppercase">
-                {sectionType}
+                {sectionType === "introduction" ? "Introduction" : sectionType}
               </h2>
               {sectionType === "personal" ? (
                 <div className="grid grid-cols-2 gap-4">

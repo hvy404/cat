@@ -30,6 +30,7 @@ export const TalentPropertiesSchema = z.object({
     .regex(cityRegex, "City can only contain letters, numbers, periods, commas, and spaces"),
   state: z.string().min(1, "State is required"),
   zipcode: z.string().regex(/^\d{5}$/, "Zip code must be 5 digits"),
+  intro: z.string().max(1500, "Introduction must be 1500 characters or less").optional(),
 });
 
 export type TalentPropertiesType = z.infer<typeof TalentPropertiesSchema>;

@@ -102,7 +102,7 @@ export async function generateLiftedStatic(resume: string, id: string) {
       ],
       model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
       temperature: 0.6,
-      max_tokens: 6000,
+      max_tokens: 7000,
       // @ts-ignore – Together.ai supports schema while OpenAI does not
       response_format: { type: "json_object", schema: jsonSchema },
     });

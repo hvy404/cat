@@ -13,13 +13,21 @@ interface WorkExperience {
   responsibilities: string;
 }
 
+interface ProfessionalCertification {
+  name: string;
+  issuing_organization?: string;
+  date_obtained?: string;
+  expiration_date?: string;
+  credential_id?: string;
+}
+
 export interface ResumeData {
   education?: Education[];
   clearance_level?: string;
   work_experience?: WorkExperience[];
   technical_skills?: string[];
   industry_experience?: string[];
-  professional_certifications?: string[];
+  professional_certifications?: ProfessionalCertification[];
   soft_skills?: string[];
   potential_roles?: string[];
 }
@@ -79,8 +87,11 @@ export function convertResumeToText(resumeData: ResumeData): string {
     resumeData.professional_certifications &&
     resumeData.professional_certifications.length > 0
   ) {
-    result += "Professional Certifications: ";
-    result += resumeData.professional_certifications.join(", ") + "\n\n";
+    result += "Professional Certifications:\n";
+    resumeData.professional_certifications.forEach((cert) => {
+      result += `- ${cert.name} (Obtained: ${cert.date_obtained}, Issued by: ${cert.issuing_organization})\n`;
+    });
+    result += "\n";
   }
 
   // Soft Skills

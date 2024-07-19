@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Item } from "./types";
 import { getFieldsForItemType, fieldLabels } from "./item-fields";
-import { personalLabelMap } from "./personal-labels";
 import { MonthYearPicker } from "@/app/(auth)/dashboard/views/candidate/assets/date-picker-my";
 
 interface EditDialogProps {
@@ -45,17 +44,17 @@ const EditDialog: React.FC<EditDialogProps> = ({
     });
   };
 
-  const handleInputChange = (field: string) => (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setEditingItem({
-      ...editingItem,
-      content:
-        editingItem.type === "personal" || editingItem.type === "skills"
-          ? { ...editingItem.content, value: e.target.value }
-          : { ...editingItem.content, [field]: e.target.value },
-    });
-  };
+  const handleInputChange =
+    (field: string) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setEditingItem({
+        ...editingItem,
+        content:
+          editingItem.type === "personal" || editingItem.type === "skills"
+            ? { ...editingItem.content, value: e.target.value }
+            : { ...editingItem.content, [field]: e.target.value },
+      });
+    };
 
   const renderField = (field: string) => {
     const value =
@@ -83,11 +82,13 @@ const EditDialog: React.FC<EditDialogProps> = ({
       field === "honors_awards_coursework" ||
       field === "responsibilities" ||
       field === "description" ||
-      editingItem.type === "skills"
+      editingItem.type === "skills" ||
+      (editingItem.type === "personal" && editingItem.content.key === "intro")
     ) {
       return (
         <Textarea
           id={field}
+          className="h-40"
           value={value}
           onChange={handleInputChange(field)}
         />

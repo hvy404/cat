@@ -8,4 +8,5 @@ export const personalLabelMap: { [key: string]: string } = {
     zipcode: "Zip Code",
     city: "City",
     state: "State",
+    intro: "Introduction",
   };

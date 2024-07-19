@@ -27,7 +27,7 @@ export interface CustomItem extends Item {
   id: string;
   type: "custom";
   content: { text: string };
-  sectionId: string; // Added this line
+  sectionId: string;
 }
 
 export interface HistoryEntry {

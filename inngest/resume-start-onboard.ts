@@ -14,6 +14,7 @@ import { cookies } from "next/headers";
 import { resumeParserUpload } from "@/lib/candidate/ingest-resume/retrieve-resume";
 import { type resumeGenerateStatic } from "@/inngest/resume-static"; // Part 1
 import { type resumeGenerateInferred } from "@/inngest/resume-inferred"; // Part 1
+import { type resumeGenerateIntroduction } from "@/inngest/resume-candidate-intro"; // Part 2
 import { type generateCandidateCypher } from "@/inngest/resume-generate-cypher"; // Part 2
 import { type resumeGenerateEmbeddings } from "@/inngest/resume-embeddings"; // Part 2
 import { type resumeOnboardBooleanStatus } from "@/inngest/resume-onboard-boolean"; // Part 2
@@ -103,6 +104,25 @@ export const finalizeOnboarding = inngest.createFunction(
   { id: "candidate-confirm-resume" },
   { event: "app/candidate-start-onboard-step-2" },
   async ({ event, step }) => {
+    // Generate intro
+    try {
+      const generateIntro = await step.invoke(
+        "candidate-generate-candidate-intro",
+        {
+          function: referenceFunction<typeof resumeGenerateIntroduction>({
+            functionId: "candidate-generate-candidate-intro",
+          }),
+          data: {
+            user: {
+              id: event.data.user.id,
+            },
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Error during while building cypher query.", error);
+    }
+
     // Build cypher query and send to Neo4j
     try {
       const buildCypher = await step.invoke("candidate-add-to-neo-workflow", {

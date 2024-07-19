@@ -27,9 +27,9 @@ export const generateCandidateCypher = inngest.createFunction(
 
       if (error) throw new Error(error.message);
 
-      const staticData = data[0].modified_static;
+      const modifiedStaticData = data[0].modified_static;
       const inferredData = data[0].inferred;
-      const candidateData = { ...staticData, ...inferredData };
+      const candidateData = { ...modifiedStaticData, ...inferredData };
       const cypherQuery = generateCandidateCypherQuery(candidateData, userId);
 
       // Run the Cypher query and wait for it to complete successfully

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import useStore from "@/app/state/useStore";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Save } from "lucide-react";
 import {
@@ -13,7 +14,7 @@ import {
   SelectGroup,
 } from "@/components/ui/select";
 import {
-  getTalentNode,
+  getTalentNodeNoEmbedding,
   updateNodeProperty,
   TalentNode,
   NodeWithId,
@@ -28,7 +29,7 @@ import { validateTalentProperties } from "@/app/(auth)/dashboard/views/candidate
 
 type EditableTalentProperties = Pick<
   TalentNode,
-  "city" | "clearance_level" | "zipcode" | "phone" | "name" | "state" | "email"
+  "city" | "clearance_level" | "zipcode" | "phone" | "name" | "state" | "email" | "intro"
 >;
 
 type TalentPropertiesState = EditableTalentProperties & NodeWithId;
@@ -100,11 +101,12 @@ export default function TalentPropertiesEditor() {
     const fetchTalentProperties = async () => {
       if (user?.uuid) {
         try {
-          const talent = await getTalentNode(user.uuid);
+          const talent = await getTalentNodeNoEmbedding(user.uuid);
           if (talent) {
             const {
               city,
               clearance_level,
+              intro,
               zipcode,
               phone,
               name,
@@ -116,6 +118,7 @@ export default function TalentPropertiesEditor() {
             setTalentProperties({
               city,
               clearance_level,
+              intro,
               zipcode,
               phone,
               name,
@@ -125,6 +128,8 @@ export default function TalentPropertiesEditor() {
               labels,
             });
           }
+
+          console.log("Talent properties:", talent);
         } catch (error) {
           console.error("Error fetching talent properties:", error);
           toast.error("Failed to load your information. Please try again.");
@@ -324,6 +329,24 @@ export default function TalentPropertiesEditor() {
           )}
         </div>
       </div>
+
+      <div className="rounded-md border p-4 space-y-4 hover:border-2 hover:border-gray-900">
+        <h3 className="text-lg font-semibold">Introduction</h3>
+        <div>
+          <Label htmlFor="intro">Tell us about yourself</Label>
+          <Textarea
+            id="intro"
+            value={talentProperties.intro || ""}
+            onChange={(e) => handleInputChange("intro", e.target.value)}
+            placeholder="Write a brief introduction about yourself..."
+            className="mt-1 h-48"
+          />
+          {formErrors.intro && (
+            <p className="text-red-500 text-sm mt-1">{formErrors.intro}</p>
+          )}
+        </div>
+      </div>
+
 
       <Button onClick={handleSave} disabled={isSaving}>
         {isSaving ? (

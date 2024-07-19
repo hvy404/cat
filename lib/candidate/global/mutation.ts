@@ -7,6 +7,7 @@ export interface TalentNode {
   applied_at?: string[];
   jds_viewed?: string[];
   city?: string;
+  intro?: string;
   clearance_level?: string;
   resume_matched_to_jd?: string[];
   resume_requested_by_company?: string[];
@@ -318,6 +319,7 @@ export async function getTalentNodeNoEmbedding(
       city: t.city,
       clearance_level: t.clearance_level,
       title: t.title,
+      intro: t.intro,
       active_looking: t.active_looking,
       zipcode: t.zipcode,
       applicant_id: t.applicant_id,
