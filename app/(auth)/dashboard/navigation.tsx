@@ -23,7 +23,6 @@ import {
   Award,
   Compass,
   Building,
-  Wand,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { clearDashboardWidgetPanel } from "@/lib/dashboard/janitor";
@@ -149,7 +148,7 @@ export default function EmployerDashboardNavigation() {
               />
               <TooltipButton
                 item="talent-profile"
-                label="Profile"
+                label="Personal Profile"
                 icon={User}
               />
             </>
@@ -168,6 +167,16 @@ export default function EmployerDashboardNavigation() {
     }
   };
 
+  const getHelpItem = () => {
+    return role === "candidate" ? "candidate-help" : "employer-help";
+  };
+
+  const getUserSettingsItem = () => {
+    return role === "candidate"
+      ? "candidate-user-settings"
+      : "employer-user-settings";
+  };
+
   return (
     <aside className="inset-y fixed left-0 z-20 flex h-full flex-col border-r">
       <div className="border-b p-2">
@@ -183,8 +192,12 @@ export default function EmployerDashboardNavigation() {
       </div>
       <nav className="grid gap-1 p-2">{renderNavItems()}</nav>
       <nav className="mt-auto grid gap-1 p-2">
-        <TooltipButton item="help" label="Help" icon={LifeBuoy} />
-        <TooltipButton item="account" label="Account" icon={SquareUser} />
+        <TooltipButton item={getHelpItem()} label="Help" icon={LifeBuoy} />
+        <TooltipButton
+          item={getUserSettingsItem()}
+          label="Account"
+          icon={SquareUser}
+        />
       </nav>
     </aside>
   );

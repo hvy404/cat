@@ -25,7 +25,7 @@ export default function CandidateDashboardProfile() {
       >
         <div className="flex justify-between gap-6 rounded-lg border p-4">
           <h2 className="font-bold leading-6 text-gray-900">
-            Manage your profile
+            Manage your personal profile
           </h2>
         </div>
         <div className="flex flex-col gap-6">

@@ -41,7 +41,7 @@ export default function ProfileManagement() {
   return (
     <div className="max-w-3xl mx-auto p-6 bg-gray-50 rounded-xl">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-xl font-bold text-gray-900">Profile Management</h1>
+        <h1 className="text-xl font-bold text-gray-900">Personal Profile</h1>
       </div>
 
       <p className="text-gray-600 mb-6 text-sm">
