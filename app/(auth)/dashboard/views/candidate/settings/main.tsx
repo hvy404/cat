@@ -1,16 +1,21 @@
+import React, { useState, useEffect } from 'react';
 import useStore from "@/app/state/useStore";
-import { useEffect } from "react";
 import CandidateSettingOptions from "./options";
+import SidePanel from "./side-panel";
+import { Info } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
+type ActiveInfoType = 'default' | 'resumes' | 'preferences';
+
 
 export default function CandidateDashboardSettings() {
   const { isExpanded, setExpanded, user } = useStore();
+  const [activeInfo, setActiveInfo] = useState<ActiveInfoType>('default');
 
-  // if user is emply, return null
   if (!user) {
     return null;
   }
 
-  // Reset expanded state when component unmounts
   useEffect(() => {
     return () => {
       setExpanded(false);
@@ -28,10 +33,9 @@ export default function CandidateDashboardSettings() {
           <h2 className="font-bold leading-6 text-gray-900">
             Account Preferences
           </h2>
-          <div>Search box</div>
         </div>
         <div className="flex flex-col gap-6">
-          {user && <CandidateSettingOptions />}
+          {user && <CandidateSettingOptions setActiveInfo={setActiveInfo} />}
         </div>
       </div>
       <div
@@ -39,8 +43,8 @@ export default function CandidateDashboardSettings() {
           isExpanded ? "lg:w-1/4" : "lg:w-1/2"
         }`}
       >
-        <div className="min-h-[90vh] rounded-xl bg-muted/50 p-4 overflow-auto">
-         {/* Create a side-panel component that will take active questions state and display tips */}
+        <div className="min-h-[90vh] rounded-xl overflow-auto">
+          <SidePanel activeInfo={activeInfo} />
         </div>
       </div>
     </main>

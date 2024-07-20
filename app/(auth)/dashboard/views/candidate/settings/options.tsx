@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import useStore from "@/app/state/useStore";
 import { getResumes } from "@/lib/candidate/apply/resume-choice";
 import { setDefaultResume } from "@/lib/candidate/preferences/resume-set-default";
-import { getCandidatePreferences, updateCandidatePreferences } from "@/lib/candidate/preferences/candidate-prefreneces";
+import {
+  getCandidatePreferences,
+  updateCandidatePreferences,
+} from "@/lib/candidate/preferences/candidate-prefreneces";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -25,7 +28,15 @@ interface CandidatePreferences {
   interview_invite_opt_in: boolean;
 }
 
-export default function CandidateSettingOptions() {
+type ActiveInfoType = "default" | "resumes" | "preferences";
+
+interface CandidateSettingOptionsProps {
+  setActiveInfo: (info: ActiveInfoType) => void;
+}
+
+export default function CandidateSettingOptions({
+  setActiveInfo,
+}: CandidateSettingOptionsProps) {
   const { user } = useStore();
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,11 +82,16 @@ export default function CandidateSettingOptions() {
           default: resume.address === resumeAddress,
         }))
       );
-      const newDefaultResume = resumes.find(resume => resume.address === resumeAddress);
-      toast.success(`Default resume set to "${newDefaultResume?.resume_name}"`, {
-        description: "This resume will be used for automatic job matching.",
-        duration: 3000,
-      });
+      const newDefaultResume = resumes.find(
+        (resume) => resume.address === resumeAddress
+      );
+      toast.success(
+        `Default resume set to "${newDefaultResume?.resume_name}"`,
+        {
+          description: "This resume will be used for automatic job matching.",
+          duration: 3000,
+        }
+      );
     } catch (err) {
       setError("Failed to set default resume");
       console.error(err);
@@ -88,7 +104,10 @@ export default function CandidateSettingOptions() {
     }
   };
 
-  const handleToggle = async (setting: keyof CandidatePreferences, value: boolean) => {
+  const handleToggle = async (
+    setting: keyof CandidatePreferences,
+    value: boolean
+  ) => {
     if (!user) return;
 
     setUpdating(true);
@@ -117,17 +136,33 @@ export default function CandidateSettingOptions() {
     <>
       <Card className="w-full mx-auto bg-white shadow-lg rounded-lg overflow-hidden mb-6">
         <CardContent className="p-6">
-          <h2 className="text-md font-semibold text-gray-800 mb-2">Manage Resumes</h2>
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="text-md font-semibold text-gray-800">
+              Manage Resumes
+            </h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setActiveInfo("resumes")}
+            >
+              <Info className="h-4 w-4" />
+            </Button>
+          </div>
           <Alert className="mb-6">
             <Info className="h-4 w-4" />
             <AlertDescription>
-              Your default resume will be automatically sent to employers when our platform finds an ideal job opportunity match. Choose the resume that best represents your current skills and experience.
+              Your default resume will be automatically sent to employers when
+              our platform finds an ideal job opportunity match. Choose the
+              resume that best represents your current skills and experience.
             </AlertDescription>
           </Alert>
           {loading ? (
             <div className="space-y-4">
               {[...Array(3)].map((_, index) => (
-                <Skeleton key={index} className="h-24 w-full bg-gray-100 rounded-lg" />
+                <Skeleton
+                  key={index}
+                  className="h-24 w-full bg-gray-100 rounded-lg"
+                />
               ))}
             </div>
           ) : error ? (
@@ -153,22 +188,34 @@ export default function CandidateSettingOptions() {
                 >
                   <div
                     className={`bg-gray-50 p-4 rounded-lg border ${
-                      resume.default ? 'border-slate-400' : 'border-gray-200'
+                      resume.default ? "border-slate-400" : "border-gray-200"
                     } transition-all duration-300 hover:shadow-md ${
-                      resume.default ? 'shadow-slate-100' : ''
+                      resume.default ? "shadow-slate-100" : ""
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
-                        <div className={`p-2 rounded-full ${resume.default ? 'bg-slate-100' : 'bg-gray-200'}`}>
-                          <File className={`h-6 w-6 ${resume.default ? 'text-slate-600' : 'text-gray-600'}`} />
+                        <div
+                          className={`p-2 rounded-full ${
+                            resume.default ? "bg-slate-100" : "bg-gray-200"
+                          }`}
+                        >
+                          <File
+                            className={`h-6 w-6 ${
+                              resume.default
+                                ? "text-slate-600"
+                                : "text-gray-600"
+                            }`}
+                          />
                         </div>
                         <div>
-                          <h3 className="font-medium text-lg text-gray-800">
+                          <h3 className="font-medium text-md text-gray-800">
                             {resume.resume_name}
                           </h3>
                           <p className="text-sm text-gray-500">
-                            {resume.default ? 'Default Resume' : 'Click to set as default'}
+                            {resume.default
+                              ? "Default Resume"
+                              : "Click to set as default"}
                           </p>
                         </div>
                       </div>
@@ -179,8 +226,8 @@ export default function CandidateSettingOptions() {
                         size="sm"
                         className={`transition-all duration-300 ${
                           resume.default
-                            ? 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
-                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+                            ? "bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100"
+                            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
                         }`}
                       >
                         {resume.default ? (
@@ -202,7 +249,16 @@ export default function CandidateSettingOptions() {
       </Card>
       <Card className="w-full mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
         <CardContent className="p-6">
-          <h2 className="text-md font-semibold text-gray-800 mb-4">Preferences</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-md font-semibold text-gray-800">Preferences</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setActiveInfo("preferences")}
+            >
+              <Info className="h-4 w-4" />
+            </Button>
+          </div>
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
@@ -210,13 +266,16 @@ export default function CandidateSettingOptions() {
                   Automatic Job Matching
                 </Label>
                 <p className="text-sm text-gray-500">
-                  Allow our AI to find and suggest job opportunities based on your profile
+                  Allow our AI to find and suggest job opportunities based on
+                  your profile
                 </p>
               </div>
               <Switch
                 id="auto-find-jobs"
                 checked={preferences.matching_opt_in}
-                onCheckedChange={(value) => handleToggle('matching_opt_in', value)}
+                onCheckedChange={(value) =>
+                  handleToggle("matching_opt_in", value)
+                }
                 disabled={updating}
               />
             </div>
@@ -232,7 +291,9 @@ export default function CandidateSettingOptions() {
               <Switch
                 id="receive-emails"
                 checked={preferences.email_alert_opt_in}
-                onCheckedChange={(value) => handleToggle('email_alert_opt_in', value)}
+                onCheckedChange={(value) =>
+                  handleToggle("email_alert_opt_in", value)
+                }
                 disabled={updating}
               />
             </div>
@@ -248,7 +309,9 @@ export default function CandidateSettingOptions() {
               <Switch
                 id="allow-invites"
                 checked={preferences.interview_invite_opt_in}
-                onCheckedChange={(value) => handleToggle('interview_invite_opt_in', value)}
+                onCheckedChange={(value) =>
+                  handleToggle("interview_invite_opt_in", value)
+                }
                 disabled={updating}
               />
             </div>
