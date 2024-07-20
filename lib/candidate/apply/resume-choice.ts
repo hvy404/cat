@@ -17,7 +17,7 @@ export async function getResumes(userId: string) {
 
     const { data, error } = await supabase
       .from("candidate_resume")
-      .select("resume_name, address")
+      .select("resume_name, address, default")
       .eq("candidate_identity", userId);
 
     if (error) {
