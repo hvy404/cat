@@ -26,7 +26,7 @@ import { buildAndLogPrompt } from "./prompt-builder";
 import { useDebounce } from "./use-debounce";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Save, Download } from "lucide-react";
 import { DeleteConfirmationDialog } from "./delete-dialog";
 import { AvailableItems } from "./available-items";
 import AddSectionDialog from "./add-section-dialog";
@@ -40,6 +40,11 @@ import {
   DocxCustomSection,
 } from "./assemble-docx";
 import TemplateSelectionDialog from "./template-selection";
+import SaveResumeDialog from "./save-resume-dialog";
+import { uploadResumeAction } from "./resume-upload";
+import { addResumeEntryAction } from "./add-resume-entry";
+import createId from "@/lib/global/cuid-generate";
+import { toast } from "sonner";
 
 // Add new interfaces for custom sections and items
 interface CustomSection {
@@ -53,6 +58,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   onSelectedItemsChange,
   selectedItems = [],
   selectedRole,
+  userId,
 }) => {
   const [items, setItems] = useState<Record<string, Item[]>>({
     available: [],
@@ -80,6 +86,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   const [processingItems, setProcessingItems] = useState<Set<string>>(
     new Set()
   );
+  const [isSaveVersionDialogOpen, setIsSaveVersionDialogOpen] = useState(false);
+  const [filename, setFilename] = useState("");
 
   // Add new state for custom sections
   const [customSections, setCustomSections] = useState<CustomSection[]>([]);
@@ -927,6 +935,69 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     return resumeData;
   };
 
+  /* Save custom */
+  const handleSaveVersion = () => {
+    setIsSaveVersionDialogOpen(true);
+  };
+
+  const handleSaveVersionSubmit = async () => {
+    setIsSaveVersionDialogOpen(false);
+    if (!filename || !userId) return;
+
+    try {
+      const resumeData = prepareResumeData();
+      const base64Data = await generateResume(resumeData, "modern");
+
+      if (!base64Data) {
+        throw new Error("Failed to generate resume: base64Data is empty");
+      }
+
+      // Convert base64 to Blob
+      const binaryString = window.atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], {
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      });
+
+      // Create FormData and append necessary data
+      let filenameGen = createId();
+      const formData = new FormData();
+      formData.append("file", blob, `${filename}.docx`);
+      formData.append("userId", userId);
+      formData.append("filename", filenameGen);
+
+      // Upload file to Supabase storage
+      const { data: uploadData, error: uploadError } = await uploadResumeAction(formData);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Add entry to the database
+      if (uploadData) {
+        const { data: dbData, error: dbError } = await addResumeEntryAction(userId, uploadData, filename);
+
+        if (dbError) {
+          throw dbError;
+        }
+      }
+
+      // Show success toast
+      toast.success("Resume version saved successfully!", {
+        description: `Your resume "${filename}" has been saved.`,
+        duration: 5000,
+      });
+    } catch (error) {
+      toast.error("Failed to save resume version", {
+        description: "An error occurred while saving your resume. Please try again.",
+        duration: 5000,
+      });
+    }
+  };
+
   return (
     <DndContext
       sensors={sensors}
@@ -955,11 +1026,15 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           <div className="flex justify-end mt-4 gap-4">
             <div className="flex">
               <Button variant={"secondary"} onClick={handleCreateResume}>
-                Export Copy
+              <Download className="mr-2 h-4 w-4" />
+              <span className="text-sm">Export Copy</span>
               </Button>
             </div>
             <div className="flex">
-              <Button onClick={handleCreateResume}>Save Version</Button>
+              <Button onClick={handleSaveVersion}>
+              <Save className="mr-2 h-4 w-4" />
+              <span className="text-sm">Save Version</span>
+              </Button>
             </div>
           </div>
         </div>
@@ -1009,6 +1084,13 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         onOpenChange={setIsTemplateDialogOpen}
         onSelectTemplate={handleSelectTemplate}
         resumeData={prepareResumeData()}
+      />
+      <SaveResumeDialog
+        isOpen={isSaveVersionDialogOpen}
+        onOpenChange={setIsSaveVersionDialogOpen}
+        filename={filename}
+        setFilename={setFilename}
+        onSave={handleSaveVersionSubmit}
       />
     </DndContext>
   );

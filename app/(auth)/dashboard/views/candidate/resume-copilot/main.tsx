@@ -197,12 +197,16 @@ export default function CandidateResumeCopilot() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                   >
-                    <ResumeBuilder
-                      talentProfile={talentProfile}
-                      onSelectedItemsChange={handleSelectedItemsChange}
-                      selectedItems={selectedItems}
-                      selectedRole={selectedRole}
-                    />
+
+                    {user?.uuid && (
+                      <ResumeBuilder
+                        talentProfile={talentProfile}
+                        onSelectedItemsChange={handleSelectedItemsChange}
+                        selectedItems={selectedItems}
+                        selectedRole={selectedRole}
+                        userId={user.uuid}
+                      />
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>

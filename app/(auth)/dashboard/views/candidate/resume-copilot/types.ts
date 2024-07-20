@@ -51,4 +51,5 @@ export interface ResumeBuilderProps {
   onSelectedItemsChange?: (items: Item[]) => void;
   selectedItems?: Item[];
   selectedRole?: string | null;
+  userId: string;
 }
