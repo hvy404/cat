@@ -108,36 +108,8 @@ const minimalLayout: LayoutConfig = {
   useThematicBreak: false,
 };
 
-const minimalistTimelineLayout: LayoutConfig = {
-  fontSizes: {
-    name: 34,
-    title: 26,
-    contactInfo: 20,
-    sectionHeading: 28,
-    normal: 22,
-  },
-  fontStyles: {
-    name: { bold: true },
-    title: { bold: false, italics: true },
-    contactInfo: {},
-    sectionHeading: { bold: true, italics: false },
-  },
-  alignments: {
-    header: AlignmentType.LEFT,
-    sectionHeading: AlignmentType.LEFT,
-  },
-  spacing: {
-    afterSection: 350,
-  },
-  headingLevel: {
-    sectionHeading: HeadingLevel.HEADING_3,
-  },
-  useThematicBreak: true,
-};
-
 export const layouts = {
   classic: classicLayout,
   modern: modernLayout,
   minimal: minimalLayout,
-  minimalistTimeline: minimalistTimelineLayout,
 };

@@ -33,8 +33,13 @@ import AddSectionDialog from "./add-section-dialog";
 import EditDialog from "./edit-dialog";
 import { renderCondensedItemContent } from "./condensed-content";
 import { createRenderItemContent } from "./render-item-content";
-import { generateResume, ResumeData, ResumeItem, DocxCustomSection } from './assemble-docx';
-
+import {
+  generateResume,
+  ResumeData,
+  ResumeItem,
+  DocxCustomSection,
+} from "./assemble-docx";
+import TemplateSelectionDialog from "./template-selection";
 
 // Add new interfaces for custom sections and items
 interface CustomSection {
@@ -55,7 +60,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   });
   const [editedItems, setEditedItems] = useState<Record<string, Item>>({});
   const [editingItem, setEditingItem] = useState<Item | null>(null);
-
+  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [alerts, setAlerts] = useState<
@@ -439,7 +444,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       };
 
       const draggedItem = activeItems[activeIndex];
-      const isIntroItem = draggedItem.type === "personal" && draggedItem.content.key === "intro";
+      const isIntroItem =
+        draggedItem.type === "personal" && draggedItem.content.key === "intro";
       const isExcludedPersonalItem =
         draggedItem.type === "personal" &&
         excludedPersonalItems.includes(draggedItem.content.key);
@@ -668,9 +674,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       "publications",
     ];
 
-
     return (
-<div className="bg-white shadow-lg rounded-lg p-8 space-y-6 w-full">
+      <div className="bg-white shadow-lg rounded-lg p-8 space-y-6 w-full">
         {sectionOrder.map((sectionType) => {
           if (
             !groupedItems[sectionType] ||
@@ -836,7 +841,12 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     });
   };
 
-  const handleCreateResume = async () => {
+  const handleCreateResume = () => {
+    setIsTemplateDialogOpen(true);
+  };
+
+  const handleSelectTemplate = async (template: string) => {
+    setIsTemplateDialogOpen(false);
     try {
       const resumeData: ResumeData = items.preview.map((item): ResumeItem => {
         const editedItem = editedItems[item.id] || item;
@@ -846,47 +856,75 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         };
       });
 
-      console.log(resumeData);
-  
       // Add custom sections to the resumeData
       customSections.forEach((section) => {
         resumeData.push({
-          type: 'custom',
+          type: "custom",
           title: section.title,
           items: section.items.map((item) => ({
-            type: 'custom',
+            type: "custom",
             content: { text: item.content.text },
           })),
         } as DocxCustomSection);
       });
-  
-      const base64Data = await generateResume(resumeData, "modern");
-      
+
+      const base64Data = await generateResume(
+        resumeData,
+        template as "classic" | "modern" | "minimal"
+      );
+
       if (!base64Data) {
-        throw new Error('Failed to generate resume: base64Data is empty');
+        throw new Error("Failed to generate resume: base64Data is empty");
       }
-  
+
       // Convert base64 to Blob
       const binaryString = window.atob(base64Data);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i);
       }
-      const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-  
+      const blob = new Blob([bytes], {
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      });
+
       // Create download link
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
+      const a = document.createElement("a");
+      a.style.display = "none";
       a.href = url;
-      a.download = 'resume.docx';
+      a.download = `resume_${template}.docx`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error generating resume:', error);
+      console.error("Error generating resume:", error);
       // You might want to show an error message to the user here
     }
+  };
+
+  // Function to prepare resume data for the template preview
+  const prepareResumeData = (): ResumeData => {
+    const resumeData: ResumeData = items.preview.map((item): ResumeItem => {
+      const editedItem = editedItems[item.id] || item;
+      return {
+        type: editedItem.type,
+        content: editedItem.content,
+      };
+    });
+
+    // Add custom sections to the resumeData
+    customSections.forEach((section) => {
+      resumeData.push({
+        type: "custom",
+        title: section.title,
+        items: section.items.map((item) => ({
+          type: "custom",
+          content: { text: item.content.text },
+        })),
+      } as DocxCustomSection);
+    });
+
+    return resumeData;
   };
 
   return (
@@ -914,8 +952,15 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
               {renderPreview()}
             </Container>
           </div>
-          <div className="flex justify-end mt-4">
-          <Button onClick={handleCreateResume}>Create Resume</Button>
+          <div className="flex justify-end mt-4 gap-4">
+            <div className="flex">
+              <Button variant={"secondary"} onClick={handleCreateResume}>
+                Export Copy
+              </Button>
+            </div>
+            <div className="flex">
+              <Button onClick={handleCreateResume}>Save Version</Button>
+            </div>
           </div>
         </div>
       </div>
@@ -958,6 +1003,12 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         editingItem={editingItem}
         setEditingItem={setEditingItem}
         handleSaveEdit={handleSaveEdit}
+      />
+      <TemplateSelectionDialog
+        isOpen={isTemplateDialogOpen}
+        onOpenChange={setIsTemplateDialogOpen}
+        onSelectTemplate={handleSelectTemplate}
+        resumeData={prepareResumeData()}
       />
     </DndContext>
   );
