@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import useStore from "@/app/state/useStore";
+import { useState, useEffect } from "react";
 import {
   Briefcase,
   MapPin,
@@ -7,22 +8,16 @@ import {
   DollarSign,
   ChevronLeft,
   Building,
+  Check,
 } from "lucide-react";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -36,15 +31,29 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { fetchJobDetails } from "./job-detail-helper";
 import { JobNode, NodeWithId } from "@/lib/jobs/mutation";
+import { getResumes } from "@/lib/candidate/apply/resume-choice";
+import { toast } from "sonner";
 
 interface JobDetailsProps {
   jobId: string;
   onBack: () => void;
 }
 
+interface Resume {
+  resume_name: string;
+  address: string;
+}
+
+interface ResumeCardProps {
+  resume: Resume;
+  onSelect: (resume: Resume) => void;
+  isSelected: boolean;
+}
+
 type JobNodeWithoutEmbedding = Omit<JobNode, "embedding">;
 
 const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
+  const { user } = useStore();
   const [jobDetails, setJobDetails] = useState<
     (JobNodeWithoutEmbedding & NodeWithId) | null
   >(null);
@@ -53,6 +62,14 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false);
+  const [isResumeDialogOpen, setIsResumeDialogOpen] = useState(false);
+  const [resumes, setResumes] = useState<Resume[]>([]);
+  const [resumeError, setResumeError] = useState<string | null>(null);
+  const [selectedResume, setSelectedResume] = useState<Resume | null>(null);
+
+  if (!user || !user.uuid) {
+    return null;
+  }
 
   useEffect(() => {
     const loadJobDetails = async () => {
@@ -74,6 +91,57 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
 
     loadJobDetails();
   }, [jobId]);
+
+  const handleApplyNow = async () => {
+    try {
+      const resumeData = await getResumes(user.uuid);
+      setResumes(resumeData);
+      setIsResumeDialogOpen(true);
+    } catch (err) {
+      setResumeError("Failed to fetch resumes. Please try again later.");
+      console.error("Error fetching resumes:", err);
+    }
+  };
+
+  const handleResumeSelect = (resume: Resume) => {
+    setSelectedResume(resume);
+  };
+
+  const handleApplyWithResume = () => {
+    if (selectedResume) {
+      console.log(`Applying with resume: ${selectedResume.resume_name}`);
+      // Implement your apply logic here
+      toast.success("Your application has been submitted successfully!");
+      handleCloseResumeDialog();
+    }
+  };
+
+  const handleCloseResumeDialog = () => {
+    setIsResumeDialogOpen(false);
+    setSelectedResume(null); // Clear the selected resume when dialog is closed
+  };
+
+  const ResumeCard: React.FC<ResumeCardProps> = ({
+    resume,
+    onSelect,
+    isSelected,
+  }) => (
+    <Card
+      className={`cursor-pointer transition-all duration-200 ${
+        isSelected
+          ? "bg-gray-200 border-gray-400"
+          : "hover:bg-gray-100 hover:border-gray-300"
+      }`}
+      onClick={() => onSelect(resume)}
+    >
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="text-sm font-medium">
+          {resume.resume_name}
+        </CardTitle>
+        {isSelected && <Check className="h-4 w-4 text-gray-600" />}
+      </CardHeader>
+    </Card>
+  );
 
   const formatSalary = (salary: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -344,8 +412,8 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
           </CardContent>
 
           <CardFooter className="flex justify-between items-center mt-4">
-            <Button size="sm" className="text-sm">
-              Apply Now
+            <Button size="sm" className="text-sm" onClick={handleApplyNow}>
+              Send Your Resume
             </Button>
           </CardFooter>
         </Card>
@@ -368,6 +436,62 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
           </CardContent>
         </Card>
       </div>
+      <Dialog open={isResumeDialogOpen} onOpenChange={handleCloseResumeDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-gray-800">
+              Select a Resume
+            </DialogTitle>
+            <DialogDescription className="text-gray-600">
+              Choose the resume you'd like to use for this application.
+            </DialogDescription>
+          </DialogHeader>
+          {resumeError ? (
+            <p className="text-red-500">{resumeError}</p>
+          ) : (
+            <div className="grid gap-4 py-4">
+              {resumes.map((resume, index) => (
+                <ResumeCard
+                  key={index}
+                  resume={resume}
+                  onSelect={handleResumeSelect}
+                  isSelected={selectedResume === resume}
+                />
+              ))}
+            </div>
+          )}
+          <DialogFooter className="sm:justify-start">
+            {selectedResume ? (
+              <>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleCloseResumeDialog}
+                  className="w-full sm:w-auto"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleApplyWithResume}
+                  className="w-full sm:w-auto"
+                >
+                  Apply with Selected Resume
+                </Button>
+              </>
+            ) : (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleCloseResumeDialog}
+                className="w-full sm:w-auto"
+              >
+                Close
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
