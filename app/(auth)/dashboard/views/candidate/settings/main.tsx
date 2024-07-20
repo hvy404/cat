@@ -40,7 +40,7 @@ export default function CandidateDashboardSettings() {
         }`}
       >
         <div className="min-h-[90vh] rounded-xl bg-muted/50 p-4 overflow-auto">
-          <div className="grid gap-6">Right Column</div>
+         {/* Create a side-panel component that will take active questions state and display tips */}
         </div>
       </div>
     </main>
