@@ -60,7 +60,7 @@ Your output must strictly conform to the provided JSON schema, including only th
     const output = JSON.parse(extract.choices[0].message.content!);
 
     const { error } = await supabase
-      .from("candidate_resume")
+      .from("candidate_create")
       .upsert([{ inferred: output, user: id }], {
         onConflict: "user",
       });

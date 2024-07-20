@@ -22,7 +22,7 @@ export const resumeGenerateInferred = inngest.createFunction(
     console.log("candidate-generate-inferred-info function activated");
 
     const { data, error } = await supabase
-      .from("candidate_resume")
+      .from("candidate_create")
       .select("raw")
       .eq("user", id);
 

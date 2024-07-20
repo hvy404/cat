@@ -13,7 +13,7 @@ export async function generateCandidateEmbeddings(applicant_id: string) {
   });
 
   const { data, error } = await supabase
-    .from("candidate_resume")
+    .from("candidate_create")
     .select("modified_static, inferred")
     .eq("user", applicant_id);
 

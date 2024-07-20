@@ -6,6 +6,7 @@ import { resumeGenerateStatic } from "@/inngest/resume-static";
 import { resumeGenerateInferred } from "@/inngest/resume-inferred";
 import { resumeGenerateIntroduction } from "@/inngest/resume-candidate-intro";
 import { resumeOnboardBooleanStatus } from "@/inngest/resume-onboard-boolean";
+import { resumeOnboardCleanup } from "@/inngest/resume-onboard-cleanup";
 import { generateCandidateCypher } from "@/inngest/resume-generate-cypher";
 import { resumeGenerateEmbeddings } from "@/inngest/resume-embeddings";
 import { generateJobDescriptionCypher } from "@/inngest/job-description-gen-cypher";
@@ -45,6 +46,7 @@ export const { GET, POST, PUT } = serve({
     resumeOnboardBooleanStatus,
     generateCandidateCypher,
     resumeGenerateEmbeddings,
+    resumeOnboardCleanup,
     generateJobDescriptionCypher,
     jobDescriptionEmbeddings,
     jobDescriptionOnboard,

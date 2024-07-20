@@ -13,7 +13,7 @@ export const resumeGenerateIntroduction = inngest.createFunction(
     const id = event.data.user.id;
 
     const { data, error } = await supabase
-      .from("candidate_resume")
+      .from("candidate_create")
       .select("inferred, modified_static")
       .eq("user", id);
 
@@ -47,7 +47,7 @@ export const resumeGenerateIntroduction = inngest.createFunction(
 
     // Update the database with the new modified_static object
     const { error: updateError } = await supabase
-      .from("candidate_resume")
+      .from("candidate_create")
       .update({ modified_static: updatedModifiedStatic })
       .eq("user", id);
 

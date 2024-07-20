@@ -16,7 +16,7 @@ export async function getResumes(userId: string) {
     const supabase = createClient(cookieStore);
 
     const { data, error } = await supabase
-      .from("candidate_downloadable_resume")
+      .from("candidate_resume")
       .select("resume_name, address")
       .eq("candidate_identity", userId);
 

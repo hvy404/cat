@@ -21,7 +21,7 @@ export const generateCandidateCypher = inngest.createFunction(
 
     try {
       const { data, error } = await supabase
-        .from("candidate_resume")
+        .from("candidate_create")
         .select("modified_static, inferred")
         .eq("user", userId);
 

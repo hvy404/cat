@@ -136,7 +136,7 @@ export async function generateLiftedStatic(resume: string, id: string) {
     const output = { ...primaryOutput, ...secondaryOutput };
 
     const { error } = await supabase
-      .from("candidate_resume")
+      .from("candidate_create")
       .upsert([{ static: output, user: id }], {
         onConflict: "user",
       });

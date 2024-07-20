@@ -16,7 +16,7 @@ export async function addResumeEntryAction(
 
   try {
     const { data, error } = await supabase
-      .from("candidate_downloadable_resume")
+      .from("candidate_resume")
       .insert([
         {
           candidate_identity: userId,

@@ -186,7 +186,7 @@ export default function CandidateResumeCopilot() {
                   animate={{ opacity: 1, y: 0 }}
                   className="text-red-500 text-center py-4"
                 >
-                  Error fetching roles: {rolesError}
+                  There was an error, please refresh your page to try again.
                 </motion.p>
               )}
 

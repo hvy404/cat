@@ -142,7 +142,7 @@ export async function handleUpload(
 
     try {
       const { data, error } = await supabase
-        .from("candidate_resume")
+        .from("candidate_create")
         .update({ modified_static: mergedData })
         .eq("user", user);
 

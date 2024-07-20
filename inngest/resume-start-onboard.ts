@@ -18,6 +18,7 @@ import { type resumeGenerateIntroduction } from "@/inngest/resume-candidate-intr
 import { type generateCandidateCypher } from "@/inngest/resume-generate-cypher"; // Part 2
 import { type resumeGenerateEmbeddings } from "@/inngest/resume-embeddings"; // Part 2
 import { type resumeOnboardBooleanStatus } from "@/inngest/resume-onboard-boolean"; // Part 2
+import { type resumeOnboardCleanup } from "@/inngest/resume-onboard-cleanup"; // Part 2
 
 /**
  * Extracts resume information and performs additional processing steps.
@@ -38,7 +39,7 @@ export const resumeExtract = inngest.createFunction(
     const rawExtract = await resumeParserUpload(filename);
 
     const { error } = await supabase
-      .from("candidate_resume")
+      .from("candidate_create")
       .upsert([{ raw: rawExtract, user: event.data.user.id }], {
         onConflict: "user",
       });
@@ -104,6 +105,25 @@ export const finalizeOnboarding = inngest.createFunction(
   { id: "candidate-confirm-resume" },
   { event: "app/candidate-start-onboard-step-2" },
   async ({ event, step }) => {
+    // Move the resume file to the final destination
+    try {
+      const moveResumetoFinal = await step.invoke(
+        "candidate-resume-file-to-final-storage",
+        {
+          function: referenceFunction<typeof resumeOnboardCleanup>({
+            functionId: "candidate-resume-file-to-final-storage",
+          }),
+          data: {
+            user: {
+              id: event.data.user.id,
+            },
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Error during while building cypher query.", error);
+    }
+
     // Generate intro
     try {
       const generateIntro = await step.invoke(

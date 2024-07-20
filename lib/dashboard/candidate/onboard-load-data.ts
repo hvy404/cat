@@ -71,7 +71,7 @@ export async function fetchCandidatePreliminaryData(candidateId: string) {
 
   try {
     const { data, error } = await supabase
-      .from("candidate_resume")
+      .from("candidate_create")
       .select("static")
       .eq("user", candidateId);
 

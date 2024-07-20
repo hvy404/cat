@@ -39,7 +39,7 @@ async function getFetchSuggestionRoles(props: FetchSuggestionRolesProps): Promis
 async function fetchSuggestionRoles(supabase: SupabaseClient, userId: string): Promise<FetchResult> {
   try {
     const { data, error } = await supabase
-      .from("candidate_resume")
+      .from("candidate_create")
       .select("inferred")
       .eq("user", userId)
       .single();

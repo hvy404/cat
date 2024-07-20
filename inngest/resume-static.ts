@@ -21,7 +21,7 @@ export const resumeGenerateStatic = inngest.createFunction(
     console.log("candidate-generate-static-info function activated");
 
     const { data, error } = await supabase
-      .from("candidate_resume")
+      .from("candidate_create")
       .select("raw")
       .eq("user", id);
 
