@@ -2,14 +2,15 @@ import React, { useState, useEffect } from "react";
 import useStore from "@/app/state/useStore";
 import { getResumes } from "@/lib/candidate/apply/resume-choice";
 import { setDefaultResume } from "@/lib/candidate/preferences/resume-set-default";
+import { deleteResume } from "@/lib/candidate/preferences/delete-custom-resume";
 import {
   getCandidatePreferences,
   updateCandidatePreferences,
-} from "@/lib/candidate/preferences/candidate-prefreneces";
+} from "@/lib/candidate/preferences/candidate-prefrences";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckCircle, File, AlertCircle, Info } from "lucide-react";
+import { CheckCircle, File, AlertCircle, Info, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -130,6 +131,28 @@ export default function CandidateSettingOptions({
     }
   };
 
+  const handleDeleteResume = async (resumeAddress: string) => {
+    if (!user) return;
+
+    setUpdating(true);
+    try {
+      await deleteResume(user.uuid, resumeAddress);
+      setResumes(resumes.filter((resume) => resume.address !== resumeAddress));
+      toast.success("Resume deleted successfully", {
+        description: "The resume has been removed from your profile.",
+        duration: 3000,
+      });
+    } catch (err) {
+      console.error("Failed to delete resume:", err);
+      toast.error("Failed to delete resume", {
+        description: "Please try again later.",
+        duration: 3000,
+      });
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   if (!user) return null;
 
   return (
@@ -212,33 +235,39 @@ export default function CandidateSettingOptions({
                           <h3 className="font-medium text-md text-gray-800">
                             {resume.resume_name}
                           </h3>
-                          <p className="text-sm text-gray-500">
-                            {resume.default
-                              ? "Default Resume"
-                              : "Click to set as default"}
-                          </p>
+                         
                         </div>
                       </div>
-                      <Button
-                        onClick={() => handleSetDefault(resume.address)}
-                        disabled={resume.default || updating}
-                        variant={resume.default ? "outline" : "default"}
-                        size="sm"
-                        className={`transition-all duration-300 ${
-                          resume.default
-                            ? "bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100"
-                            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-                        }`}
-                      >
-                        {resume.default ? (
-                          <>
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            Default
-                          </>
-                        ) : (
-                          "Set as Default"
-                        )}
-                      </Button>
+                      <div className="flex space-x-2">
+                        <Button
+                          onClick={() => handleDeleteResume(resume.address)}
+                          disabled={updating || resume.default}
+                          variant="link"
+                          size="sm"
+                        >
+                          <span className="font-normal text-gray-600">Delete Resume</span>
+                        </Button>
+                        <Button
+                          onClick={() => handleSetDefault(resume.address)}
+                          disabled={resume.default || updating}
+                          variant={resume.default ? "outline" : "default"}
+                          size="sm"
+                          className={`transition-all duration-300 ${
+                            resume.default
+                              ? "bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100"
+                              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                          }`}
+                        >
+                          {resume.default ? (
+                            <>
+                              <CheckCircle className="mr-2 h-4 w-4" />
+                              Default
+                            </>
+                          ) : (
+                            "Set as Default"
+                          )}
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </motion.li>

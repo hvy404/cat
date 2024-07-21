@@ -171,7 +171,8 @@ const ChartCard: React.FC<ChartCardProps> = ({ data }) => (
 );
 
 const JobList = ({ filter }: { filter: string }) => {
-  const { setDashboardRoleOverview, dashboard_role_overview, user } = useStore();
+  const { setDashboardRoleOverview, dashboard_role_overview, user } =
+    useStore();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loadingJobs, setLoadingJobs] = useState<boolean>(true);
   const [noJobs, setNoJobs] = useState<boolean>(false);
@@ -224,7 +225,9 @@ const JobList = ({ filter }: { filter: string }) => {
           whileTap={{ scale: 0.98 }}
         >
           <div className="px-4 py-2">
-            <h3 className="text-sm font-semibold text-gray-900 mb-2 mt-2">{job.title}</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-2 mt-2">
+              {job.title}
+            </h3>
             <div className="flex flex-wrap gap-2 text-sm text-gray-500 mb-2">
               <div className="flex items-center text-sm">
                 <MapPin className="w-4 h-4 mr-1" />
@@ -266,16 +269,14 @@ const JobListSkeleton = () => (
 );
 
 const NoJobsFound = () => (
-  
-    <div className="py-8">
-      <p className="text-center text-sm text-gray-500">
-        You haven't added any job opportunities yet.
-      </p>
-      <Button variant="outline" className="mt-4 mx-auto block">
-        Add Your First Job
-      </Button>
-    </div>
- 
+  <div className="py-8">
+    <p className="text-center text-sm text-gray-500">
+      You haven't added any job opportunities yet.
+    </p>
+    <Button variant="outline" className="mt-4 mx-auto block">
+      Add Your First Job
+    </Button>
+  </div>
 );
 
 const EmployerDashboardView: React.FC = () => {
@@ -344,7 +345,7 @@ const EmployerDashboardView: React.FC = () => {
           <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
             <Card>
               <CardHeader>
-              <CardTitle className="text-md font-semibold text-gray-800 flex items-center">
+                <CardTitle className="text-md font-semibold text-gray-800 flex items-center">
                   <FilePlus className="w-5 h-5 mr-2" />
                   Jobs You've Posted
                 </CardTitle>
@@ -364,42 +365,6 @@ const EmployerDashboardView: React.FC = () => {
                 <JobList filter="archived" />
               </CardContent>
             </Card>
-          </div>
-
-          {isExpanded && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Card className="shadow-sm hover:shadow-md transition-all duration-300">
-                <CardHeader>
-                  <CardTitle className="text-md font-semibold text-gray-800">
-                    Additional Insights
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-gray-600">
-                    Here you can add more detailed statistics, charts, or tables
-                    as needed.
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-
-          <div className="text-center">
-            <Button
-              variant="outline"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 text-xs"
-            >
-              {isExpanded ? "Show Less" : "Show More"}{" "}
-              <ChevronRight
-                className={`ml-2 ${isExpanded ? "rotate-90" : ""} h-4 w-4`}
-              />
-            </Button>
           </div>
         </motion.div>
       </main>

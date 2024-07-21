@@ -119,9 +119,6 @@ export default function CandidateDashboardMain() {
           isExpanded ? "lg:w-3/4" : "lg:w-3/5"
         }`}
       >
-        <div className="flex justify-between gap-6 rounded-lg border p-4">
-          <h2 className="font-bold leading-6 text-gray-900">Hello</h2>
-        </div>
         <div className="flex flex-col gap-6">{memoizedMainPanel}</div>
       </div>
       <div

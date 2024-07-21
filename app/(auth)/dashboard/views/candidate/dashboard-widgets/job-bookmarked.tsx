@@ -105,7 +105,7 @@ export const JobBookmarked = ({
 
   return (
     <div className="h-full flex flex-col">
-      <h2 className="text-md font-semibold text-gray-800 mb-4 flex items-center">
+      <h2 className="text-md font-semibold text-gray-800 mb-4 flex items-center mx-auto">
         <FileText className="w-4 h-4 mr-2 text-gray-700" />
         Jobs You've Bookmarked
       </h2>

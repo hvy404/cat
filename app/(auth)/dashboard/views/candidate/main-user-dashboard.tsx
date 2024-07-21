@@ -183,28 +183,6 @@ export function CandidateDashboard() {
     [data.invitedJobs]
   );
 
-  /*   const memoizedResumeRecommendations = useMemo(
-    () => (
-      <RecommendationCard
-        title="Resume Recommendations"
-        items={data.resumeRecommendations}
-        icon={Award}
-      />
-    ),
-    [data.resumeRecommendations]
-  ); */
-
-  /*   const memoizedProfileEnhancements = useMemo(
-    () => (
-      <RecommendationCard
-        title="Profile Enhancements"
-        items={data.profileEnhancements}
-        icon={UserPlus}
-      />
-    ),
-    [data.profileEnhancements]
-  ); */
-
   const memoizedInsightsCard = useMemo(
     () => <InsightsCard data={data.careerInsights} />,
     [data.careerInsights]
@@ -252,68 +230,56 @@ export function CandidateDashboard() {
       </div>
       {/* <QuickStats /> */}
 
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
-          <TabsTrigger value="overview" className="text-sm">
-            Overview
-          </TabsTrigger>
-          <TabsTrigger value="insights" className="text-sm">
-            Insights
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="overview">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <AnimatePresence>
-              <motion.div
-                key="job-sections"
-                variants={cardVariants}
-                initial="hidden"
-                animate="visible"
-                exit="hidden"
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className="col-span-1 lg:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-6"
-              >
-                <div className="flex flex-col h-full">
-                  {memoizedJobBookmarked}
-                </div>
-                <div className="flex flex-col h-full">{memoizedJobInvited}</div>
-              </motion.div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <AnimatePresence>
+          <motion.div
+            key="job-sections"
+            variants={cardVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="col-span-1 lg:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-6"
+          >
+            <div className="flex flex-col h-full">{memoizedJobBookmarked}</div>
+            <div className="flex flex-col h-full">{memoizedJobInvited}</div>
+          </motion.div>
 
-              <motion.div
-                key="resume-recommendations"
-                variants={cardVariants}
-                initial="hidden"
-                animate="visible"
-                exit="hidden"
-                transition={{ duration: 0.5, delay: 0.3 }}
-                className="flex flex-col h-full"
-              >
-                {candidateId && (
-                  <ResumeSuggestionCard
-                    candidateId={candidateId}
-                    handleResumeSuggestionClick={handleResumeSuggestionClick}
-                  />
-                )}
-              </motion.div>
+          <motion.div
+            key="resume-recommendations"
+            variants={cardVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="flex flex-col h-full"
+          >
+            {candidateId && (
+              <ResumeSuggestionCard
+                candidateId={candidateId}
+                handleResumeSuggestionClick={handleResumeSuggestionClick}
+              />
+            )}
+          </motion.div>
 
-              <motion.div
-                key="profile-enhancements"
-                variants={cardVariants}
-                initial="hidden"
-                animate="visible"
-                exit="hidden"
-                transition={{ duration: 0.5, delay: 0.4 }}
-                className="flex flex-col h-full"
-              >
-                {candidateId && (
-                  <ProfileSuggestionCard candidateId={candidateId} handleProfileSuggestionClick={handleProfileSuggestionClick} />
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </TabsContent>
-        <TabsContent value="insights">{memoizedInsightsCard}</TabsContent>
-      </Tabs>
+          <motion.div
+            key="profile-enhancements"
+            variants={cardVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="flex flex-col h-full"
+          >
+            {candidateId && (
+              <ProfileSuggestionCard
+                candidateId={candidateId}
+                handleProfileSuggestionClick={handleProfileSuggestionClick}
+              />
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

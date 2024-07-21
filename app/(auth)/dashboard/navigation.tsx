@@ -142,14 +142,14 @@ export default function EmployerDashboardNavigation() {
                 icon={Award}
               />
               <TooltipButton
-                item="resume-copilot"
-                label="Resume Copilot"
-                icon={WandSparkles}
-              />
-              <TooltipButton
                 item="talent-profile"
                 label="Personal Profile"
                 icon={User}
+              />
+              <TooltipButton
+                item="resume-copilot"
+                label="Resume Copilot"
+                icon={WandSparkles}
               />
             </>
           );
