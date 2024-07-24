@@ -43,9 +43,9 @@ export default function EmployerDashboardHeader() {
     if (!isLoaded) {
       setUser({
         email: "",
-        uuid: userIdentity,
+        uuid: employerIdentity,
         session: "",
-        role: roleCandidate,
+        role: roleEmployer,
         company: employerCompany, // these field should be provied by authentification // UPDATE: We're probably not going to store this in the user object 
       });
       isLoaded = true; // Set the flag to true after setting the user

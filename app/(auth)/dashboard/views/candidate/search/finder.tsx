@@ -93,7 +93,7 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
       setSearchResults(results as ExtendedJobSearchResult);
       console.log("Job search results:", results);
     } catch (err) {
-      setError("An error occurred while searching, please try again.");
+      setError("There was an error during the search, please try again.");
     } finally {
       setIsLoading(false);
     }

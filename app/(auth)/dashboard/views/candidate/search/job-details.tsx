@@ -7,7 +7,6 @@ import {
   Clock,
   DollarSign,
   ChevronLeft,
-  Building,
   Check,
 } from "lucide-react";
 import {
@@ -30,10 +29,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { fetchJobDetails } from "./job-detail-helper";
-import { JobNode, NodeWithId } from "@/lib/jobs/mutation"; // type definition for JobNode
+import { JobNode, NodeWithId, CompanyNode } from "@/lib/jobs/mutation"; // type definition for JobNode
 import { getResumes } from "@/lib/candidate/apply/resume-choice";
 import CompanyInfoCard from "@/app/(auth)/dashboard/views/candidate/search/company-info-card";
-import { CompanyNode } from "@/lib/jobs/mutation";
+import AtomicRecordApplicationSubmission from "@/lib/match-system/relationship/record-application-submission";
+
 import { toast } from "sonner";
 
 interface JobDetailsProps {
@@ -112,12 +112,25 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
     setSelectedResume(resume);
   };
 
-  const handleApplyWithResume = () => {
-    if (selectedResume) {
-      console.log(`Applying with resume: ${selectedResume.resume_name}`);
-      // Implement your apply logic here
-      toast.success("Your application has been submitted successfully!");
-      handleCloseResumeDialog();
+  const handleApplyWithResume = async () => {
+    if (selectedResume && user && user.uuid) {
+      try {
+        const result = await AtomicRecordApplicationSubmission(
+          user.uuid,
+          jobId,
+          selectedResume.address
+        );
+
+        if (result.success) {
+          toast.success("Your application has been submitted successfully!");
+          handleCloseResumeDialog();
+        } else {
+          toast.error(`Failed to submit application: ${result.error}`);
+        }
+      } catch (error) {
+        console.error("Error submitting application:", error);
+        toast.error("An unexpected error occurred. Please try again.");
+      }
     }
   };
 

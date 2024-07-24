@@ -163,6 +163,10 @@ interface StoreState {
   setSelectedMenuItem: (item: string) => void;
   setUser: (user: User) => void;
   dashboard_role_overview: DashboardRoleOverview;
+  employerRightPanelView: "default" | "roleOverview" | "inboundApplications";
+  setEmployerRightPanelView: (
+    view: StoreState["employerRightPanelView"]
+  ) => void;
   setDashboardRoleOverview: (overview: Partial<DashboardRoleOverview>) => void;
   setAddJD: (addJD: Partial<AddJobDescription>) => void;
   updateAddJDStep: (newStep: number) => void;
@@ -199,6 +203,9 @@ const useStore = create<StoreState>((set) => ({
     active_role_commission_percent: null,
     active_role_salary_ote: null,
   },
+  // Employer dashboard right panel view
+  employerRightPanelView: "default",
+  setEmployerRightPanelView: (view) => set({ employerRightPanelView: view }),
   // State for add-jd
   addJD: {
     filename: null,

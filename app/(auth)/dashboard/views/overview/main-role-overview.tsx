@@ -66,8 +66,12 @@ interface JobDetails {
 }
 
 export default function EmployerDashboardOverviewRoles() {
-  const { setDashboardRoleOverview, dashboard_role_overview, user } =
-    useStore();
+  const {
+    setDashboardRoleOverview,
+    dashboard_role_overview,
+    user,
+    setEmployerRightPanelView,
+  } = useStore();
   const [jobDetails, setJobDetails] = useState<JobDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
@@ -78,6 +82,7 @@ export default function EmployerDashboardOverviewRoles() {
       active_role_id: null,
       active_role_name: null,
     });
+    setEmployerRightPanelView("default");
   };
 
   useEffect(() => {
@@ -165,21 +170,17 @@ export default function EmployerDashboardOverviewRoles() {
         );
         if (success) {
           toast.success("Job post deleted successfully");
-
-          // Redirect to dashboard
-          setDashboardRoleOverview({
-            active: false,
-            active_role_id: null,
-            active_role_name: null,
-          });
+          handleReturnToDashboard(); // Use the same function to return to dashboard
         } else {
           toast.error("Failed to delete job post");
         }
       } catch (error) {
-        //console.error("Error deleting job post:", error);
+        console.error("Error deleting job post:", error);
+        toast.error("An error occurred while deleting the job post");
       }
     } else {
-      //console.log("User, UUID or active role ID is missing");
+      console.log("User, UUID or active role ID is missing");
+      toast.error("Missing required information to delete job post");
     }
   };
 

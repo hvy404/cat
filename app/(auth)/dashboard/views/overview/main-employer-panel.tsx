@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchDetailedJobPosts } from "@/lib/overview/fetchRoles";
+import InboundApplicantsCard from "./inbound-application-card";
 
 interface Job {
   jd_id: string;
@@ -171,8 +172,7 @@ const ChartCard: React.FC<ChartCardProps> = ({ data }) => (
 );
 
 const JobList = ({ filter }: { filter: string }) => {
-  const { setDashboardRoleOverview, dashboard_role_overview, user } =
-    useStore();
+  const { setEmployerRightPanelView, setDashboardRoleOverview, user } = useStore();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loadingJobs, setLoadingJobs] = useState<boolean>(true);
   const [noJobs, setNoJobs] = useState<boolean>(false);
@@ -205,6 +205,7 @@ const JobList = ({ filter }: { filter: string }) => {
       active_role_id: String(job_id),
       active_role_name: title,
     });
+    setEmployerRightPanelView('roleOverview');
   };
 
   if (loadingJobs) return <JobListSkeleton />;
@@ -215,11 +216,7 @@ const JobList = ({ filter }: { filter: string }) => {
       {jobs.map((job) => (
         <motion.div
           key={job.jd_id}
-          className={`rounded-md transition-all duration-300 cursor-pointer ${
-            dashboard_role_overview.active_role_id === job.jd_id
-              ? "bg-gray-100/70"
-              : ""
-          }`}
+          className="rounded-md transition-all duration-300 cursor-pointer"
           onClick={() => handleClick(job.jd_id, job.title)}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
@@ -238,17 +235,6 @@ const JobList = ({ filter }: { filter: string }) => {
                 Posted: {job.posted_date}
               </div>
             </div>
-            {/* <div className="flex justify-between items-center">
-              <Button variant="outline" size="sm" className="text-primary">
-                View Applicants
-                <ChevronRight className="ml-1 h-4 w-4" />
-              </Button>
-              {job.new_match && (
-                <span className="bg-primary/10 text-primary text-xs font-medium px-2 py-1 rounded-full">
-                  New Match
-                </span>
-              )}
-            </div> */}
           </div>
         </motion.div>
       ))}
@@ -280,7 +266,6 @@ const NoJobsFound = () => (
 );
 
 const EmployerDashboardView: React.FC = () => {
-  const [isExpanded, setIsExpanded] = useState(false);
   const [welcomeMessage, setWelcomeMessage] = useState("");
 
   useEffect(() => {
@@ -318,13 +303,7 @@ const EmployerDashboardView: React.FC = () => {
           </motion.div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <StatCard
-              title="Inbound Applicants"
-              value={142}
-              icon={Users}
-              description="Total applicants this week"
-              trend={12}
-            />
+            <InboundApplicantsCard />
             <StatCard
               title="AI Recommendations"
               value={60}

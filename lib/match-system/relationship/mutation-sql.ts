@@ -2,7 +2,6 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
-import { PostgrestError } from "@supabase/supabase-js";
 
 // Type definitions
 export type Match = {
