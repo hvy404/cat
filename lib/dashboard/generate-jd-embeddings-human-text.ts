@@ -103,13 +103,6 @@ export function generateHumanReadableJobDescription(
         : "This position does not offer leadership opportunities."
     }\n\n`;
   }
-  if (jobDescription.advancementPotential !== undefined) {
-    formattedText += `**Advancement Potential:** ${
-      jobDescription.advancementPotential
-        ? "There is potential for advancement in this role."
-        : "There is limited potential for advancement in this role."
-    }\n\n`;
-  }
   if (jobDescription.suitablePastRoles) {
     formattedText += `**Candidates with previous experience as a:**\n`;
     jobDescription.suitablePastRoles.forEach((role) => {

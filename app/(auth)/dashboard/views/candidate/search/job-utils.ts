@@ -13,7 +13,6 @@ export type DetailedJobResult = {
   job_type: string;
   remote_flexibility: boolean;
   company_overview: string;
-  advancement_potential: boolean;
   employer_id: string;
   location_type: string;
   summary: string;
@@ -112,7 +111,6 @@ export async function findSimilarJobs(
           .job_type,
           .remote_flexibility,
           .company_overview,
-          .advancement_potential,
           .employer_id,
           .location_type,
           .summary,
@@ -155,7 +153,6 @@ export async function findSimilarJobs(
           job_type: remappedProperties.jobType,
           remote_flexibility: similarJob.remote_flexibility,
           company_overview: similarJob.company_overview,
-          advancement_potential: similarJob.advancement_potential,
           employer_id: similarJob.employer_id,
           location_type: remappedProperties.locationType,
           summary: similarJob.summary,

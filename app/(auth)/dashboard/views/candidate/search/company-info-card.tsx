@@ -70,12 +70,12 @@ interface CompanyInfoCardProps {
                   Company Size: {company.size}
                 </p>
               )}
-              {company.industry && (
+             {/*  {company.industry && (
                 <p>
                   <Building className="w-4 h-4 inline mr-2" />
                   Industry: {company.industry}
                 </p>
-              )}
+              )} */}
             </div>
           ) : null}
         </CardContent>

@@ -8,12 +8,6 @@ export const assumedDetailsSchema = z
       .describe(
         "Potential for leadership roles or responsibilities, inferred from the job title and key responsibilities."
       ),
-    advancementPotential: z
-      .boolean()
-      .optional()
-      .describe(
-        "Potential for professional growth and advancement, inferred from the job description and company overview."
-      ),
     remoteFlexibility: z
       .boolean()
       .optional()

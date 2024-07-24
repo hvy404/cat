@@ -19,7 +19,6 @@ export interface JobNode {
   company_overview: string;
   security_clearance: string;
   remote_flexibility: boolean;
-  advancement_potential: boolean;
   leadership_opportunity: boolean;
   commission_pay: boolean;
   commission_percent: number;
@@ -316,7 +315,6 @@ export async function getJobNode(
         "company_overview",
         "security_clearance",
         "remote_flexibility",
-        "advancement_potential",
         "leadership_opportunity",
         "commission_pay",
         "commission_percent",

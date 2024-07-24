@@ -35,7 +35,6 @@ export type JobDescription = {
   embedding?: number[];
   remoteFlexibility?: boolean;
   suitablePastRoles?: string[];
-  advancementPotential?: boolean;
   leadershipOpportunity?: boolean;
   commissionPay?: boolean;
   commissionPercent?: number;
@@ -79,7 +78,6 @@ export function generateJobCypherQuery(
       job_id: "${jobDescriptionId}",  
       author: "${employerId}",
       embedding: ${jd.embedding ? formatArrayForCypher(jd.embedding) : "[]"},
-      company: "${escapeString(jd.company)}",      
       job_type: "${escapeString(jd.jobType)}",   
       location_type: "${escapeString(jd.locationType || "unspecified")}", 
       location: "${escapeString(JSON.stringify(jd.location || []))}",    
@@ -90,7 +88,6 @@ export function generateJobCypherQuery(
       company_overview: "${escapeString(jd.companyOverview || "")}", 
       security_clearance: "${escapeString(jd.clearanceLevel || "none")}", 
       remote_flexibility: ${jd.remoteFlexibility ?? "null"}, 
-      advancement_potential: ${jd.advancementPotential ?? "null"}, 
       leadership_opportunity: ${jd.leadershipOpportunity ?? "null"},
       commission_pay: ${jd.commissionPay ?? "null"},
       commission_percent: ${jd.commissionPercent ?? "null"},

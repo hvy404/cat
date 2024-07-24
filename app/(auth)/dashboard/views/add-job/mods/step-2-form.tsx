@@ -26,7 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -106,13 +105,13 @@ export default function AddJDStep2Form() {
   useEffect(() => {
     let isMounted = true;
 
-    if (!employerId || !addJD || !addJD.jdEntryID) {
+    if (!employerId || !addJD.jdEntryID) {
       console.log("User or user UUID not set yet.");
       return;
     }
 
     async function fetchJobDetails() {
-      if (!addJD || !addJD.jdEntryID) {
+      if (!addJD.jdEntryID) {
         console.error("Job Description ID not found");
         return;
       }
@@ -165,7 +164,7 @@ export default function AddJDStep2Form() {
       isMounted = false;
       console.log("Component unmounting");
     };
-  }, [addJD, employerId, setAddJD]);
+  }, [employerId, addJD.jdEntryID]);
 
   const handleSubmit = async () => {
     try {

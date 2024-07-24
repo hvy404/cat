@@ -13,7 +13,6 @@ interface SalaryRange {
 export interface JobDescription {
   [key: string]: any; // Adding index signature to handle dynamic property access
   leadershipOpportunity?: boolean;
-  advancementPotential?: boolean;
   remoteFlexibility?: boolean;
   suitablePastRoles?: string[];
   jobTitle: string;
@@ -75,7 +74,6 @@ export async function generateJobDescriptionEmbeddings(jd_id: string) {
   jobDescriptionData.minSalary = data[0].min_salary;
   jobDescriptionData.maxSalary = data[0].max_salary;
   jobDescriptionData.clearanceLevel = data[0].security_clearance;
-  jobDescriptionData.commissionPay = data[0].commission_pay;
   jobDescriptionData.commissionPercent = data[0].commission_percent;
   jobDescriptionData.oteSalary = data[0].ote_salary;
   jobDescriptionData.location = data[0].location

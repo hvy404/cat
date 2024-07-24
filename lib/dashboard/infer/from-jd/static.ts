@@ -94,7 +94,7 @@ export async function generateJDStatic(
           content: userPrompt,
         },
       ],
-      model: "togethercomputer/CodeLlama-34b-Instruct",
+      model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
       temperature: 0.4,
       max_tokens: 7500,
       // @ts-ignore – Together.ai supports schema while OpenAI does not
@@ -124,7 +124,7 @@ export async function generateJDStatic(
           content: JSON.stringify(jdRaw),
         },
       ],
-      model: "togethercomputer/CodeLlama-34b-Instruct",
+      model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
       temperature: 0.4,
       max_tokens: 7500,
       // @ts-ignore – Together.ai supports schema while OpenAI does not
@@ -153,7 +153,7 @@ export async function generateJDStatic(
           content: JSON.stringify(jdRaw),
         },
       ],
-      model: "togethercomputer/CodeLlama-34b-Instruct",
+      model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
       temperature: 0.45,
       max_tokens: 7500,
       // @ts-ignore – Together.ai supports schema while OpenAI does not

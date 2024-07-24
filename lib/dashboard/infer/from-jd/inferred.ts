@@ -24,7 +24,6 @@ export async function generateJDInferred(
   Guidelines:
 
   - leadershipOpportunity: (optional) potential for leadership roles or responsibilities, inferred from the job title and key responsibilities
-  - advancementPotential: (optional) potential for professional growth and advancement, inferred from the job description and company overview
   - remoteFlexibility: (optional) potential for remote work or flexibility in work location, explicitly mentioned or implied
   - suitablePastRoles: (optional) a list of past roles or job titles that may align well with the demands and responsibilities of this job
 
@@ -45,7 +44,7 @@ export async function generateJDInferred(
         content: userPrompt,
       },
     ],
-    model: "togethercomputer/CodeLlama-34b-Instruct",
+    model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
     temperature: 0.4,
     max_tokens: 7500,
     // @ts-ignore – Together.ai supports schema while OpenAI does not
