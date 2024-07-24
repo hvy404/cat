@@ -6,8 +6,8 @@ import { inngest } from "@/lib/inngest/client";
  *
  * @param jdUUID - The UUID of the job description.
  * @param employerId - The ID of the employer.
- * @param filename - The name of the file containing the job description.
  * @param sessionID - The ID of the session.
+ * @param company - The ID of the company the user belongs to
  * @returns An object with the result of the onboarding process.
  */
 export async function jobDescriptionFinishOnboard(

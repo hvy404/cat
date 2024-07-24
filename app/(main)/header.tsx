@@ -1,5 +1,4 @@
 "use client";
-import dynamic from "next/dynamic";
 import Image from "next/image";
 import Logo from "@/public/global/logo_mono_dark.png";
 import { Dialog } from "@headlessui/react";

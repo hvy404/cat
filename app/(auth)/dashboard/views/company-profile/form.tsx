@@ -38,6 +38,7 @@ import PrefixedUrlInput from "@/app/(auth)/dashboard/views/company-profile/websi
 import {
   addNewCompanyEntry,
   addEmployeeToCompany,
+  updateEmployerCompanyId,
 } from "@/lib/company/create-new";
 import { toast } from "sonner";
 import { addCompanyNode } from "@/lib/company/mutation";
@@ -134,10 +135,10 @@ export default function EditCompanyProfile({
     const result = await validateCompanyProfile(formData);
     if (result.success) {
       setIsSavingForm(true);
-
+  
       try {
         const processedData = processCompanyData(formData);
-
+  
         // Handle the admin property
         if (createNew && isInitialOwner) {
           // For new companies, set the admin to the current user
@@ -147,36 +148,44 @@ export default function EditCompanyProfile({
           // Assuming formData.admin contains the current admin data
           processedData.admin = formData.admin;
         }
-
+  
         // Use addCompanyNode with the correctly handled admin property
         const companyNode = await addCompanyNode(processedData);
-
+  
         if (createNew) {
           // Additional steps for new company creation
           const addCompany = await addNewCompanyEntry(
             companyNode.id,
             companyNode.name
           );
-
+  
           if (isInitialOwner) {
             const addEmployee = await addEmployeeToCompany({
               employerId: employerId,
               companyId: companyNode.id,
               role: "admin",
             });
-
+  
             if (!addEmployee.success) {
               toast.error(addEmployee.error);
               setIsSavingForm(false);
               return;
             }
+  
+            // Add this new function call
+            const updateEmployer = await updateEmployerCompanyId(employerId, companyNode.id);
+            if (!updateEmployer.success) {
+              toast.error(updateEmployer.error);
+              setIsSavingForm(false);
+              return;
+            }
           }
-
+  
           toast.success("Your company profile has been created.");
         } else {
           toast.success("Your company profile has been updated.");
         }
-
+  
         setErrors({});
       } catch (error) {
         console.error("Error saving company profile:", error);

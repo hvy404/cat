@@ -72,6 +72,30 @@ export interface NodeWithId {
   customId?: string;
 }
 
+export interface CompanyNode {
+  id: string;
+  name: string;
+  website?: string;
+  manager?: string;
+  contactEmail?: string;
+  description?: string;
+  admin?: string[];
+  industry?: string;
+  socialMedia?: {
+    linkedin?: string;
+    twitter?: string;
+    facebook?: string;
+  };
+  foundedYear?: string;
+  headquarters?: {
+    city?: string;
+    state?: string;
+    country?: string;
+  };
+  phoneNumber?: string;
+  size?: string;
+}
+
 type RelationshipType =
   | "REQUIRES_SKILL"
   | "OFFERS_BENEFIT"
@@ -80,7 +104,8 @@ type RelationshipType =
   | "SUITABLE_FOR_ROLE"
   | "REQUIRED_EDUCATION"
   | "REQUIRED_CERTIFICATION"
-  | "HAS_ALTERNATIVE_TITLE";
+  | "HAS_ALTERNATIVE_TITLE"
+  | "POSTED_BY";
 
 export async function getJobRelationshipTypes({
   jobId,
@@ -123,6 +148,7 @@ function isValidRelationshipType(type: string): type is RelationshipType {
     "REQUIRED_EDUCATION",
     "REQUIRED_CERTIFICATION",
     "HAS_ALTERNATIVE_TITLE",
+    "POSTED_BY",
   ].includes(type);
 }
 
@@ -257,12 +283,14 @@ export async function createJobNode(
 /* CRUD - Read operation for Job node */
 export async function getJobNode(
   jobId: string
-): Promise<(Omit<JobNode, "embedding"> & NodeWithId) | null> {
+): Promise<(Omit<JobNode, "embedding"> & NodeWithId & { companyId?: string }) | null> {
   const query = `
     MATCH (j:Job {job_id: $jobId})
+    OPTIONAL MATCH (j)-[:POSTED_BY]->(c:Company)
     RETURN j {
       .*, 
-      embedding: null
+      embedding: null,
+      companyId: c.id
     } AS j, ID(j) as nodeId
   `;
 
@@ -299,7 +327,7 @@ export async function getJobNode(
         "hourly_comp_max",
         "private_employer",
         "benefits",
-        "responsibilities", // Add responsibilities here
+        "responsibilities",
       ];
 
       // Create an object with all required properties
@@ -316,11 +344,12 @@ export async function getJobNode(
         return acc;
       }, {});
 
-      // Add NodeWithId properties
-      const finalNode: Omit<JobNode, "embedding"> & NodeWithId = {
+      // Add NodeWithId properties and companyId
+      const finalNode: Omit<JobNode, "embedding"> & NodeWithId & { companyId?: string } = {
         ...(serializedNode as Omit<JobNode, "embedding">),
         labels: ["Job"],
         _id: nodeId instanceof Integer ? nodeId.toNumber() : nodeId,
+        companyId: jobNode.companyId || undefined,
       };
 
       return finalNode;
@@ -536,6 +565,37 @@ export async function removeAlternativeTitle(nodeId: number): Promise<boolean> {
   return removeRelationship(nodeId, "AlternativeTitle");
 }
 
+// Get the company that posted the job
+export async function getJobPostedByCompany(
+  jobId: string
+): Promise<(NodeWithId & CompanyNode) | null> {
+  const query = `
+    MATCH (j:Job {job_id: $jobId})-[:POSTED_BY]->(c:Company)
+    RETURN c, ID(c) as nodeId
+  `;
+
+  try {
+    const result = await read(query, { jobId });
+    if (result && result.length > 0) {
+      const company = result[0].c;
+      const nodeId = result[0].nodeId;
+      return {
+        ...company.properties,
+        socialMedia: JSON.parse(company.properties.socialMedia || '{}'),
+        headquarters: JSON.parse(company.properties.headquarters || '{}'),
+        admin: JSON.parse(company.properties.admin || '[]'),
+        labels: ["Company"],
+        _id: nodeId instanceof Integer ? nodeId.toNumber() : nodeId,
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error("Error fetching company that posted the job:", error);
+    return null;
+  }
+}
+
+
 /* Utility function to get all relationships for a Job */
 export async function getAllJobRelationships(
   jobId: string
@@ -571,6 +631,10 @@ export async function getAllJobRelationships(
         break;
       case "HAS_ALTERNATIVE_TITLE":
         relationships[type] = await getJobAlternativeTitles(jobId);
+        break;
+      case "POSTED_BY":
+        const company = await getJobPostedByCompany(jobId);
+        relationships[type] = company ? [company] : [];
         break;
     }
   }

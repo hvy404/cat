@@ -16,7 +16,7 @@ export default function EmployerDashboardMain() {
             {dashboard_role_overview.active ? (
               <EmployerDashboardOverviewRoles />
             ) : (
-              <div>Default employer panel</div>
+              <div>Side Panel</div>
             )}
           </div>
         </div>

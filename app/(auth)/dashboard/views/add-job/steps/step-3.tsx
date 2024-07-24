@@ -1,10 +1,11 @@
 import useStore from "@/app/state/useStore";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { jobDescriptionFinishOnboard } from "@/lib/dashboard/finish-onboard";
 import { QueryEventStatus } from "@/lib/dashboard/query-runner-status";
+import { fetchUserCompanyId } from "@/lib/dashboard/get-company-membership";
 
 export default function AddJDStepThree() {
   // Get AddJD state from the store
@@ -14,8 +15,33 @@ export default function AddJDStepThree() {
     user: state.user,
     setSelectedMenuItem: state.setSelectedMenuItem,
   }));
-
+  const [companyId, setCompanyId] = useState(null);
+  const [isCompanyIdFetched, setIsCompanyIdFetched] = useState(false);
   const hasRun = useRef(false);
+
+  // Fetch the user's company ID
+  useEffect(() => {
+    const getCompanyId = async () => {
+      if (user && user.uuid && !companyId) {
+        try {
+          const result = await fetchUserCompanyId(user.uuid);
+          if (result.success) {
+            setCompanyId(result.companyId);
+          } else {
+            //console.error("Failed to fetch company ID:", result.error);
+          }
+        } catch (error) {
+          //console.error("Error fetching company ID:", error);
+        } finally {
+          setIsCompanyIdFetched(true);
+        }
+      } else {
+        setIsCompanyIdFetched(true);
+      }
+    };
+
+    getCompanyId();
+  }, [user, companyId]);
 
   // Start the publishing runner (final step of onboarding process)
   useEffect(() => {
@@ -23,34 +49,42 @@ export default function AddJDStepThree() {
       if (
         addJD.jdEntryID &&
         user &&
+        companyId &&
         !addJD.publishingRunnerID &&
         !hasRun.current &&
-        addJD.step === 3
+        addJD.step === 3 &&
+        isCompanyIdFetched
       ) {
         hasRun.current = true;
 
-        const result = await jobDescriptionFinishOnboard(
-          addJD.jdEntryID,
-          user.uuid,
-          user.session,
-          user.company
-        );
+        try {
+          const result = await jobDescriptionFinishOnboard(
+            addJD.jdEntryID,
+            user.uuid,
+            user.session,
+            companyId
+          );
 
-        if (result.success) {
-          console.log("Finish onboard result: ", result.event[0]);
+          if (result.success) {
+            console.log("Finish onboard result: ", result.event[0]);
 
-          setTimeout(() => {
-            setAddJD({
-              publishingRunnerID: result.event[0],
-              isFinalizing: true,
-            });
-          }, 2000);
+            setTimeout(() => {
+              setAddJD({
+                publishingRunnerID: result.event[0],
+                isFinalizing: true,
+              });
+            }, 2000);
+          } else {
+            console.error("Failed to finish onboard");
+          }
+        } catch (error) {
+          console.error("Error in finishOnboard:", error);
         }
       }
     };
 
     finishOnboard();
-  }, [addJD.jdEntryID, user, addJD.step]);
+  }, [addJD.jdEntryID, user, companyId, addJD.step, isCompanyIdFetched]);
 
   // Poll status of publishing runner
   useEffect(() => {

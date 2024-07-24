@@ -71,6 +71,12 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
   const { user } = useStore();
   const userId = user?.uuid;
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      handleSearch();
+    }
+  };
+
   const handleSearch = async (): Promise<void> => {
     if (!userId) {
       setError("User ID is not available. Please ensure you're logged in.");
@@ -210,7 +216,7 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
           <ShieldCheck className="w-4 h-4 mr-2 text-gray-500" />
           <span>Security Clearance: {job.security_clearance}</span>
         </div>
-   {/*      <div className="flex items-center">
+        {/*      <div className="flex items-center">
           <Briefcase className="w-4 h-4 mr-2 text-gray-500" />
           <span>Experience: {job.experience}</span>
         </div> */}
@@ -288,6 +294,7 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setSearchQuery(e.target.value)
           }
+          onKeyDown={handleKeyDown}
           placeholder="Enter job title or keywords"
           className="flex-grow"
         />

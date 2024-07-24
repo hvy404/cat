@@ -30,8 +30,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { fetchJobDetails } from "./job-detail-helper";
-import { JobNode, NodeWithId } from "@/lib/jobs/mutation";
+import { JobNode, NodeWithId } from "@/lib/jobs/mutation"; // type definition for JobNode
 import { getResumes } from "@/lib/candidate/apply/resume-choice";
+import CompanyInfoCard from "@/app/(auth)/dashboard/views/candidate/search/company-info-card";
+import { CompanyNode } from '@/lib/jobs/mutation';
 import { toast } from "sonner";
 
 interface JobDetailsProps {
@@ -66,6 +68,7 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [resumeError, setResumeError] = useState<string | null>(null);
   const [selectedResume, setSelectedResume] = useState<Resume | null>(null);
+  const [companyInfo, setCompanyInfo] = useState<Partial<CompanyNode> | null>(null);
 
   if (!user || !user.uuid) {
     return null;
@@ -75,8 +78,16 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
     const loadJobDetails = async () => {
       setIsLoading(true);
       try {
-        const { jobDetails, jobRelationships, isBookmarked } =
-          await fetchJobDetails(jobId);
+        const { jobDetails, jobRelationships, isBookmarked } = await fetchJobDetails(jobId);
+        if (!jobDetails.private_employer) {
+          console.log("Company ID in main app:", jobDetails.companyId);
+          const companyInfo = jobRelationships.POSTED_BY?.[0];
+          if (companyInfo) {
+            console.log("Company Name in main app:", companyInfo.name);
+          }
+        } else {
+          console.log("This job is from a private employer, company information is not available.");
+        }
         setJobDetails(jobDetails);
         setJobRelationships(jobRelationships);
         setIsBookmarked(isBookmarked);
@@ -418,23 +429,11 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
           </CardFooter>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Company Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex items-center">
-              <Building className="w-4 h-4 mr-2 text-gray-500" />
-              <span className="font-semibold text-sm">
-                {jobDetails.company}
-              </span>
-            </div>
-            <p className="text-sm text-gray-600">
-              TODO: Add company description here. If private employer, show a
-              message that the company is private.
-            </p>
-          </CardContent>
-        </Card>
+        <CompanyInfoCard 
+          company={jobRelationships.POSTED_BY?.[0]}
+          isPrivateEmployer={jobDetails.private_employer}
+          /* companyDescription={companyDescription} */
+        />
       </div>
       <Dialog open={isResumeDialogOpen} onOpenChange={handleCloseResumeDialog}>
         <DialogContent className="sm:max-w-[425px]">

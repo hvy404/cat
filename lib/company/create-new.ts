@@ -110,3 +110,37 @@ export async function addEmployeeToCompany({
     };
   }
 }
+
+/**
+ * Updates the employer's company ID in the database.
+ * @param employerId - The ID of the employer.
+ * @param companyId - The ID of the company.
+ * @returns A promise that resolves to an object with a success flag and an optional error message.
+ */
+export async function updateEmployerCompanyId(employerId: string, companyId: string): Promise<{ success: boolean; error?: string }> {
+  if (!employerId || !companyId) {
+    return {
+      success: false,
+      error: "Missing required information. Please provide both employerId and companyId.",
+    };
+  }
+
+  const supabase = getSupabase();
+
+  try {
+    const { error } = await supabase
+      .from("employers")
+      .update({ company_id: companyId })
+      .eq("employer_id", employerId);
+
+    if (error) throw error;
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating employer's company_id:", error);
+    return {
+      success: false,
+      error: "There was an error updating the employer's company ID. Please try again.",
+    };
+  }
+}

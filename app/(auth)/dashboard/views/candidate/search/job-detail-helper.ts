@@ -22,7 +22,7 @@ export async function fetchJobDetails(jobId: string) {
     if (!details) {
       throw new Error("Job not found");
     }
-    const relationships = await getAllJobRelationships(jobId);
+    const allRelationships = await getAllJobRelationships(jobId);
     const bookmarkExists = await checkCandidateJobBookmarkExists(
       jobId,
       "candidateId"
@@ -36,13 +36,28 @@ export async function fetchJobDetails(jobId: string) {
     );
 
     // Create a new object with remapped properties and responsibilities
-    const jobDetails: JobNodeWithoutEmbedding & NodeWithId = {
+    const jobDetails: JobNodeWithoutEmbedding & NodeWithId & { companyId?: string } = {
       ...details,
       job_type: remappedProperties.jobType,
       location_type: remappedProperties.locationType,
       security_clearance: remappedProperties.securityClearance,
-      responsibilities: details.responsibilities || [],  // Ensure responsibilities are included
+      responsibilities: details.responsibilities || [],
     };
+
+    // Only include companyId if private_employer is false
+    if (!details.private_employer) {
+      jobDetails.companyId = details.companyId;
+    } else {
+      //console.log("Private employer, company information not disclosed");
+    }
+
+    // Filter out POSTED_BY relationship if private_employer is true
+    const relationships = Object.entries(allRelationships).reduce((acc, [key, value]) => {
+      if (!(details.private_employer && key === "POSTED_BY")) {
+        acc[key as keyof typeof allRelationships] = value;
+      }
+      return acc;
+    }, {} as typeof allRelationships);
 
     return {
       jobDetails,
