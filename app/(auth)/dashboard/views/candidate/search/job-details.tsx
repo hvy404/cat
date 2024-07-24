@@ -33,7 +33,7 @@ import { fetchJobDetails } from "./job-detail-helper";
 import { JobNode, NodeWithId } from "@/lib/jobs/mutation"; // type definition for JobNode
 import { getResumes } from "@/lib/candidate/apply/resume-choice";
 import CompanyInfoCard from "@/app/(auth)/dashboard/views/candidate/search/company-info-card";
-import { CompanyNode } from '@/lib/jobs/mutation';
+import { CompanyNode } from "@/lib/jobs/mutation";
 import { toast } from "sonner";
 
 interface JobDetailsProps {
@@ -68,26 +68,18 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [resumeError, setResumeError] = useState<string | null>(null);
   const [selectedResume, setSelectedResume] = useState<Resume | null>(null);
-  const [companyInfo, setCompanyInfo] = useState<Partial<CompanyNode> | null>(null);
-
-  if (!user || !user.uuid) {
-    return null;
-  }
+  const [companyInfo, setCompanyInfo] = useState<Partial<CompanyNode> | null>(
+    null
+  );
 
   useEffect(() => {
     const loadJobDetails = async () => {
+      if (!user || !user.uuid) return;
+
       setIsLoading(true);
       try {
-        const { jobDetails, jobRelationships, isBookmarked } = await fetchJobDetails(jobId);
-        if (!jobDetails.private_employer) {
-          console.log("Company ID in main app:", jobDetails.companyId);
-          const companyInfo = jobRelationships.POSTED_BY?.[0];
-          if (companyInfo) {
-            console.log("Company Name in main app:", companyInfo.name);
-          }
-        } else {
-          console.log("This job is from a private employer, company information is not available.");
-        }
+        const { jobDetails, jobRelationships, isBookmarked } =
+          await fetchJobDetails(jobId);
         setJobDetails(jobDetails);
         setJobRelationships(jobRelationships);
         setIsBookmarked(isBookmarked);
@@ -101,9 +93,11 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
     };
 
     loadJobDetails();
-  }, [jobId]);
+  }, [jobId, user]);
 
   const handleApplyNow = async () => {
+    if (!user || !user.uuid) return;
+
     try {
       const resumeData = await getResumes(user.uuid);
       setResumes(resumeData);
@@ -129,8 +123,31 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
 
   const handleCloseResumeDialog = () => {
     setIsResumeDialogOpen(false);
-    setSelectedResume(null); // Clear the selected resume when dialog is closed
+    setSelectedResume(null);
   };
+
+  if (!user || !user.uuid) {
+    return null;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-[90vh]">
+        <div className="text-xl font-bold text-gray-400 flex items-center">
+          Loading
+          <div className="dots ml-2 flex">
+            <span className="animate-wave">.</span>
+            <span className="animate-wave">.</span>
+            <span className="animate-wave">.</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!jobDetails) {
+    return <div>No job details found.</div>;
+  }
 
   const ResumeCard: React.FC<ResumeCardProps> = ({
     resume,
@@ -429,7 +446,7 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
           </CardFooter>
         </Card>
 
-        <CompanyInfoCard 
+        <CompanyInfoCard
           company={jobRelationships.POSTED_BY?.[0]}
           isPrivateEmployer={jobDetails.private_employer}
           /* companyDescription={companyDescription} */

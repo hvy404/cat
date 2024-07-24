@@ -12,15 +12,15 @@ export default function CandidateDashboardSettings() {
   const { isExpanded, setExpanded, user } = useStore();
   const [activeInfo, setActiveInfo] = useState<ActiveInfoType>('default');
 
-  if (!user) {
-    return null;
-  }
-
   useEffect(() => {
     return () => {
       setExpanded(false);
     };
   }, [setExpanded]);
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <main className="flex flex-1 gap-4 p-4 max-h-screen overflow-hidden">
