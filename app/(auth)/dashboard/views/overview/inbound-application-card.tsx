@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Users } from "lucide-react";
-import { getEmployerJobApplications } from "@/lib/employer/recent-applicants";
+import { getEmployerJobApplications, ObfuscatedApplication } from "@/lib/employer/recent-applicants";
 import useStore from "@/app/state/useStore";
 import {
   Card,
@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const InboundApplicantsCard = () => {
+const InboundApplicantsCard: React.FC = () => {
   const [applicantCount, setApplicantCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,16 +30,16 @@ const InboundApplicantsCard = () => {
           oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
           const recentApplications = applications.filter(
-            (app) => new Date(app.created_at) >= oneWeekAgo
+            (app) => new Date(app.submissionDate) >= oneWeekAgo
           );
 
           setApplicantCount(recentApplications.length);
 
           const previousWeekCount = applications.filter(
             (app) =>
-              new Date(app.created_at) >=
+              new Date(app.submissionDate) >=
                 new Date(oneWeekAgo.getTime() - 7 * 24 * 60 * 60 * 1000) &&
-              new Date(app.created_at) < oneWeekAgo
+              new Date(app.submissionDate) < oneWeekAgo
           ).length;
 
           if (previousWeekCount > 0 || recentApplications.length > 0) {

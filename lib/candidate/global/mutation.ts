@@ -105,6 +105,7 @@ type RelationshipType =
   | "HAS_POTENTIAL_ROLE"
   | "HAS_SOFT_SKILL"
   | "WORKED_ON"
+  | "SUBMITTED"
   | "AUTHORED";
 
 export async function getTalentRelationshipTypes({
@@ -149,10 +150,11 @@ function isValidRelationshipType(type: string): type is RelationshipType {
     "HAS_SOFT_SKILL",
     "WORKED_ON",
     "AUTHORED",
+   "SUBMITTED"
   ].includes(type);
 }
 
-async function getRelationshipNodes<T>(
+export async function getRelationshipNodes<T>(
   applicantId: string,
   relationshipType: RelationshipType
 ): Promise<(T & NodeWithId)[]> {

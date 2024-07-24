@@ -5,7 +5,35 @@ import { cookies } from "next/headers";
 const cookieStore = cookies();
 const supabase = createClient(cookieStore);
 
-async function getEmployerJobApplications(employerId: string) {
+// Updated database structure to match Supabase response
+interface DatabaseApplication {
+  id: string;
+  job_id: string;
+  candidate_id: string;
+  created_at: string;
+  job_postings: {
+    employer_id: string;
+  };
+}
+
+// Obfuscated structure (unchanged)
+interface ObfuscatedApplication {
+  appId: string;
+  jobRef: string;
+  candidateRef: string;
+  submissionDate: string;
+}
+
+function obfuscateApplication(app: DatabaseApplication): ObfuscatedApplication {
+  return {
+    appId: app.id,
+    jobRef: app.job_id,
+    candidateRef: app.candidate_id,
+    submissionDate: app.created_at,
+  };
+}
+
+async function getEmployerJobApplications(employerId: string): Promise<ObfuscatedApplication[] | null> {
   const { data, error } = await supabase
     .from('applications')
     .select(`
@@ -25,7 +53,18 @@ async function getEmployerJobApplications(employerId: string) {
     return null;
   }
 
-  return data;
+  // Log the raw data from Supabase
+  console.log('Raw data from Supabase:', data);
+
+  // Ensure the data matches our DatabaseApplication interface
+  const typedData = data as unknown as DatabaseApplication[];
+
+  // Log the obfuscated data
+  const obfuscatedData = typedData.map(obfuscateApplication);
+  console.log('Obfuscated data:', obfuscatedData);
+
+  return obfuscatedData;
 }
 
 export { getEmployerJobApplications };
+export type { ObfuscatedApplication };

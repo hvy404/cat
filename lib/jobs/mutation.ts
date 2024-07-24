@@ -2,32 +2,34 @@
 import { write, read } from "@/lib/neo4j/utils";
 import { Integer, RecordShape } from "neo4j-driver";
 
-// Updated JobNode interface to match the new structure
 export interface JobNode {
   job_title: string;
   job_id: string;
-  employer_id: string;
+  author: string; // Changed from employer_id to match the Neo4j structure
+  employer_id: string; // Added to match the Neo4j structure
   embedding: number[];
-  company: string;
+  company?: string; // Made optional as it's not clear if it's always present
   job_type: string;
   location_type: string;
-  location: string; // JSON stringified array
+  location: Array<{ city: string; state: string; zipcode: string }>; // Changed to parsed array of objects
   experience: string;
   summary: string;
-  maximum_salary: number;
-  starting_salary: number;
+  maximum_salary: number | null;
+  starting_salary: number | null;
+  qualifications: string[];
   company_overview: string;
   security_clearance: string;
-  remote_flexibility: boolean;
-  leadership_opportunity: boolean;
-  commission_pay: boolean;
-  commission_percent: number;
-  ote_salary: number;
-  salary_disclose: boolean;
+  education: string[];
+  remote_flexibility: boolean | null;
+  leadership_opportunity: boolean | null;
+  commission_pay: boolean | null;
+  commission_percent: number | null;
+  ote_salary: number | null;
+  salary_disclose: boolean | null;
   compensation_type: string;
-  hourly_comp_min: number;
-  hourly_comp_max: number;
-  private_employer: boolean;
+  hourly_comp_min: number | null;
+  hourly_comp_max: number | null;
+  private_employer: boolean | null;
   benefits: string[];
   responsibilities: string[];
 }
@@ -312,6 +314,7 @@ export async function getJobNode(
         "summary",
         "maximum_salary",
         "starting_salary",
+        "qualifications",
         "company_overview",
         "security_clearance",
         "remote_flexibility",
@@ -326,6 +329,7 @@ export async function getJobNode(
         "private_employer",
         "benefits",
         "responsibilities",
+        "education"
       ];
 
       // Create an object with all required properties
@@ -333,8 +337,12 @@ export async function getJobNode(
         Partial<Omit<JobNode, "embedding">>
       >((acc, prop) => {
         const value = jobNode[prop];
-        if (prop === "responsibilities" || prop === "benefits") {
-          acc[prop] = Array.isArray(value) ? value : [];
+        if (prop === "responsibilities" || prop === "benefits" || prop === "qualifications" || prop === "education") {
+          // Ensure these properties are always arrays
+          acc[prop] = Array.isArray(value) ? value : (value ? [value] : []);
+        } else if (prop === "location") {
+          // Parse the location JSON string
+          acc[prop] = value ? JSON.parse(value) : [];
         } else {
           acc[prop] =
             value instanceof Integer ? value.toNumber() : value ?? null;

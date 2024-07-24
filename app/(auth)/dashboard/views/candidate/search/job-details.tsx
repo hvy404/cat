@@ -118,7 +118,7 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
         const result = await AtomicRecordApplicationSubmission(
           user.uuid,
           jobId,
-          selectedResume.address
+          selectedResume.resume_name
         );
 
         if (result.success) {
@@ -184,7 +184,8 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
     </Card>
   );
 
-  const formatSalary = (salary: number) => {
+  const formatSalary = (salary: number | null) => {
+    if (salary === null) return "N/A";
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -192,7 +193,8 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
     }).format(salary);
   };
 
-  const formatHourlyRate = (rate: number) => {
+  const formatHourlyRate = (rate: number | null) => {
+    if (rate === null) return "N/A";
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -248,7 +250,7 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
           <CardHeader className="flex flex-row justify-between items-start">
             <div>
               <CardTitle className="text-xl font-bold text-gray-800">
-                {jobDetails.job_title}
+                {jobDetails?.job_title}
               </CardTitle>
             </div>
           </CardHeader>
@@ -260,8 +262,9 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
                 className="text-sm font-normal py-0.5 px-2"
               >
                 <MapPin className="w-4 h-4 mr-1" />
-                {JSON.parse(jobDetails.location)[0]?.city},{" "}
-                {JSON.parse(jobDetails.location)[0]?.state}
+                {jobDetails?.location && jobDetails.location.length > 0
+                  ? `${jobDetails.location[0].city}, ${jobDetails.location[0].state}`
+                  : "Location not specified"}
               </Badge>
               <Badge
                 variant="secondary"
@@ -286,7 +289,7 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
               </Badge>
             </div>
 
-            {jobDetails.salary_disclose && (
+            {jobDetails?.salary_disclose && (
               <div className="flex items-center text-green-600 font-semibold text-sm">
                 <DollarSign className="w-5 h-5 mr-2" />
                 {jobDetails.compensation_type === "salary" && (
@@ -461,7 +464,7 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
 
         <CompanyInfoCard
           company={jobRelationships.POSTED_BY?.[0]}
-          isPrivateEmployer={jobDetails.private_employer}
+          isPrivateEmployer={jobDetails?.private_employer ?? false}
           /* companyDescription={companyDescription} */
         />
       </div>
