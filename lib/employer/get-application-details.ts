@@ -171,25 +171,33 @@ export async function getApplicationDetailedView(
     const candidateNode = await getTalentNodeNoEmbedding(
       supabaseData.candidate_id
     );
-    const candidateRelationshipTypes = candidateNode
-      ? await getTalentRelationshipTypes({
-          talentId: supabaseData.candidate_id,
-        })
-      : [];
-    const candidateRelationships: Record<string, any[]> = {};
 
-    for (const relationType of candidateRelationshipTypes) {
-      if (isValidRelationshipType(relationType)) {
-        candidateRelationships[relationType] = await getRelationshipNodes(
-          supabaseData.candidate_id,
-          relationType
-        );
-      } else {
-        console.warn(
-          `Unhandled relationship type for candidate: ${relationType}`
-        );
-      }
-    }
+    // Define the specific relationships you want to fetch for candidates
+    const candidateRelationshipsToFetch = [
+      "WORKED_AT",
+      "STUDIED_AT",
+      "HAS_SKILL",
+      "HAS_CERTIFICATION",
+    ] as const;
+
+    // Fetch specific candidate relationships
+    const candidateRelationships = candidateNode
+      ? await Promise.all(
+          candidateRelationshipsToFetch.map(async (relationType) => {
+            if (isValidRelationshipType(relationType)) {
+              const nodes = await getRelationshipNodes(
+                supabaseData.candidate_id,
+                relationType
+              );
+              return { [relationType]: nodes };
+            }
+            console.warn(
+              `Unhandled relationship type for candidate: ${relationType}`
+            );
+            return {};
+          })
+        ).then((results) => Object.assign({}, ...results))
+      : {};
 
     // Transform the data ensuring everything is serializable
     const transformedData: TransformedApplicationData = {

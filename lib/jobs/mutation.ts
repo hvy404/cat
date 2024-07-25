@@ -106,6 +106,7 @@ export type RelationshipType =
   | "REQUIRED_EDUCATION"
   | "REQUIRED_CERTIFICATION"
   | "HAS_ALTERNATIVE_TITLE"
+  | "SUBMITTED"
   | "POSTED_BY";
 
 export async function getJobRelationshipTypes({

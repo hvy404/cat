@@ -20,6 +20,64 @@ type ApplicantDetailPanelProps = {
   onBack: () => void;
 };
 
+const ExperienceItem = ({ item, type }) => {
+  const {
+    organization,
+    institution,
+    job_title,
+    degree,
+    start_date,
+    end_date,
+    responsibilities,
+    honors_awards_coursework
+  } = item;
+
+  const formatDate = (date) => {
+    if (!date) return 'Present';
+    const [year, month] = date.split('-');
+    return `${new Date(year, month - 1).toLocaleString('default', { month: 'short' })} ${year}`;
+  };
+
+  return (
+    <li className="mb-4">
+      <h3 className="font-semibold">{organization || institution}</h3>
+      <p className="text-sm">{job_title || degree}</p>
+      <p className="text-xs text-gray-600">
+        {formatDate(start_date)} - {formatDate(end_date)}
+      </p>
+      {responsibilities && (
+        <p className="text-sm mt-1">{responsibilities}</p>
+      )}
+      {honors_awards_coursework && (
+        <p className="text-sm mt-1">{honors_awards_coursework}</p>
+      )}
+    </li>
+  );
+};
+
+const CandidateExperience = ({ workExperience, education }) => {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-lg font-semibold mb-2">Work Experience</h2>
+        <ul className="list-none">
+          {workExperience.map((exp, index) => (
+            <ExperienceItem key={index} item={exp} type="work" />
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h2 className="text-lg font-semibold mb-2">Education</h2>
+        <ul className="list-none">
+          {education.map((edu, index) => (
+            <ExperienceItem key={index} item={edu} type="education" />
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+};
+
 const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
   applicationId,
   onBack,
@@ -77,24 +135,29 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
 
   // Function to render relationships
   const renderRelationships = (relationships: Record<string, any[]>) => {
-    return Object.entries(relationships).map(([type, items]) => (
-      <div key={type}>
-        <h4 className="text-sm font-semibold mt-2">
-          {type.replace(/_/g, " ")}
-        </h4>
-        <ul className="list-disc list-inside">
-          {items.map((item, index) => (
-            <li key={index} className="text-sm">
-              {item.name || item.title || JSON.stringify(item)}
-            </li>
-          ))}
-        </ul>
-      </div>
-    ));
+    return Object.entries(relationships).map(([type, items]) => {
+      // Skip rendering WORKED_AT and STUDIED_AT as they're handled by CandidateExperience
+      if (type === 'WORKED_AT' || type === 'STUDIED_AT') return null;
+      
+      return (
+        <div key={type}>
+          <h4 className="text-sm font-semibold mt-2">
+            {type.replace(/_/g, " ")}
+          </h4>
+          <ul className="list-disc list-inside">
+            {items.map((item, index) => (
+              <li key={index} className="text-sm">
+                {item.name || item.title || JSON.stringify(item)}
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    });
   };
 
-// Function to truncate job description
-const truncateDescription = (description: string | null): string => {
+  // Function to truncate job description
+  const truncateDescription = (description: string | null): string => {
     if (!description) return "No description available";
     const sentences = description.match(/[^.!?]+[.!?]+/g) || [];
     if (sentences.length <= 2) return description;
@@ -126,7 +189,6 @@ const truncateDescription = (description: string | null): string => {
         </Button>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Candidate Information section remains unchanged */}
         {candidateInfo && (
           <div>
             <h3 className="text-md font-semibold mb-2">
@@ -150,12 +212,15 @@ const truncateDescription = (description: string | null): string => {
                 {`${candidateInfo.city}, ${candidateInfo.state} ${candidateInfo.zipcode}`.trim() ||
                   "N/A"}
               </p>
+              <CandidateExperience 
+                workExperience={candidateInfo.relationships.WORKED_AT || []}
+                education={candidateInfo.relationships.STUDIED_AT || []}
+              />
               {renderRelationships(candidateInfo.relationships)}
             </div>
           </div>
         )}
 
-        {/* Application Details section remains unchanged */}
         <div>
           <h3 className="text-md font-semibold mb-2">Application Details</h3>
           <div className="space-y-2">
@@ -176,7 +241,6 @@ const truncateDescription = (description: string | null): string => {
           </div>
         </div>
 
-        {/* Updated Job Information section */}
         {jobInfo && (
           <>
             <div>
@@ -232,7 +296,7 @@ const truncateDescription = (description: string | null): string => {
               <h3 className="text-md font-semibold mb-2">Qualifications</h3>
               <ul className="list-disc list-inside">
                 {Array.isArray(jobInfo.qualifications) ? (
-                  jobInfo.qualifications.map((qual, index) => (
+                  jobInfo.qualifications.map((qual: string, index: number) => (
                     <li key={index} className="text-sm">
                       {qual}
                     </li>
