@@ -241,8 +241,6 @@ export async function getApplicationDetailedView(
         : null,
     };
 
-    console.log("Transformed data:", transformedData);
-
     return transformedData;
   } catch (error) {
     console.error("Error in getApplicationDetailedView:", error);
