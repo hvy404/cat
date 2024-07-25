@@ -100,7 +100,7 @@ export async function generateLiftedStatic(resume: string, id: string) {
           content: userPrompt,
         },
       ],
-      model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
+      model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
       temperature: 0.6,
       max_tokens: 7000,
       // @ts-ignore – Together.ai supports schema while OpenAI does not
@@ -123,7 +123,7 @@ export async function generateLiftedStatic(resume: string, id: string) {
           content: userPrompt,
         },
       ],
-      model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
+      model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
       temperature: 0.6,
       max_tokens: 6000,
       // @ts-ignore – Together.ai supports schema while OpenAI does not

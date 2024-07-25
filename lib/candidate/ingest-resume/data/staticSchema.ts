@@ -36,7 +36,7 @@ export const staticSchema = z.object({
   technical_skills: z
     .array(z.string())
     .describe(
-      "List of hard skills, tools, and technologies from previous work experience."
+      "List of hard skills, tools, and technologies derived from candidate previous work experience."
     ),
   industry_experience: z
     .array(z.string())

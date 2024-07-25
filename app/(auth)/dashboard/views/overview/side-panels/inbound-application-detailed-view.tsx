@@ -1,25 +1,20 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowLeft,
   User,
-  Briefcase,
-  Calendar,
   MapPin,
   Mail,
-  DollarSign,
   Phone,
-  ChevronDown,
-  ChevronUp,
-  CheckCircle,
-  Award,
-  Star,
-  GraduationCap,
+  Info,
+  X,
   ChevronRight,
+  Loader2,
 } from "lucide-react";
 import { getApplicationDetailedView } from "@/lib/employer/get-application-details";
+import { Alert } from "@/components/ui/alert";
 
 type ApplicantDetailPanelProps = {
   applicationId: string;
@@ -148,13 +143,12 @@ const ComparisonSection: React.FC<{
   isAlternate,
 }) => (
   <div className={`p-4 rounded-lg ${isAlternate ? "bg-gray-50" : "bg-white"}`}>
-    <h3 className="text-lg font-semibold mb-2">{title}</h3>
     <div className="grid grid-cols-2 gap-4">
       <div>
         <h4 className="text-sm font-medium mb-1">Candidate</h4>
-        <ul className="list-disc list-inside">
+        <ul className="list-disc pl-5 space-y-2">
           {candidateItems.map((item, index) => (
-            <li key={index} className="text-sm">
+            <li key={index} className="text-sm ml-2 break-words">
               {item?.name ||
                 item?.job_title ||
                 item?.degree ||
@@ -166,9 +160,9 @@ const ComparisonSection: React.FC<{
       </div>
       <div>
         <h4 className="text-sm font-medium mb-1">Job Requirements</h4>
-        <ul className="list-disc list-inside">
+        <ul className="list-disc pl-5 space-y-2">
           {jobRequiredItems.map((item, index) => (
-            <li key={index} className="text-sm">
+            <li key={index} className="text-sm ml-2 break-words">
               {item?.name ||
                 item?.job_title ||
                 item?.degree ||
@@ -178,7 +172,7 @@ const ComparisonSection: React.FC<{
           ))}
           {jobPreferredItems &&
             jobPreferredItems.map((item, index) => (
-              <li key={index} className="text-sm text-gray-600">
+              <li key={index} className="text-sm ml-2 break-words italic">
                 (Preferred){" "}
                 {item?.name ||
                   (typeof item === "object" ? JSON.stringify(item) : item) ||
@@ -219,15 +213,6 @@ const JobDetails: React.FC<{ jobInfo: any }> = ({ jobInfo }) => {
             <strong>Experience Required:</strong>{" "}
             {jobInfo.experienceRequired || "N/A"}
           </p>
-          <p className="text-sm">
-            <strong>Application Date:</strong>{" "}
-            {jobInfo.submitDate
-              ? new Date(jobInfo.submitDate).toLocaleDateString()
-              : "N/A"}
-          </p>
-          <p className="text-sm">
-            <strong>Status:</strong> {jobInfo.status || "N/A"}
-          </p>
         </div>
       </div>
       <ListSection
@@ -262,6 +247,8 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
   onBack,
 }) => {
   const [applicationData, setApplicationData] = useState<any>(null);
+  const [showAlert, setShowAlert] = useState(true);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -273,6 +260,8 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
         if ("error" in data) {
           setError(data.error);
         } else {
+          // console log the data, ensure arrays are stringified to read
+          //console.log("Data:", JSON.stringify(data));
           setApplicationData(data);
         }
       } catch (error) {
@@ -289,11 +278,16 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
   }, [applicationId]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[90vh] space-y-2">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <p className="text-sm text-gray-500">Loading application details...</p>
+      </div>
+    );
   }
 
   if (error) {
-    return <div>Error loading application data: {error}</div>;
+    return <div>We encountered an error. Please try again later.</div>;
   }
 
   if (!applicationData) {
@@ -335,6 +329,18 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
       section.candidateItems.length > 0 || section.jobRequiredItems.length > 0
   );
 
+  const dismissAlert = () => setShowAlert(false);
+
+  const formatPhoneNumber = (phone: string | undefined): string => {
+    if (!phone) return "N/A";
+
+    if (/^\d{10}$/.test(phone)) {
+      return `(${phone.slice(0, 3)}) ${phone.slice(3, 6)}-${phone.slice(6)}`;
+    }
+
+    return phone;
+  };
+
   return (
     <Card className="h-full overflow-auto">
       <CardHeader className="flex flex-row items-center justify-between sticky top-0 bg-white z-10">
@@ -366,15 +372,38 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
             <Mail className="mr-1 h-4 w-4" />
             {candidateInfo?.email || "N/A"}
           </span>
-          <span className="flex items-center">
+          <div className="flex items-center">
             <Phone className="mr-1 h-4 w-4" />
-            {candidateInfo?.phone || "N/A"}
-          </span>
+            <span>{formatPhoneNumber(candidateInfo?.phone)}</span>
+          </div>
+
           <span className="flex items-center">
             <MapPin className="mr-1 h-4 w-4" />
             {`${candidateInfo?.city}, ${candidateInfo?.state}`.trim() || "N/A"}
           </span>
         </div>
+
+        {showAlert && (
+          <Alert className="bg-yellow-50 text-yellow-800 border-yellow-200 px-3 relative">
+            <button
+              onClick={dismissAlert}
+              className="absolute top-3 right-3 p-1 text-yellow-500 hover:text-yellow-700"
+            >
+              <X size={16} />
+            </button>
+            <div className="flex items-center gap-2 pr-8">
+              <Info className="h-6 w-6 flex-shrink-0 text-yellow-500" />
+              <p className="text-xs text-yellow-700">
+                This candidate discovered your job listing through our
+                platform's search feature and submitted their resume to express
+                interest. While our AI-driven matching algorithms excel at
+                identifying ideal candidates, we encourage a thorough review of
+                this self-submitted application to ensure alignment with your
+                specific requirements.
+              </p>
+            </div>
+          </Alert>
+        )}
 
         <Tabs defaultValue="comparison" className="w-full">
           <TabsList>
