@@ -20,7 +20,21 @@ type ApplicantDetailPanelProps = {
   onBack: () => void;
 };
 
-const ExperienceItem = ({ item, type }) => {
+interface ExperienceItemProps {
+  item: {
+    organization?: string;
+    institution?: string;
+    job_title?: string;
+    degree?: string;
+    start_date?: string;
+    end_date?: string;
+    responsibilities?: string;
+    honors_awards_coursework?: string;
+  };
+  type: "work" | "education";
+}
+
+const ExperienceItem: React.FC<ExperienceItemProps> = ({ item, type }) => {
   const {
     organization,
     institution,
@@ -32,10 +46,10 @@ const ExperienceItem = ({ item, type }) => {
     honors_awards_coursework
   } = item;
 
-  const formatDate = (date) => {
+  const formatDate = (date: string | undefined): string => {
     if (!date) return 'Present';
     const [year, month] = date.split('-');
-    return `${new Date(year, month - 1).toLocaleString('default', { month: 'short' })} ${year}`;
+    return `${new Date(Number(year), Number(month) - 1).toLocaleString('default', { month: 'short' })} ${year}`;
   };
 
   return (
@@ -55,7 +69,12 @@ const ExperienceItem = ({ item, type }) => {
   );
 };
 
-const CandidateExperience = ({ workExperience, education }) => {
+interface CandidateExperienceProps {
+  workExperience: Array<ExperienceItemProps["item"]>;
+  education: Array<ExperienceItemProps["item"]>;
+}
+
+const CandidateExperience: React.FC<CandidateExperienceProps> = ({ workExperience, education }) => {
   return (
     <div className="space-y-6">
       <div>
