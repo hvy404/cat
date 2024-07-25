@@ -1,8 +1,16 @@
 "use server";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
-import { getJobNode, getAllJobRelationships } from "@/lib/jobs/mutation";
-import { getTalentNodeNoEmbedding, getTalentRelationshipTypes, getRelationshipNodes } from "@/lib/candidate/global/mutation";
+import {
+  getJobNode,
+  getAllJobRelationships,
+  getRelationshipNodes as getJobRelatedNodes,
+} from "@/lib/jobs/mutation";
+import {
+  getTalentNodeNoEmbedding,
+  getTalentRelationshipTypes,
+  getRelationshipNodes,
+} from "@/lib/candidate/global/mutation";
 
 const cookieStore = cookies();
 const supabase = createClient(cookieStore);
@@ -83,10 +91,10 @@ function deepSerialize(obj: any): any {
   if (obj === null || obj === undefined) {
     return obj;
   }
-  if (typeof obj === 'function') {
+  if (typeof obj === "function") {
     return undefined; // or you could return a string representation if needed
   }
-  if (typeof obj !== 'object') {
+  if (typeof obj !== "object") {
     return obj;
   }
   if (Array.isArray(obj)) {
@@ -96,7 +104,9 @@ function deepSerialize(obj: any): any {
     return obj.toISOString();
   }
   if (obj instanceof Map) {
-    return Object.fromEntries(Array.from(obj.entries()).map(([k, v]) => [k, deepSerialize(v)]));
+    return Object.fromEntries(
+      Array.from(obj.entries()).map(([k, v]) => [k, deepSerialize(v)])
+    );
   }
   if (obj instanceof Set) {
     return Array.from(obj).map(deepSerialize);
@@ -106,11 +116,15 @@ function deepSerialize(obj: any): any {
   );
 }
 
-function serializeRelationships(relationships: Record<string, any[]>): Record<string, any[]> {
+function serializeRelationships(
+  relationships: Record<string, any[]>
+): Record<string, any[]> {
   return deepSerialize(relationships);
 }
 
-export async function getApplicationDetailedView(applicationId: string): Promise<ApplicationResult> {
+export async function getApplicationDetailedView(
+  applicationId: string
+): Promise<ApplicationResult> {
   try {
     // Fetch basic application info from Supabase
     const { data: supabaseData, error: supabaseError } = await supabase
@@ -132,19 +146,48 @@ export async function getApplicationDetailedView(applicationId: string): Promise
     // Fetch job info from Neo4J
     const jobNode = await getJobNode(supabaseData.job_id);
 
-    console.log("Node Property", jobNode)
-    const jobRelationships = jobNode ? await getAllJobRelationships(supabaseData.job_id) : null;
+    // Define the specific relationships you want to fetch
+    const relationshipsToFetch = [
+      "REQUIRES_SKILL",
+      "PREFERS_SKILL",
+      "SUITABLE_FOR_ROLE",
+      "REQUIRED_CERTIFICATION",
+    ] as const;
+
+    // Fetch specific job relationships
+    const jobRelationships = jobNode
+      ? await Promise.all(
+          relationshipsToFetch.map(async (relationType) => {
+            const nodes = await getJobRelatedNodes(
+              supabaseData.job_id,
+              relationType
+            );
+            return { [relationType]: nodes };
+          })
+        ).then((results) => Object.assign({}, ...results))
+      : null;
 
     // Fetch candidate info from Neo4J
-    const candidateNode = await getTalentNodeNoEmbedding(supabaseData.candidate_id);
-    const candidateRelationshipTypes = candidateNode ? await getTalentRelationshipTypes({ talentId: supabaseData.candidate_id }) : [];
+    const candidateNode = await getTalentNodeNoEmbedding(
+      supabaseData.candidate_id
+    );
+    const candidateRelationshipTypes = candidateNode
+      ? await getTalentRelationshipTypes({
+          talentId: supabaseData.candidate_id,
+        })
+      : [];
     const candidateRelationships: Record<string, any[]> = {};
 
     for (const relationType of candidateRelationshipTypes) {
       if (isValidRelationshipType(relationType)) {
-        candidateRelationships[relationType] = await getRelationshipNodes(supabaseData.candidate_id, relationType);
+        candidateRelationships[relationType] = await getRelationshipNodes(
+          supabaseData.candidate_id,
+          relationType
+        );
       } else {
-        console.warn(`Unhandled relationship type for candidate: ${relationType}`);
+        console.warn(
+          `Unhandled relationship type for candidate: ${relationType}`
+        );
       }
     }
 
@@ -156,31 +199,41 @@ export async function getApplicationDetailedView(applicationId: string): Promise
         status: supabaseData.status,
         resumeKey: supabaseData.resume_id,
       }),
-      jobInfo: jobNode ? deepSerialize({
-        id: Number(jobNode.job_id),
-        title: jobNode.job_title || '',
-        description: jobNode.summary || '',
-        location: Array.isArray(jobNode.location) ? jobNode.location : JSON.parse(jobNode.location || '[]'),
-        type: jobNode.job_type || '',
-        salary: {
-          min: Number(jobNode.starting_salary) || 0,
-          max: Number(jobNode.maximum_salary) || 0,
-        },
-        qualifications: jobNode.qualifications || null,
-        experienceRequired: jobNode.experience || null,
-        relationships: jobRelationships ? serializeRelationships(jobRelationships) : {},
-      }) : null,
-      candidateInfo: candidateNode ? deepSerialize({
-        id: Number(candidateNode.applicant_id),
-        email: candidateNode.email || '',
-        name: candidateNode.name || '',
-        phone: candidateNode.phone || '',
-        city: candidateNode.city || '',
-        state: candidateNode.state || '',
-        zipcode: candidateNode.zipcode || '',
-        relationships: serializeRelationships(candidateRelationships),
-      }) : null,
+      jobInfo: jobNode
+        ? deepSerialize({
+            id: Number(jobNode.job_id),
+            title: jobNode.job_title || "",
+            description: jobNode.summary || "",
+            location: Array.isArray(jobNode.location)
+              ? jobNode.location
+              : JSON.parse(jobNode.location || "[]"),
+            type: jobNode.job_type || "",
+            salary: {
+              min: Number(jobNode.starting_salary) || 0,
+              max: Number(jobNode.maximum_salary) || 0,
+            },
+            qualifications: jobNode.qualifications || null,
+            experienceRequired: jobNode.experience || null,
+            relationships: jobRelationships
+              ? serializeRelationships(jobRelationships)
+              : {},
+          })
+        : null,
+      candidateInfo: candidateNode
+        ? deepSerialize({
+            id: Number(candidateNode.applicant_id),
+            email: candidateNode.email || "",
+            name: candidateNode.name || "",
+            phone: candidateNode.phone || "",
+            city: candidateNode.city || "",
+            state: candidateNode.state || "",
+            zipcode: candidateNode.zipcode || "",
+            relationships: serializeRelationships(candidateRelationships),
+          })
+        : null,
     };
+
+    console.log("Transformed data:", transformedData);
 
     return transformedData;
   } catch (error) {

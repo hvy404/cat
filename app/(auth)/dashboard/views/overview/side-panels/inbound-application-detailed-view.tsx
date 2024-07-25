@@ -8,11 +8,10 @@ import {
   Calendar,
   MapPin,
   Mail,
-  CheckCircle,
-  XCircle,
   DollarSign,
   Phone,
-  Building,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { getApplicationDetailedView } from "@/lib/employer/get-application-details";
 
@@ -28,6 +27,7 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
   const [applicationData, setApplicationData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   useEffect(() => {
     const fetchApplicationDetails = async () => {
@@ -67,7 +67,9 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
   const { applicationInfo, jobInfo, candidateInfo } = applicationData;
 
   // Function to format location
-  const formatLocation = (location: Array<{ city: string; state: string; zipcode: string }>) => {
+  const formatLocation = (
+    location: Array<{ city: string; state: string; zipcode: string }>
+  ) => {
     if (!location || location.length === 0) return "N/A";
     const { city, state, zipcode } = location[0];
     return `${city || ""}, ${state || ""} ${zipcode || ""}`.trim() || "N/A";
@@ -83,19 +85,32 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
         <ul className="list-disc list-inside">
           {items.map((item, index) => (
             <li key={index} className="text-sm">
-              {type === "SUBMITTED"
-                ? `Submitted to: ${
-                    item.job_title || "Unknown Job"
-                  } on ${new Date(item.submitted_date).toLocaleDateString()}`
-                : item.name ||
-                  item.title ||
-                  item.job_title ||
-                  JSON.stringify(item)}
+              {item.name || item.title || JSON.stringify(item)}
             </li>
           ))}
         </ul>
       </div>
     ));
+  };
+
+// Function to truncate job description
+const truncateDescription = (description: string | null): string => {
+    if (!description) return "No description available";
+    const sentences = description.match(/[^.!?]+[.!?]+/g) || [];
+    if (sentences.length <= 2) return description;
+    return sentences.slice(0, 2).join(' ') + '...';
+  };
+
+  // Toggle description expansion
+  const toggleDescription = () => {
+    setIsDescriptionExpanded(!isDescriptionExpanded);
+  };
+
+  // Determine if the description should be expandable
+  const isDescriptionExpandable = (description: string | null): boolean => {
+    if (!description) return false;
+    const truncated = truncateDescription(description);
+    return truncated.length < description.length;
   };
 
   return (
@@ -111,6 +126,7 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
         </Button>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Candidate Information section remains unchanged */}
         {candidateInfo && (
           <div>
             <h3 className="text-md font-semibold mb-2">
@@ -138,6 +154,8 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
             </div>
           </div>
         )}
+
+        {/* Application Details section remains unchanged */}
         <div>
           <h3 className="text-md font-semibold mb-2">Application Details</h3>
           <div className="space-y-2">
@@ -157,6 +175,8 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
             </p>
           </div>
         </div>
+
+        {/* Updated Job Information section */}
         {jobInfo && (
           <>
             <div>
@@ -173,8 +193,9 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
                 </p>
                 <p className="flex items-center text-sm">
                   <DollarSign className="mr-2 h-4 w-4" />
-                  Salary Range: ${jobInfo.salary?.min.toLocaleString() || "N/A"} - $
-                  {jobInfo.salary?.max.toLocaleString() || "N/A"}
+                  Salary Range: ${jobInfo.salary?.min.toLocaleString() ||
+                    "N/A"}{" "}
+                  - ${jobInfo.salary?.max.toLocaleString() || "N/A"}
                 </p>
                 <p className="text-sm">
                   Experience Required: {jobInfo.experienceRequired || "N/A"}
@@ -185,17 +206,47 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
             <div>
               <h3 className="text-md font-semibold mb-2">Job Description</h3>
               <p className="text-sm">
-                {jobInfo.description || "No description available"}
+                {isDescriptionExpanded
+                  ? jobInfo.description || "No description available"
+                  : truncateDescription(jobInfo.description)}
               </p>
+              {isDescriptionExpandable(jobInfo.description) && (
+                <Button
+                  variant="link"
+                  className="p-0 h-auto font-normal mt-1"
+                  onClick={toggleDescription}
+                >
+                  {isDescriptionExpanded ? (
+                    <>
+                      Show Less <ChevronUp className="ml-1 h-4 w-4" />
+                    </>
+                  ) : (
+                    <>
+                      Read More <ChevronDown className="ml-1 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
             <div>
               <h3 className="text-md font-semibold mb-2">Qualifications</h3>
-              <p className="text-sm">
-                {jobInfo.qualifications || "No qualifications specified"}
-              </p>
+              <ul className="list-disc list-inside">
+                {Array.isArray(jobInfo.qualifications) ? (
+                  jobInfo.qualifications.map((qual, index) => (
+                    <li key={index} className="text-sm">
+                      {qual}
+                    </li>
+                  ))
+                ) : (
+                  <li className="text-sm">
+                    {jobInfo.qualifications || "No qualifications specified"}
+                  </li>
+                )}
+              </ul>
             </div>
           </>
         )}
+
         <div className="flex justify-end space-x-2">
           <Button variant="outline">Reject</Button>
           <Button variant="outline">Schedule Interview</Button>

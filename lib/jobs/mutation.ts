@@ -97,7 +97,7 @@ export interface CompanyNode {
   size?: string;
 }
 
-type RelationshipType =
+export type RelationshipType =
   | "REQUIRES_SKILL"
   | "OFFERS_BENEFIT"
   | "REQUIRES_QUALIFICATION"
@@ -153,7 +153,7 @@ function isValidRelationshipType(type: string): type is RelationshipType {
   ].includes(type);
 }
 
-async function getRelationshipNodes<T>(
+export async function getRelationshipNodes<T>(
   jobId: string,
   relationshipType: RelationshipType
 ): Promise<(T & NodeWithId)[]> {

@@ -118,7 +118,7 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
         const result = await AtomicRecordApplicationSubmission(
           user.uuid,
           jobId,
-          selectedResume.resume_name
+          selectedResume.address
         );
 
         if (result.success) {
