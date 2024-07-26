@@ -310,6 +310,7 @@ export async function getJobNode(
         "company",
         "job_type",
         "location_type",
+        "education",
         "location",
         "experience",
         "summary",

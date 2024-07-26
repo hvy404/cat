@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,13 +8,18 @@ import {
   MapPin,
   Mail,
   Phone,
-  Info,
-  X,
   ChevronRight,
-  Loader2,
+  Loader2, Wand2, MessageCircle,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { getApplicationDetailedView } from "@/lib/employer/get-application-details";
-import { Alert } from "@/components/ui/alert";
+import AlertMessage from "./manual-application-alert";
+import { applicantDetailCopilot } from "@/lib/employer/applicant-details-copilot";
+import CopilotResponseSheet from "@/app/(auth)/dashboard/views/overview/side-panels/inbound-application-copilot";
 
 type ApplicantDetailPanelProps = {
   applicationId: string;
@@ -135,55 +140,127 @@ const ComparisonSection: React.FC<{
   jobRequiredItems: any[];
   jobPreferredItems?: any[];
   isAlternate: boolean;
+  applicationId: string;
+  setCopilotResponse: React.Dispatch<React.SetStateAction<string>>;
+  setCopilotTitle: React.Dispatch<React.SetStateAction<string>>;
+  setIsCopilotDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }> = ({
   title,
   candidateItems,
   jobRequiredItems,
   jobPreferredItems,
   isAlternate,
-}) => (
-  <div className={`p-4 rounded-lg ${isAlternate ? "bg-gray-50" : "bg-white"}`}>
-    <div className="grid grid-cols-2 gap-4">
-      <div>
-        <h4 className="text-sm font-medium mb-1">Candidate</h4>
-        <ul className="list-disc pl-5 space-y-2">
-          {candidateItems.map((item, index) => (
-            <li key={index} className="text-sm ml-2 break-words">
-              {item?.name ||
-                item?.job_title ||
-                item?.degree ||
-                (typeof item === "object" ? JSON.stringify(item) : item) ||
-                "N/A"}
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div>
-        <h4 className="text-sm font-medium mb-1">Job Requirements</h4>
-        <ul className="list-disc pl-5 space-y-2">
-          {jobRequiredItems.map((item, index) => (
-            <li key={index} className="text-sm ml-2 break-words">
-              {item?.name ||
-                item?.job_title ||
-                item?.degree ||
-                (typeof item === "object" ? JSON.stringify(item) : item) ||
-                "N/A"}
-            </li>
-          ))}
-          {jobPreferredItems &&
-            jobPreferredItems.map((item, index) => (
-              <li key={index} className="text-sm ml-2 break-words italic">
-                (Preferred){" "}
-                {item?.name ||
-                  (typeof item === "object" ? JSON.stringify(item) : item) ||
-                  "N/A"}
-              </li>
-            ))}
-        </ul>
+  applicationId,
+  setCopilotResponse,
+  setCopilotTitle,
+  setIsCopilotDialogOpen,
+}) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [sectionResponses, setSectionResponses] = useState<Record<string, string>>({});
+
+  const renderItems = (items: any[]) => (
+    <ul className="list-disc pl-5 space-y-2">
+      {items.map((item, index) => (
+        <li key={index} className="text-sm ml-2 break-words">
+          {Array.isArray(item)
+            ? item.map((subItem, subIndex) => <p key={subIndex}>{subItem}</p>)
+            : item?.name ||
+              item?.job_title ||
+              item?.degree ||
+              (typeof item === "object" ? JSON.stringify(item) : item) ||
+              "N/A"}
+        </li>
+      ))}
+    </ul>
+  );
+
+  const handleCopilotWand = async () => {
+    setIsLoading(true);
+    try {
+      const { message } = await applicantDetailCopilot(applicationId, title);
+      const response = message ?? "No response from Copilot";
+      setSectionResponses(prev => ({ ...prev, [title]: response }));
+      setCopilotResponse(response);
+      setCopilotTitle(title);
+      setIsCopilotDialogOpen(true);
+    } catch (error) {
+      console.error("Error fetching copilot response:", error);
+      setCopilotResponse("Error fetching Copilot response");
+      setCopilotTitle("Error");
+      setIsCopilotDialogOpen(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const openSavedResponse = () => {
+    setCopilotResponse(sectionResponses[title]);
+    setCopilotTitle(title);
+    setIsCopilotDialogOpen(true);
+  };
+
+  return (
+    <div
+      className={`p-4 rounded-lg ${
+        isAlternate ? "bg-gray-50" : "bg-white"
+      } relative`}
+    >
+      <h3 className="text-lg font-semibold mb-3">{title}</h3>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          {sectionResponses[title] ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-2 right-2"
+              onClick={openSavedResponse}
+            >
+              <MessageCircle className="h-5 w-5" />
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-2 right-2"
+              onClick={handleCopilotWand}
+            >
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Wand2 className="h-5 w-5" />
+              )}
+            </Button>
+          )}
+        </TooltipTrigger>
+        <TooltipContent className="bg-black border-0 text-white">
+          <p className="text-sm">
+            {sectionResponses[title]
+              ? "View saved copilot analysis"
+              : isLoading
+              ? "Loading..."
+              : "One-click candidate evaluation with your hiring copilot."}
+          </p>
+        </TooltipContent>
+      </Tooltip>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <h4 className="text-sm font-medium mb-1">Candidate</h4>
+          {renderItems(candidateItems)}
+        </div>
+        <div>
+          <h4 className="text-sm font-medium mb-1">Job Requirements</h4>
+          {renderItems(jobRequiredItems)}
+          {jobPreferredItems && (
+            <>
+              <h4 className="text-sm font-medium mt-2 mb-1">Preferred</h4>
+              {renderItems(jobPreferredItems)}
+            </>
+          )}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const JobDetails: React.FC<{ jobInfo: any }> = ({ jobInfo }) => {
   if (!jobInfo) return <div>No job information available.</div>;
@@ -252,16 +329,23 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchedRef = useRef(false);
+
+  const [isCopilotDialogOpen, setIsCopilotDialogOpen] = useState(false);
+  const [copilotResponse, setCopilotResponse] = useState("");
+  const [copilotTitle, setCopilotTitle] = useState("");
+
   useEffect(() => {
     const fetchApplicationDetails = async () => {
+      if (fetchedRef.current) return; // Skip if already fetched
+      fetchedRef.current = true;
+
       setLoading(true);
       try {
         const data = await getApplicationDetailedView(applicationId);
         if ("error" in data) {
           setError(data.error);
         } else {
-          // console log the data, ensure arrays are stringified to read
-          //console.log("Data:", JSON.stringify(data));
           setApplicationData(data);
         }
       } catch (error) {
@@ -296,6 +380,7 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
 
   const { applicationInfo, jobInfo, candidateInfo } = applicationData;
 
+  // Comparison chart builder
   const comparisonSections = [
     {
       title: "Skills",
@@ -313,9 +398,7 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
     {
       title: "Education",
       candidateItems: candidateInfo?.relationships.STUDIED_AT || [],
-      jobRequiredItems: jobInfo?.qualifications
-        ? [{ degree: jobInfo.qualifications }]
-        : [],
+      jobRequiredItems: jobInfo?.education || [],
     },
     {
       title: "Certifications",
@@ -383,27 +466,7 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
           </span>
         </div>
 
-        {showAlert && (
-          <Alert className="bg-yellow-50 text-yellow-800 border-yellow-200 px-3 relative">
-            <button
-              onClick={dismissAlert}
-              className="absolute top-3 right-3 p-1 text-yellow-500 hover:text-yellow-700"
-            >
-              <X size={16} />
-            </button>
-            <div className="flex items-center gap-2 pr-8">
-              <Info className="h-6 w-6 flex-shrink-0 text-yellow-500" />
-              <p className="text-xs text-yellow-700">
-                This candidate discovered your job listing through our
-                platform's search feature and submitted their resume to express
-                interest. While our AI-driven matching algorithms excel at
-                identifying ideal candidates, we encourage a thorough review of
-                this self-submitted application to ensure alignment with your
-                specific requirements.
-              </p>
-            </div>
-          </Alert>
-        )}
+        <AlertMessage showAlert={showAlert} dismissAlert={dismissAlert} />
 
         <Tabs defaultValue="comparison" className="w-full">
           <TabsList>
@@ -422,6 +485,10 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
                   jobRequiredItems={section.jobRequiredItems}
                   jobPreferredItems={section.jobPreferredItems}
                   isAlternate={index % 2 !== 0}
+                  applicationId={applicationId}
+                  setCopilotResponse={setCopilotResponse}
+                  setCopilotTitle={setCopilotTitle}
+                  setIsCopilotDialogOpen={setIsCopilotDialogOpen}
                 />
               ))}
               {availableSections.length === 0 && (
@@ -444,6 +511,12 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
           </TabsContent>
         </Tabs>
       </CardContent>
+      <CopilotResponseSheet
+        isOpen={isCopilotDialogOpen}
+        onClose={() => setIsCopilotDialogOpen(false)}
+        response={copilotResponse}
+        title={copilotTitle}
+      />
     </Card>
   );
 };

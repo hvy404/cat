@@ -3,17 +3,17 @@ import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import {
   getJobNode,
-  getAllJobRelationships,
   getRelationshipNodes as getJobRelatedNodes,
 } from "@/lib/jobs/mutation";
 import {
   getTalentNodeNoEmbedding,
-  getTalentRelationshipTypes,
   getRelationshipNodes,
 } from "@/lib/candidate/global/mutation";
+import { initializeRedis } from "@/lib/redis/connect"; // upstash/redis client
 
 const cookieStore = cookies();
 const supabase = createClient(cookieStore);
+const redis = initializeRedis();
 
 interface ApplicationInfo {
   id: string;
@@ -125,6 +125,14 @@ function serializeRelationships(
 export async function getApplicationDetailedView(
   applicationId: string
 ): Promise<ApplicationResult> {
+  const cacheKey = `applicantDetails:${applicationId}`;
+
+  // Check redis for cache hit
+  const cachedData = await redis.get(cacheKey);
+  if (cachedData) {
+    return cachedData as TransformedApplicationData;
+  }
+
   try {
     // Fetch basic application info from Supabase
     const { data: supabaseData, error: supabaseError } = await supabase
@@ -134,7 +142,7 @@ export async function getApplicationDetailedView(
       .single();
 
     if (supabaseError) {
-      console.error("Error fetching application from Supabase:", supabaseError);
+      console.error("Error fetching application from data:", supabaseError);
       return { error: supabaseError.message };
     }
 
@@ -212,6 +220,7 @@ export async function getApplicationDetailedView(
             id: Number(jobNode.job_id),
             title: jobNode.job_title || "",
             description: jobNode.summary || "",
+            education: jobNode.education || "",
             location: Array.isArray(jobNode.location)
               ? jobNode.location
               : JSON.parse(jobNode.location || "[]"),
@@ -240,6 +249,12 @@ export async function getApplicationDetailedView(
           })
         : null,
     };
+
+    // Set transformedData to Redis
+    const EXPIRATION_TIME = 60 * 60 * 24; // 24 hours in seconds
+    const redisSet = await redis.set(cacheKey, transformedData, {
+      ex: EXPIRATION_TIME,
+    });
 
     return transformedData;
   } catch (error) {
