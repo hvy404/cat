@@ -34,6 +34,7 @@ type Applicant = {
   applicantInfo: {
     applicantId: number;
     contactEmail: string;
+    name: string;
   };
 };
 
@@ -208,13 +209,13 @@ const InboundApplicantsSidePanel = () => {
                 >
                   <div>
                     <h3 className="font-medium">
-                      {applicant.applicantInfo.contactEmail}
+                      {applicant.applicantInfo.name}
                     </h3>
                     <p className="text-sm text-gray-500">
                       {applicant.jobInfo.positionName}
                     </p>
                     <p className="text-xs text-gray-400">
-                      Resume Key: {applicant.resumeKey}
+                      {new Date(applicant.submitDate).toLocaleDateString()}
                     </p>
                   </div>
                   <div className="flex items-center">

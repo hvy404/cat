@@ -18,6 +18,7 @@ interface RawApplicantData {
   candidates: {
     id: number;
     email: string;
+    name: string;
   };
 }
 
@@ -36,7 +37,8 @@ async function getApplicantsDetails(employerId: string) {
       ),
       candidates!inner (
         id,
-        email
+        email,
+        name
       )
     `
     )
@@ -63,6 +65,7 @@ async function getApplicantsDetails(employerId: string) {
         applicantInfo: {
           applicantId: item.candidates.id,
           contactEmail: item.candidates.email,
+          name: item.candidates.name,
         },
       };
       return transformed;
