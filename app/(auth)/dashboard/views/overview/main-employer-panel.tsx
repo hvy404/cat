@@ -32,6 +32,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchDetailedJobPosts } from "@/lib/overview/fetchRoles";
 import InboundApplicantsCard from "./inbound-application-card";
+import AlertsCard from "./main-dashboard-alerts-card";
 
 interface Job {
   jd_id: string;
@@ -311,13 +312,7 @@ const EmployerDashboardView: React.FC = () => {
               description="AI-matched candidates"
               trend={8}
             />
-            <StatCard
-              title="Conversion Rate"
-              value="18%"
-              icon={TrendingUp}
-              description="Applicants to interviews"
-              trend={-2}
-            />
+            <AlertsCard />
           </div>
           <ChartCard data={mockData} />
 
