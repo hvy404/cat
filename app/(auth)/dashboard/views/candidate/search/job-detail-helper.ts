@@ -32,8 +32,9 @@ export async function fetchJobDetails(jobId: string) {
     const remappedProperties = await remapJobProperties(
       details.job_type,
       details.location_type,
-      details.security_clearance
+      details.security_clearance ?? "None"
     );
+    
 
     // Create a new object with remapped properties and responsibilities
     const jobDetails: JobNodeWithoutEmbedding & NodeWithId & { companyId?: string } = {

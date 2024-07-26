@@ -2,24 +2,19 @@ import useStore from "@/app/state/useStore";
 import EmployerDashboardView from "@/app/(auth)/dashboard/views/overview/main-employer-panel";
 import EmployerDashboardOverviewRoles from "@/app/(auth)/dashboard/views/overview/main-role-overview";
 import InboundApplicantsSidePanel from "@/app/(auth)/dashboard/views/overview/side-panels/inbound-applications-view";
-
-const DefaultRightPanel = () => (
-  <div className="flex items-center justify-center h-full">
-    <p className="text-gray-500">Welcome</p>
-  </div>
-);
+import EmployerDashboardMainSidePanel from "@/app/(auth)/dashboard/views/overview/side-panel";
 
 export default function EmployerDashboardMain() {
   const { employerRightPanelView } = useStore();
 
   const getRightPanelContent = () => {
     switch (employerRightPanelView) {
-      case 'roleOverview':
+      case "roleOverview":
         return <EmployerDashboardOverviewRoles />;
-        case 'inboundApplications':
-          return <InboundApplicantsSidePanel />;
+      case "inboundApplications":
+        return <InboundApplicantsSidePanel />;
       default:
-        return <DefaultRightPanel />;
+        return <EmployerDashboardMainSidePanel />;
     }
   };
 

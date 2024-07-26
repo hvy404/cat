@@ -21,12 +21,16 @@ import {
 import { getApplicationDetailedView } from "@/lib/employer/get-application-details";
 import AlertMessage from "./manual-application-alert";
 import { applicantDetailCopilot } from "@/lib/employer/applicant-details-copilot";
+import { updateApplicationStatus, getApplicationStatus } from "@/lib/employer/update-application-status";
 import CopilotResponseSheet from "@/app/(auth)/dashboard/views/overview/side-panels/inbound-application-copilot";
+import UpdateApplicationStatus from "@/app/(auth)/dashboard/views/overview/side-panels/update-application-status";
 
 type ApplicantDetailPanelProps = {
   applicationId: string;
   onBack: () => void;
 };
+
+type ApplicationStatus = 'submitted' | 'reviewed' | 'interview' | 'rejected' | 'accepted';
 
 interface ExperienceItemProps {
   item: {
@@ -389,6 +393,8 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
   onBack,
 }) => {
   const [applicationData, setApplicationData] = useState<any>(null);
+  const [currentStatus, setCurrentStatus] = useState<string | null>(null);
+
   const [showAlert, setShowAlert] = useState(true);
 
   const [loading, setLoading] = useState(true);
@@ -412,6 +418,13 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
           setError(data.error);
         } else {
           setApplicationData(data);
+          // Fetch the current status
+          const statusResult = await getApplicationStatus(applicationId);
+          if (statusResult.success) {
+            setCurrentStatus(statusResult.status);
+          } else {
+            console.error("Failed to fetch application status:", statusResult.message);
+          }
         }
       } catch (error) {
         console.error("Error fetching application details:", error);
@@ -489,6 +502,20 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
     return phone;
   };
 
+  const handleStatusChange = async (newStatus: ApplicationStatus) => {
+    try {
+      const result = await updateApplicationStatus(applicationId, newStatus);
+      if (result.success) {
+        setCurrentStatus(newStatus);
+        console.log(`Application status updated to: ${newStatus}`);
+      } else {
+        console.error("Failed to update application status:", result.message);
+      }
+    } catch (error) {
+      console.error("Error updating application status:", error);
+    }
+  };
+
   return (
     <Card className="h-full overflow-auto">
       <CardHeader className="flex flex-row items-center justify-between sticky top-0 bg-white z-10">
@@ -504,15 +531,10 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
       <CardContent className="space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-bold">{candidateInfo?.name || "N/A"}</h2>
-          <div className="space-x-2">
-            <Button variant="outline" size="sm">
-              Reject
-            </Button>
-            <Button variant="outline" size="sm">
-              Schedule Interview
-            </Button>
-            <Button size="sm">Accept</Button>
-          </div>
+          <UpdateApplicationStatus
+            currentStatus={currentStatus || applicationInfo.status}
+            onStatusChange={handleStatusChange}
+          />
         </div>
 
         <div className="flex space-x-4 text-sm text-gray-600">
