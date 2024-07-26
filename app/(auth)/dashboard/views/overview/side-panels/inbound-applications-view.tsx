@@ -1,7 +1,16 @@
 import { useEffect, useState, useCallback } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, ChevronRight, ArrowLeft, ChevronLeft, ChevronRight as ChevronRightIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Users,
+  ChevronRight,
+  ArrowLeft,
+  Search,
+  ChevronLeft,
+  ChevronRight as ChevronRightIcon,
+  X,
+} from "lucide-react";
 import useStore from "@/app/state/useStore";
 import { getApplicantsDetails } from "@/lib/employer/get-applicant-details";
 import { getApplicationStatus } from "@/lib/employer/update-application-status";
@@ -13,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
 type AppStatus =
   | "submitted"
@@ -68,6 +78,7 @@ const InboundApplicantsSidePanel = () => {
   const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<AppStatus>("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const fetchApplicants = useCallback(async () => {
     if (user && user.uuid) {
@@ -77,9 +88,7 @@ const InboundApplicantsSidePanel = () => {
         if (data && Array.isArray(data)) {
           const applicantsWithUpdatedStatus = await Promise.all(
             data.map(async (applicant) => {
-              const statusResult = await getApplicationStatus(
-                applicant.appId
-              );
+              const statusResult = await getApplicationStatus(applicant.appId);
               let appStatus: AppStatus = "submitted"; // Default status
               if (
                 statusResult.success &&
@@ -114,13 +123,17 @@ const InboundApplicantsSidePanel = () => {
   }, [fetchApplicants]);
 
   useEffect(() => {
-    if (statusFilter === "all") {
-      setFilteredApplicants(applicants);
-    } else {
-      setFilteredApplicants(applicants.filter(app => app.appStatus === statusFilter));
-    }
-    setCurrentPage(1); // Reset to first page when filter changes
-  }, [statusFilter, applicants]);
+    const filtered = applicants.filter((app) => {
+      const nameMatch = app.applicantInfo.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const statusMatch =
+        statusFilter === "all" || app.appStatus === statusFilter;
+      return nameMatch && statusMatch;
+    });
+    setFilteredApplicants(filtered);
+    setCurrentPage(1);
+  }, [statusFilter, applicants, searchTerm]);
 
   const capitalizeStatus = (status: AppStatus) => {
     return status.charAt(0).toUpperCase() + status.slice(1);
@@ -143,6 +156,15 @@ const InboundApplicantsSidePanel = () => {
 
   const handleStatusFilterChange = (value: string) => {
     setStatusFilter(value as AppStatus);
+  };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const clearAllFilters = () => {
+    setStatusFilter("all");
+    setSearchTerm("");
   };
 
   const totalPages = Math.ceil(filteredApplicants.length / ITEMS_PER_PAGE);
@@ -169,6 +191,8 @@ const InboundApplicantsSidePanel = () => {
     );
   }
 
+  const isFiltered = statusFilter !== "all" || searchTerm !== "";
+
   return (
     <Card className="h-full overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -182,20 +206,60 @@ const InboundApplicantsSidePanel = () => {
         </Button>
       </CardHeader>
       <CardContent className="px-6">
-        <div className="mb-4">
-          <Select onValueChange={handleStatusFilterChange} defaultValue="all">
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="submitted">Submitted</SelectItem>
-              <SelectItem value="reviewed">Reviewed</SelectItem>
-              <SelectItem value="interview">Interview</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
-              <SelectItem value="accepted">Accepted</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="mb-4 space-y-2">
+          <div className="flex space-x-2">
+            <Select onValueChange={handleStatusFilterChange} value={statusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="submitted">Submitted</SelectItem>
+                <SelectItem value="reviewed">Reviewed</SelectItem>
+                <SelectItem value="interview">Interview</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="accepted">Accepted</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="relative flex-grow">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+              <Input
+                type="text"
+                placeholder="Search by candidate name"
+                className="pl-8"
+                value={searchTerm}
+                onChange={handleSearchChange}
+              />
+            </div>
+          </div>
+          {isFiltered && (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                {statusFilter !== "all" && (
+                  <Badge variant="secondary">
+                    Status: {capitalizeStatus(statusFilter)}
+                  </Badge>
+                )}
+                {searchTerm && (
+                  <Badge variant="secondary">
+                    Search: {searchTerm}
+                  </Badge>
+                )}
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearAllFilters}
+                className="text-sm text-gray-500"
+              >
+                Clear all filters
+                <X className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          )}
+          <div className="text-sm text-gray-500">
+            {filteredApplicants.length} results found
+          </div>
         </div>
         {loading ? (
           <div className="text-center">Loading...</div>
