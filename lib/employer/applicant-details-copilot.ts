@@ -1,7 +1,5 @@
 "use server";
 
-import { cookies } from "next/headers";
-import { createClient } from "@/lib/supabase/server";
 import { initializeRedis } from "@/lib/redis/connect"; // upstash/redis client
 import OpenAI from "openai";
 
@@ -33,8 +31,23 @@ export async function applicantDetailCopilot(
 
   const { candidateInfo, jobInfo, applicationInfo } = cachedData;
 
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
+  const RESPONSE_FORMAT_INSTRUCTIONS = `
+Response Format: Your response must be formatted in Markdown and MUST include the following four sections, each with its own header:
+
+1. **Surface-Level Comparison**
+   Provide an initial comparison of the candidate's skills against the job requirements.
+
+2. **Nuanced Analysis**
+   Offer a deeper analysis of the candidate's skills, considering potential translations and indirect matches.
+
+3. **Assessment of Suitability**
+   Give an overall evaluation of the candidate's fit for the position.
+
+4. **Recommendations**
+   Provide clear recommendations on next steps and any additional information needed.
+
+Please ensure that each section is clearly labeled and contains the relevant information as described above. Your analysis should be clear, concise, and comprehensive within this structure.
+`;
 
   let llmSystemPrompt = "";
   let llmUserPrompt = "";
@@ -44,20 +57,18 @@ export async function applicantDetailCopilot(
     case "skills":
       llmSystemPrompt = `
       You are an experienced job recruiter tasked with evaluating a candidate's skills for the position of ${jobInfo.title}. Use the candidate and job description details provided below to conduct a comprehensive analysis.
-      
-      Instructions:
-      1. Start with a surface-level comparison of the candidate's skills against the required and preferred job skills.
-      2. Then, perform a more nuanced analysis:
-         - Look for skills that, while not an exact match, might indicate relevant experience or knowledge.
-         - Consider how the candidate's skill set might translate to the required skills, even if not explicitly listed.
-         - Evaluate the overall strength of the candidate's skill set in relation to the job requirements.
-         - Pay special attention to the candidate's certifications (AWS Business Accreditations, PMP, CSM) and how they relate to the job requirements.
-      3. Provide a balanced assessment of the candidate's suitability based on skills, highlighting both strengths and potential areas for growth.
-      4. Offer recommendations on whether to proceed with the candidate and any additional information that might be needed to make a final decision.
 
-      Response Format: Your response must be formatted in Markdown.
-      
-      Please provide your analysis in a clear, concise manner.`;
+Instructions:
+1. Start with a surface-level comparison of the candidate's skills against the required and preferred job skills.
+2. Then, perform a more nuanced analysis:
+   - Look for skills that, while not an exact match, might indicate relevant experience or knowledge.
+   - Consider how the candidate's skill set might translate to the required skills, even if not explicitly listed.
+   - Evaluate the overall strength of the candidate's skill set in relation to the job requirements.
+   - Pay special attention to the candidate's certifications and how they relate to the job requirements.
+3. Provide a balanced assessment of the candidate's suitability based on skills, highlighting both strengths and potential areas for growth.
+4. Offer recommendations on whether to proceed with the candidate and any additional information that might be needed to make a final decision.
+
+${RESPONSE_FORMAT_INSTRUCTIONS}`;
 
       llmUserPrompt = `Candidate's skills: ${JSON.stringify(
         candidateInfo?.relationships?.HAS_SKILL || []
@@ -91,17 +102,14 @@ export async function applicantDetailCopilot(
       1. Begin with a surface-level comparison of the candidate's work history against the required job experience.
       2. Conduct a more in-depth analysis:
          - Look for roles or responsibilities in the candidate's history that, while not exact matches, might provide relevant experience for a Solutions Architect role.
-         - Consider how the candidate's career progression (from Project Manager to Sr. Director) aligns with the needs of this position.
+         - Consider how the candidate's career progression aligns with the needs of this position.
          - Evaluate the candidate's experience with leadership, team management, and business development in relation to the job requirements.
-         - Assess the relevance of the candidate's experience with federal agencies (GSA, CDC, DHS-USCIS) to this role.
-      3. Assess the candidate's overall experience level and how it compares to the job requirement of "7+ years of experience as a solution architect, with at least 4 years as a lead solution architect role".
+      3. Assess the candidate's overall experience level and how it compares to the job requirement.".
       4. Identify any unique experiences or achievements that might set this candidate apart, particularly in relation to complex systems design and development.
       5. Provide a balanced evaluation of the candidate's suitability based on experience, noting both strengths and potential areas of concern.
       6. Offer recommendations on whether to proceed with the candidate and any specific areas to probe further in an interview.
 
-      Response Format: Your response must be formatted in Markdown.
-      
-      Present your analysis in a clear, structured format.`;
+      ${RESPONSE_FORMAT_INSTRUCTIONS}`;
 
       llmUserPrompt = `Candidate's work history: ${JSON.stringify(
         candidateInfo?.relationships?.WORKED_AT || []
@@ -118,16 +126,14 @@ export async function applicantDetailCopilot(
       Instructions:
       1. Start with a direct comparison of the candidate's educational qualifications against the job requirements.
       2. Perform a more nuanced evaluation:
-         - Consider the relevance of the candidate's degrees (MBA in Communication and BA in Economics) to the role of Solutions Architect.
+         - Consider the relevance of the candidate's degrees to the job requirements.
          - Assess how the candidate's educational background might complement their work experience in relation to the job requirements.
-         - Evaluate if the candidate's education meets the requirement of "Bachelor's degree in Computer Science, Information Systems, or a related field".
+         - Evaluate if the candidate's education meets the requirements of the job.
       3. Consider how the candidate's education might compensate for any potential gaps in experience, or vice versa.
       4. Provide a balanced assessment of the candidate's educational fit for the role, noting both strengths and any potential shortcomings.
       5. Offer recommendations on whether the candidate's educational background is suitable for the position, and suggest any areas where additional training or education might be beneficial.
 
-      Response Format: Your response must be formatted in Markdown.
-      
-      Present your analysis in a clear, concise manner.`;
+      ${RESPONSE_FORMAT_INSTRUCTIONS}`;
 
       llmUserPrompt = `Candidate's education: ${JSON.stringify(
         candidateInfo?.relationships?.STUDIED_AT || []
@@ -144,17 +150,15 @@ export async function applicantDetailCopilot(
       Instructions:
       1. Begin with a direct comparison of the candidate's certifications against those required for the job.
       2. Conduct a more in-depth analysis:
-         - Evaluate the relevance and value of the candidate's certifications (AWS Business Accreditations, PMP, CSM) to the Solutions Architect role.
-         - Consider how these certifications align with the job's preference for "Experience with cloud-based technologies and data analytics platforms" and "Certification in solution architecture or a related field".
+         - Evaluate the relevance and value of the candidate's certifications to any certifications required for the role (applicable only if specified in job requirements).
+         - Consider how these certifications align with the job's preference.
          - Assess how the candidate's certifications might indicate broader knowledge or skills relevant to the role, such as project management and agile methodologies.
       3. Identify any missing required certifications and evaluate their importance to the role.
       4. Consider how the candidate's overall profile (experience, education) might compensate for any missing certifications.
       5. Provide a balanced evaluation of the candidate's certification profile, highlighting strengths and areas for potential development.
       6. Offer recommendations on the candidate's suitability based on certifications, and suggest any additional certifications that might enhance their qualifications for this role.
 
-      Response Format: Your response must be formatted in Markdown.
-      
-      Present your analysis in a structured, easy-to-understand format.`;
+      ${RESPONSE_FORMAT_INSTRUCTIONS}`;
 
       llmUserPrompt = `Candidate's certifications: ${JSON.stringify(
         candidateInfo?.relationships?.HAS_CERTIFICATION || []
@@ -174,16 +178,14 @@ export async function applicantDetailCopilot(
       1. Start with an overall assessment of the candidate's fit for the Solutions Architect role, considering all available information.
       2. Perform a detailed analysis:
          - Evaluate how the candidate's skills, experience, education, and certifications align with the specific job requirements and preferences.
-         - Look for any unique qualities or experiences that might make this candidate stand out, such as their experience with federal agencies or their progression to senior leadership roles.
+         - Look for any unique qualities or experiences that might make this candidate stand out.
          - Identify any potential red flags or areas of concern, particularly in relation to technical skills or experience with specific technologies mentioned in the job description.
-      3. Consider the candidate's career progression and how this Solutions Architect role fits into their overall career path.
+      3. Consider the candidate's career progression and how this position fits into their overall career path.
       4. Assess any additional information provided in the application that might be relevant (e.g., the candidate's location in relation to the job location).
       5. Provide a balanced, comprehensive evaluation of the candidate's suitability for the role, taking into account both their strong business and leadership background and any potential gaps in technical experience.
       6. Offer recommendations on next steps (e.g., proceed to interview, request additional information, reject application) and provide reasoning for your recommendation.
 
-      Response Format: Your response must be formatted in Markdown.
-      
-      Present your analysis in a clear, structured format that covers all aspects of the candidate's application in relation to this specific Solutions Architect role.`;
+      ${RESPONSE_FORMAT_INSTRUCTIONS}`;
 
       llmUserPrompt = `Application Info: ${JSON.stringify(
         applicationInfo,
@@ -213,6 +215,6 @@ export async function applicantDetailCopilot(
   // Return a response if needed
   return {
     success: true,
-    message: analysis.choices[0].message.content
+    message: analysis.choices[0].message.content,
   };
 }

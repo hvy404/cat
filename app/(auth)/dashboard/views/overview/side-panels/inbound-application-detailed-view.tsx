@@ -9,7 +9,9 @@ import {
   Mail,
   Phone,
   ChevronRight,
-  Loader2, Wand2, MessageCircle,
+  Loader2,
+  Wand2,
+  MessageCircle,
 } from "lucide-react";
 import {
   Tooltip,
@@ -38,6 +40,28 @@ interface ExperienceItemProps {
     honors_awards_coursework?: string;
   };
   type: "work" | "education";
+}
+
+interface JobInfo {
+  title?: string;
+  description?: string;
+  location?: Array<{ city: string; state: string; zipcode: string }>;
+  type?: string;
+  salaryDisclose?: boolean;
+  compensationType?: string;
+  hourlyCompMin?: number;
+  hourlyCompMax?: number;
+  startingSalary?: number;
+  maximumSalary?: number;
+  commissionPay?: boolean;
+  commissionPercent?: number;
+  oteSalary?: number;
+  experienceRequired?: string;
+  relationships?: {
+    REQUIRES_SKILL?: any[];
+    PREFERS_SKILL?: any[];
+    REQUIRED_CERTIFICATION?: any[];
+  };
 }
 
 const ExperienceItem: React.FC<ExperienceItemProps> = ({ item, type }) => {
@@ -156,7 +180,9 @@ const ComparisonSection: React.FC<{
   setIsCopilotDialogOpen,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [sectionResponses, setSectionResponses] = useState<Record<string, string>>({});
+  const [sectionResponses, setSectionResponses] = useState<
+    Record<string, string>
+  >({});
 
   const renderItems = (items: any[]) => (
     <ul className="list-disc pl-5 space-y-2">
@@ -179,7 +205,7 @@ const ComparisonSection: React.FC<{
     try {
       const { message } = await applicantDetailCopilot(applicationId, title);
       const response = message ?? "No response from Copilot";
-      setSectionResponses(prev => ({ ...prev, [title]: response }));
+      setSectionResponses((prev) => ({ ...prev, [title]: response }));
       setCopilotResponse(response);
       setCopilotTitle(title);
       setIsCopilotDialogOpen(true);
@@ -262,61 +288,100 @@ const ComparisonSection: React.FC<{
   );
 };
 
-const JobDetails: React.FC<{ jobInfo: any }> = ({ jobInfo }) => {
-  if (!jobInfo) return <div>No job information available.</div>;
-
-  return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold">{jobInfo.title || "N/A"}</h3>
-      <p className="text-sm">
-        {jobInfo.description || "No description available."}
-      </p>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <p className="text-sm">
-            <strong>Location:</strong> {formatLocation(jobInfo.location)}
-          </p>
-          <p className="text-sm">
-            <strong>Type:</strong> {jobInfo.type || "N/A"}
-          </p>
-          <p className="text-sm">
-            <strong>Salary Range:</strong> $
-            {jobInfo.salary?.min?.toLocaleString() || "N/A"} - $
-            {jobInfo.salary?.max?.toLocaleString() || "N/A"}
-          </p>
-        </div>
-        <div>
-          <p className="text-sm">
-            <strong>Experience Required:</strong>{" "}
-            {jobInfo.experienceRequired || "N/A"}
-          </p>
-        </div>
-      </div>
-      <ListSection
-        title="Required Skills"
-        items={jobInfo.relationships?.REQUIRES_SKILL || []}
-        icon={ChevronRight}
-      />
-      <ListSection
-        title="Preferred Skills"
-        items={jobInfo.relationships?.PREFERS_SKILL || []}
-        icon={ChevronRight}
-      />
-      <ListSection
-        title="Required Certifications"
-        items={jobInfo.relationships?.REQUIRED_CERTIFICATION || []}
-        icon={ChevronRight}
-      />
-    </div>
-  );
-};
-
 const formatLocation = (
   location: Array<{ city: string; state: string; zipcode: string }> | undefined
 ) => {
   if (!location || location.length === 0) return "N/A";
   const { city, state, zipcode } = location[0];
-  return `${city || ""}, ${state || ""} ${zipcode || ""}`.trim() || "N/A";
+
+  const parts = [
+    city && city.trim(),
+    state && state.trim(),
+    zipcode && zipcode.trim(),
+  ].filter(Boolean);
+
+  return parts.length > 0 ? parts.join(", ") : "N/A";
+};
+
+const formatCompensation = (jobInfo: JobInfo): string => {
+  if (jobInfo.salaryDisclose === false) return "Salary not disclosed";
+  if (!jobInfo.compensationType) return "Compensation details not available";
+
+  switch (jobInfo.compensationType) {
+    case "hourly":
+      return `$${jobInfo.hourlyCompMin?.toFixed(2) || "N/A"} - $${
+        jobInfo.hourlyCompMax?.toFixed(2) || "N/A"
+      } per hour`;
+    case "salary":
+      return `$${jobInfo.startingSalary?.toLocaleString() || "N/A"} - $${
+        jobInfo.maximumSalary?.toLocaleString() || "N/A"
+      } per year`;
+    case "commission":
+      if (jobInfo.oteSalary) {
+        return `OTE: $${jobInfo.oteSalary.toLocaleString()} per year${
+          jobInfo.commissionPercent
+            ? ` (includes ${jobInfo.commissionPercent}% commission)`
+            : ""
+        }`;
+      }
+      return jobInfo.commissionPercent
+        ? `Commission-based: ${jobInfo.commissionPercent}% commission`
+        : "Commission-based (details not provided)";
+    default:
+      return "Compensation structure not specified";
+  }
+};
+
+const JobDetails: React.FC<{ jobInfo: JobInfo | null }> = ({ jobInfo }) => {
+  if (!jobInfo) return <div>No job information available.</div>;
+
+  return (
+    <div>
+      <div className="space-y-6 mt-4">
+        <h3 className="text-lg font-semibold">{jobInfo.title || "N/A"}</h3>
+        <p className="text-sm">
+          {jobInfo.description || "No description available."}
+        </p>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm">
+              <strong>Location:</strong> {formatLocation(jobInfo.location)}
+            </p>
+            <p className="text-sm">
+              <strong>Type:</strong>{" "}
+              {(jobInfo.type &&
+                jobInfo.type.charAt(0).toUpperCase() + jobInfo.type.slice(1)) ||
+                "N/A"}
+            </p>
+            <p className="text-sm">
+              <strong>Compensation:</strong> {formatCompensation(jobInfo)}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm">
+              <strong>Experience Required:</strong>{" "}
+              {jobInfo.experienceRequired || "N/A"}
+            </p>
+          </div>
+        </div>
+        <ListSection
+          title="Required Skills"
+          items={jobInfo.relationships?.REQUIRES_SKILL || []}
+          icon={ChevronRight}
+        />
+        <ListSection
+          title="Preferred Skills"
+          items={jobInfo.relationships?.PREFERS_SKILL || []}
+          icon={ChevronRight}
+        />
+        <ListSection
+          title="Required Certifications"
+          items={jobInfo.relationships?.REQUIRED_CERTIFICATION || []}
+          icon={ChevronRight}
+        />
+      </div>
+    </div>
+  );
 };
 
 const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({

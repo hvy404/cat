@@ -18,7 +18,7 @@ export interface JobNode {
   starting_salary: number | null;
   qualifications: string[];
   company_overview: string;
-  security_clearance: string;
+  security_clearance?: string;
   education: string[];
   remote_flexibility: boolean | null;
   leadership_opportunity: boolean | null;

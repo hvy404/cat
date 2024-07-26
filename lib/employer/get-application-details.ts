@@ -35,6 +35,15 @@ interface JobInfo {
   qualifications: string | null;
   experienceRequired: string | null;
   relationships: Record<string, any[]>;
+  compensationType: string;
+  salaryDisclose: boolean | null;
+  startingSalary: number | null;
+  maximumSalary: number | null;
+  hourlyCompMin: number | null;
+  hourlyCompMax: number | null;
+  commissionPay: boolean | null;
+  commissionPercent: number | null;
+  oteSalary: number | null;
 }
 
 interface CandidateInfo {
@@ -234,6 +243,16 @@ export async function getApplicationDetailedView(
             relationships: jobRelationships
               ? serializeRelationships(jobRelationships)
               : {},
+            // New compensation-related fields
+            compensationType: jobNode.compensation_type || "",
+            salaryDisclose: jobNode.salary_disclose || null,
+            startingSalary: Number(jobNode.starting_salary) || null,
+            maximumSalary: Number(jobNode.maximum_salary) || null,
+            hourlyCompMin: Number(jobNode.hourly_comp_min) || null,
+            hourlyCompMax: Number(jobNode.hourly_comp_max) || null,
+            commissionPay: jobNode.commission_pay || null,
+            commissionPercent: Number(jobNode.commission_percent) || null,
+            oteSalary: Number(jobNode.ote_salary) || null,
           })
         : null,
       candidateInfo: candidateNode
