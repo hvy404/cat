@@ -46,7 +46,7 @@ Response Format: Your response must be formatted in Markdown and MUST include th
 4. **Recommendations**
    Provide clear recommendations on next steps and any additional information needed.
 
-Please ensure that each section is clearly labeled and contains the relevant information as described above. Your analysis should be clear, concise, and comprehensive within this structure.
+Please ensure that each section is clearly labeled and contains the relevant information as described above. Your analysis should be clear, concise, and comprehensive within this structure. Ignore the "_id" fields in the data below and never include the "_id" in your response.
 `;
 
   let llmSystemPrompt = "";
