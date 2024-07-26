@@ -6,13 +6,21 @@ import useStore from "@/app/state/useStore";
 import { getApplicantsDetails } from "@/lib/employer/get-applicant-details";
 import { getApplicationStatus } from "@/lib/employer/update-application-status";
 import ApplicantDetailPanel from "./inbound-application-detailed-view";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type AppStatus =
   | "submitted"
   | "reviewed"
   | "interview"
   | "rejected"
-  | "accepted";
+  | "accepted"
+  | "all";
 
 type Applicant = {
   appId: string;
@@ -35,6 +43,7 @@ const statusColors: Record<AppStatus, string> = {
   interview: "bg-purple-100 text-purple-800",
   rejected: "bg-red-100 text-red-800",
   accepted: "bg-green-100 text-green-800",
+  all: "", // No specific color for 'all'
 };
 
 const isValidAppStatus = (status: string): status is AppStatus => {
@@ -44,16 +53,17 @@ const isValidAppStatus = (status: string): status is AppStatus => {
     "interview",
     "rejected",
     "accepted",
+    "all",
   ].includes(status);
 };
 
 const InboundApplicantsSidePanel = () => {
   const { user, setEmployerRightPanelView } = useStore();
   const [applicants, setApplicants] = useState<Applicant[]>([]);
+  const [filteredApplicants, setFilteredApplicants] = useState<Applicant[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedApplicationId, setSelectedApplicationId] = useState<
-    string | null
-  >(null);
+  const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<AppStatus>("all");
 
   const fetchApplicants = useCallback(async () => {
     if (user && user.uuid) {
@@ -99,6 +109,14 @@ const InboundApplicantsSidePanel = () => {
     fetchApplicants();
   }, [fetchApplicants]);
 
+  useEffect(() => {
+    if (statusFilter === "all") {
+      setFilteredApplicants(applicants);
+    } else {
+      setFilteredApplicants(applicants.filter(app => app.appStatus === statusFilter));
+    }
+  }, [statusFilter, applicants]);
+
   const capitalizeStatus = (status: AppStatus) => {
     return status.charAt(0).toUpperCase() + status.slice(1);
   };
@@ -116,6 +134,10 @@ const InboundApplicantsSidePanel = () => {
   const handleApplicantClick = (appId: string) => {
     console.log("Selected application ID:", appId);
     setSelectedApplicationId(appId);
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value as AppStatus);
   };
 
   if (selectedApplicationId) {
@@ -140,11 +162,26 @@ const InboundApplicantsSidePanel = () => {
         </Button>
       </CardHeader>
       <CardContent className="px-6">
+        <div className="mb-4">
+          <Select onValueChange={handleStatusFilterChange} defaultValue="all">
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="submitted">Submitted</SelectItem>
+              <SelectItem value="reviewed">Reviewed</SelectItem>
+              <SelectItem value="interview">Interview</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+              <SelectItem value="accepted">Accepted</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         {loading ? (
           <div className="text-center">Loading...</div>
         ) : (
           <div className="space-y-4">
-            {applicants.slice(0, 3).map((applicant) => (
+            {filteredApplicants.slice(0, 3).map((applicant) => (
               <div
                 key={applicant.appId}
                 className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"

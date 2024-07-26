@@ -102,7 +102,6 @@ const UpdateApplicationStatus: React.FC<UpdateApplicationStatusProps> = ({ curre
             <AlertDialogTitle>Confirm Status Change</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to change the application status from {currentStatusConfig.label} to {selectedStatus?.label}?
-              This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
