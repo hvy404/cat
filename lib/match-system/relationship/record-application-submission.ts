@@ -25,7 +25,7 @@ async function AtomicRecordApplicationSubmission(
   try {
     // Step 1: Create application in Supabase
     const supabaseApplication = await supabaseMutation.createApplication(applicationData);
-    if (!supabaseApplication) {
+    if (!supabaseApplication) { 
       throw new Error("Failed to create application in Supabase");
     }
 
@@ -97,4 +97,24 @@ async function getEmployerIdFromJob(jobId: string): Promise<string> {
     }
   
     return data.employer_id;
+  }
+
+  // Function to check if an application already exists
+  export async function checkExistingApplication(candidateId: string, jobId: string): Promise<boolean> {
+    const cookieStore = cookies();
+    const supabase = createClient(cookieStore);
+  
+    const { data, error } = await supabase
+      .from("applications")
+      .select()
+      .eq("candidate_id", candidateId)
+      .eq("job_id", jobId)
+      .single();
+  
+    if (error && error.code !== 'PGRST116') {
+      console.error("Error checking existing application:", error);
+      throw error;
+    }
+  
+    return !!data;
   }

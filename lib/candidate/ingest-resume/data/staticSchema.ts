@@ -97,10 +97,13 @@ export const staticSchemaSecondary = z.object({
           .string()
           .optional()
           .describe("Start date in YYYY-MM format"),
-        end_date: z.string().optional().describe("End date in YYYY-MM format"),
+        end_date: z
+          .string()
+          .optional()
+          .describe("End date in YYYY-MM format or 'present' for current jobs"),
       })
     )
     .describe(
-      "Comprehensive list of work experiences, including job title, responsibilities, and dates."
+      "Comprehensive list of work experiences, including job title, description, and dates."
     ),
 });

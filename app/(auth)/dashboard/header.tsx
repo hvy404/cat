@@ -31,7 +31,7 @@ export default function EmployerDashboardHeader() {
   // TODO: Login user
   const employerIdentity = "f5246ce0-da92-4916-b1c8-dedf415a8dd2";
   const employerCompany = "te0zfs2klzx61uxmb3rrcdi5";
-  const userIdentity = "93d52d43-5cff-4aa5-8e7d-1324564252bc";
+  const userIdentity = "4f5e180c-dd25-4c9d-8e42-cb50d9e374be";
   const roleEmployer = "employer";
   const roleCandidate = "candidate";
 
@@ -43,9 +43,9 @@ export default function EmployerDashboardHeader() {
     if (!isLoaded) {
       setUser({
         email: "",
-        uuid: employerIdentity,
+        uuid: userIdentity,
         session: "",
-        role: roleEmployer,
+        role: roleCandidate,
         company: employerCompany, // these field should be provied by authentification // UPDATE: We're probably not going to store this in the user object 
       });
       isLoaded = true; // Set the flag to true after setting the user

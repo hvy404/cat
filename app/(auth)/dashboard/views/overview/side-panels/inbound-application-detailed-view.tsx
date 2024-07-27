@@ -518,7 +518,7 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
 
   return (
     <Card className="h-full overflow-auto">
-      <CardHeader className="flex flex-row items-center justify-between sticky top-0 bg-white z-10">
+      <CardHeader className="flex flex-row items-center justify-between sticky top-0 bg-white">
         <CardTitle className="text-md font-semibold flex items-center">
           <User className="mr-2 h-5 w-5" />
           Application Details

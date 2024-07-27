@@ -118,7 +118,7 @@ export default function RightPanel(props: RightPanelProps) {
   };
 
   return (
-    <div className="min-h-[90vh] rounded-lg bg-gray-100 p-4 overflow-auto">
+    <div className="h-dvh rounded-lg bg-gray-100 p-4 overflow-auto">
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}

@@ -50,7 +50,7 @@ Your output must strictly conform to the provided JSON schema, including only th
           content: userPrompt,
         },
       ],
-      model: "togethercomputer/CodeLlama-34b-Instruct",
+      model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
       temperature: 0.6,
       max_tokens: 5000,
       // @ts-ignore – Together.ai supports schema while OpenAI does not

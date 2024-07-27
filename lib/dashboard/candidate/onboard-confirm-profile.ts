@@ -141,13 +141,24 @@ export async function handleUpload(
     };
 
     try {
-      const { data, error } = await supabase
+      // First operation: Update modified_static in candidate_create table
+      const { data: createData, error: createError } = await supabase
         .from("candidate_create")
         .update({ modified_static: mergedData })
         .eq("user", user);
 
-      if (error) {
-        throw error;
+      if (createError) {
+        throw createError;
+      }
+
+      // Second operation: Update name in candidates table
+      const { data: candidateData, error: candidateError } = await supabase
+        .from("candidates")
+        .update({ name: formData.name })
+        .eq("identity", user);
+
+      if (candidateError) {
+        throw candidateError;
       }
 
       return { success: true, message: "Profile saved successfully!" };

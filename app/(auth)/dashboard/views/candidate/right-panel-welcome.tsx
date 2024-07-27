@@ -43,7 +43,7 @@ export default function CandidateDashboardRightPanelWelcome() {
   return (
     <div className="relative h-full w-full p-4">
       <motion.div
-        className="absolute whitespace-nowrap"
+        className="absolute whitespace-nowrap p-4"
         initial="center"
         animate={isAnimated ? "topLeft" : "center"}
         variants={variants}
@@ -67,7 +67,7 @@ export default function CandidateDashboardRightPanelWelcome() {
       <AnimatePresence>
         {showNextBox && (
           <motion.div
-            className="absolute text-gray-500 mt-8 w-full"
+            className="absolute text-gray-500 mt-8 w-fullm p-4"
             style={{ top: "calc(0rem + 3.5em)", left: "0rem" }}
             variants={nextBoxVariants}
             initial="hidden"

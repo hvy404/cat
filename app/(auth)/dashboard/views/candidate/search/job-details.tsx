@@ -32,7 +32,9 @@ import { fetchJobDetails } from "./job-detail-helper";
 import { JobNode, NodeWithId, CompanyNode } from "@/lib/jobs/mutation"; // type definition for JobNode
 import { getResumes } from "@/lib/candidate/apply/resume-choice";
 import CompanyInfoCard from "@/app/(auth)/dashboard/views/candidate/search/company-info-card";
-import AtomicRecordApplicationSubmission from "@/lib/match-system/relationship/record-application-submission";
+import AtomicRecordApplicationSubmission, {
+  checkExistingApplication,
+} from "@/lib/match-system/relationship/record-application-submission";
 
 import { toast } from "sonner";
 
@@ -71,6 +73,7 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
   const [companyInfo, setCompanyInfo] = useState<Partial<CompanyNode> | null>(
     null
   );
+  const [hasApplied, setHasApplied] = useState(false);
 
   useEffect(() => {
     const loadJobDetails = async () => {
@@ -95,6 +98,21 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
     loadJobDetails();
   }, [jobId, user]);
 
+  useEffect(() => {
+    const checkApplication = async () => {
+      if (user && user.uuid) {
+        try {
+          const exists = await checkExistingApplication(user.uuid, jobId);
+          setHasApplied(exists);
+        } catch (error) {
+          console.error("Error checking application:", error);
+        }
+      }
+    };
+
+    checkApplication();
+  }, [jobId, user]);
+
   const handleApplyNow = async () => {
     if (!user || !user.uuid) return;
 
@@ -115,13 +133,24 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
   const handleApplyWithResume = async () => {
     if (selectedResume && user && user.uuid) {
       try {
+        // Check for existing application first
+        const exists = await checkExistingApplication(user.uuid, jobId);
+        
+        if (exists) {
+          setHasApplied(true);
+          toast.info("You have already applied for this job.");
+          handleCloseResumeDialog();
+          return;
+        }
+  
         const result = await AtomicRecordApplicationSubmission(
           user.uuid,
           jobId,
           selectedResume.address
         );
-
+  
         if (result.success) {
+          setHasApplied(true);
           toast.success("Your application has been submitted successfully!");
           handleCloseResumeDialog();
         } else {
@@ -133,6 +162,7 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
       }
     }
   };
+  
 
   const handleCloseResumeDialog = () => {
     setIsResumeDialogOpen(false);
@@ -456,8 +486,13 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
           </CardContent>
 
           <CardFooter className="flex justify-between items-center mt-4">
-            <Button size="sm" className="text-sm" onClick={handleApplyNow}>
-              Send Your Resume
+            <Button
+              size="sm"
+              className="text-sm"
+              onClick={handleApplyNow}
+              disabled={hasApplied}
+            >
+              {hasApplied ? "Application Sent" : "Send Your Resume"}
             </Button>
           </CardFooter>
         </Card>
@@ -465,7 +500,6 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
         <CompanyInfoCard
           company={jobRelationships.POSTED_BY?.[0]}
           isPrivateEmployer={jobDetails?.private_employer ?? false}
-          /* companyDescription={companyDescription} */
         />
       </div>
       <Dialog open={isResumeDialogOpen} onOpenChange={handleCloseResumeDialog}>

@@ -205,7 +205,7 @@ const InboundApplicantsSidePanel = () => {
           Back
         </Button>
       </CardHeader>
-      <CardContent className="px-6">
+      <CardContent className="px-6 flex flex-col h-dvh">
         <div className="mb-4 space-y-2">
           <div className="flex space-x-2">
             <Select onValueChange={handleStatusFilterChange} value={statusFilter}>
@@ -265,7 +265,7 @@ const InboundApplicantsSidePanel = () => {
           <div className="text-center">Loading...</div>
         ) : (
           <>
-            <div className="space-y-4">
+            <div className="space-y-4 overflow-y-auto flex-grow">
               {paginatedApplicants.map((applicant) => (
                 <div
                   key={applicant.appId}

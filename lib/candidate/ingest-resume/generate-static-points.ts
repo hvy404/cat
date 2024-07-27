@@ -41,8 +41,8 @@ export async function generateLiftedStatic(resume: string, id: string) {
     - name: Name of the certification.
     - issuing_organization: (optional) Organization that issued the certification.
     - date_obtained: (optional) Date when the certification was obtained in "YYYY-MM" format (e.g., "2017-07").
-    - expiration_date: (optional) Expiration date of the certification, if applicable, in "YYYY-MM" format.
-    - credential_id: (optional) Unique identifier for the certification, if available.
+    - expiration_date: (optional) Expiration date of the certification in "YYYY-MM" format if applicable, 
+    - credential_id: (optional) Unique identifier for the certification if available.
   
   Important notes:
   1. For all dates, always use the "YYYY-MM" format. If only a year is provided, use "YYYY-01" to represent January of that year.
@@ -57,7 +57,7 @@ export async function generateLiftedStatic(resume: string, id: string) {
   - work_experience: An array of objects, each containing the following properties:
     - organization: The name of the organization.
     - job_title: The job title.
-    - description: A detailed and complete description of the job, including all relevant details and responsibilities.
+    - responsibilities: A detailed and complete description of the job, including all relevant details and responsibilities.
     - start_date: The start date of the job in "YYYY-MM" format. Omit this field if not present in resume.
     - end_date: The end date of the job in "YYYY-MM" format, or "present" for current jobs. Omit this field if not present in resume.
   
@@ -100,7 +100,7 @@ export async function generateLiftedStatic(resume: string, id: string) {
           content: userPrompt,
         },
       ],
-      model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+      model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
       temperature: 0.6,
       max_tokens: 7000,
       // @ts-ignore – Together.ai supports schema while OpenAI does not
@@ -123,9 +123,9 @@ export async function generateLiftedStatic(resume: string, id: string) {
           content: userPrompt,
         },
       ],
-      model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+      model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
       temperature: 0.6,
-      max_tokens: 6000,
+      max_tokens: 7000,
       // @ts-ignore – Together.ai supports schema while OpenAI does not
       response_format: { type: "json_object", schema: jsonSchemaSecondary },
     });
@@ -155,9 +155,52 @@ export async function generateLiftedStatic(resume: string, id: string) {
     };
   } catch (error) {
     console.error("Error generating lifted static:", error);
+
+    let errorMessage = "Failed to generate lifted static.";
+    let errorDetails: any = {};
+
+    if (error instanceof Error) {
+      errorMessage += ` Error: ${error.message}`;
+      errorDetails.name = error.name;
+      errorDetails.stack = error.stack;
+    }
+
+    if (typeof error === "object" && error !== null) {
+      if ("status" in error) {
+        errorDetails.status = error.status;
+        errorMessage += ` HTTP Status: ${error.status}`;
+
+        if (error.status === 524) {
+          errorMessage =
+            "A timeout occurred while trying to generate the lifted static. Please try again later.";
+        }
+      }
+
+      if ("headers" in error) {
+        errorDetails.headers = error.headers;
+      }
+
+      if ("request_id" in error) {
+        errorDetails.request_id = error.request_id;
+      }
+
+      if ("code" in error) {
+        errorDetails.code = error.code;
+      }
+
+      if ("param" in error) {
+        errorDetails.param = error.param;
+      }
+
+      if ("type" in error) {
+        errorDetails.type = error.type;
+      }
+    }
+
     return {
-      message: "Failed to generate lifted static.",
+      message: errorMessage,
       success: false,
+      error: errorDetails,
     };
   }
 }
