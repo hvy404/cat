@@ -32,6 +32,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchDetailedJobPosts } from "@/lib/overview/fetchRoles";
 import InboundApplicantsCard from "./inbound-application-card";
+import AIRecommendationsCard from "./ai-recommendations-card";
 import AlertsCard from "./main-dashboard-alerts-card";
 
 interface Job {
@@ -305,13 +306,7 @@ const EmployerDashboardView: React.FC = () => {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             <InboundApplicantsCard />
-            <StatCard
-              title="AI Recommendations"
-              value={60}
-              icon={UserPlus}
-              description="AI-matched candidates"
-              trend={8}
-            />
+           <AIRecommendationsCard />
             <AlertsCard />
           </div>
           <ChartCard data={mockData} />

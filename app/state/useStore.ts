@@ -163,7 +163,7 @@ interface StoreState {
   setSelectedMenuItem: (item: string) => void;
   setUser: (user: User) => void;
   dashboard_role_overview: DashboardRoleOverview;
-  employerRightPanelView: "default" | "roleOverview" | "inboundApplications";
+  employerRightPanelView: "default" | "roleOverview" | "inboundApplications" | "aiRecommendations";
   setEmployerRightPanelView: (
     view: StoreState["employerRightPanelView"]
   ) => void;

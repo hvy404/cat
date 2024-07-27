@@ -3,6 +3,7 @@ import EmployerDashboardView from "@/app/(auth)/dashboard/views/overview/main-em
 import EmployerDashboardOverviewRoles from "@/app/(auth)/dashboard/views/overview/main-role-overview";
 import InboundApplicantsSidePanel from "@/app/(auth)/dashboard/views/overview/side-panels/inbound-applications-view";
 import EmployerDashboardMainSidePanel from "@/app/(auth)/dashboard/views/overview/side-panel";
+import AIRecommendationsSidePanel from "@/app/(auth)/dashboard/views/overview/side-panels/ai-match-inbound-view";
 
 export default function EmployerDashboardMain() {
   const { employerRightPanelView } = useStore();
@@ -13,10 +14,13 @@ export default function EmployerDashboardMain() {
         return <EmployerDashboardOverviewRoles />;
       case "inboundApplications":
         return <InboundApplicantsSidePanel />;
+      case "aiRecommendations":
+        return <AIRecommendationsSidePanel />;
       default:
         return <EmployerDashboardMainSidePanel />;
     }
   };
+  
 
   return (
     <main className="grid flex-1 gap-4 p-4 md:grid-cols-2 max-h-screen">
