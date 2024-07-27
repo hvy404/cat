@@ -1,8 +1,8 @@
-import React from "react";
-import { Briefcase, FileText, PlusCircle } from "lucide-react";
+import React, { useState } from "react";
+import { Briefcase, ChevronRight, ChevronLeft, ChevronRightIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { JobCard } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-card";
+import { Badge } from "@/components/ui/badge";
 
 interface Job {
   id: number;
@@ -11,68 +11,98 @@ interface Job {
   salary?: string;
   match?: number;
   status?: string;
-  progress?: number;
+  inviteDate: string;
 }
 
-interface DashboardData {
+interface JobInvitedProps {
   invitedJobs: Job[];
-  appliedJobs: Job[];
 }
 
-const EmptyStateCard = ({
-  title,
-  description,
-  buttonText,
-}: {
-  title: string;
-  description: string;
-  buttonText: string;
-}) => (
-  <Card className="w-full h-full bg-white shadow-sm hover:shadow-md transition-all duration-300 border-gray-300 flex flex-col">
-    <CardHeader className="pb-2">
-      <CardTitle className="text-lg font-semibold text-gray-800">
-        {title}
-      </CardTitle>
-    </CardHeader>
-    <CardContent className="py-4 flex-grow flex flex-col justify-between">
-      <p className="text-sm text-gray-600 mb-4">{description}</p>
-      {/* Button is commented out as per your original code */}
-      {/* <Button
-        variant="outline"
-        size="sm"
-        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 self-start"
-      >
-        <PlusCircle className="mr-2 h-4 w-4" /> {buttonText}
-      </Button> */}
-    </CardContent>
-  </Card>
-);
+const ITEMS_PER_PAGE = 3;
 
-export const JobInvited = ({ invitedJobs }: { invitedJobs: Job[] }) => {
-  const hasInvitedJobs = invitedJobs && invitedJobs.length > 0;
+export const JobInvited: React.FC<JobInvitedProps> = ({ invitedJobs }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.ceil(invitedJobs.length / ITEMS_PER_PAGE);
+  const paginatedJobs = invitedJobs.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handlePrevPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
 
   return (
-    <div className="h-full flex flex-col">
-      <h2 className="text-md font-semibold text-gray-800 mb-4 flex items-center mx-auto">
-        <Briefcase className="w-4 h-4 mr-2 text-gray-700" />
-        Jobs You're Invited To
-      </h2>
-      <div className="flex-grow">
-        {hasInvitedJobs ? (
-          <div className="grid grid-cols-1 gap-4 h-full">
-            {invitedJobs.map((job) => (
-              <JobCard key={job.id} job={job} type="invited" />
-            ))}
+    <Card className="h-full">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg font-semibold flex items-center">
+          <Briefcase className="mr-2 h-5 w-5" />
+          Jobs You're Invited To
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <div className="space-y-4">
+          {paginatedJobs.map((job) => (
+            <div
+              key={job.id}
+              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+            >
+              <div>
+                <h3 className="font-medium text-sm">{job.title}</h3>
+                <p className="text-xs text-gray-500">{job.company}</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Invited: {new Date(job.inviteDate).toLocaleDateString()}
+                </p>
+              </div>
+              <div className="flex items-center">
+                <Badge
+                  className={`text-xs mr-2 ${
+                    job.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                    job.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                    'bg-red-100 text-red-800'
+                  }`}
+                >
+                  {job.status}
+                </Badge>
+                <Button variant="ghost" size="sm">
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+        {totalPages > 1 && (
+          <div className="mt-4 flex items-center justify-between">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Prev
+            </Button>
+            <span className="text-sm text-gray-500">
+              {currentPage} / {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+            >
+              Next
+              <ChevronRightIcon className="h-4 w-4 ml-1" />
+            </Button>
           </div>
-        ) : (
-          <EmptyStateCard
-            title="Stay Tuned"
-            description="We're actively looking for great job matches for you. Check back soon and in the meantime, keep your profile updated."
-            buttonText="Update Profile"
-          />
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

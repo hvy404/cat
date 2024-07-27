@@ -4,7 +4,6 @@ import useStore from "@/app/state/useStore";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { QuickStats } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/quick-stats";
 import {
   InsightsCard,
   CareerInsight,
@@ -14,8 +13,7 @@ import ProfileSuggestionCard from "@/app/(auth)/dashboard/views/candidate/dashbo
 import { Suggestion as ProfileSuggestion } from "@/lib/dashboard/candidate/profile-enhancements/build-suggestions";
 import ResumeSuggestionCard from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/resume-suggestions";
 import { ResumeSuggestion } from "@/lib/dashboard/candidate/resume-enhancements/build-suggestions";
-import { JobApplied } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-applied";
-import { JobInvited } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-invited";
+import JobInvited from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-invited";
 import {
   getAllBookmarkedJobsForCandidate,
   CandidateJobBookmark,
@@ -31,6 +29,7 @@ interface Job {
   match?: number;
   status?: string;
   progress?: number;
+  inviteDate: string;
 }
 
 interface DashboardData {
@@ -47,6 +46,8 @@ const mockData: DashboardData = {
       company: "Acme",
       salary: "$120k - $150k",
       match: 95,
+      status: "pending",
+      inviteDate: new Date().toISOString(), // Add this line
     },
     {
       id: 2,
@@ -54,6 +55,26 @@ const mockData: DashboardData = {
       company: "Corp",
       salary: "$100k - $130k",
       match: 88,
+      status: "pending",
+      inviteDate: new Date().toISOString(), // Add this line
+    },
+    {
+      id: 3,
+      title: "Test Stack Engineer",
+      company: "Corp",
+      salary: "$100k - $130k",
+      match: 98,
+      status: "pending",
+      inviteDate: new Date().toISOString(), // Add this line
+    },
+    {
+      id: 4,
+      title: "Test Stack Engineer",
+      company: "Corp",
+      salary: "$100k - $130k",
+      match: 98,
+      status: "pending",
+      inviteDate: new Date().toISOString(), // Add this line
     },
   ],
   appliedJobs: [],
