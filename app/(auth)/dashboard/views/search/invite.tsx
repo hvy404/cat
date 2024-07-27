@@ -1,212 +1,287 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import useStore from "@/app/state/useStore";
+import { getSimplifiedJobPosts, Opportunity } from "@/lib/overview/fetchRoles";
+import { Send, Check, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import {
-  getSimplifiedJobPosts,
-  Location,
-  Opportunity,
-  OpportunitiesData,
-} from "@/lib/overview/fetchRoles";
-import { Send } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
+import {
+  createInvite,
+  checkExistingInvite,
+} from "@/lib/employer/create-invite";
+import { toast } from "sonner";
 
 interface InviteActionWithListProps {
   applicantId: string;
 }
+
+const ITEMS_PER_PAGE = 5;
 
 export default function InviteActionWithList({
   applicantId,
 }: InviteActionWithListProps) {
   const { user, isExpanded } = useStore();
 
-  // Sthe id of the job posting to invite the candidate to
   const [jobToInvite, setJobToInvite] = useState<string | null>(null);
-  const [popoverOpenState, setPopoverOpenState] = useState(false);
-  const [opportunitiesData, setOpportunitiesData] = useState<
-    Opportunity[] | null
-  >(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [opportunitiesData, setOpportunitiesData] = useState<Opportunity[]>([]);
+  const [filteredOpportunities, setFilteredOpportunities] = useState<
+    Opportunity[]
+  >([]);
+  const [inviteStatus, setInviteStatus] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
+  const [invitedJobs, setInvitedJobs] = useState<Set<string>>(new Set());
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // onclick handler for the invite button, console logs the job uuid and applicant id, then resets the jobToInvite state
-  // TODO: Implement the API call to send the invite
-  const inviteToApply = (applicantId: string) => {
-    if (jobToInvite) {
-      console.log(`Inviting applicant ${applicantId} to job ${jobToInvite}`);
-      // Here you would typically make an API call to send the invite
-      // For example: sendInvite(applicantId, jobToInvite);
+  const inviteToApply = async (applicantId: string) => {
+    if (jobToInvite && user) {
+      try {
+        const result = await createInvite(user.uuid, applicantId, jobToInvite);
+        setInviteStatus(result);
+        if (result.success) {
+          setInvitedJobs((prev) => new Set(prev).add(jobToInvite));
+          setJobToInvite(null);
+          toast.success("Invite sent successfully!");
+        } else {
+          toast.error("Failed to send invite. Please try again.");
+        }
+      } catch (error) {
+        console.error("Error sending invite:", error);
+        setInviteStatus({ success: false, message: "Failed to send invite" });
+        toast.error("An error occurred while sending the invite.");
+      }
     } else {
-      console.log("No job selected for invitation");
+      setInviteStatus({
+        success: false,
+        message: "No job selected for invitation",
+      });
+      toast.error("Please select a job to send an invite.");
     }
-    setJobToInvite(null);
-    setPopoverOpenState(false);
   };
 
-  // Fetch job list
   const fetchJobList = async () => {
     if (!user) {
       console.error("User not found");
-      return null;
+      return;
     }
 
     try {
-      // Check session storage for existing data first
-      const storedData = sessionStorage.getItem("opportunities");
-      if (storedData) {
-        try {
-          const { timestamp, opportunities } = JSON.parse(storedData);
-          if (
-            new Date(timestamp).getTime() + 600000 > new Date().getTime() &&
-            Array.isArray(opportunities)
-          ) {
-            return opportunities;
-          }
-        } catch (error) {
-          console.error("Error parsing stored data:", error);
-          // Clear invalid data from session storage
-          sessionStorage.removeItem("opportunities");
-        }
-      }
-
-      // If we reach this point, we need to fetch new data
+      setIsLoading(true);
       const simplifiedJobs = await getSimplifiedJobPosts(user.uuid, "active");
 
       if (simplifiedJobs && simplifiedJobs.length > 0) {
-        // Save response to session storage along with timestamp
-        const dataWithTimestamp = {
-          timestamp: new Date().toISOString(),
-          opportunities: simplifiedJobs,
-        };
-
-        sessionStorage.setItem(
-          "opportunities",
-          JSON.stringify(dataWithTimestamp)
+        const invitedJobsSet = new Set<string>();
+        await Promise.all(
+          simplifiedJobs.map(async (job) => {
+            const inviteExists = await checkExistingInvite(
+              user.uuid,
+              applicantId,
+              job.job_uuid
+            );
+            if (inviteExists) {
+              invitedJobsSet.add(job.job_uuid);
+            }
+          })
         );
-
-        return simplifiedJobs;
+        setInvitedJobs(invitedJobsSet);
+        setOpportunitiesData(simplifiedJobs);
+        setFilteredOpportunities(simplifiedJobs);
       } else {
         console.log("No job opportunities found");
-        return [];
+        setOpportunitiesData([]);
+        setFilteredOpportunities([]);
       }
     } catch (error) {
       console.error("Error fetching job posts:", error);
-      return null;
+      setOpportunitiesData([]);
+      setFilteredOpportunities([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Correct placement of useRef
-  const isMounted = useRef(false);
+  useEffect(() => {
+    if (dialogOpen) {
+      fetchJobList();
+    } else {
+      setJobToInvite(null);
+      setCurrentPage(1);
+      setSearchTerm("");
+    }
+  }, [dialogOpen]);
+
+  const filterOpportunities = useCallback(() => {
+    const filtered = opportunitiesData.filter((job) =>
+      job.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredOpportunities(filtered);
+    setCurrentPage(1);
+  }, [opportunitiesData, searchTerm]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!isMounted.current) {
-        try {
-          const opportunities = await fetchJobList();
-          console.log("Opportunities:", opportunities);
-          if (Array.isArray(opportunities)) {
-            setOpportunitiesData(opportunities);
-          } else {
-            console.error("Opportunities is not an array:", opportunities);
-          }
-          isMounted.current = true;
-        } catch (error) {
-          console.error("Error in fetchData:", error);
-        }
-      }
-    };
+    filterOpportunities();
+  }, [filterOpportunities]);
 
-    fetchData();
-
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
+  const totalPages = Math.ceil(filteredOpportunities.length / ITEMS_PER_PAGE);
+  const paginatedOpportunities = filteredOpportunities.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   return (
-    <Popover open={popoverOpenState} onOpenChange={setPopoverOpenState}>
-      <PopoverTrigger>
-        <Button className="items-center" variant={"secondary"}>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <DialogTrigger asChild>
+        <Button className="items-center" variant="secondary">
           <div className="flex items-center gap-2">
             <Send size={12} />
             {isExpanded ? "Invite" : "Invite to apply"}
           </div>
         </Button>
-      </PopoverTrigger>
-      <PopoverContent className="flex flex-col max-h-screen overflow-y-auto">
-        <div className="flex flex-col gap-2">
-          <h3 className="text-sm font-medium text-gray-700 px-2 border-b-2 border-b-secondary pb-2">
-            Select an opportunity
-          </h3>
-          {/* Rendering job posting */}
-          {opportunitiesData ? (
-            opportunitiesData.length > 0 ? (
-              opportunitiesData.map((jobPosting: Opportunity) => (
-                <div
-                  key={jobPosting.job_uuid}
-                  className={`flex flex-col gap-2 px-2 py-2 ${
-                    jobPosting.job_uuid === jobToInvite ? "bg-gray-100/70" : ""
-                  } hover:bg-gray-100/70 rounded-md cursor-pointer`}
-                  onClick={() => setJobToInvite(jobPosting.job_uuid)}
-                >
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Select an opportunity</DialogTitle>
+        </DialogHeader>
+        {opportunitiesData.length > 5 && (
+          <div className="mb-4 relative">
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Search jobs..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-8 w-full"
+            />
+          </div>
+        )}
+        <ScrollArea className="mt-2 max-h-[60vh]">
+          {isLoading ? (
+            <div className="text-sm text-gray-500 px-2 py-2">
+              Loading your job listings...
+            </div>
+          ) : paginatedOpportunities.length > 0 ? (
+            paginatedOpportunities.map((jobPosting: Opportunity) => (
+              <div
+                key={jobPosting.job_uuid}
+                className={`flex flex-col gap-2 px-2 py-2 ${
+                  jobPosting.job_uuid === jobToInvite ? "bg-gray-100/70" : ""
+                } ${
+                  invitedJobs.has(jobPosting.job_uuid) ? "opacity-50" : ""
+                } hover:bg-gray-100/70 rounded-md cursor-pointer`}
+                onClick={() =>
+                  !invitedJobs.has(jobPosting.job_uuid) &&
+                  setJobToInvite(jobPosting.job_uuid)
+                }
+              >
+                <div className="flex justify-between items-center">
                   <h2 className="font-medium text-sm">{jobPosting.title}</h2>
-                  <div className="flex flex-wrap gap-2 text-xs py-1">
-                    {[
-                      "Public Trust",
-                      "Secret",
-                      "Top Secret",
-                      "Top Secret/SCI",
-                      "Q Clearance",
-                      "L Clearance",
-                    ].includes(jobPosting.security_clearance) && (
-                      <div className="inline-flex border rounded-lg border-gray-300 px-2 py-1 whitespace-nowrap">
-                        {jobPosting.security_clearance}
-                      </div>
-                    )}
-                    {(jobPosting.location[0].city ||
-                      jobPosting.location[0].state) && (
-                      <div className="inline-flex border rounded-lg border-gray-300 px-2 py-1 whitespace-nowrap">
-                        {jobPosting.location[0].city &&
-                          jobPosting.location[0].city}
-                        {jobPosting.location[0].city &&
-                          jobPosting.location[0].state &&
-                          ", "}
-                        {jobPosting.location[0].state &&
-                          jobPosting.location[0].state}
-                      </div>
-                    )}
-                    {jobPosting.location_type && (
-                      <div className="inline-flex border rounded-lg border-gray-300 px-2 py-1 whitespace-nowrap">
-                        {jobPosting.location_type}
-                      </div>
-                    )}
-                  </div>
+                  {invitedJobs.has(jobPosting.job_uuid) && (
+                    <span className="text-green-500 text-xs flex items-center">
+                      <Check size={12} className="mr-1" /> Invited
+                    </span>
+                  )}
                 </div>
-              ))
-            ) : (
-              <div className="text-sm text-gray-500 px-2 py-2">
-                No active job opportunities found.
+                <div className="flex flex-wrap gap-2 text-xs py-1">
+                  {[
+                    "Public Trust",
+                    "Secret",
+                    "Top Secret",
+                    "Top Secret/SCI",
+                    "Q Clearance",
+                    "L Clearance",
+                  ].includes(jobPosting.security_clearance) && (
+                    <div className="inline-flex border rounded-lg border-gray-300 px-2 py-1 whitespace-nowrap">
+                      {jobPosting.security_clearance}
+                    </div>
+                  )}
+                  {(jobPosting.location[0].city ||
+                    jobPosting.location[0].state) && (
+                    <div className="inline-flex border rounded-lg border-gray-300 px-2 py-1 whitespace-nowrap">
+                      {jobPosting.location[0].city &&
+                        jobPosting.location[0].city}
+                      {jobPosting.location[0].city &&
+                        jobPosting.location[0].state &&
+                        ", "}
+                      {jobPosting.location[0].state &&
+                        jobPosting.location[0].state}
+                    </div>
+                  )}
+                  {jobPosting.location_type && (
+                    <div className="inline-flex border rounded-lg border-gray-300 px-2 py-1 whitespace-nowrap">
+                      {jobPosting.location_type}
+                    </div>
+                  )}
+                </div>
               </div>
-            )
+            ))
           ) : (
             <div className="text-sm text-gray-500 px-2 py-2">
-              Loading job opportunities...
+              No matching job opportunities found.
             </div>
           )}
-        </div>
-        {jobToInvite && (
+        </ScrollArea>
+        {totalPages > 1 && (
+          <div className="flex justify-between items-center mt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
+            </Button>
+            <span className="text-sm text-gray-500">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              disabled={currentPage === totalPages}
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+        {jobToInvite && !invitedJobs.has(jobToInvite) && (
           <div className="flex flex-col gap-2 pt-4">
             <Button
-              variant={"secondary"}
-              onClick={() => inviteToApply(applicantId)}
+              variant="secondary"
+              onClick={() => {
+                inviteToApply(applicantId);
+                setDialogOpen(false);
+              }}
               disabled={!jobToInvite}
             >
               Send invite
             </Button>
+            {inviteStatus && (
+              <p
+                className={
+                  inviteStatus.success ? "text-green-500" : "text-red-500"
+                }
+              >
+                {inviteStatus.message}
+              </p>
+            )}
           </div>
         )}
-      </PopoverContent>
-    </Popover>
+      </DialogContent>
+    </Dialog>
   );
 }

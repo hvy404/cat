@@ -11,7 +11,7 @@ import {
 } from "@/app/(auth)/dashboard/views/search/search";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { Search, Info } from "lucide-react";
 import { SearchingAnimation } from "@/app/(auth)/dashboard/views/search/assets/loading-animation";
 
 interface SearchResultsProps {
@@ -34,11 +34,11 @@ export default function EmployerDashboardCandidateSearch() {
     [key: string]: string[];
   }>({
     location: [],
-    // Add more filter types here in the future
   });
   const [overlappingRoles, setOverlappingRoles] = useState<
     Array<{ similar: string; score: number }>
   >([]);
+  const [availableLocations, setAvailableLocations] = useState<string[]>([]);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -57,6 +57,7 @@ export default function EmployerDashboardCandidateSearch() {
       setFilterIndex({});
       setOverlappingRoles([]);
       setHasSearched(false);
+      setAvailableLocations([]);
       return;
     }
 
@@ -78,6 +79,7 @@ export default function EmployerDashboardCandidateSearch() {
       setSearchResults([]);
       setFilterIndex({});
       setOverlappingRoles([]);
+      setAvailableLocations([]);
     } else if ("match" in search) {
       if (
         search.match &&
@@ -86,7 +88,9 @@ export default function EmployerDashboardCandidateSearch() {
       ) {
         setSearchResults(search.similarTalents);
         setResultFound(true);
-        setFilterIndex(createFilterIndex(search.similarTalents));
+        const newFilterIndex = createFilterIndex(search.similarTalents);
+        setFilterIndex(newFilterIndex);
+        setAvailableLocations(Object.keys(newFilterIndex.location || {}));
 
         if (
           "overlappingRoles" in search &&
@@ -101,11 +105,13 @@ export default function EmployerDashboardCandidateSearch() {
         setResultFound(false);
         setFilterIndex({});
         setOverlappingRoles([]);
+        setAvailableLocations([]);
       }
     }
 
     setIsSearching(false);
   };
+
   const handleEnterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       handleSearch();
@@ -113,33 +119,36 @@ export default function EmployerDashboardCandidateSearch() {
   };
 
   const toggleFilter = (filterType: string, value: string) => {
-    setSelectedFilters((prevFilters) => {
-      const updatedFilters = { ...prevFilters };
-      if (updatedFilters[filterType].includes(value)) {
-        updatedFilters[filterType] = updatedFilters[filterType].filter(
-          (filter) => filter !== value
-        );
-      } else {
-        updatedFilters[filterType] = [...updatedFilters[filterType], value];
-      }
-      return updatedFilters;
-    });
+    if (hasSearched && resultFound) {
+      setSelectedFilters((prevFilters) => {
+        const updatedFilters = { ...prevFilters };
+        if (updatedFilters[filterType].includes(value)) {
+          updatedFilters[filterType] = updatedFilters[filterType].filter(
+            (filter) => filter !== value
+          );
+        } else {
+          updatedFilters[filterType] = [...updatedFilters[filterType], value];
+        }
+        return updatedFilters;
+      });
+    }
   };
 
   const clearAllFilters = () => {
-    setSelectedFilters((prevFilters) => {
-      const clearedFilters: { [key: string]: string[] } = {};
-      Object.keys(prevFilters).forEach((key) => {
-        clearedFilters[key] = [];
+    if (hasSearched && resultFound) {
+      setSelectedFilters((prevFilters) => {
+        const clearedFilters: { [key: string]: string[] } = {};
+        Object.keys(prevFilters).forEach((key) => {
+          clearedFilters[key] = [];
+        });
+        return clearedFilters;
       });
-      return clearedFilters;
-    });
+    }
   };
 
   const createFilterIndex = (results: searchResults[]): FilterIndex => {
     const index: FilterIndex = {
       location: {},
-      // Add more filter types here in the future
     };
 
     results.forEach((result, i) => {
@@ -148,8 +157,6 @@ export default function EmployerDashboardCandidateSearch() {
         index.location[location] = new Set();
       }
       index.location[location].add(i);
-
-      // Add more filter types here in the future
     });
 
     return index;
@@ -208,37 +215,43 @@ export default function EmployerDashboardCandidateSearch() {
             </div>
           </div>
         </div>
-        <div>
-          {searchResults.length > 0 && (
-            <div className="mt-4 border border-gray-200 rounded-md p-4">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-sm font-semibold">Locations</h3>
-                {selectedFilters.location.length > 0 && (
-                  <button
-                    onClick={clearAllFilters}
-                    className="text-sm text-slate-500 hover:text-slate-600"
-                  >
-                    Clear All
-                  </button>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {Object.keys(filterIndex.location || {}).map(
-                  (location, index) => (
-                    <span
-                      key={index}
-                      onClick={() => toggleFilter("location", location)}
-                      className={`px-2 py-1 rounded-md text-xs cursor-pointer ${
-                        selectedFilters.location.includes(location)
-                          ? "bg-slate-500 text-white"
-                          : "bg-gray-100/50 hover:bg-gray-100"
-                      }`}
-                    >
-                      {location}
-                    </span>
-                  )
-                )}
-              </div>
+        <div className="mt-4 border border-gray-200 rounded-md p-4">
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-sm font-semibold">Locations</h3>
+            {selectedFilters.location.length > 0 && hasSearched && resultFound && (
+              <button
+                onClick={clearAllFilters}
+                className="text-sm text-slate-500 hover:text-slate-600"
+              >
+                Clear All
+              </button>
+            )}
+          </div>
+          {!hasSearched || isSearching ? (
+            <div className="flex flex-col items-center justify-center h-20 text-gray-400 text-center">
+              <Info size={18} className="mb-2" />
+              <span className="text-sm">Enter a role and search to see available location filters</span>
+            </div>
+          ) : !resultFound ? (
+            <div className="flex flex-col items-center justify-center h-20 text-gray-400 text-center">
+              <Info size={18} className="mb-2" />
+              <span className="text-sm">No results found. Try a different search term to see location filters.</span>
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {availableLocations.map((location, index) => (
+                <span
+                  key={index}
+                  onClick={() => toggleFilter("location", location)}
+                  className={`px-2 py-1 rounded-md text-xs cursor-pointer ${
+                    selectedFilters.location.includes(location)
+                      ? "bg-slate-500 text-white"
+                      : "bg-gray-100/50 hover:bg-gray-100"
+                  }`}
+                >
+                  {location}
+                </span>
+              ))}
             </div>
           )}
         </div>
