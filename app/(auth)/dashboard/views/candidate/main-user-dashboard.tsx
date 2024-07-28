@@ -1,14 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import useStore from "@/app/state/useStore";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   InsightsCard,
   CareerInsight,
 } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/career-insight";
-import { RecommendationCard } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/recommendation-card";
 import ProfileSuggestionCard from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/profile-suggestions";
 import { Suggestion as ProfileSuggestion } from "@/lib/dashboard/candidate/profile-enhancements/build-suggestions";
 import ResumeSuggestionCard from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/resume-suggestions";
@@ -132,6 +130,13 @@ export function CandidateDashboard() {
     [setCandidateDashboard]
   );
 
+  // Handle profile suggestion click
+  const handleViewMoreJobInvited = (jobId: string) => {
+    // Implement the logic to view more details of the job
+    console.log(`Viewing more details for job ${jobId}`);
+    // You might want to navigate to a job details page or open a modal
+  };
+
   // Handle Talent ID learn more
   const handleTalentIDLearnMore = useCallback(
     (candidateId: string) => {
@@ -200,7 +205,7 @@ export function CandidateDashboard() {
   );
 
   const memoizedJobInvited = useMemo(
-    () => <JobInvited invitedJobs={data.invitedJobs} />,
+    () => <JobInvited handleViewMoreJobInvited={handleViewMoreJobInvited} />,
     [data.invitedJobs]
   );
 
