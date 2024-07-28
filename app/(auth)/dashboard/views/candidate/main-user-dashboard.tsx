@@ -31,51 +31,16 @@ interface Job {
 }
 
 interface DashboardData {
-  invitedJobs: Job[];
   appliedJobs: Job[];
+  bookmarkedJobs: CandidateJobBookmark[];
   careerInsights: CareerInsight[];
+  invitedJobs: Job[];
 }
 
 const mockData: DashboardData = {
-  invitedJobs: [
-    {
-      id: 1,
-      title: "Senior React Developer",
-      company: "Acme",
-      salary: "$120k - $150k",
-      match: 95,
-      status: "pending",
-      inviteDate: new Date().toISOString(), // Add this line
-    },
-    {
-      id: 2,
-      title: "Full Stack Engineer",
-      company: "Corp",
-      salary: "$100k - $130k",
-      match: 88,
-      status: "pending",
-      inviteDate: new Date().toISOString(), // Add this line
-    },
-    {
-      id: 3,
-      title: "Test Stack Engineer",
-      company: "Corp",
-      salary: "$100k - $130k",
-      match: 98,
-      status: "pending",
-      inviteDate: new Date().toISOString(), // Add this line
-    },
-    {
-      id: 4,
-      title: "Test Stack Engineer",
-      company: "Corp",
-      salary: "$100k - $130k",
-      match: 98,
-      status: "pending",
-      inviteDate: new Date().toISOString(), // Add this line
-    },
-  ],
   appliedJobs: [],
+  bookmarkedJobs: [],
+  invitedJobs: [],
   careerInsights: [
     { date: "Jan", applications: 5, interviews: 2 },
     { date: "Feb", applications: 8, interviews: 3 },
@@ -95,7 +60,14 @@ export function CandidateDashboard() {
     setCandidateDashboard: state.setCandidateDashboard,
     user: state.user,
   }));
-  const candidateId = user?.uuid;
+  const { setSelectedMenuItem } = useStore(state => ({
+    setSelectedMenuItem: state.setSelectedMenuItem
+  }));
+
+  // if user.uuid is empty return loading
+  if (!user?.uuid) return <p>Loading...</p>;
+
+  const candidateId = user.uuid;
 
   const [data, setData] = useState<DashboardData>(mockData);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -130,12 +102,28 @@ export function CandidateDashboard() {
     [setCandidateDashboard]
   );
 
-  // Handle profile suggestion click
-  const handleViewMoreJobInvited = (jobId: string) => {
-    // Implement the logic to view more details of the job
-    console.log(`Viewing more details for job ${jobId}`);
-    // You might want to navigate to a job details page or open a modal
+  // Handle bookmark remove
+  const handleBookmarkRemoved = (jobId: string) => {
+    console.log("Bookmark removed for job:", jobId);
+    setBookmarkedJobs((prevJobs) =>
+      prevJobs.filter((job) => job.jd_id !== jobId)
+    );
   };
+
+  // Handle browse job click -- set setSelectedMenuItem(talent-search)
+  const handleBrowseJobsClick = useCallback(() => {
+    setSelectedMenuItem("talent-search");
+  }, [setSelectedMenuItem]);
+
+  const handleViewMoreJobInvited = useCallback(
+    (jobId: string) => {
+      setCandidateDashboard({
+        widget: "inviteAlerts",
+        widgetPayload: { type: "inviteAlerts", payload: { jobId: jobId } },
+      });
+    },
+    [setCandidateDashboard]
+  );
 
   // Handle Talent ID learn more
   const handleTalentIDLearnMore = useCallback(
@@ -199,6 +187,9 @@ export function CandidateDashboard() {
       <JobBookmarked
         bookmarkedJobs={bookmarkedJobs}
         handleViewMoreJobBookmarked={handleViewMoreJobBookmarked}
+        candidateId={candidateId}
+        onBookmarkRemoved={handleBookmarkRemoved}
+        handleBrowseJobsClick={handleBrowseJobsClick}
       />
     ),
     [bookmarkedJobs, handleViewMoreJobBookmarked]

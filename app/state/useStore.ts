@@ -113,6 +113,7 @@ type JobBookmarkedPayload = {
 type JobInvitedPayload = {
   jobId: string;
 };
+
 type ResumeRecommendationsPayload = {
   title: string;
   type: string;
@@ -140,6 +141,7 @@ type TalentIDPayload = {
 // Union type for all possible widget payloads
 export type WidgetPayload =
   | { type: "jobBookmarked"; payload: JobBookmarkedPayload }
+  | { type: "inviteAlerts"; payload: JobInvitedPayload }
   | { type: "talentID"; payload: TalentIDPayload }
   | { type: "jobInvited"; payload: JobInvitedPayload }
   | { type: "resumeRecommendation"; payload: ResumeRecommendationsPayload }

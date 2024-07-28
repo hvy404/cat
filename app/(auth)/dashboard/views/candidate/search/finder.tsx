@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import useStore from "@/app/state/useStore";
 import {
-  Briefcase,
   MapPin,
   ShieldCheck,
   Clock,
   DollarSign,
   ChevronLeft,
   ChevronRight,
-  Flag,
   Bookmark,
+  Bell,
+  BellOff,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import {
   Card,
@@ -39,6 +41,13 @@ import {
   checkCandidateJobBookmarkExists,
 } from "./bookmark";
 import { WildWest } from "./flag/wildwest";
+import { BuildSearchRoles } from "@/app/(auth)/dashboard/views/candidate/search/get-search-suggestions";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { toast } from "sonner";
 
 type ExtendedJobSearchResult = JobSearchResult & {
   match: boolean;
@@ -49,6 +58,12 @@ type ExtendedJobSearchResult = JobSearchResult & {
     mode: string;
   };
 };
+
+interface BuildSearchRolesResult {
+  status: string;
+  roles: string[];
+  message?: string;
+}
 
 type BookmarkedJobs = { [key: string]: boolean };
 
@@ -67,7 +82,8 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
   const [bookmarkedJobs, setBookmarkedJobs] = useState<BookmarkedJobs>({});
-
+  const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
+  const [isSearchSuggestionsOpen, setIsSearchSuggestionsOpen] = useState(!hasSearched);
   const { user } = useStore();
   const userId = user?.uuid;
 
@@ -78,6 +94,7 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
   };
 
   const handleSearch = async (): Promise<void> => {
+    console.log("handleSearch called with query:", searchQuery);
     if (!userId) {
       setError("User ID is not available. Please ensure you're logged in.");
       return;
@@ -87,6 +104,7 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
     setError(null);
     setCurrentPage(1);
     setHasSearched(true);
+    setIsSearchSuggestionsOpen(false); // Close suggestions when search is performed
 
     try {
       const results = await jobSearchHandler(searchQuery, userId);
@@ -98,6 +116,13 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    console.log("Search query updated:", searchQuery);
+    if (searchQuery !== "") {
+      handleSearch();
+    }
+  }, [searchQuery]);
 
   const formatSalary = (salary: number | null): string => {
     return salary ? `$${salary.toLocaleString()}` : "Not specified";
@@ -156,6 +181,45 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
     };
     checkBookmarks();
   }, [userId, searchResults]);
+
+  const roleBuildRan = useRef(false);
+
+  useEffect(() => {
+    if (roleBuildRan.current === false && userId) {
+      const fetchSearchSuggestions = async () => {
+        try {
+          const result = (await BuildSearchRoles(
+            userId
+          )) as BuildSearchRolesResult;
+          if (result.status === "success") {
+            setSearchSuggestions(result.roles);
+          } else {
+            console.error(
+              "Failed to fetch search suggestions:",
+              result.message
+            );
+          }
+        } catch (error) {
+          console.error("Error fetching search suggestions:", error);
+        }
+      };
+
+      fetchSearchSuggestions();
+      roleBuildRan.current = true;
+    }
+
+    return () => {
+      roleBuildRan.current = false;
+    };
+  }, [userId]);
+
+  const handleThumbsUp = () => {
+    console.log("User clicked thumbs up for job alerts");
+  };
+
+  const handleThumbsDown = () => {
+    console.log("User clicked thumbs down for job alerts");
+  };
 
   const renderJobDetails = (job: SerializableJobResult): JSX.Element => (
     <Card
@@ -216,10 +280,6 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
           <ShieldCheck className="w-4 h-4 mr-2 text-gray-500" />
           <span>Security Clearance: {job.security_clearance}</span>
         </div>
-        {/*      <div className="flex items-center">
-          <Briefcase className="w-4 h-4 mr-2 text-gray-500" />
-          <span>Experience: {job.experience}</span>
-        </div> */}
         <div className="flex items-center">
           <Clock className="w-4 h-4 mr-2 text-gray-500" />
           <span>Job Type: {job.job_type}</span>
@@ -247,7 +307,6 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
             )}
           </div>
         )}
-        {/* <p className="mt-2">{job.summary}</p> */}
       </CardContent>
       <CardFooter>
         <Button
@@ -305,6 +364,44 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
 
       {error && <p className="text-red-500 text-xs mb-4">{error}</p>}
 
+      {searchSuggestions.length > 0 && (
+       <Collapsible
+       open={isSearchSuggestionsOpen}
+       onOpenChange={setIsSearchSuggestionsOpen}
+       className="mb-6"
+     >
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" size="sm" className="mb-2 p-0 h-auto">
+              {isSearchSuggestionsOpen ? (
+                <ChevronUp className="h-4 w-4 mr-2" />
+              ) : (
+                <ChevronDown className="h-4 w-4 mr-2" />
+              )}
+              <span className="text-sm font-semibold text-gray-700">
+                {isSearchSuggestionsOpen ? "Hide" : "Show"} Search Suggestions
+              </span>
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="flex flex-wrap gap-2">
+              {searchSuggestions.map((suggestion, index) => (
+                <Button
+                key={index}
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSearchQuery(suggestion);
+                  setIsSearchSuggestionsOpen(false);
+                }}
+              >
+                {suggestion}
+              </Button>
+              ))}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
+
       {hasSearched && searchResults && (
         <>
           {searchResults.flag && searchResults.flag.mode && <WildWest />}
@@ -350,9 +447,47 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
                   )}
                 </>
               ) : (
-                <p className="text-gray-600 text-sm">
-                  No matching opportunities found at this time.
-                </p>
+                <div className="flex items-center text-gray-600 text-sm gap-x-3">
+                  <p className="mr-2">
+                    No matching opportunities found currently. New positions
+                    open up frequently, so check back soon or enable alerts to
+                    stay updated.
+                  </p>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleThumbsUp}
+                          className="p-0 h-auto"
+                        >
+                          <Bell className="w-4 h-4 text-green-500" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-black text-white">
+                        <p>Yes, alert me when opportunities are available</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleThumbsDown}
+                          className="p-0 h-auto ml-1"
+                        >
+                          <BellOff className="w-4 h-4 text-red-500" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-black text-white">
+                        <p>No, don't alert me</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
               )}
             </TabsContent>
 

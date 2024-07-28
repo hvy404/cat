@@ -19,6 +19,7 @@ interface FetchResult {
   message?: string;
 }
 
+
 async function getFetchSuggestionRoles(props: FetchSuggestionRolesProps): Promise<FetchResult> {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);

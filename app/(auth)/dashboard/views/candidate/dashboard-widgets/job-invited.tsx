@@ -4,6 +4,7 @@ import {
   ChevronRight,
   ChevronLeft,
   ChevronRightIcon,
+  UserCheck,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,9 @@ interface JobInvitedProps {
 
 const ITEMS_PER_PAGE = 3;
 
-export const JobInvited: React.FC<JobInvitedProps> = ({ handleViewMoreJobInvited }) => {
+export const JobInvited: React.FC<JobInvitedProps> = ({
+  handleViewMoreJobInvited,
+}) => {
   const [invitedJobs, setInvitedJobs] = useState<Job[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -47,7 +50,7 @@ export const JobInvited: React.FC<JobInvitedProps> = ({ handleViewMoreJobInvited
               company: invite.company,
               status: invite.status,
               inviteDate: invite.inviteDate,
-              jobId: invite.jobId
+              jobId: invite.jobId,
             }))
           );
         } else {
@@ -76,11 +79,13 @@ export const JobInvited: React.FC<JobInvitedProps> = ({ handleViewMoreJobInvited
 
   return (
     <Card className="h-full">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-semibold flex items-center">
-          <Briefcase className="mr-2 h-5 w-5" />
+      <CardHeader className="flex flex-row items-center space-x-2 pb-2">
+      <div className="flex items-center">
+        <Briefcase className="mr-2 h-4 w-4" />
+        <CardTitle className="text-md font-semibold text-gray-800">
           Jobs You're Invited To
         </CardTitle>
+        </div>
       </CardHeader>
       <CardContent className="pt-0">
         {isLoading ? (
@@ -88,7 +93,20 @@ export const JobInvited: React.FC<JobInvitedProps> = ({ handleViewMoreJobInvited
         ) : error ? (
           <p className="text-red-500">Error: {error}</p>
         ) : invitedJobs.length === 0 ? (
-          <p>No job invitations at the moment.</p>
+          <>
+            <p className="text-sm text-gray-500">
+              Exciting opportunities are on the horizon. Check back soon for job
+              invitations. These invitations are personalized outreach from HR
+              managers who have discovered your profile and believe you'd be a
+              great fit for their openings.
+            </p>
+            <div className="mt-3 flex items-center text-xs text-indigo-600">
+              <UserCheck className="w-4 h-4 mr-1" />
+              <span>
+                Invites are hand-picked by a company's human recruiters
+              </span>
+            </div>
+          </>
         ) : (
           <>
             <div className="space-y-4">
@@ -116,9 +134,9 @@ export const JobInvited: React.FC<JobInvitedProps> = ({ handleViewMoreJobInvited
                     >
                       {job.status}
                     </Badge>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => handleViewMoreJobInvited(job.jobId)}
                     >
                       <ChevronRight className="h-4 w-4" />

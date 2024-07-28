@@ -37,6 +37,19 @@ export default function CandidateDashboardRightPanelDashboard() {
       }
       return null;
     },
+    inviteAlerts: (data: WidgetPayload, clearWidget: () => void) => {
+      if (data.type === "inviteAlerts" && data.payload.jobId) {
+        return (
+          <JobMoreDetails
+            jobId={data.payload.jobId}
+            onBack={() => {
+              clearWidget();
+            }}
+          />
+        );
+      }
+      return null;
+    },
     talentID: (data: WidgetPayload, clearWidget: () => void) => {
       if (data.type === "talentID" && data.payload.show) {
         return (

@@ -49,10 +49,12 @@ export default function ResumeSuggestionCard({
   return (
     <Card className="w-full bg-white shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full">
       <CardHeader className="flex flex-row items-center space-x-2 pb-2">
-        <Lightbulb className="w-4 h-4 text-yellow-400" />
+      <div className="flex items-center">
+        <Lightbulb className="w-4 h-4 text-yellow-400 mr-2" />
         <CardTitle className="text-md font-semibold text-gray-800">
           Resume Enhancements
         </CardTitle>
+        </div>
       </CardHeader>
       <CardContent className="flex-grow py-4 space-y-2">
         {loading ? (

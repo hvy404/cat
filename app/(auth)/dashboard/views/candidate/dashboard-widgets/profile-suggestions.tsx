@@ -52,14 +52,18 @@ export default function ProfileSuggestionCard({
   return (
     <Card className="w-full bg-white shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full">
       <CardHeader className="flex flex-row items-center space-x-2 pb-2">
-        <Lightbulb className="w-4 h-4 text-gray-400" />
-        <CardTitle className="text-md font-semibold text-gray-800">
-          Profile Enhancements
-        </CardTitle>
+        <div className="flex items-center">
+          <Lightbulb className="w-4 h-4 mr-2" />
+          <CardTitle className="text-md font-semibold text-gray-800">
+            Profile Enhancements
+          </CardTitle>
+        </div>
       </CardHeader>
       <CardContent className="flex-grow py-4 space-y-2">
         {loading ? (
-          <p className="text-gray-500 text-sm text-center">Loading suggestions...</p>
+          <p className="text-gray-500 text-sm text-center">
+            Loading suggestions...
+          </p>
         ) : suggestions.length === 0 ? (
           <p className="text-gray-500 text-sm text-center">
             Your profile is looking great!

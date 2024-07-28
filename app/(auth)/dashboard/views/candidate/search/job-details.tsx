@@ -261,7 +261,7 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
       <div className="p-4 max-w-4xl mx-auto">
         <Button variant="ghost" onClick={onBack} className="mb-4 text-sm">
           <ChevronLeft className="w-4 h-4 mr-2" />
-          Back to Search Results
+          Back
         </Button>
 
         <Dialog open={isErrorDialogOpen} onOpenChange={setIsErrorDialogOpen}>
