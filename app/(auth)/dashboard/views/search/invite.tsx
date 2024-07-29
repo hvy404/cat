@@ -270,15 +270,6 @@ export default function InviteActionWithList({
             >
               Send invite
             </Button>
-            {inviteStatus && (
-              <p
-                className={
-                  inviteStatus.success ? "text-green-500" : "text-red-500"
-                }
-              >
-                {inviteStatus.message}
-              </p>
-            )}
           </div>
         )}
       </DialogContent>

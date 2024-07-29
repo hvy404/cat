@@ -47,6 +47,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { createJobAlert, disableJobAlert } from "@/app/(auth)/dashboard/views/candidate/search/manage-search-alerts"
 import { toast } from "sonner";
 
 type ExtendedJobSearchResult = JobSearchResult & {
@@ -213,12 +214,30 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
     };
   }, [userId]);
 
-  const handleThumbsUp = () => {
-    console.log("User clicked thumbs up for job alerts");
+  const handleThumbsUp = async () => {
+    if (userId && searchQuery) {
+      const result = await createJobAlert(userId, searchQuery);
+      if (result.success) {
+        toast.success(result.message);
+      } else {
+        toast.error(result.message);
+      }
+    } else {
+      toast.error('Please log in and enter a search query to create an alert.');
+    }
   };
 
-  const handleThumbsDown = () => {
-    console.log("User clicked thumbs down for job alerts");
+  const handleThumbsDown = async () => {
+    if (userId && searchQuery) {
+      const result = await disableJobAlert(userId, searchQuery);
+      if (result.success) {
+        toast.success(result.message);
+      } else {
+        toast.error(result.message);
+      }
+    } else {
+      toast.error('Please log in and enter a search query to disable alerts.');
+    }
   };
 
   const renderJobDetails = (job: SerializableJobResult): JSX.Element => (

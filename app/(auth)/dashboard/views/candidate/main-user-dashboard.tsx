@@ -18,6 +18,7 @@ import {
 } from "@/app/(auth)/dashboard/views/candidate/search/bookmark"; // Get bookmarked jobs
 import { JobBookmarked } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-bookmarked";
 import TalentId from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/talent-id";
+import CandidateAlertsCard from "@/app/(auth)/dashboard/views/candidate/main-candidate-alerts";
 
 interface Job {
   id: number;
@@ -232,12 +233,7 @@ export function CandidateDashboard() {
           <p className="text-lg font-semibold text-gray-900">Value</p>
           <p className="text-sm text-gray-600">Change messages</p>
         </div>
-        <div className="flex flex-col items-center justify-center p-4 border border-gray-300 rounded-md">
-          {/*  <stat.icon className="w-6 h-6 text-gray-600 mb-2" /> */}
-          <p className="text-sm font-medium text-gray-700">Title</p>
-          <p className="text-lg font-semibold text-gray-900">Value</p>
-          <p className="text-sm text-gray-600">Change messages</p>
-        </div>
+        <CandidateAlertsCard userId={user.uuid} />
         {user && user.uuid && (
           <TalentId
             handleTalentIDLearnMore={handleTalentIDLearnMore}

@@ -6,6 +6,16 @@ import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { initializeRedis } from "@/lib/redis/connect"; // upstash/redis client
 
+// Helper function to shuffle an array
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
 export async function BuildSearchRoles(userId: string) {
   const redis = initializeRedis();
   const cacheKey = `search-suggestions:${userId}`;
@@ -13,7 +23,11 @@ export async function BuildSearchRoles(userId: string) {
   // Check cache first
   const cachedResult = await redis.get(cacheKey);
   if (cachedResult) {
-    return cachedResult;
+    const parsedResult = cachedResult as { roles?: string[], status: string, message?: string };
+    if (parsedResult.roles && parsedResult.roles.length > 0) {
+      parsedResult.roles = shuffleArray(parsedResult.roles);
+    }
+    return parsedResult;
   }
 
   const togetherai = new OpenAI({
@@ -111,6 +125,11 @@ export async function BuildSearchRoles(userId: string) {
 
   // Store the result in cache for 7 days
   await redis.set(cacheKey, JSON.stringify(result), { ex: 7 * 24 * 60 * 60 });
+
+  // Randomize the roles before returning
+  if (result.roles && result.roles.length > 0) {
+    result.roles = shuffleArray(result.roles);
+  }
 
   return result;
 }

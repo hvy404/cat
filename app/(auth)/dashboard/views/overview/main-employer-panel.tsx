@@ -19,10 +19,6 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  UserPlus,
-  Users,
-  TrendingUp,
-  ChevronRight,
   BotIcon,
   Archive,
   MapPin,
@@ -42,7 +38,7 @@ interface Job {
   location_type: string;
   security_clearance: string;
   posted_date: string;
-  private_employer: boolean | null;
+  private_employer: boolean | null;  
   new_match?: boolean;
 }
 
