@@ -264,17 +264,6 @@ const NoJobsFound = () => (
 );
 
 const EmployerDashboardView: React.FC = () => {
-  const [welcomeMessage, setWelcomeMessage] = useState("");
-
-  useEffect(() => {
-    const fetchMessage = async () => {
-      // Simulating an async call to get the welcome message
-      const message = "Welcome back! Here's your dashboard overview.";
-      setWelcomeMessage(message);
-    };
-
-    fetchMessage();
-  }, []);
 
   return (
     <div className="min-h-screen w-full">
@@ -293,7 +282,7 @@ const EmployerDashboardView: React.FC = () => {
                     <BotIcon className="w-5 h-5 text-gray-600" />
                   </div>
                   <p className="text-sm text-gray-600 leading-relaxed">
-                    {welcomeMessage}
+                    Welcome back!
                   </p>
                 </div>
               </CardContent>

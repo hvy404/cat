@@ -1,10 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, ChevronRight, X, AlertCircle, Calendar, Hash, User, Type } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import useStore from "@/app/state/useStore";
+import {
+  Bell,
+  ChevronRight,
+  X,
+  AlertCircle,
+  Calendar,
+  Hash,
+  User,
+  Inbox,
+  Type,
+} from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -13,95 +24,92 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-
-interface Alert {
-  id: number;
-  user_id: number;
-  type: 'match' | 'invite' | 'application';
-  reference_id: number;
-  status: 'unread' | 'read';
-  created_at: string;
-  description: string;
-  actionRequired: boolean;
-}
-
-const alertTypeColors = {
-  match: 'bg-blue-500',
-  invite: 'bg-green-500',
-  application: 'bg-purple-500',
-};
+import {
+  getAlerts,
+  updateAlert,
+  deleteAlert,
+  Alert,
+} from "@/lib/alerts/alert-crud";
 
 const AlertsCard: React.FC = () => {
+  const { user } = useStore();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [showOnlyUnread, setShowOnlyUnread] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchAlerts = async () => {
-      // Replace this with actual API call
-      const mockAlerts: Alert[] = [
-        { 
-          id: 1,
-          user_id: 101,
-          type: 'match', 
-          reference_id: 201,
-          status: 'unread', 
-          created_at: '2024-07-26T10:00:00Z',
-          description: 'A new job matching your skills has been posted.',
-          actionRequired: false
-        },
-        { 
-          id: 2,
-          user_id: 101,
-          type: 'invite', 
-          reference_id: 301,
-          status: 'unread', 
-          created_at: '2024-07-25T15:30:00Z',
-          description: 'You have been invited for an interview with TechCorp.',
-          actionRequired: true
-        },
-        { 
-          id: 3,
-          user_id: 101,
-          type: 'application', 
-          reference_id: 401,
-          status: 'read', 
-          created_at: '2024-07-24T09:45:00Z',
-          description: 'Your application for Software Engineer at InnovateTech has been reviewed.',
-          actionRequired: false
-        },
-        { 
-          id: 4,
-          user_id: 101,
-          type: 'match', 
-          reference_id: 202,
-          status: 'unread', 
-          created_at: '2024-07-23T14:20:00Z',
-          description: 'Your profile matches 5 new job openings.',
-          actionRequired: false
-        },
-      ];
-      setAlerts(mockAlerts);
-    };
-
     fetchAlerts();
-  }, []);
+  }, [user]);
 
-  const unreadCount = alerts.filter(alert => alert.status === 'unread').length;
+  const fetchAlerts = async () => {
+    setIsLoading(true);
+    try {
+      if (user && user.uuid) {
+        const fetchedAlerts = await getAlerts(user.uuid);
+        if (fetchedAlerts) {
+          setAlerts(fetchedAlerts as Alert[]);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching alerts:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdateAlert = async (id: string, updates: Partial<Alert>) => {
+    try {
+      const updatedAlert = await updateAlert(id, updates);
+      if (updatedAlert) {
+        setAlerts(
+          alerts.map((alert) => (alert.id === id ? updatedAlert : alert))
+        );
+      }
+    } catch (error) {
+      console.error("Error updating alert:", error);
+    }
+  };
+
+  const handleDeleteAlert = async (id: string) => {
+    try {
+      const success = await deleteAlert(id);
+      if (success) {
+        setAlerts(alerts.filter((alert) => alert.id !== id));
+      }
+    } catch (error) {
+      console.error("Error deleting alert:", error);
+    }
+  };
+
+  const unreadCount = alerts.filter(
+    (alert) => alert.status === "unread"
+  ).length;
+
+  const alertTypeColors = {
+    match: "bg-blue-500",
+    invite: "bg-green-500",
+    application: "bg-purple-500",
+  };
 
   const getAlertDotStyle = (alert: Alert) => {
-    if (alert.status === 'read') {
-      return 'w-2 h-2 rounded-full border border-gray-300';
+    if (alert.status === "read") {
+      return "w-2 h-2 rounded-full border border-gray-300";
     }
     return `w-2 h-2 rounded-full ${alertTypeColors[alert.type]}`;
   };
 
-  const filteredAlerts = showOnlyUnread ? alerts.filter(alert => alert.status === 'unread') : alerts;
+  const filteredAlerts = showOnlyUnread
+    ? alerts.filter((alert) => alert.status === "unread")
+    : alerts;
 
   const toggleFilter = () => setShowOnlyUnread(!showOnlyUnread);
 
   const openAlertDialog = (alert: Alert) => {
     setSelectedAlert(alert);
+    if (alert.status === "unread") {
+      handleUpdateAlert(alert.id, { status: "read" });
+    }
   };
 
   const closeAlertDialog = () => {
@@ -110,28 +118,59 @@ const AlertsCard: React.FC = () => {
 
   const getAlertTitle = (alert: Alert) => {
     switch (alert.type) {
-      case 'match':
-        return 'New Job Match';
-      case 'invite':
-        return 'Interview Invitation';
-      case 'application':
-        return 'Application Update';
+      case "match":
+        return "New Job Match";
+      case "invite":
+        return "Interview Invitation";
+      case "application":
+        return "Application Update";
       default:
-        return 'New Alert';
+        return "New Alert";
     }
   };
 
   const getAlertIcon = (type: string) => {
     switch (type) {
-      case 'match':
+      case "match":
         return <AlertCircle className="w-6 h-6 text-blue-500" />;
-      case 'invite':
+      case "invite":
         return <AlertCircle className="w-6 h-6 text-green-500" />;
-      case 'application':
+      case "application":
         return <AlertCircle className="w-6 h-6 text-purple-500" />;
       default:
         return <AlertCircle className="w-6 h-6 text-gray-500" />;
     }
+  };
+
+  const emptyStateMessages = [
+    "Your job postings are live and active!",
+    "Ready to receive great applications soon!",
+    "Your recruitment pipeline is set up for success!",
+    "Exciting candidates are just around the corner!",
+    "Your next great hire could be applying any moment!",
+    "Stay tuned for potential perfect matches!",
+    "Your job opportunities are out there working for you!",
+    "Keep an eye out, top talent may be viewing your posts!",
+    "You're all set to attract amazing candidates!",
+    "Get ready for a flood of qualified applicants!",
+  ];
+
+  const EmptyState = () => {
+    const randomMessage = useMemo(() => {
+      const randomIndex = Math.floor(Math.random() * emptyStateMessages.length);
+      return emptyStateMessages[randomIndex];
+    }, []);
+
+    return (
+      <div className="flex flex-col items-center justify-center h-full">
+        <Inbox className="w-16 h-16 text-gray-300 mb-4" />
+        <p className="text-gray-500 text-center text-sm">
+          No alerts at the moment.
+          <br />
+          {randomMessage}
+        </p>
+      </div>
+    );
   };
 
   return (
@@ -143,53 +182,63 @@ const AlertsCard: React.FC = () => {
               <Bell className="w-4 h-4 mr-2 text-gray-500" />
               <span>Alerts</span>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleFilter}
-              className="px-2 py-1 h-auto font-normal"
-            >
-              {showOnlyUnread ? (
-                <span className="flex items-center">
-                  <X className="w-3 h-3 mr-1" />
-                  Clear filter
-                </span>
-              ) : (
-                <Badge variant="secondary" className="ml-2">
-                  {unreadCount} new
-                </Badge>
-              )}
-            </Button>
+            {alerts.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleFilter}
+                className="px-2 py-1 h-auto font-normal"
+              >
+                {showOnlyUnread ? (
+                  <span className="flex items-center">
+                    <X className="w-3 h-3 mr-1" />
+                    Clear filter
+                  </span>
+                ) : (
+                  <Badge variant="secondary" className="ml-2">
+                    {unreadCount} new
+                  </Badge>
+                )}
+              </Button>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <ScrollArea className="h-[180px] px-4 py-2">
-            <AnimatePresence>
-              {filteredAlerts.map((alert) => (
-                <motion.div
-                  key={alert.id}
-                  className="flex items-center justify-between py-2 border-b last:border-b-0 cursor-pointer hover:bg-gray-50"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.2 }}
-                  onClick={() => openAlertDialog(alert)}
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className={getAlertDotStyle(alert)} />
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">
-                        {getAlertTitle(alert)}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(alert.created_at).toLocaleString()}
-                      </p>
+            {isLoading ? (
+              <div className="flex justify-center items-center h-full">
+                <span className="text-gray-500">Loading alerts...</span>
+              </div>
+            ) : filteredAlerts.length > 0 ? (
+              <AnimatePresence>
+                {filteredAlerts.map((alert) => (
+                  <motion.div
+                    key={alert.id}
+                    className="flex items-center justify-between py-2 border-b last:border-b-0 cursor-pointer hover:bg-gray-50"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    onClick={() => openAlertDialog(alert)}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className={getAlertDotStyle(alert)} />
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">
+                          {getAlertTitle(alert)}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(alert.created_at).toLocaleString()}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-gray-400" />
-                </motion.div>
-              ))}
-            </AnimatePresence>
+                    <ChevronRight className="w-4 h-4 text-gray-400" />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            ) : (
+              <EmptyState />
+            )}
           </ScrollArea>
         </CardContent>
       </Card>
@@ -203,7 +252,9 @@ const AlertsCard: React.FC = () => {
             </DialogTitle>
           </DialogHeader>
           <div className="p-4 bg-gray-50 rounded-md">
-            <p className="text-sm text-gray-700">{selectedAlert?.description}</p>
+            <p className="text-sm text-gray-700">
+              {selectedAlert?.description}
+            </p>
           </div>
           <Separator className="my-4" />
           <div className="grid grid-cols-2 gap-4">
@@ -216,7 +267,8 @@ const AlertsCard: React.FC = () => {
               <Calendar className="w-4 h-4 text-gray-500" />
               <span className="text-sm font-medium">Created:</span>
               <span className="text-sm">
-                {selectedAlert && new Date(selectedAlert.created_at).toLocaleDateString()}
+                {selectedAlert &&
+                  new Date(selectedAlert.created_at).toLocaleDateString()}
               </span>
             </div>
             <div className="flex items-center space-x-2">
@@ -230,16 +282,21 @@ const AlertsCard: React.FC = () => {
               <span className="text-sm">{selectedAlert?.user_id}</span>
             </div>
           </div>
-          {selectedAlert?.actionRequired && (
+          {selectedAlert?.action_required && (
             <div className="mt-4">
-              <Badge variant="destructive" className="w-full justify-center py-1">
+              <Badge
+                variant="destructive"
+                className="w-full justify-center py-1"
+              >
                 Action Required
               </Badge>
             </div>
           )}
           <DialogFooter className="mt-6">
-            <Button variant="outline" onClick={closeAlertDialog}>Close</Button>
-            {selectedAlert?.actionRequired && (
+            <Button variant="outline" onClick={closeAlertDialog}>
+              Close
+            </Button>
+            {selectedAlert?.action_required && (
               <Button onClick={closeAlertDialog}>Take Action</Button>
             )}
           </DialogFooter>

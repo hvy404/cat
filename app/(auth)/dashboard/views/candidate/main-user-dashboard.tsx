@@ -15,7 +15,7 @@ import JobInvited from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets
 import {
   getAllBookmarkedJobsForCandidate,
   CandidateJobBookmark,
-} from "@/app/(auth)/dashboard/views/candidate/search/bookmark"; // Get bookmarked jobs
+} from "@/app/(auth)/dashboard/views/candidate/search/bookmark";
 import { JobBookmarked } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-bookmarked";
 import TalentId from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/talent-id";
 import CandidateAlertsCard from "@/app/(auth)/dashboard/views/candidate/main-candidate-alerts";
@@ -57,24 +57,17 @@ const cardVariants = {
 };
 
 export function CandidateDashboard() {
-  const { setCandidateDashboard, user } = useStore((state) => ({
+  const { setCandidateDashboard, user, setSelectedMenuItem } = useStore((state) => ({
     setCandidateDashboard: state.setCandidateDashboard,
     user: state.user,
-  }));
-  const { setSelectedMenuItem } = useStore(state => ({
     setSelectedMenuItem: state.setSelectedMenuItem
   }));
 
-  // if user.uuid is empty return loading
-  if (!user?.uuid) return <p>Loading...</p>;
-
-  const candidateId = user.uuid;
-
   const [data, setData] = useState<DashboardData>(mockData);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [bookmarkedJobs, setBookmarkedJobs] = useState<CandidateJobBookmark[]>(
-    []
-  );
+  const [bookmarkedJobs, setBookmarkedJobs] = useState<CandidateJobBookmark[]>([]);
+
+  const candidateId = user?.uuid || '';
 
   const refreshData = useCallback(async () => {
     setIsLoading(true);
@@ -92,7 +85,6 @@ export function CandidateDashboard() {
     setIsLoading(false);
   }, [candidateId]);
 
-  // Handle view more job bookmarked
   const handleViewMoreJobBookmarked = useCallback(
     (jobId: string) => {
       setCandidateDashboard({
@@ -103,15 +95,13 @@ export function CandidateDashboard() {
     [setCandidateDashboard]
   );
 
-  // Handle bookmark remove
-  const handleBookmarkRemoved = (jobId: string) => {
+  const handleBookmarkRemoved = useCallback((jobId: string) => {
     console.log("Bookmark removed for job:", jobId);
     setBookmarkedJobs((prevJobs) =>
       prevJobs.filter((job) => job.jd_id !== jobId)
     );
-  };
+  }, []);
 
-  // Handle browse job click -- set setSelectedMenuItem(talent-search)
   const handleBrowseJobsClick = useCallback(() => {
     setSelectedMenuItem("talent-search");
   }, [setSelectedMenuItem]);
@@ -126,7 +116,6 @@ export function CandidateDashboard() {
     [setCandidateDashboard]
   );
 
-  // Handle Talent ID learn more
   const handleTalentIDLearnMore = useCallback(
     (candidateId: string) => {
       setCandidateDashboard({
@@ -141,7 +130,6 @@ export function CandidateDashboard() {
     [setCandidateDashboard]
   );
 
-  // Handle resume suggestion click
   const handleResumeSuggestionClick = useCallback(
     (suggestion: ResumeSuggestion) => {
       setCandidateDashboard({
@@ -160,7 +148,6 @@ export function CandidateDashboard() {
     [setCandidateDashboard]
   );
 
-  // Handle profile suggestion click
   const handleProfileSuggestionClick = useCallback(
     (suggestion: ProfileSuggestion) => {
       setCandidateDashboard({
@@ -193,18 +180,20 @@ export function CandidateDashboard() {
         handleBrowseJobsClick={handleBrowseJobsClick}
       />
     ),
-    [bookmarkedJobs, handleViewMoreJobBookmarked]
+    [bookmarkedJobs, handleViewMoreJobBookmarked, candidateId, handleBookmarkRemoved, handleBrowseJobsClick]
   );
 
   const memoizedJobInvited = useMemo(
     () => <JobInvited handleViewMoreJobInvited={handleViewMoreJobInvited} />,
-    [data.invitedJobs]
+    [handleViewMoreJobInvited]
   );
 
   const memoizedInsightsCard = useMemo(
     () => <InsightsCard data={data.careerInsights} />,
     [data.careerInsights]
   );
+
+  if (!user?.uuid) return <p>Loading...</p>;
 
   return (
     <div className="max-w">
@@ -228,20 +217,16 @@ export function CandidateDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="flex flex-col items-center justify-center p-4 border border-gray-300 rounded-md">
-          {/*  <stat.icon className="w-6 h-6 text-gray-600 mb-2" /> */}
           <p className="text-sm font-medium text-gray-700">Title</p>
           <p className="text-lg font-semibold text-gray-900">Value</p>
           <p className="text-sm text-gray-600">Change messages</p>
         </div>
-        <CandidateAlertsCard userId={user.uuid} />
-        {user && user.uuid && (
-          <TalentId
-            handleTalentIDLearnMore={handleTalentIDLearnMore}
-            candidateId={user.uuid}
-          />
-        )}
+        <CandidateAlertsCard />
+        <TalentId
+          handleTalentIDLearnMore={handleTalentIDLearnMore}
+          candidateId={user.uuid}
+        />
       </div>
-      {/* <QuickStats /> */}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <AnimatePresence>
@@ -267,12 +252,10 @@ export function CandidateDashboard() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="flex flex-col h-full"
           >
-            {candidateId && (
-              <ResumeSuggestionCard
-                candidateId={candidateId}
-                handleResumeSuggestionClick={handleResumeSuggestionClick}
-              />
-            )}
+            <ResumeSuggestionCard
+              candidateId={candidateId}
+              handleResumeSuggestionClick={handleResumeSuggestionClick}
+            />
           </motion.div>
 
           <motion.div
@@ -284,12 +267,10 @@ export function CandidateDashboard() {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="flex flex-col h-full"
           >
-            {candidateId && (
-              <ProfileSuggestionCard
-                candidateId={candidateId}
-                handleProfileSuggestionClick={handleProfileSuggestionClick}
-              />
-            )}
+            <ProfileSuggestionCard
+              candidateId={candidateId}
+              handleProfileSuggestionClick={handleProfileSuggestionClick}
+            />
           </motion.div>
         </AnimatePresence>
       </div>
