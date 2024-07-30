@@ -106,6 +106,7 @@ export function CandidateDashboard() {
     setSelectedMenuItem("talent-search");
   }, [setSelectedMenuItem]);
 
+  // Bookmark view details
   const handleViewMoreJobInvited = useCallback(
     (jobId: string) => {
       setCandidateDashboard({
@@ -115,6 +116,30 @@ export function CandidateDashboard() {
     },
     [setCandidateDashboard]
   );
+
+  // Handle view details action
+  const handleAlertAction = useCallback(
+    (alertType: string, jobId: string) => {
+      switch (alertType) {
+        case "invite":
+          setCandidateDashboard({
+            widget: "inviteAlerts",
+            widgetPayload: { type: "inviteAlerts", payload: { jobId: jobId } },
+          });
+          break;
+        /* case "match":
+          setCandidateDashboard({
+            widget: "matchAlerts",
+            widgetPayload: { type: "matchAlerts", payload: { jobId: jobId } },
+          });
+          break; */
+        default:
+          console.warn(`Unhandled alert type: ${alertType}`);
+      }
+    },
+    [setCandidateDashboard]
+  );
+
 
   const handleTalentIDLearnMore = useCallback(
     (candidateId: string) => {
@@ -221,7 +246,7 @@ export function CandidateDashboard() {
           <p className="text-lg font-semibold text-gray-900">Value</p>
           <p className="text-sm text-gray-600">Change messages</p>
         </div>
-        <CandidateAlertsCard />
+        <CandidateAlertsCard onAlertAction={handleAlertAction} />
         <TalentId
           handleTalentIDLearnMore={handleTalentIDLearnMore}
           candidateId={user.uuid}
