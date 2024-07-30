@@ -35,6 +35,7 @@ import {
   getInviteAlertDetails,
   InviteDetails,
 } from "@/lib/alerts/candidate-get-invite-details";
+import { toast } from "sonner";
 
 interface AlertsCardProps {
   onAlertAction: (alertType: string, jobId: string) => void;
@@ -89,9 +90,11 @@ const AlertsCard: React.FC<AlertsCardProps> = ({ onAlertAction }) => {
       const success = await deleteAlert(id);
       if (success) {
         setAlerts(alerts.filter((alert) => alert.id !== id));
+        toast.success("Alert deleted successfully");
       }
     } catch (error) {
       console.error("Error deleting alert:", error);
+      toast.error("Failed to delete alert");
     }
   };
 
@@ -334,13 +337,15 @@ const AlertsCard: React.FC<AlertsCardProps> = ({ onAlertAction }) => {
             </Button>
             {selectedAlert?.action_required && (
               <Button
+                variant={"destructive"}
                 onClick={() => {
-                  // Handle the action here
-                  console.log("Taking action on alert:", selectedAlert.id);
-                  closeAlertDialog();
+                  if (selectedAlert) {
+                    handleDeleteAlert(selectedAlert.id);
+                    closeAlertDialog();
+                  }
                 }}
               >
-                Take Action
+                Delete
               </Button>
             )}
             {selectedAlert?.type === "invite" && (
