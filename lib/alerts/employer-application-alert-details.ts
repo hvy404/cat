@@ -3,14 +3,14 @@
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 
-export interface ApplicationAlertDetails {
-  application_id: string;
-  job_title: string;
-  candidate_name: string;
-  candidate_email: string;
-  application_status: string;
-  created_at: string;
-  resume_id: string;
+export interface ApplicationDetails {
+  a: string; // application_id
+  b: string; // job_title
+  c: string; // candidate_name
+  d: string; // candidate_email
+  e: string; // application_status
+  f: string; // created_at
+  g: string; // resume_id
 }
 
 interface RawApplicationData {
@@ -19,16 +19,21 @@ interface RawApplicationData {
   created_at: string;
   resume_id: string;
   job_postings: { title: string } | { title: string }[];
-  candidates: { name: string; email: string } | { name: string; email: string }[];
+  candidates:
+    | { name: string; email: string }
+    | { name: string; email: string }[];
 }
 
-export async function getApplicationAlertDetails(alertReferenceId: string): Promise<ApplicationAlertDetails | null> {
+export async function getApplicationAlertDetails(
+  alertReferenceId: string
+): Promise<ApplicationDetails | null> {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
   const { data, error } = await supabase
     .from("applications")
-    .select(`
+    .select(
+      `
       id,
       status,
       created_at,
@@ -40,7 +45,8 @@ export async function getApplicationAlertDetails(alertReferenceId: string): Prom
         name,
         email
       )
-    `)
+    `
+    )
     .eq("id", alertReferenceId)
     .single();
 
@@ -56,19 +62,23 @@ export async function getApplicationAlertDetails(alertReferenceId: string): Prom
 
   const rawData = data as unknown as RawApplicationData;
 
-  const jobPostings = Array.isArray(rawData.job_postings) ? rawData.job_postings[0] : rawData.job_postings;
-  const candidates = Array.isArray(rawData.candidates) ? rawData.candidates[0] : rawData.candidates;
+  const jobPostings = Array.isArray(rawData.job_postings)
+    ? rawData.job_postings[0]
+    : rawData.job_postings;
+  const candidates = Array.isArray(rawData.candidates)
+    ? rawData.candidates[0]
+    : rawData.candidates;
 
-  // Restructure the data to match the ApplicationAlertDetails interface
-  const applicationDetails: ApplicationAlertDetails = {
-    application_id: rawData.id,
-    job_title: jobPostings?.title || 'Unknown',
-    candidate_name: candidates?.name || 'Unknown',
-    candidate_email: candidates?.email || 'Unknown',
-    application_status: rawData.status,
-    created_at: rawData.created_at,
-    resume_id: rawData.resume_id
+  // Restructure the data with obfuscated keys
+  const obfuscatedApplicationDetails: ApplicationDetails = {
+    a: rawData.id,
+    b: jobPostings?.title || "Unknown",
+    c: candidates?.name || "Unknown",
+    d: candidates?.email || "Unknown",
+    e: rawData.status,
+    f: rawData.created_at,
+    g: rawData.resume_id,
   };
 
-  return applicationDetails;
+  return obfuscatedApplicationDetails;
 }

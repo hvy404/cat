@@ -35,7 +35,7 @@ import {
 } from "@/lib/alerts/alert-crud";
 import {
   getApplicationAlertDetails,
-  ApplicationAlertDetails,
+  ApplicationDetails,
 } from "@/lib/alerts/employer-application-alert-details";
 
 const AlertsCard: React.FC = () => {
@@ -45,7 +45,7 @@ const AlertsCard: React.FC = () => {
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [applicationDetails, setApplicationDetails] =
-    useState<ApplicationAlertDetails | null>(null);
+    useState<ApplicationDetails | null>(null);
 
   useEffect(() => {
     fetchAlerts();
@@ -275,33 +275,31 @@ const AlertsCard: React.FC = () => {
                 <div className="flex items-center space-x-2">
                   <Briefcase className="w-5 h-5 text-gray-500" />
                   <p className="font-semibold">
-                    {applicationDetails.job_title}
+                    {applicationDetails.b} {/* job_title */}
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <User className="w-5 h-5 text-gray-500" />
-                  <p>Candidate: {applicationDetails.candidate_name}</p>
+                  <p>Candidate: {applicationDetails.c}</p>{" "}
+                  {/* candidate_name */}
                 </div>
                 <div className="flex items-center space-x-2">
                   <Mail className="w-5 h-5 text-gray-500" />
-                  <p>Email: {applicationDetails.candidate_email}</p>
+                  <p>Email: {applicationDetails.d}</p> {/* candidate_email */}
                 </div>
-                <div className="flex items-center space-x-2">
-                  <AlertCircle className="w-5 h-5 text-gray-500" />
-                  <p>Status: {applicationDetails.application_status}</p>
-                </div>
+   
                 <div className="flex items-center space-x-2">
                   <Calendar className="w-5 h-5 text-gray-500" />
                   <p>
                     Applied on:{" "}
-                    {new Date(
-                      applicationDetails.created_at
-                    ).toLocaleDateString()}
+                    {new Date(applicationDetails.f).toLocaleDateString()}{" "}
+                    {/* created_at */}
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <FileText className="w-5 h-5 text-gray-500" />
-                  <p>Resume ID: {applicationDetails.resume_id}</p>
+                  <p>Resume ID: {applicationDetails.g}</p> {/* resume_id */}
+                  {/* TODO: Add download mechanism */}
                 </div>
               </div>
             ) : (
@@ -351,7 +349,7 @@ const AlertsCard: React.FC = () => {
                   // Handle viewing the full application here
                   console.log(
                     "Viewing full application:",
-                    applicationDetails?.application_id
+                    applicationDetails?.a
                   );
                   closeAlertDialog();
                 }}
