@@ -95,3 +95,5 @@ export async function deleteAlert(id: string) {
 
   return true;
 }
+
+// Logic to retreive data of "Application" alert for employer view

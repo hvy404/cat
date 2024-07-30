@@ -11,6 +11,9 @@ import {
   User,
   Inbox,
   Type,
+  Briefcase,
+  Mail,
+  FileText,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +33,10 @@ import {
   deleteAlert,
   Alert,
 } from "@/lib/alerts/alert-crud";
+import {
+  getApplicationAlertDetails,
+  ApplicationAlertDetails,
+} from "@/lib/alerts/employer-application-alert-details";
 
 const AlertsCard: React.FC = () => {
   const { user } = useStore();
@@ -37,6 +44,8 @@ const AlertsCard: React.FC = () => {
   const [showOnlyUnread, setShowOnlyUnread] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [applicationDetails, setApplicationDetails] =
+    useState<ApplicationAlertDetails | null>(null);
 
   useEffect(() => {
     fetchAlerts();
@@ -105,25 +114,34 @@ const AlertsCard: React.FC = () => {
 
   const toggleFilter = () => setShowOnlyUnread(!showOnlyUnread);
 
-  const openAlertDialog = (alert: Alert) => {
+  const openAlertDialog = async (alert: Alert) => {
     setSelectedAlert(alert);
     if (alert.status === "unread") {
       handleUpdateAlert(alert.id, { status: "read" });
+    }
+
+    if (alert.type === "application") {
+      const details = await getApplicationAlertDetails(alert.reference_id);
+      console.log(details);
+      setApplicationDetails(details);
+    } else {
+      setApplicationDetails(null);
     }
   };
 
   const closeAlertDialog = () => {
     setSelectedAlert(null);
+    setApplicationDetails(null);
   };
 
   const getAlertTitle = (alert: Alert) => {
     switch (alert.type) {
       case "match":
-        return "New Job Match";
+        return "New AI Match";
       case "invite":
         return "Interview Invitation";
       case "application":
-        return "Application Update";
+        return "Candidate Application";
       default:
         return "New Alert";
     }
@@ -252,35 +270,55 @@ const AlertsCard: React.FC = () => {
             </DialogTitle>
           </DialogHeader>
           <div className="p-4 bg-gray-50 rounded-md">
-            <p className="text-sm text-gray-700">
-              {selectedAlert?.description}
-            </p>
+            {selectedAlert?.type === "application" && applicationDetails ? (
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center space-x-2">
+                  <Briefcase className="w-5 h-5 text-gray-500" />
+                  <p className="font-semibold">
+                    {applicationDetails.job_title}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <User className="w-5 h-5 text-gray-500" />
+                  <p>Candidate: {applicationDetails.candidate_name}</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Mail className="w-5 h-5 text-gray-500" />
+                  <p>Email: {applicationDetails.candidate_email}</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="w-5 h-5 text-gray-500" />
+                  <p>Status: {applicationDetails.application_status}</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Calendar className="w-5 h-5 text-gray-500" />
+                  <p>
+                    Applied on:{" "}
+                    {new Date(
+                      applicationDetails.created_at
+                    ).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <FileText className="w-5 h-5 text-gray-500" />
+                  <p>Resume ID: {applicationDetails.resume_id}</p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-700">
+                {selectedAlert?.description}
+              </p>
+            )}
           </div>
           <Separator className="my-4" />
           <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center space-x-2">
-              <Type className="w-4 h-4 text-gray-500" />
-              <span className="text-sm font-medium">Type:</span>
-              <span className="text-sm">{selectedAlert?.type}</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Calendar className="w-4 h-4 text-gray-500" />
-              <span className="text-sm font-medium">Created:</span>
-              <span className="text-sm">
-                {selectedAlert &&
-                  new Date(selectedAlert.created_at).toLocaleDateString()}
-              </span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Hash className="w-4 h-4 text-gray-500" />
-              <span className="text-sm font-medium">Reference:</span>
-              <span className="text-sm">{selectedAlert?.reference_id}</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <User className="w-4 h-4 text-gray-500" />
-              <span className="text-sm font-medium">User ID:</span>
-              <span className="text-sm">{selectedAlert?.user_id}</span>
-            </div>
+            {selectedAlert?.type !== "application" && (
+              <div className="flex items-center space-x-2">
+                <User className="w-4 h-4 text-gray-500" />
+                <span className="text-sm font-medium">User ID:</span>
+                <span className="text-sm">{selectedAlert?.user_id}</span>
+              </div>
+            )}
           </div>
           {selectedAlert?.action_required && (
             <div className="mt-4">
@@ -297,7 +335,29 @@ const AlertsCard: React.FC = () => {
               Close
             </Button>
             {selectedAlert?.action_required && (
-              <Button onClick={closeAlertDialog}>Take Action</Button>
+              <Button
+                onClick={() => {
+                  // Handle the action here
+                  console.log("Taking action on alert:", selectedAlert.id);
+                  closeAlertDialog();
+                }}
+              >
+                Take Action
+              </Button>
+            )}
+            {selectedAlert?.type === "application" && (
+              <Button
+                onClick={() => {
+                  // Handle viewing the full application here
+                  console.log(
+                    "Viewing full application:",
+                    applicationDetails?.application_id
+                  );
+                  closeAlertDialog();
+                }}
+              >
+                View Full Application
+              </Button>
             )}
           </DialogFooter>
         </DialogContent>
