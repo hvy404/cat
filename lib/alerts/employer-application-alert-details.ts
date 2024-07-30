@@ -11,6 +11,7 @@ export interface ApplicationDetails {
   e: string; // application_status
   f: string; // created_at
   g: string; // resume_id
+  h: string; // candidate_identity
 }
 
 interface RawApplicationData {
@@ -20,8 +21,8 @@ interface RawApplicationData {
   resume_id: string;
   job_postings: { title: string } | { title: string }[];
   candidates:
-    | { name: string; email: string }
-    | { name: string; email: string }[];
+    | { name: string; email: string; identity: string }
+    | { name: string; email: string; identity: string }[];
 }
 
 export async function getApplicationAlertDetails(
@@ -43,7 +44,8 @@ export async function getApplicationAlertDetails(
       ),
       candidates (
         name,
-        email
+        email,
+        identity
       )
     `
     )
@@ -78,7 +80,10 @@ export async function getApplicationAlertDetails(
     e: rawData.status,
     f: rawData.created_at,
     g: rawData.resume_id,
+    h: candidates?.identity || "Unknown",
   };
+
+  console.log("Application details:", obfuscatedApplicationDetails);
 
   return obfuscatedApplicationDetails;
 }

@@ -7,13 +7,10 @@ import {
   X,
   AlertCircle,
   Calendar,
-  Hash,
   User,
   Inbox,
-  Type,
   Briefcase,
   Mail,
-  FileText,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -39,7 +36,7 @@ import {
 } from "@/lib/alerts/employer-application-alert-details";
 
 const AlertsCard: React.FC = () => {
-  const { user } = useStore();
+  const { user, setEmployerRightPanelView } = useStore();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [showOnlyUnread, setShowOnlyUnread] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
@@ -91,6 +88,24 @@ const AlertsCard: React.FC = () => {
     }
   };
 
+  const handleAlertAction = (
+    alertType: string,
+    ref: string,
+    details?: ApplicationDetails
+  ) => {
+    if (alertType === "application" && details) {
+      setEmployerRightPanelView("inboundApplications", {
+        applicationId: ref,
+      });
+      console.log("Handling application alert", ref);
+      // Add logic for application alerts
+    } else if (alertType === "invite") {
+      setEmployerRightPanelView("inboundApplications"); // or any other appropriate view
+      console.log("Handling invite alert", ref);
+      // Add logic for invite alerts
+    }
+  };
+
   const unreadCount = alerts.filter(
     (alert) => alert.status === "unread"
   ).length;
@@ -122,7 +137,6 @@ const AlertsCard: React.FC = () => {
 
     if (alert.type === "application") {
       const details = await getApplicationAlertDetails(alert.reference_id);
-      console.log(details);
       setApplicationDetails(details);
     } else {
       setApplicationDetails(null);
@@ -287,7 +301,7 @@ const AlertsCard: React.FC = () => {
                   <Mail className="w-5 h-5 text-gray-500" />
                   <p>Email: {applicationDetails.d}</p> {/* candidate_email */}
                 </div>
-   
+
                 <div className="flex items-center space-x-2">
                   <Calendar className="w-5 h-5 text-gray-500" />
                   <p>
@@ -295,11 +309,6 @@ const AlertsCard: React.FC = () => {
                     {new Date(applicationDetails.f).toLocaleDateString()}{" "}
                     {/* created_at */}
                   </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <FileText className="w-5 h-5 text-gray-500" />
-                  <p>Resume ID: {applicationDetails.g}</p> {/* resume_id */}
-                  {/* TODO: Add download mechanism */}
                 </div>
               </div>
             ) : (
@@ -332,29 +341,38 @@ const AlertsCard: React.FC = () => {
             <Button variant="outline" onClick={closeAlertDialog}>
               Close
             </Button>
-            {selectedAlert?.action_required && (
-              <Button
-                onClick={() => {
-                  // Handle the action here
-                  console.log("Taking action on alert:", selectedAlert.id);
-                  closeAlertDialog();
-                }}
-              >
-                Take Action
-              </Button>
-            )}
             {selectedAlert?.type === "application" && (
               <Button
                 onClick={() => {
-                  // Handle viewing the full application here
-                  console.log(
-                    "Viewing full application:",
-                    applicationDetails?.a
-                  );
+                  if (selectedAlert) {
+                    setEmployerRightPanelView("inboundApplications", {
+                      applicationId: selectedAlert.reference_id,
+                    });
+                    handleAlertAction(
+                      selectedAlert.type,
+                      selectedAlert.reference_id,
+                      applicationDetails || undefined
+                    );
+                  }
                   closeAlertDialog();
                 }}
               >
                 View Full Application
+              </Button>
+            )}
+            {selectedAlert?.type === "invite" && (
+              <Button
+                onClick={() => {
+                  if (selectedAlert) {
+                    handleAlertAction(
+                      selectedAlert.type,
+                      selectedAlert.reference_id
+                    );
+                  }
+                  closeAlertDialog();
+                }}
+              >
+                View Invite Details
               </Button>
             )}
           </DialogFooter>

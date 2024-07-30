@@ -71,11 +71,15 @@ const isValidAppStatus = (status: string): status is AppStatus => {
 const ITEMS_PER_PAGE = 10;
 
 const InboundApplicantsSidePanel = () => {
-  const { user, setEmployerRightPanelView } = useStore();
+  const { user, employerRightPanelView, setEmployerRightPanelView } =
+    useStore();
   const [applicants, setApplicants] = useState<Applicant[]>([]);
   const [filteredApplicants, setFilteredApplicants] = useState<Applicant[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
+  const [selectedApplicationId, setSelectedApplicationId] = useState<
+    string | null
+  >(employerRightPanelView.payload?.applicationId || null);
+
   const [statusFilter, setStatusFilter] = useState<AppStatus>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -142,6 +146,9 @@ const InboundApplicantsSidePanel = () => {
   const handleBack = async () => {
     if (selectedApplicationId) {
       setSelectedApplicationId(null);
+      setEmployerRightPanelView("inboundApplications", {
+        applicationId: undefined,
+      });
       // Refresh the application status when returning from detail view
       await fetchApplicants();
     } else {
@@ -150,8 +157,8 @@ const InboundApplicantsSidePanel = () => {
   };
 
   const handleApplicantClick = (appId: string) => {
-    console.log("Selected application ID:", appId);
     setSelectedApplicationId(appId);
+    setEmployerRightPanelView("inboundApplications", { applicationId: appId });
   };
 
   const handleStatusFilterChange = (value: string) => {
@@ -208,7 +215,10 @@ const InboundApplicantsSidePanel = () => {
       <CardContent className="px-6 flex flex-col h-dvh">
         <div className="mb-4 space-y-2">
           <div className="flex space-x-2">
-            <Select onValueChange={handleStatusFilterChange} value={statusFilter}>
+            <Select
+              onValueChange={handleStatusFilterChange}
+              value={statusFilter}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
@@ -241,9 +251,7 @@ const InboundApplicantsSidePanel = () => {
                   </Badge>
                 )}
                 {searchTerm && (
-                  <Badge variant="secondary">
-                    Search: {searchTerm}
-                  </Badge>
+                  <Badge variant="secondary">Search: {searchTerm}</Badge>
                 )}
               </div>
               <Button
@@ -265,7 +273,7 @@ const InboundApplicantsSidePanel = () => {
           <div className="text-center">Loading...</div>
         ) : (
           <>
-            <div className="space-y-4 overflow-y-auto flex-grow">
+            <div className="space-y-4">
               {paginatedApplicants.map((applicant) => (
                 <div
                   key={applicant.appId}

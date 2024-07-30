@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Users } from "lucide-react";
-import { getEmployerJobApplications, ObfuscatedApplication } from "@/lib/employer/recent-applicants";
+import { getEmployerJobApplications } from "@/lib/employer/recent-applicants";
 import useStore from "@/app/state/useStore";
 import {
   Card,

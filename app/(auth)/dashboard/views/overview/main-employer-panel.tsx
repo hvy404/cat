@@ -18,13 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  BotIcon,
-  Archive,
-  MapPin,
-  Calendar,
-  FilePlus,
-} from "lucide-react";
+import { BotIcon, Archive, MapPin, Calendar, FilePlus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchDetailedJobPosts } from "@/lib/overview/fetchRoles";
 import InboundApplicantsCard from "./inbound-application-card";
@@ -38,7 +32,7 @@ interface Job {
   location_type: string;
   security_clearance: string;
   posted_date: string;
-  private_employer: boolean | null;  
+  private_employer: boolean | null;
   new_match?: boolean;
 }
 
@@ -46,14 +40,6 @@ interface ChartDataPoint {
   date: string;
   inboundApplicants: number;
   aiRecommended: number;
-}
-
-interface StatCardProps {
-  title: string;
-  value: string | number;
-  icon: React.ElementType;
-  description: string;
-  trend: number;
 }
 
 interface ChartCardProps {
@@ -94,45 +80,6 @@ const itemVariants = {
   },
 };
 
-const StatCard: React.FC<StatCardProps> = ({
-  title,
-  value,
-  icon: Icon,
-  description,
-  trend,
-}) => (
-  <motion.div variants={itemVariants}>
-    <Card className="w-full h-full bg-white shadow-sm hover:shadow-md transition-all duration-300">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-semibold text-gray-700 flex items-center h-8">
-          <Icon className="w-4 h-4 mr-2 text-gray-500 flex-shrink-0" />
-          <span className="line-clamp-2">{title}</span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        <div className="text-2xl font-bold text-gray-900">{value}</div>
-        <p className="text-sm text-gray-500 h-8 flex items-center">
-          {description}
-        </p>
-      </CardContent>
-      <CardFooter className="pt-2">
-        <span
-          className={`text-xs ${
-            trend > 0
-              ? "text-gray-700"
-              : trend < 0
-              ? "text-gray-500"
-              : "text-gray-400"
-          }`}
-        >
-          {trend > 0 ? "↑" : trend < 0 ? "↓" : "→"} {Math.abs(trend)}% from last
-          week
-        </span>
-      </CardFooter>
-    </Card>
-  </motion.div>
-);
-
 const ChartCard: React.FC<ChartCardProps> = ({ data }) => (
   <motion.div variants={itemVariants}>
     <Card className="col-span-2 shadow-sm hover:shadow-md transition-all duration-300">
@@ -170,7 +117,8 @@ const ChartCard: React.FC<ChartCardProps> = ({ data }) => (
 );
 
 const JobList = ({ filter }: { filter: string }) => {
-  const { setEmployerRightPanelView, setDashboardRoleOverview, user } = useStore();
+  const { setEmployerRightPanelView, setDashboardRoleOverview, user } =
+    useStore();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loadingJobs, setLoadingJobs] = useState<boolean>(true);
   const [noJobs, setNoJobs] = useState<boolean>(false);
@@ -203,7 +151,7 @@ const JobList = ({ filter }: { filter: string }) => {
       active_role_id: String(job_id),
       active_role_name: title,
     });
-    setEmployerRightPanelView('roleOverview');
+    setEmployerRightPanelView("roleOverview");
   };
 
   if (loadingJobs) return <JobListSkeleton />;
@@ -291,7 +239,7 @@ const EmployerDashboardView: React.FC = () => {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             <InboundApplicantsCard />
-           <AIRecommendationsCard />
+            <AIRecommendationsCard />
             <AlertsCard />
           </div>
           <ChartCard data={mockData} />

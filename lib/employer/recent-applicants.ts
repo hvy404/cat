@@ -5,7 +5,6 @@ import { cookies } from "next/headers";
 const cookieStore = cookies();
 const supabase = createClient(cookieStore);
 
-// Updated database structure to match Supabase response
 interface DatabaseApplication {
   id: string;
   job_id: string;
@@ -16,7 +15,6 @@ interface DatabaseApplication {
   };
 }
 
-// Obfuscated structure (unchanged)
 interface ObfuscatedApplication {
   appId: string;
   jobRef: string;
@@ -52,9 +50,6 @@ async function getEmployerJobApplications(employerId: string): Promise<Obfuscate
     console.error('Error fetching employer job applications:', error);
     return null;
   }
-
-  // Log the raw data from Supabase
-  console.log('Raw data from Supabase:', data);
 
   // Ensure the data matches our DatabaseApplication interface
   const typedData = data as unknown as DatabaseApplication[];

@@ -158,27 +158,41 @@ interface CandidateDashboard {
   onboarded: boolean;
 }
 
+// New interface for the employer right panel view
+interface EmployerRightPanelViewState {
+  view:
+    | "default"
+    | "roleOverview"
+    | "inboundApplications"
+    | "aiRecommendations";
+  payload?: {
+    [key: string]: string | undefined;
+  };
+}
+
 interface StoreState {
   selectedMenuItem: string | null;
   user: User | null;
   addJD: AddJobDescription;
+  dashboard_role_overview: DashboardRoleOverview;
+  employerRightPanelView: EmployerRightPanelViewState;
+  isExpanded: boolean;
+  jdBuilderWizard: JDBuilderWizard;
+  candidateDashboard: CandidateDashboard;
+
   setSelectedMenuItem: (item: string) => void;
   setUser: (user: User) => void;
-  dashboard_role_overview: DashboardRoleOverview;
-  employerRightPanelView: "default" | "roleOverview" | "inboundApplications" | "aiRecommendations";
   setEmployerRightPanelView: (
-    view: StoreState["employerRightPanelView"]
+    view: EmployerRightPanelViewState["view"],
+    payload?: EmployerRightPanelViewState["payload"]
   ) => void;
   setDashboardRoleOverview: (overview: Partial<DashboardRoleOverview>) => void;
   setAddJD: (addJD: Partial<AddJobDescription>) => void;
   updateAddJDStep: (newStep: number) => void;
-  isExpanded: boolean;
   setExpanded: (value: boolean) => void;
   toggleExpansion: () => void;
-  jdBuilderWizard: JDBuilderWizard;
   setJDBuilderWizard: (wizard: Partial<JDBuilderWizard>) => void;
   updateJDBuilderWizardStep: (newStep: number) => void;
-  candidateDashboard: CandidateDashboard;
   setCandidateDashboard: (dashboard: Partial<CandidateDashboard>) => void;
 }
 
@@ -206,8 +220,39 @@ const useStore = create<StoreState>((set) => ({
     active_role_salary_ote: null,
   },
   // Employer dashboard right panel view
-  employerRightPanelView: "default",
-  setEmployerRightPanelView: (view) => set({ employerRightPanelView: view }),
+  employerRightPanelView: { view: "default" },
+  setEmployerRightPanelView: (
+    view: EmployerRightPanelViewState["view"],
+    payload?: EmployerRightPanelViewState["payload"]
+  ) =>
+    set((state) => {
+      const newState: EmployerRightPanelViewState = {
+        view,
+        payload: state.employerRightPanelView.payload
+          ? { ...state.employerRightPanelView.payload }
+          : undefined,
+      };
+
+      if (payload) {
+        if (!newState.payload) newState.payload = {};
+        Object.entries(payload).forEach(([key, value]) => {
+          if (value === undefined) {
+            if (newState.payload && key in newState.payload) {
+              delete newState.payload[key];
+            }
+          } else {
+            if (!newState.payload) newState.payload = {};
+            newState.payload[key] = value;
+          }
+        });
+      }
+
+      if (newState.payload && Object.keys(newState.payload).length === 0) {
+        delete newState.payload;
+      }
+
+      return { employerRightPanelView: newState };
+    }),
   // State for add-jd
   addJD: {
     filename: null,

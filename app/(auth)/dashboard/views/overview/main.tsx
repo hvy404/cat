@@ -9,7 +9,7 @@ export default function EmployerDashboardMain() {
   const { employerRightPanelView } = useStore();
 
   const getRightPanelContent = () => {
-    switch (employerRightPanelView) {
+    switch (employerRightPanelView.view) {
       case "roleOverview":
         return <EmployerDashboardOverviewRoles />;
       case "inboundApplications":
@@ -20,7 +20,6 @@ export default function EmployerDashboardMain() {
         return <EmployerDashboardMainSidePanel />;
     }
   };
-  
 
   return (
     <main className="grid flex-1 gap-4 p-4 md:grid-cols-2 max-h-screen">
