@@ -82,6 +82,7 @@ export default function EmployerDashboardNavigation() {
   // Clerk
   // TODO: Move to the server side action for better security
   const { isLoaded, isSignedIn, user: clerkUser } = useUser();
+  const onboarded = useStore((state) => state.candidateDashboard.onboarded); // Better to store in clerk?
 
   // Return early if not loaded or not signed in
   if (!isLoaded || !isSignedIn) {
@@ -90,8 +91,6 @@ export default function EmployerDashboardNavigation() {
 
   const cuid = clerkUser?.publicMetadata?.cuid as string | undefined;
   const role = clerkUser?.publicMetadata?.role as string | undefined;
-
-  const onboarded = useStore((state) => state.candidateDashboard.onboarded); // Better to store in clerk?
 
   const renderNavItems = () => {
     switch (role) {

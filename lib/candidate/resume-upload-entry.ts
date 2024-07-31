@@ -3,8 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 
 export async function resumeUnconfirmedAddToDatabase(
-  uuid: string,
-  signature: string,
+  resumeId: string,
   fileName: string,
   email: string
 ) {
@@ -18,8 +17,7 @@ export async function resumeUnconfirmedAddToDatabase(
   // Add to Supabase
   const { data, error } = await supabase.from("candidates").insert([
     {
-      identity: uuid,
-      signature: signature,
+      identity: resumeId,
       email: email,
       filename: fileName,
     },

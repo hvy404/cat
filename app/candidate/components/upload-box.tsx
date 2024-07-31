@@ -1,138 +1,208 @@
-"use client";
-import { useState, useEffect } from "react";
-import Dropzone from "react-dropzone";
-import { PlusIcon } from "@heroicons/react/24/solid";
-import { uploadResumeToStorage } from "@/lib/candidate/resume-upload";
-import { ResumeUploadEmailForm } from "@/app/candidate/components/resume-upload-email-form";
-import ResumeUploadOTP from "@/app/candidate/components/resume-upload-otp";
-import { resumeUnconfirmedAddToDatabase } from "@/lib/candidate/resume-upload-entry";
-import getIdentityUUID from "@/lib/candidate/uuid-create";
-import { storeCandidateOtpRequest } from "@/lib/otp/candidate-store-otp";
-import { TOTP } from "totp-generator";
+import React, { useState, useEffect } from 'react';
+import Dropzone, { FileWithPath } from 'react-dropzone';
+import { PlusIcon } from '@heroicons/react/24/solid';
+import { uploadResumeToStorage } from '@/lib/candidate/resume-upload';
+import { resumeUnconfirmedAddToDatabase } from '@/lib/candidate/resume-upload-entry';
+import getIdentityUUID from '@/lib/candidate/uuid-create';
+import { useSignUp } from '@clerk/nextjs';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { toast } from 'sonner';
+import { createId } from "@paralleldrive/cuid2";
+import { updatePublicMetadata } from "@/app/(main)/actions";
 
-export default function ResumeUploadBox() {
-  const [file, setFile] = useState<File | null>(null);
-  const [fileResponse, setFileResponse] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [emailSubmitted, setEmailSubmitted] = useState(false);
-  const [candidateEmail, setCandidateEmail] = useState<string | null>(null);
-  const [candidateID, setCandidateID] = useState("");
-  const [candidateGate, setCandidateGate] = useState("");
-  const [candidate32, setCandidate32] = useState("");
+const ResumeUploadBox: React.FC = () => {
+  const [file, setFile] = useState<FileWithPath | null>(null);
+  const [showSignUp, setShowSignUp] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [showVerification, setShowVerification] = useState(false);
+  const { isLoaded, signUp, setActive } = useSignUp();
+  const [candidateId, setCandidateId] = useState('');
+  const [candidateSignature, setCandidateSignature] = useState('');
 
-  // Get the candidate UUID
   useEffect(() => {
-    const fetchData = async () => {
-      const candidateUUID = await getIdentityUUID();
-      setCandidateID(candidateUUID.newUUID); // Set the candidateID state
-      setCandidateGate(candidateUUID.newFingerprint); // Set the candidateGate state
-      setCandidate32(candidateUUID.finger32); // Set the candidate32 state
+    const fetchIdentity = async () => {
+      const { newUUID, newFingerprint } = await getIdentityUUID();
+      setCandidateId(newUUID);
+      setCandidateSignature(newFingerprint);
     };
-    fetchData();
+    fetchIdentity();
   }, []);
 
-  function handleEmailSubmit(email: string) {
-    setCandidateEmail(email);
-    setEmailSubmitted(true);
-  }
-
-  // Run the file upload process only after email is submitted
-  useEffect(() => {
-    if (candidateEmail && file && emailSubmitted) {
-      console.log("Uploading file...");
-      handleFileUpload([file]);
-    }
-  }, [candidateEmail, file, emailSubmitted]);
-
-  const onFileAdded = (acceptedFiles: File[]) => {
+  const onFileAdded = (acceptedFiles: FileWithPath[]) => {
     if (acceptedFiles.length === 0) {
-      setFileResponse("No file selected.");
+      toast.error('No file selected.');
       return;
     }
     setFile(acceptedFiles[0]);
-    setFileResponse(null); // Clear previous responses if any
-    setEmailSubmitted(false); // Ready to show email form next
+    setShowSignUp(true);
   };
 
-  // Constant to handle generate OTP and store OTP request
-  const handleOTPFlow = async () => {
-    const { otp } = TOTP.generate(candidate32, { period: 600 });
-
-    const actionType = "upload";
-    await storeCandidateOtpRequest(candidateID, actionType, otp);
-  };
-
-  const handleFileUpload = async (acceptedFiles: File[]) => {
-    const formData = new FormData();
-    formData.append("file", acceptedFiles[0]);
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!isLoaded || !signUp) return;
 
     try {
-      setUploading(true);
+      await signUp.create({
+        emailAddress: email,
+        password,
+      });
+
+      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+      setShowVerification(true);
+      toast.success('Please check your email for the verification code.');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'An error occurred during sign up.');
+    }
+  };
+
+  const handleVerification = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!signUp) return;
+
+    try {
+      const completeSignUp = await signUp.attemptEmailAddressVerification({
+        code: verificationCode,
+      });
+      if (completeSignUp.status !== 'complete') {
+        console.log(JSON.stringify(completeSignUp, null, 2));
+      } else {
+        if (completeSignUp.createdSessionId) {
+          await setActive({ session: completeSignUp.createdSessionId });
+
+          // Update public metadata using the server action
+          const cuid = createId();
+          if (completeSignUp.createdUserId) {
+            await updatePublicMetadata(completeSignUp.createdUserId, {
+              role: 'talent',
+              cuid,
+            });
+          }
+
+          toast.success('Email verified successfully!');
+          handleFileUpload();
+        }
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error verifying email');
+    }
+  };
+
+  const handleFileUpload = async () => {
+    if (!file) {
+      toast.error('No file selected.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
       const uploadResult = await uploadResumeToStorage(formData);
-      if (uploadResult && uploadResult.success) {
-        let signature = candidateGate;
-        let email = candidateEmail;
-        let uuid = candidateID;
-
-        console.log("Upload result:", uploadResult);
-
+      if (uploadResult && uploadResult.success && uploadResult.id) {
         const addResult = await resumeUnconfirmedAddToDatabase(
-          uuid,
-          signature,
-          uploadResult.id as string,
-          email as string
+          candidateId,
+          uploadResult.id,
+          email
         );
 
         if (addResult && addResult.success) {
-          setFileResponse("Resume uploaded and confirmed successfully.");
-          // Call handleOTPFlow after 3 seconds
-          setTimeout(() => {
-            handleOTPFlow();
-          }, 3000);
+          toast.success('Resume uploaded and confirmed successfully.');
         } else {
-          setFileResponse("Failed to confirm resume upload.");
+          toast.error('Failed to confirm resume upload.');
         }
       } else {
-        setFileResponse("Failed to upload resume.");
+        toast.error('Failed to upload resume.');
       }
     } catch (error) {
-      console.error("Error uploading file:", error);
-      setFileResponse("Error during file upload.");
-    } finally {
-      setUploading(false);
+      console.error('Error uploading file:', error);
+      toast.error('Error during file upload.');
     }
   };
 
   return (
-    <div className="absolute flex flex-row p-8 items-center left-0 top-0 w-[50rem] max-w-none rounded-md bg-white/5 ring-1 ring-white/10 min-h-full">
-      <button
-        onClick={handleOTPFlow}
-        className="bg-blue-500 text-white px-4 py-2 rounded-md"
-      >
-        Generate OTP
-      </button>
-
+    <div className="w-full max-w-md">
       {!file && (
-        <Dropzone onDrop={onFileAdded} multiple={false} disabled={uploading}>
+        <Dropzone onDrop={onFileAdded} multiple={false}>
           {({ getRootProps, getInputProps }) => (
-            <section>
-              <div {...getRootProps()}>
-                <input {...getInputProps()} />
-                <PlusIcon className="h-24 w-24 text-white animate-pulse" />
-              </div>
-            </section>
+            <div {...getRootProps()} className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center cursor-pointer">
+              <input {...getInputProps()} />
+              <PlusIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <p className="mt-2 text-sm text-gray-600">Click or drag file to upload</p>
+            </div>
           )}
         </Dropzone>
       )}
-      {file && !emailSubmitted && !uploading && candidateID && (
-        <ResumeUploadEmailForm onEmailSubmit={handleEmailSubmit} />
+      {file && showSignUp && !showVerification && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Sign Up</CardTitle>
+            <CardDescription>Create an account to upload your resume</CardDescription>
+          </CardHeader>
+          <form onSubmit={handleSubmit}>
+            <CardContent>
+              <div className="grid w-full items-center gap-4">
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    placeholder="Enter your email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    placeholder="Enter your password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button type="submit" className="w-full">Sign Up</Button>
+            </CardFooter>
+          </form>
+        </Card>
       )}
-      {emailSubmitted && candidateID && !fileResponse && (
-        <div>Loading OTP...</div>
-      )}
-      {emailSubmitted && candidateID && fileResponse && (
-        <ResumeUploadOTP candidateID={candidateID} />
+      {showVerification && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Verify Email</CardTitle>
+            <CardDescription>Enter the verification code sent to your email</CardDescription>
+          </CardHeader>
+          <form onSubmit={handleVerification}>
+            <CardContent>
+              <div className="flex flex-col space-y-1.5">
+                <Label htmlFor="verificationCode">Verification Code</Label>
+                <Input
+                  id="verificationCode"
+                  placeholder="Enter verification code"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  required
+                />
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button type="submit" className="w-full">Verify Email</Button>
+            </CardFooter>
+          </form>
+        </Card>
       )}
     </div>
   );
-}
+};
+
+export default ResumeUploadBox;
