@@ -62,6 +62,7 @@ export const createRenderItemContent = (
             const locationParts = [city, state, zipcode].filter(Boolean);
             const locationString = locationParts.join(", ");
             return (
+              
               <div className="space-y-1 select-none">
                 <h3 className="text-md font-semibold text-gray-800">Address</h3>
                 <p className="text-sm text-gray-600">
@@ -188,16 +189,21 @@ export const createRenderItemContent = (
     const isProcessing = processingItems.has(editedItem.id);
 
     return (
+      <div onClick={(e) => e.stopPropagation()}>
       <div className="flex flex-col h-full">
         <div className="flex justify-between items-start mb-2">
           <div className="flex-grow pr-10">{content}</div>
           <Button
-            onClick={() => handleEdit(editedItem)}
-            className="flex-shrink-0 p-1 h-6 w-6"
-            variant="ghost"
-          >
-            <Edit2 size={16} className="text-gray-400" />
-          </Button>
+  onClick={(e) => {
+    e.stopPropagation();
+    handleEdit(editedItem);
+  }}
+  className="flex-shrink-0 p-1 h-6 w-6"
+  variant="ghost"
+>
+  <Edit2 size={16} className="text-gray-400" />
+</Button>
+
         </div>
         <div className="mt-auto pt-2">
           {isProcessing ? (
@@ -212,6 +218,7 @@ export const createRenderItemContent = (
             />
           ) : null}
         </div>
+      </div>
       </div>
     );
   };
