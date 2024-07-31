@@ -452,13 +452,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       };
 
       const draggedItem = activeItems[activeIndex];
-      const isIntroItem =
-        draggedItem.type === "personal" && draggedItem.content.key === "intro";
       const isExcludedPersonalItem =
         draggedItem.type === "personal" &&
         excludedPersonalItems.includes(draggedItem.content.key);
 
-      if (!isExcludedPersonalItem && !isIntroItem) {
+      if (!isExcludedPersonalItem) {
         const action =
           activeContainer === "available" && overContainer === "preview"
             ? ("add" as const)
@@ -472,13 +470,34 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         setLastModifiedItemId(id);
       }
 
-      // Clear any existing timeout when a new drag occurs
-      if (processingTimeoutRef.current) {
-        clearTimeout(processingTimeoutRef.current);
-      }
-
       return newItems;
     });
+  };
+
+  const sortExperienceItems = (items: Item[]): Item[] => {
+    return [...items].sort((a, b) => {
+      if (a.type !== "experience" || b.type !== "experience") return 0;
+
+      const aEndDate = a.content.end_date.toLowerCase();
+      const bEndDate = b.content.end_date.toLowerCase();
+
+      // If either is 'present', it should come first
+      if (aEndDate === "present" && bEndDate !== "present") return -1;
+      if (bEndDate === "present" && aEndDate !== "present") return 1;
+
+      // If both are 'present' or both are not 'present', compare start dates
+      return compareDates(b.content.start_date, a.content.start_date);
+    });
+  };
+
+  const compareDates = (dateA: string, dateB: string): number => {
+    const [yearA, monthA] = dateA.split("-").map(Number);
+    const [yearB, monthB] = dateB.split("-").map(Number);
+
+    if (yearA !== yearB) {
+      return yearB - yearA;
+    }
+    return monthB - monthA;
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -493,7 +512,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       if (targetSection) {
         handleAddCustomItem(targetSection.id);
       } else {
-        // If dropped outside a custom section, create a new custom section
         const newSectionId = `custom-section-${Date.now()}`;
         const newSection: CustomSection = {
           id: newSectionId,
@@ -506,7 +524,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       return;
     }
 
-    // Handle custom items
     const sourceSection = customSections.find((section) =>
       section.items.some((item) => item.id === id)
     );
@@ -521,7 +538,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             section.id === sourceSection.id &&
             section.id === targetSection.id
           ) {
-            // Reorder within the same section
             const oldIndex = section.items.findIndex((item) => item.id === id);
             const newIndex = section.items.findIndex(
               (item) => item.id === overId
@@ -529,13 +545,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             const newItems = arrayMove(section.items, oldIndex, newIndex);
             return { ...section, items: newItems };
           } else if (section.id === sourceSection.id) {
-            // Remove item from source section
             return {
               ...section,
               items: section.items.filter((item) => item.id !== id),
             };
           } else if (section.id === targetSection.id) {
-            // Add item to target section
             const itemToMove = sourceSection.items.find(
               (item) => item.id === id
             )!;
@@ -556,11 +570,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     const activeContainer = findContainer(id);
     const overContainer = findContainer(overId);
 
-    if (
-      !activeContainer ||
-      !overContainer ||
-      activeContainer === overContainer
-    ) {
+    if (!activeContainer || !overContainer) {
       return;
     }
 
@@ -580,35 +590,85 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       const activeIndex = activeItems.findIndex((item) => item.id === id);
       const overIndex = overItems.findIndex((item) => item.id === overId);
 
-      if (activeIndex !== overIndex) {
-        const newItems = {
-          ...prevItems,
-          [overContainer]: arrayMove(
-            prevItems[overContainer],
-            activeIndex,
-            overIndex
-          ),
+      let newItems = { ...prevItems };
+
+      if (activeContainer !== overContainer) {
+        // Moving item between containers
+        newItems = {
+          ...newItems,
+          [activeContainer]: activeItems.filter((item) => item.id !== id),
+          [overContainer]: [
+            ...overItems.slice(0, overIndex),
+            activeItems[activeIndex],
+            ...overItems.slice(overIndex),
+          ],
         };
-
-        const movedItem = activeItems[activeIndex];
-        const isExcludedPersonalItem =
-          movedItem.type === "personal" &&
-          excludedPersonalItems.includes(movedItem.content.key);
-
-        if (!isExcludedPersonalItem) {
-          const newHistoryEntry: HistoryEntry = {
-            action: activeContainer === "available" ? "add" : "remove",
-            itemId: id,
-            timestamp: Date.now(),
-          };
-          setHistory((prevHistory) => [...prevHistory, newHistoryEntry]);
-          setLastModifiedItemId(id);
-        }
-
-        return newItems;
+      } else {
+        // Reordering within the same container
+        newItems = {
+          ...newItems,
+          [overContainer]: arrayMove(overItems, activeIndex, overIndex),
+        };
       }
 
-      return prevItems;
+      // If the item is an experience item and it's in or moving to the preview container,
+      // sort all experience items in the preview
+      if (
+        (activeItems[activeIndex].type === "experience" &&
+          overContainer === "preview") ||
+        (overContainer === "preview" &&
+          newItems["preview"].some((item) => item.type === "experience"))
+      ) {
+        const allItems = newItems["preview"];
+        const experienceItems = allItems.filter(
+          (item) => item.type === "experience"
+        );
+        const otherItems = allItems.filter(
+          (item) => item.type !== "experience"
+        );
+
+        const sortedExperienceItems = experienceItems.sort((a, b) => {
+          if (a.type !== "experience" || b.type !== "experience") return 0;
+
+          const aEndDate = a.content.end_date.toLowerCase();
+          const bEndDate = b.content.end_date.toLowerCase();
+
+          // If both are 'present', compare start dates
+          if (aEndDate === "present" && bEndDate === "present") {
+            return b.content.start_date.localeCompare(a.content.start_date);
+          }
+
+          // If either is 'present', it should come first
+          if (aEndDate === "present") return -1;
+          if (bEndDate === "present") return 1;
+
+          // If neither is 'present', compare end dates
+          const endDateComparison = bEndDate.localeCompare(aEndDate);
+          if (endDateComparison !== 0) return endDateComparison;
+
+          // If end dates are the same, compare start dates
+          return b.content.start_date.localeCompare(a.content.start_date);
+        });
+
+        newItems["preview"] = [...sortedExperienceItems, ...otherItems];
+      }
+
+      const movedItem = activeItems[activeIndex];
+      const isExcludedPersonalItem =
+        movedItem.type === "personal" &&
+        excludedPersonalItems.includes(movedItem.content.key);
+
+      if (!isExcludedPersonalItem) {
+        const newHistoryEntry: HistoryEntry = {
+          action: activeContainer === "available" ? "add" : "remove",
+          itemId: id,
+          timestamp: Date.now(),
+        };
+        setHistory((prevHistory) => [...prevHistory, newHistoryEntry]);
+        setLastModifiedItemId(id);
+      }
+
+      return newItems;
     });
 
     setActiveId(null);
@@ -970,7 +1030,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       formData.append("filename", filenameGen);
 
       // Upload file to Supabase storage
-      const { data: uploadData, error: uploadError } = await uploadResumeAction(formData);
+      const { data: uploadData, error: uploadError } = await uploadResumeAction(
+        formData
+      );
 
       if (uploadError) {
         throw uploadError;
@@ -978,7 +1040,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
 
       // Add entry to the database
       if (uploadData) {
-        const { data: dbData, error: dbError } = await addResumeEntryAction(userId, uploadData, filename);
+        const { data: dbData, error: dbError } = await addResumeEntryAction(
+          userId,
+          uploadData,
+          filename
+        );
 
         if (dbError) {
           throw dbError;
@@ -992,7 +1058,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       });
     } catch (error) {
       toast.error("Failed to save resume version", {
-        description: "An error occurred while saving your resume. Please try again.",
+        description:
+          "An error occurred while saving your resume. Please try again.",
         duration: 5000,
       });
     }
@@ -1026,14 +1093,14 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           <div className="flex justify-end mt-4 gap-4">
             <div className="flex">
               <Button variant={"secondary"} onClick={handleCreateResume}>
-              <Download className="mr-2 h-4 w-4" />
-              <span className="text-sm">Export Copy</span>
+                <Download className="mr-2 h-4 w-4" />
+                <span className="text-sm">Export Copy</span>
               </Button>
             </div>
             <div className="flex">
               <Button onClick={handleSaveVersion}>
-              <Save className="mr-2 h-4 w-4" />
-              <span className="text-sm">Save Version</span>
+                <Save className="mr-2 h-4 w-4" />
+                <span className="text-sm">Save Version</span>
               </Button>
             </div>
           </div>

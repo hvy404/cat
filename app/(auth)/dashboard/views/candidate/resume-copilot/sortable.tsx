@@ -26,13 +26,11 @@ const SortableItem: React.FC<SortableItemProps> = ({ id, children }) => {
       ref={setNodeRef} 
       style={style} 
       {...attributes} 
-      className="bg-white shadow-sm rounded-md p-3 mb-2 border border-gray-100 hover:border-gray-300 transition-colors duration-200"
+      {...listeners} 
+      className="bg-white shadow-sm rounded-md p-3 mb-2 border border-gray-100 hover:border-gray-300 transition-colors duration-200 cursor-grab active:cursor-grabbing"
     >
       <div className="flex items-start">
-        <div
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing p-1 mr-2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
-        >
+        <div className="p-1 mr-2 text-gray-400">
           <GripVertical size={20} />
         </div>
         <div className="flex-grow">{children}</div>

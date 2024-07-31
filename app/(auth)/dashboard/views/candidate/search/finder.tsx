@@ -47,7 +47,10 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { createJobAlert, disableJobAlert } from "@/app/(auth)/dashboard/views/candidate/search/manage-search-alerts"
+import {
+  createJobAlert,
+  disableJobAlert,
+} from "@/app/(auth)/dashboard/views/candidate/search/manage-search-alerts";
 import { toast } from "sonner";
 
 type ExtendedJobSearchResult = JobSearchResult & {
@@ -84,7 +87,9 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
   const [hasSearched, setHasSearched] = useState<boolean>(false);
   const [bookmarkedJobs, setBookmarkedJobs] = useState<BookmarkedJobs>({});
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
-  const [isSearchSuggestionsOpen, setIsSearchSuggestionsOpen] = useState(!hasSearched);
+  const [isSearchSuggestionsOpen, setIsSearchSuggestionsOpen] = useState(
+    !hasSearched
+  );
   const { user } = useStore();
   const userId = user?.uuid;
 
@@ -94,8 +99,8 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
     }
   };
 
-  const handleSearch = async (): Promise<void> => {
-    console.log("handleSearch called with query:", searchQuery);
+  const handleSearch = async (query: string = searchQuery): Promise<void> => {
+    console.log("handleSearch called with query:", query);
     if (!userId) {
       setError("User ID is not available. Please ensure you're logged in.");
       return;
@@ -105,10 +110,10 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
     setError(null);
     setCurrentPage(1);
     setHasSearched(true);
-    setIsSearchSuggestionsOpen(false); // Close suggestions when search is performed
+    setIsSearchSuggestionsOpen(false);
 
     try {
-      const results = await jobSearchHandler(searchQuery, userId);
+      const results = await jobSearchHandler(query, userId);
       setSearchResults(results as ExtendedJobSearchResult);
       console.log("Job search results:", results);
     } catch (err) {
@@ -117,13 +122,6 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    console.log("Search query updated:", searchQuery);
-    if (searchQuery !== "") {
-      handleSearch();
-    }
-  }, [searchQuery]);
 
   const formatSalary = (salary: number | null): string => {
     return salary ? `$${salary.toLocaleString()}` : "Not specified";
@@ -223,7 +221,7 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
         toast.error(result.message);
       }
     } else {
-      toast.error('Please log in and enter a search query to create an alert.');
+      toast.error("Please log in and enter a search query to create an alert.");
     }
   };
 
@@ -236,7 +234,7 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
         toast.error(result.message);
       }
     } else {
-      toast.error('Please log in and enter a search query to disable alerts.');
+      toast.error("Please log in and enter a search query to disable alerts.");
     }
   };
 
@@ -376,7 +374,10 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
           placeholder="Enter job title or keywords"
           className="flex-grow"
         />
-        <Button onClick={handleSearch} disabled={isLoading}>
+        <Button
+          onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleSearch()}
+          disabled={isLoading}
+        >
           {isLoading ? "Searching..." : "Search"}
         </Button>
       </div>
@@ -384,11 +385,11 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
       {error && <p className="text-red-500 text-xs mb-4">{error}</p>}
 
       {searchSuggestions.length > 0 && (
-       <Collapsible
-       open={isSearchSuggestionsOpen}
-       onOpenChange={setIsSearchSuggestionsOpen}
-       className="mb-6"
-     >
+        <Collapsible
+          open={isSearchSuggestionsOpen}
+          onOpenChange={setIsSearchSuggestionsOpen}
+          className="mb-6"
+        >
           <CollapsibleTrigger asChild>
             <Button variant="ghost" size="sm" className="mb-2 p-0 h-auto">
               {isSearchSuggestionsOpen ? (
@@ -405,16 +406,18 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
             <div className="flex flex-wrap gap-2">
               {searchSuggestions.map((suggestion, index) => (
                 <Button
-                key={index}
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSearchQuery(suggestion);
-                  setIsSearchSuggestionsOpen(false);
-                }}
-              >
-                {suggestion}
-              </Button>
+                  key={index}
+                  variant="outline"
+                  size="sm"
+                  onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                    e.preventDefault();
+                    setSearchQuery(suggestion);
+                    setIsSearchSuggestionsOpen(false);
+                    handleSearch(suggestion);
+                  }}
+                >
+                  {suggestion}
+                </Button>
               ))}
             </div>
           </CollapsibleContent>
