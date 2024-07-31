@@ -8,6 +8,13 @@ import "./style.css";
 //import MainFooter from "./footer";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from 'sonner';
+import {
+  ClerkProvider,
+  SignInButton,
+  SignedIn,
+  SignedOut,
+  UserButton
+} from '@clerk/nextjs'
 
 
 const inter = Inter({ subsets: ["latin"] });
@@ -29,6 +36,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    <ClerkProvider>
     <html lang="en" suppressHydrationWarning>
       {/*       <GoogleAnalytics gaId="G-NZ56WBWWEQ" />
       <GoogleTagManager gtmId="GTM-K839NR2" /> */}
@@ -46,5 +54,6 @@ export default function RootLayout({
         </ThemeProvider>
       </body>
     </html>
+    </ClerkProvider>
   );
 }
