@@ -61,7 +61,7 @@ export async function TitleOptions(
         content: `Job Description: ${jobDescription}`,
       },
     ],
-    model: "mistralai/Mistral-7B-Instruct-v0.1",
+    model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
     max_tokens: 4000,
     temperature: 0.75,
     // @ts-ignore – Together.ai supports schema while OpenAI does not

@@ -67,7 +67,7 @@ export async function getDocumentType(owner: string, sowId: string) {
         content: `Context: ${JSON.stringify(optimizedResults)}`,
       },
     ],
-    model: "mistralai/Mistral-7B-Instruct-v0.1",
+    model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
     temperature: 0.3,
     // @ts-ignore – Together.ai supports schema while OpenAI does not
     response_format: { type: "json_object", schema: docSchema },

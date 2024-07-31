@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Merriweather } from "next/font/google";
 import { ThemeProvider } from "@/components/themeProvider";
-//import { GoogleAnalytics } from "@next/third-parties/google";
-//import { GoogleTagManager } from "@next/third-parties/google";
 import "../../globals.css";
 import "./style.css";
 //import MainFooter from "./footer";
@@ -38,8 +36,6 @@ export default function RootLayout({
   return (
     <ClerkProvider>
     <html lang="en" suppressHydrationWarning>
-      {/*       <GoogleAnalytics gaId="G-NZ56WBWWEQ" />
-      <GoogleTagManager gtmId="GTM-K839NR2" /> */}
       <body className={`${inter.className}`}>
         <ThemeProvider
           attribute="class"

@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/themeProvider";
-//import { GoogleAnalytics } from "@next/third-parties/google";
-//import { GoogleTagManager } from "@next/third-parties/google";
 import "../globals.css";
 import { MainHeader } from "./header";
-//import MainFooter from "./footer";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { ClerkProvider } from '@clerk/nextjs'
+
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,9 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    <ClerkProvider>
     <html lang="en" suppressHydrationWarning>
-      {/*       <GoogleAnalytics gaId="G-NZ56WBWWEQ" />
-      <GoogleTagManager gtmId="GTM-K839NR2" /> */}
       <body className={inter.className}>
         <ThemeProvider
           attribute="class"
@@ -42,5 +39,6 @@ export default function RootLayout({
         {/* <Toaster /> */}
       </body>
     </html>
+    </ClerkProvider>
   );
 }

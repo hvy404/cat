@@ -98,10 +98,6 @@ export async function getJobDescription(
   }
   /* End fetch preset introduction and employee benefits from database if available */
 
-  console.log("Company Introduction:", company_introduction);
-  console.log("Company Benefits:", company_benefits);
-  console.log("Role Name:", role_name);
-
   const jdBuilderLookup = [
     {
       key: "role_job_description",
@@ -129,8 +125,6 @@ export async function getJobDescription(
     const embeddings = embeddingsResponse.data[0].embedding;
 
     const filter = { owner: owner, sowId: sowId };
-
-    console.log("Filter:", filter);
 
     const { data: context } = await supabase.rpc("sow_builder", {
       filter: filter,
@@ -160,7 +154,6 @@ export async function getJobDescription(
 
     const output = jdLookupSummarizer.choices[0].message.content!;
 
-    console.log("Intermediate Output:", item.key, output);
 
     // Store the output based on the key
     if (item.key === "role_job_description") {
@@ -258,7 +251,7 @@ The context provided includes information from the SOW/PWS given to the user for
         content: `Job Description: ${finalOutput}`,
       },
     ],
-    model: "togethercomputer/CodeLlama-34b-Instruct",
+    model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
     temperature: 0.1,
     // @ts-ignore – Together.ai supports schema while OpenAI does not
     response_format: { type: "json_object", schema: jdSchema },

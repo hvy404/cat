@@ -1,5 +1,6 @@
 "use client";
 import useStore from "@/app/state/useStore";
+import { useUser } from "@clerk/nextjs";
 import {
   Tooltip,
   TooltipContent,
@@ -34,7 +35,6 @@ interface TooltipButtonProps {
   icon: LucideIcon;
 }
 
-// Reusable TooltipButton component with typed props
 const TooltipButton: React.FC<TooltipButtonProps> = ({
   item,
   label,
@@ -79,8 +79,19 @@ const TooltipButton: React.FC<TooltipButtonProps> = ({
 };
 
 export default function EmployerDashboardNavigation() {
-  const role = useStore((state) => state.user?.role);
-  const onboarded = useStore((state) => state.candidateDashboard.onboarded);
+  // Clerk
+  // TODO: Move to the server side action for better security
+  const { isLoaded, isSignedIn, user: clerkUser } = useUser();
+
+  // Return early if not loaded or not signed in
+  if (!isLoaded || !isSignedIn) {
+    return null; // TOOD: Or we could return a loading indicator or sign-in prompt
+  }
+
+  const cuid = clerkUser?.publicMetadata?.cuid as string | undefined;
+  const role = clerkUser?.publicMetadata?.role as string | undefined;
+
+  const onboarded = useStore((state) => state.candidateDashboard.onboarded); // Better to store in clerk?
 
   const renderNavItems = () => {
     switch (role) {
@@ -112,7 +123,7 @@ export default function EmployerDashboardNavigation() {
             <TooltipButton item="settings" label="Settings" icon={Settings2} />
           </>
         );
-      case "candidate":
+      case "talent":
         if (onboarded) {
           return (
             <>

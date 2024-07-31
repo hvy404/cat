@@ -213,7 +213,7 @@ const embeddingInputs = [
         content: `Roles: ${refinedRolesList}`,
       },
     ],
-    model: "mistralai/Mistral-7B-Instruct-v0.1",
+    model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
     temperature: 0.01,
     // @ts-ignore – Together.ai supports schema while OpenAI does not
     response_format: { type: "json_object", schema: docSchema },

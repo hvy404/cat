@@ -483,10 +483,10 @@ const JDWriter = () => {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>You're almost done!</DialogTitle>
+              <DialogTitle>Almost there! Your job post is being processed.</DialogTitle>
               <DialogDescription className="py-4">
                 {isPublishing
-                  ? "Please wait while we process your job description. This may take a few minutes. You'll be redirected to a final step to confirm details before publishing."
+                  ? "We're finalizing your job description. This typically takes 2-3 minutes. Once complete, you'll review and confirm all details before publishing."
                   : "Your job description will be processed. You will soon be redirected to a final step to confirm details before publishing."}
               </DialogDescription>
             </DialogHeader>

@@ -21,11 +21,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useUser } from "@clerk/nextjs";
 
 export default function EmployerDashboardHeader() {
   // Get 'user' and 'setUser' from the store
   // TODO: Remove this. Only used for development purposes
   const { user, setUser } = useStore();
+
+  // Clerk
+  const { user: clerkUser } = useUser();
+
+  const cuid = clerkUser?.publicMetadata?.cuid as string | undefined;
+  const role = clerkUser?.publicMetadata?.role as string | undefined;
 
   // const employerIdentity = "f5246ce0-da92-4916-b1c8-dedf415a8dd2";
   // TODO: Login user
@@ -43,10 +50,10 @@ export default function EmployerDashboardHeader() {
     if (!isLoaded) {
       setUser({
         email: "",
-        uuid: userIdentity,
+        uuid: employerIdentity,
         session: "",
-        role: roleCandidate,
-        company: employerCompany, // these field should be provied by authentification // UPDATE: We're probably not going to store this in the user object 
+        role: roleEmployer,
+        company: employerCompany, // these field should be provied by authentification // UPDATE: We're probably not going to store this in the user object
       });
       isLoaded = true; // Set the flag to true after setting the user
     }
@@ -155,7 +162,7 @@ export default function EmployerDashboardHeader() {
               <div className="grid gap-3">
                 <Label htmlFor="role">Role</Label>
                 <Select defaultValue="system">
-                  <SelectTrigger>
+                  <SelectTrigger id="role">
                     <SelectValue placeholder="Select a role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -180,8 +187,13 @@ export default function EmployerDashboardHeader() {
       </Button>
       <div className="flex flex-col text-xs text-gray-400">
         <p>
-          <span>User: </span> {user?.uuid}
+          <span>CUID: </span> {cuid || "Not available"}
         </p>
+        {role && (
+          <p>
+            <span>Role: </span> {role}
+          </p>
+        )}
       </div>
     </header>
   );

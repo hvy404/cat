@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle, ArrowRight, Smile } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,32 +22,33 @@ function CandidateOnboardingDialog(props: CandidateOnboardingDialogProps) {
       open={props.onboardingDialogOpen}
       onOpenChange={props.onboardingDialogOpenClose}
     >
-      <AlertDialogContent className="bg-white max-w-2xl p-8 rounded-lg shadow-lg border border-gray-200">
+      <AlertDialogContent className="bg-white max-w-2xl p-8 rounded-lg shadow-lg border border-gray-200 transition-all duration-300 ease-in-out">
         <AlertDialogHeader>
-          <AlertDialogTitle className="font-sans font-bold text-2xl text-gray-800 mb-4">
-            Let's Confirm Your Details
+          <AlertDialogTitle className="font-sans font-bold text-3xl text-gray-800 mb-4 flex items-center">
+            <Smile className="mr-2 text-gray-600" size={32} />
+            Welcome Aboard!
           </AlertDialogTitle>
-          <AlertDialogDescription className="text-gray-600 space-y-6">
-            <p className="text-base">
-              We've extracted information from your resume. Please take a moment to verify its accuracy.
+          <AlertDialogDescription className="text-gray-700 space-y-6">
+            <p className="text-lg">
+              We're excited to have you join us! We've gathered some information from your resume to get you started. Let's make sure everything looks good.
             </p>
-            <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-              <p className="text-gray-700 font-medium">
-                A complete and accurate profile helps our AI provide better job matches tailored to your skills and experiences.
+            <div className="bg-gray-50 p-5 rounded-md border border-gray-200 shadow-sm">
+              <p className="text-gray-800 font-medium">
+                A complete profile helps our AI find the perfect job matches for your unique skills and experiences. Let's make your profile shine!
               </p>
             </div>
             <div className="mt-6">
-              <h3 className="font-semibold text-lg text-gray-700 mb-3">The process:</h3>
-              <ul className="space-y-3">
+              <h3 className="font-semibold text-xl text-gray-700 mb-4">Here's what to expect:</h3>
+              <ul className="space-y-4">
                 {[
-                  "Click Review My Profile to access a form where you can verify and adjust your information.",
-                  "Once confirmed, you will gain access to your personalized dashboard.",
-                  "You can modify, add, or remove information at any time from your dashboard.",
-                  "Access AI-powered writing and resume assistance tools to refine your professional story."
+                  "Review and fine-tune your profile information",
+                  "Access your personalized dashboard",
+                  "Update your information anytime",
+                  "Utilize AI-powered tools to enhance your professional story"
                 ].map((step, index) => (
-                  <li key={index} className="flex items-start">
-                    <CheckCircle className="text-gray-400 mr-2 mt-1 flex-shrink-0" size={18} />
-                    <span className="text-sm text-gray-600">{step}</span>
+                  <li key={index} className="flex items-start group">
+                    <CheckCircle className="text-gray-400 mr-3 mt-1 flex-shrink-0 transition-all duration-300 ease-in-out group-hover:text-gray-600" size={22} />
+                    <span className="text-base text-gray-600 group-hover:text-gray-800 transition-all duration-300 ease-in-out">{step}</span>
                   </li>
                 ))}
               </ul>
@@ -57,10 +58,10 @@ function CandidateOnboardingDialog(props: CandidateOnboardingDialogProps) {
         <AlertDialogFooter className="mt-8">
           <AlertDialogAction 
             onClick={props.beginStartOnboarding}
-            className="bg-gray-800 hover:bg-gray-900 text-white font-medium py-2 px-4 rounded-md transition duration-300 ease-in-out flex items-center justify-center text-sm"
+            className="bg-gray-800 hover:bg-gray-900 text-white font-medium py-3 px-6 rounded-md transition duration-300 ease-in-out flex items-center justify-center text-lg shadow-md hover:shadow-lg"
           >
-            Review My Profile
-            <ArrowRight className="ml-2" size={16} />
+            Let's Get Started
+            <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform duration-300" size={20} />
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

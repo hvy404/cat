@@ -15,13 +15,24 @@ import CandidateDashboardCertifications from "@/app/(auth)/dashboard/views/candi
 import CandidateDashboardJobSearch from "@/app/(auth)/dashboard/views/candidate/search/main";
 import CandidateResumeCopilot from "@/app/(auth)/dashboard/views/candidate/resume-copilot/main";
 import useStore from "@/app/state/useStore";
+import { useUser } from "@clerk/nextjs";
 
-/**
- * Renders the body component for the employer dashboard.
- * The component dynamically renders different sub-components based on the selected menu item.
- */
 export default function EmployerDashboardBody() {
   const selectedMenuItem = useStore((state) => state.selectedMenuItem);
+  const { user: clerkUser, isLoaded, isSignedIn } = useUser();
+
+  if (!isLoaded) {
+    return <div className="text-sm p-4">Loading...</div>;
+  }
+
+  if (!isSignedIn) {
+    return (
+      <div className="text-sm p-4">Please sign in to access the dashboard.</div>
+    );
+  }
+
+  const cuid = clerkUser?.publicMetadata?.cuid as string | undefined;
+  const role = clerkUser?.publicMetadata?.role as string | undefined;
 
   /**
    * Returns the active sub-component based on the selected menu item.
@@ -58,11 +69,19 @@ export default function EmployerDashboardBody() {
         return <CandidateDashboardJobSearch />;
       case "resume-copilot":
         return <CandidateResumeCopilot />;
-        case "candidate-user-settings":
+      case "candidate-user-settings":
         return <CandidateDashboardSettings />;
       // Add more cases as needed for other components
       default:
-        return <EmployerDashboardMain />; // TODO: Update this to the default component to handle role type: candidate or employer
+        switch (role) {
+          case "employer":
+          case "employer-trial":
+            return <EmployerDashboardMain />;
+          case "talent":
+            return <CandidateDashboardMain />;
+          default:
+            return <div className="text-sm p-4">Contact support.</div>; // Or a default component
+        }
     }
   };
 
