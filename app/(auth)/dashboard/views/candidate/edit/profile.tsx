@@ -27,11 +27,18 @@ import {
 } from "@/app/(auth)/dashboard/views/candidate/helpers/profileFormValidation";
 import { validateTalentProperties } from "@/app/(auth)/dashboard/views/candidate/helpers/profileFormValidationUtility";
 import LoadingState from "@/app/(auth)/dashboard/views/candidate/edit/loader";
-
+import InitialInfoDialog from "@/app/(auth)/dashboard/views/candidate/edit/info-alert";
 
 type EditableTalentProperties = Pick<
   TalentNode,
-  "city" | "clearance_level" | "zipcode" | "phone" | "name" | "state" | "email" | "intro"
+  | "city"
+  | "clearance_level"
+  | "zipcode"
+  | "phone"
+  | "name"
+  | "state"
+  | "email"
+  | "intro"
 >;
 
 type TalentPropertiesState = EditableTalentProperties & NodeWithId;
@@ -100,6 +107,9 @@ export default function TalentPropertiesEditor() {
   const [isSaving, setIsSaving] = useState(false);
 
   const candidateId = clerkUser?.publicMetadata?.cuid as string;
+  const dialogDismissed =
+    (clerkUser?.publicMetadata?.["2"] as string) === "true";
+  const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(!dialogDismissed);
 
   useEffect(() => {
     const fetchTalentProperties = async () => {
@@ -203,7 +213,6 @@ export default function TalentPropertiesEditor() {
 
   return (
     <div className="space-y-6">
-
       <div className="rounded-md border p-4 space-y-4 hover:border-2 hover:border-gray-900">
         <h3 className="text-lg font-semibold">Contact Information</h3>
         <div className="grid grid-cols-2 gap-4">
@@ -351,7 +360,6 @@ export default function TalentPropertiesEditor() {
         </div>
       </div>
 
-
       <Button onClick={handleSave} disabled={isSaving}>
         {isSaving ? (
           "Saving..."
@@ -361,6 +369,12 @@ export default function TalentPropertiesEditor() {
           </>
         )}
       </Button>
+      {!dialogDismissed && (
+        <InitialInfoDialog
+          open={isInfoDialogOpen}
+          onOpenChange={setIsInfoDialogOpen}
+        />
+      )}
     </div>
   );
 }

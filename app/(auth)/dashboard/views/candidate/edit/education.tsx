@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/tooltip";
 import { MonthYearPicker } from "@/app/(auth)/dashboard/views/candidate/assets/date-picker-my";
 import LoadingState from "@/app/(auth)/dashboard/views/candidate/edit/loader";
+import InitialInfoDialog from "@/app/(auth)/dashboard/views/candidate/edit/info-alert";
 
 type BaseEducation = Omit<EducationNode, "_id"> & {
   labels?: string[];
@@ -53,6 +54,9 @@ export default function Education() {
   }>({});
 
   const candidateId = clerkUser?.publicMetadata?.cuid as string;
+  const dialogDismissed =
+    (clerkUser?.publicMetadata?.["2"] as string) === "true";
+  const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(!dialogDismissed);
 
   useEffect(() => {
     const fetchEducations = async () => {
@@ -297,6 +301,12 @@ export default function Education() {
       <Button onClick={addNewEducation} variant="outline" className="w-full">
         <Plus className="h-4 w-4 mr-2" /> Add New Education
       </Button>
+      {!dialogDismissed && (
+        <InitialInfoDialog
+          open={isInfoDialogOpen}
+          onOpenChange={setIsInfoDialogOpen}
+        />
+      )}
     </div>
   );
 }

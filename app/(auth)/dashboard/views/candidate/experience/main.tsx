@@ -1,5 +1,6 @@
+import { useUser } from "@clerk/nextjs";
 import useStore from "@/app/state/useStore";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import RightPanel from "@/app/(auth)/dashboard/views/candidate/experience/panel";
 import WorkExperiences from "@/app/(auth)/dashboard/views/candidate/edit/work-experiences";
 import { WorkExperience } from "@/app/(auth)/dashboard/views/candidate/experience/panel";
@@ -11,7 +12,7 @@ interface StatusResponse {
 }
 
 export default function CandidateDashboardExperience() {
-  const { isExpanded, setExpanded, user } = useStore();
+  const { isExpanded, setExpanded } = useStore();
   const [selectedSuggestion, setSelectedSuggestion] = useState<
     WorkExperience | undefined
   >(undefined);

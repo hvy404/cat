@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
-import useStore from "@/app/state/useStore";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,7 @@ import {
   removeCertification,
   updateNodeProperty,
   CertificationNode,
-  NodeWithId
+  NodeWithId,
 } from "@/lib/candidate/global/mutation";
 import { toast } from "sonner";
 import {
@@ -22,22 +21,32 @@ import {
 } from "@/components/ui/tooltip";
 import { MonthYearPicker } from "../assets/date-picker-my";
 import LoadingState from "@/app/(auth)/dashboard/views/candidate/edit/loader";
+import InitialInfoDialog from "@/app/(auth)/dashboard/views/candidate/edit/info-alert";
 
 type CertificationWithId = CertificationNode & NodeWithId;
 
 export default function Certifications() {
   const { user: clerkUser } = useUser();
-  const [certifications, setCertifications] = useState<CertificationWithId[]>([]);
+  const [certifications, setCertifications] = useState<CertificationWithId[]>(
+    []
+  );
   const [isLoading, setIsLoading] = useState(true);
-  const [savingStates, setSavingStates] = useState<{ [key: number]: boolean }>({});
+  const [savingStates, setSavingStates] = useState<{ [key: number]: boolean }>(
+    {}
+  );
 
   const candidateId = clerkUser?.publicMetadata?.cuid as string | undefined;
+  const dialogDismissed =
+    (clerkUser?.publicMetadata?.["2"] as string) === "true";
+  const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(!dialogDismissed);
 
   const fetchCertifications = useCallback(async () => {
     if (candidateId) {
       try {
         setIsLoading(true);
-        const fetchedCertifications = await getTalentCertifications(candidateId);
+        const fetchedCertifications = await getTalentCertifications(
+          candidateId
+        );
         setCertifications(fetchedCertifications);
       } catch (error) {
         console.error("Error fetching certifications:", error);
@@ -56,17 +65,18 @@ export default function Certifications() {
     const newCertification: CertificationWithId = {
       _id: -Date.now(), // Temporary negative ID
       name: "",
-      labels: ["Certification"]
+      labels: ["Certification"],
     };
     setCertifications([...certifications, newCertification]);
   };
 
   const handleRemoveCertification = async (index: number) => {
     const certToRemove = certifications[index];
-    if (certToRemove._id && typeof certToRemove._id === 'number') {
+    if (certToRemove._id && typeof certToRemove._id === "number") {
       setSavingStates({ ...savingStates, [certToRemove._id]: true });
       try {
-        if (certToRemove._id > 0) { // Only remove from Neo4j if it's an existing certification
+        if (certToRemove._id > 0) {
+          // Only remove from Neo4j if it's an existing certification
           await removeCertification(certToRemove._id);
         }
         setCertifications(certifications.filter((_, i) => i !== index));
@@ -82,13 +92,24 @@ export default function Certifications() {
     }
   };
 
-  const handleInputChange = (index: number, field: keyof CertificationNode, value: string) => {
+  const handleInputChange = (
+    index: number,
+    field: keyof CertificationNode,
+    value: string
+  ) => {
     const updatedCertifications = [...certifications];
-    updatedCertifications[index] = { ...updatedCertifications[index], [field]: value };
+    updatedCertifications[index] = {
+      ...updatedCertifications[index],
+      [field]: value,
+    };
     setCertifications(updatedCertifications);
   };
 
-  const handleDateChange = (index: number, field: "date_obtained" | "expiration_date", value: string | undefined) => {
+  const handleDateChange = (
+    index: number,
+    field: "date_obtained" | "expiration_date",
+    value: string | undefined
+  ) => {
     const updatedCertifications = [...certifications];
     updatedCertifications[index] = {
       ...updatedCertifications[index],
@@ -97,33 +118,38 @@ export default function Certifications() {
     setCertifications(updatedCertifications);
   };
 
-  const handleSaveCertification = async (cert: CertificationWithId, index: number) => {
+  const handleSaveCertification = async (
+    cert: CertificationWithId,
+    index: number
+  ) => {
     if (!candidateId) return;
 
     setSavingStates({ ...savingStates, [cert._id]: true });
     try {
       let savedCert: CertificationWithId;
-      if (cert._id <= 0) { // New certification
+      if (cert._id <= 0) {
+        // New certification
         const newCert = await addCertification(candidateId, {
           name: cert.name,
           date_obtained: cert.date_obtained,
           issuing_organization: cert.issuing_organization,
           expiration_date: cert.expiration_date,
           credential_id: cert.credential_id,
-          credential_url: cert.credential_url
+          credential_url: cert.credential_url,
         });
         if (!newCert) {
           throw new Error("Failed to add new certification");
         }
         savedCert = { ...newCert, labels: ["Certification"] };
         toast.success("New certification added successfully.");
-      } else { // Existing certification
+      } else {
+        // Existing certification
         for (const [key, value] of Object.entries(cert)) {
           if (key !== "_id" && key !== "labels") {
             await updateNodeProperty({
               nodeId: cert._id,
               propertyName: key as keyof CertificationNode,
-              propertyValue: value
+              propertyValue: value,
             });
           }
         }
@@ -150,11 +176,18 @@ export default function Certifications() {
       {certifications.map((cert, index) => (
         <div key={cert._id} className="space-y-4 p-4 border rounded-md">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">{cert.name || "New Certification"}</h3>
+            <h3 className="text-lg font-semibold">
+              {cert.name || "New Certification"}
+            </h3>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button onClick={() => handleRemoveCertification(index)} variant="outline" size="icon" disabled={savingStates[cert._id]}>
+                  <Button
+                    onClick={() => handleRemoveCertification(index)}
+                    variant="outline"
+                    size="icon"
+                    disabled={savingStates[cert._id]}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -180,7 +213,13 @@ export default function Certifications() {
               <Input
                 id={`cert-org-${index}`}
                 value={cert.issuing_organization || ""}
-                onChange={(e) => handleInputChange(index, "issuing_organization", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange(
+                    index,
+                    "issuing_organization",
+                    e.target.value
+                  )
+                }
                 disabled={savingStates[cert._id]}
               />
             </div>
@@ -189,24 +228,34 @@ export default function Certifications() {
               <Input
                 id={`cert-id-${index}`}
                 value={cert.credential_id || ""}
-                onChange={(e) => handleInputChange(index, "credential_id", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange(index, "credential_id", e.target.value)
+                }
                 disabled={savingStates[cert._id]}
               />
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor={`cert-date-obtained-${index}`}>Date Obtained</Label>
+              <Label htmlFor={`cert-date-obtained-${index}`}>
+                Date Obtained
+              </Label>
               <MonthYearPicker
                 value={cert.date_obtained}
-                onChange={(value) => handleDateChange(index, "date_obtained", value)}
+                onChange={(value) =>
+                  handleDateChange(index, "date_obtained", value)
+                }
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor={`cert-expiration-date-${index}`}>Expiration Date</Label>
+              <Label htmlFor={`cert-expiration-date-${index}`}>
+                Expiration Date
+              </Label>
               <MonthYearPicker
                 value={cert.expiration_date}
-                onChange={(value) => handleDateChange(index, "expiration_date", value)}
+                onChange={(value) =>
+                  handleDateChange(index, "expiration_date", value)
+                }
                 allowPresent
               />
             </div>
@@ -216,12 +265,17 @@ export default function Certifications() {
             <Input
               id={`cert-url-${index}`}
               value={cert.credential_url || ""}
-              onChange={(e) => handleInputChange(index, "credential_url", e.target.value)}
+              onChange={(e) =>
+                handleInputChange(index, "credential_url", e.target.value)
+              }
               disabled={savingStates[cert._id]}
               type="url"
             />
           </div>
-          <Button onClick={() => handleSaveCertification(cert, index)} disabled={savingStates[cert._id]}>
+          <Button
+            onClick={() => handleSaveCertification(cert, index)}
+            disabled={savingStates[cert._id]}
+          >
             {savingStates[cert._id] ? (
               "Saving..."
             ) : (
@@ -233,9 +287,19 @@ export default function Certifications() {
         </div>
       ))}
 
-      <Button onClick={handleAddCertification} variant="outline" className="w-full">
+      <Button
+        onClick={handleAddCertification}
+        variant="outline"
+        className="w-full"
+      >
         <Plus className="h-4 w-4 mr-2" /> Add New Certification
       </Button>
+      {!dialogDismissed && (
+        <InitialInfoDialog
+          open={isInfoDialogOpen}
+          onOpenChange={setIsInfoDialogOpen}
+        />
+      )}
     </div>
   );
 }

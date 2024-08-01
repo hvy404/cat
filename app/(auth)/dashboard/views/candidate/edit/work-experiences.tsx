@@ -17,12 +17,12 @@ import { toast } from "sonner";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { WorkExperience } from "@/app/(auth)/dashboard/views/candidate/experience/panel";
 import { MonthYearPicker } from "@/app/(auth)/dashboard/views/candidate/assets/date-picker-my";
 import LoadingState from "@/app/(auth)/dashboard/views/candidate/edit/loader";
+import InitialInfoDialog from "@/app/(auth)/dashboard/views/candidate/edit/info-alert";
 
 // Define the base WorkExperience type without _id
 type BaseWorkExperience = Omit<WorkExperienceNode, "_id"> & {
@@ -62,6 +62,9 @@ export default function WorkExperiences(props: {
   }>({});
 
   const candidateId = clerkUser?.publicMetadata?.cuid as string;
+  const dialogDismissed =
+    (clerkUser?.publicMetadata?.["2"] as string) === "true";
+  const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(!dialogDismissed);
 
   // Track references to each experience div
   const experienceRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -338,6 +341,12 @@ export default function WorkExperiences(props: {
       <Button onClick={addNewExperience} variant="outline" className="w-full">
         <Plus className="h-4 w-4 mr-2" /> Add New Experience
       </Button>
+      {!dialogDismissed && (
+        <InitialInfoDialog
+          open={isInfoDialogOpen}
+          onOpenChange={setIsInfoDialogOpen}
+        />
+      )}
     </div>
   );
 }

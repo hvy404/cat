@@ -2,8 +2,6 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useUser } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
 import useStore from "@/app/state/useStore";
-import { RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   InsightsCard,
   CareerInsight,
@@ -227,18 +225,6 @@ export function CandidateDashboard() {
         <h1 className="text-xl font-bold text-gray-900">
           Welcome back!
         </h1>
-        <Button
-          onClick={refreshData}
-          disabled={isLoading}
-          variant="outline"
-          size="sm"
-          className="text-xs"
-        >
-          <RefreshCw
-            className={`w-3 h-3 mr-2 ${isLoading ? "animate-spin" : ""}`}
-          />
-          Refresh
-        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">

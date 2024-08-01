@@ -52,6 +52,7 @@ import {
   disableJobAlert,
 } from "@/app/(auth)/dashboard/views/candidate/search/manage-search-alerts";
 import { toast } from "sonner";
+import SearchFeatureDialog from "@/app/(auth)/dashboard/views/candidate/search/info-alert";
 
 type ExtendedJobSearchResult = JobSearchResult & {
   match: boolean;
@@ -93,6 +94,11 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
   );
 
   const candidateId = clerkUser?.publicMetadata?.cuid as string;
+  const dialogDismissed =
+    (clerkUser?.publicMetadata?.["3"] as string) === "true";
+  const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(
+    !dialogDismissed
+  );
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -531,6 +537,10 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
           </Tabs>
         </>
       )}
+      <SearchFeatureDialog
+        open={isSearchDialogOpen}
+        onOpenChange={setIsSearchDialogOpen}
+      />
     </div>
   );
 };
