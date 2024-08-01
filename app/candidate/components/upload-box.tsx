@@ -1,41 +1,48 @@
-import React, { useState, useEffect } from 'react';
-import Dropzone, { FileWithPath } from 'react-dropzone';
-import { PlusIcon } from '@heroicons/react/24/solid';
-import { uploadResumeToStorage } from '@/lib/candidate/resume-upload';
-import { resumeUnconfirmedAddToDatabase } from '@/lib/candidate/resume-upload-entry';
-import getIdentityUUID from '@/lib/candidate/uuid-create';
-import { useSignUp } from '@clerk/nextjs';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
+import React, { useState, useEffect } from "react";
+import Dropzone, { FileWithPath } from "react-dropzone";
+import { PlusIcon } from "@heroicons/react/24/solid";
+import { uploadResumeToStorage } from "@/lib/candidate/resume-upload";
+import { resumeUnconfirmedAddToDatabase } from "@/lib/candidate/resume-upload-entry";
+import { useSignUp } from "@clerk/nextjs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { toast } from "sonner";
 import { createId } from "@paralleldrive/cuid2";
 import { updatePublicMetadata } from "@/app/(main)/actions";
+import { candidateStartOnboard } from "@/lib/candidate/onboard/onboardResume";
+import { QueryWorkerStatus } from "@/app/(main)/check-worker-status";
+import EnhancedLoadingComponent from "@/app/candidate/components/loading-status-bar";
 
 const ResumeUploadBox: React.FC = () => {
   const [file, setFile] = useState<FileWithPath | null>(null);
   const [showSignUp, setShowSignUp] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
   const [showVerification, setShowVerification] = useState(false);
   const { isLoaded, signUp, setActive } = useSignUp();
-  const [candidateId, setCandidateId] = useState('');
-  const [candidateSignature, setCandidateSignature] = useState('');
+  const [candidateId, setCandidateId] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [runId, setRunId] = useState<string | null>(null);
+  const [workerStatus, setWorkerStatus] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    const fetchIdentity = async () => {
-      const { newUUID, newFingerprint } = await getIdentityUUID();
-      setCandidateId(newUUID);
-      setCandidateSignature(newFingerprint);
-    };
-    fetchIdentity();
+    const newCuid = createId();
+    setCandidateId(newCuid);
   }, []);
 
   const onFileAdded = (acceptedFiles: FileWithPath[]) => {
     if (acceptedFiles.length === 0) {
-      toast.error('No file selected.');
+      toast.error("No file selected.");
       return;
     }
     setFile(acceptedFiles[0]);
@@ -52,11 +59,11 @@ const ResumeUploadBox: React.FC = () => {
         password,
       });
 
-      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       setShowVerification(true);
-      toast.success('Please check your email for the verification code.');
+      toast.success("Please check your email for the verification code.");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'An error occurred during sign up.');
+      toast.error("There was an error during sign-up.");
     }
   };
 
@@ -65,41 +72,62 @@ const ResumeUploadBox: React.FC = () => {
     if (!signUp) return;
 
     try {
+      setIsLoading(true);
       const completeSignUp = await signUp.attemptEmailAddressVerification({
         code: verificationCode,
       });
-      if (completeSignUp.status !== 'complete') {
-        console.log(JSON.stringify(completeSignUp, null, 2));
+      if (completeSignUp.status !== "complete") {
+        throw new Error("Verification failed");
       } else {
         if (completeSignUp.createdSessionId) {
           await setActive({ session: completeSignUp.createdSessionId });
 
-          // Update public metadata using the server action
-          const cuid = createId();
           if (completeSignUp.createdUserId) {
             await updatePublicMetadata(completeSignUp.createdUserId, {
-              role: 'talent',
-              cuid,
+              role: "talent",
+              cuid: candidateId,
             });
           }
 
-          toast.success('Email verified successfully!');
-          handleFileUpload();
+          toast.success("Email verified successfully!");
+          handleFileUpload(candidateId);
         }
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Error verifying email');
+      setIsLoading(false);
+      toast.error(err instanceof Error ? err.message : "Error verifying email");
     }
   };
 
-  const handleFileUpload = async () => {
+  const pollWorkerStatus = async (eventId: string) => {
+    const pollInterval = setInterval(async () => {
+      const result = await QueryWorkerStatus(eventId);
+      console.log("Worker status:", result);
+      setWorkerStatus(result.status);
+
+      if (result.status === "completed") {
+        clearInterval(pollInterval);
+        console.log("Worker completed successfully");
+        toast.success("Resume processing completed!");
+        setIsLoading(false);
+      } else if (result.status === "failed" || result.status === "cancelled") {
+        clearInterval(pollInterval);
+        console.error("Worker failed or was cancelled");
+        toast.error("There was an error processing your resume. Please try again.");
+        setIsLoading(false);
+      }
+    }, 10000); // Poll every 10 seconds
+  };
+
+  const handleFileUpload = async (userId: string | null) => {
     if (!file) {
-      toast.error('No file selected.');
+      toast.error("No file selected.");
+      setIsLoading(false);
       return;
     }
 
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
     try {
       const uploadResult = await uploadResumeToStorage(formData);
@@ -111,28 +139,52 @@ const ResumeUploadBox: React.FC = () => {
         );
 
         if (addResult && addResult.success) {
-          toast.success('Resume uploaded and confirmed successfully.');
+          toast.success("Resume uploaded and confirmed successfully.");
+
+          if (userId) {
+            const onboardResult = await candidateStartOnboard(userId);
+            console.log("Onboarding Run", onboardResult);
+            if (onboardResult.message === "Success" && onboardResult.event && onboardResult.event.length > 0) {
+              toast.success("Onboarding process started successfully.");
+              setRunId(onboardResult.event[0]);
+              pollWorkerStatus(onboardResult.event[0]);
+            } else {
+              toast.error("Failed to start onboarding process.");
+              setIsLoading(false);
+            }
+          }
         } else {
-          toast.error('Failed to confirm resume upload.');
+          toast.error("Failed to confirm resume upload.");
+          setIsLoading(false);
         }
       } else {
-        toast.error('Failed to upload resume.');
+        toast.error("Failed to upload resume.");
+        setIsLoading(false);
       }
     } catch (error) {
-      console.error('Error uploading file:', error);
-      toast.error('Error during file upload.');
+      toast.error("Error during file upload.");
+      setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return <EnhancedLoadingComponent workerStatus={workerStatus} />;
+  }
 
   return (
     <div className="w-full max-w-md">
       {!file && (
         <Dropzone onDrop={onFileAdded} multiple={false}>
           {({ getRootProps, getInputProps }) => (
-            <div {...getRootProps()} className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center cursor-pointer">
+            <div
+              {...getRootProps()}
+              className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center cursor-pointer"
+            >
               <input {...getInputProps()} />
               <PlusIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <p className="mt-2 text-sm text-gray-600">Click or drag file to upload</p>
+              <p className="mt-2 text-sm text-gray-600">
+                Click or drag file to upload
+              </p>
             </div>
           )}
         </Dropzone>
@@ -141,7 +193,9 @@ const ResumeUploadBox: React.FC = () => {
         <Card>
           <CardHeader>
             <CardTitle>Sign Up</CardTitle>
-            <CardDescription>Create an account to upload your resume</CardDescription>
+            <CardDescription>
+              Create an account to upload your resume
+            </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent>
@@ -171,16 +225,20 @@ const ResumeUploadBox: React.FC = () => {
               </div>
             </CardContent>
             <CardFooter>
-              <Button type="submit" className="w-full">Sign Up</Button>
+              <Button type="submit" className="w-full">
+                Sign Up
+              </Button>
             </CardFooter>
           </form>
         </Card>
       )}
-      {showVerification && (
+      {showVerification && !isLoading && (
         <Card>
           <CardHeader>
             <CardTitle>Verify Email</CardTitle>
-            <CardDescription>Enter the verification code sent to your email</CardDescription>
+            <CardDescription>
+              Enter the verification code sent to your email
+            </CardDescription>
           </CardHeader>
           <form onSubmit={handleVerification}>
             <CardContent>
@@ -196,7 +254,9 @@ const ResumeUploadBox: React.FC = () => {
               </div>
             </CardContent>
             <CardFooter>
-              <Button type="submit" className="w-full">Verify Email</Button>
+              <Button type="submit" className="w-full">
+                Verify Email
+              </Button>
             </CardFooter>
           </form>
         </Card>

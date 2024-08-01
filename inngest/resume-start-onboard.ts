@@ -153,7 +153,7 @@ export const finalizeOnboarding = inngest.createFunction(
           user: {
             id: event.data.user.id,
           },
-        },
+        }
       });
     } catch (error) {
       console.error("Error during while building cypher query.", error);

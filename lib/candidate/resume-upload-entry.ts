@@ -15,7 +15,7 @@ export async function resumeUnconfirmedAddToDatabase(
   // TODO: add timestamp to the database
 
   // Add to Supabase
-  const { data, error } = await supabase.from("candidates").insert([
+  const { error } = await supabase.from("candidates").insert([
     {
       identity: resumeId,
       email: email,

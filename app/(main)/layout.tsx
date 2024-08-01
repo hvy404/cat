@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/themeProvider";
 import "../globals.css";
 import { MainHeader } from "./header";
 import { ClerkProvider } from '@clerk/nextjs'
+import { Toaster } from 'sonner'
 
 
 const inter = Inter({ subsets: ["latin"] });
@@ -36,7 +37,7 @@ export default function RootLayout({
           </div>
           
         </ThemeProvider>
-        {/* <Toaster /> */}
+        <Toaster position="bottom-center" expand={false} /> 
       </body>
     </html>
     </ClerkProvider>

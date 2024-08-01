@@ -1,6 +1,6 @@
 import ResumeUploadBox from "./components/upload-box";
 
-export default function AddReusme() {
+export default function AddResume() {
   return (
     <div className="">
       <div className="relative isolate overflow-hidden bg-gray-900 px-6 pt-16 shadow-2xl sm:rounded-3xl sm:px-16 md:pt-24 lg:flex lg:gap-x-20 lg:px-24 lg:pt-0">
@@ -46,7 +46,6 @@ export default function AddReusme() {
         </div>
         <div className="relative mt-16 h-85 lg:mt-8">
           <div className="absolute flex flex-row p-8 items-center left-0 top-0 w-[50rem] max-w-none rounded-md bg-white/5 ring-1 ring-white/10 min-h-full">
-            {/*  <PlusIcon className="h-24 w-24 text-white animate-pulse" /> */}
             <ResumeUploadBox />
           </div>
         </div>
