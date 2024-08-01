@@ -1,10 +1,11 @@
-// app/actions/checkProfilePicture.ts
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 
-export async function checkProfilePicture(userId: string): Promise<string | null> {
+export async function checkProfilePicture(
+  userId: string
+): Promise<string | null> {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
@@ -15,15 +16,12 @@ export async function checkProfilePicture(userId: string): Promise<string | null
     .single();
 
   if (error || !data) {
-    console.error("Error fetching profile picture:", error);
     return null;
   }
 
   if (data.address) {
-    const { data: urlData } = supabase.storage
-      .from("avatars")
-      .getPublicUrl(`public/${data.address}`);
-    return urlData.publicUrl;
+    // Instead of getting the Supabase public URL, we ask using our API route URL
+    return `/api/avatar?id=${encodeURIComponent(data.address)}`;
   }
 
   return null;
