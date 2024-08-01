@@ -18,6 +18,7 @@ import {
 import { JobBookmarked } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-bookmarked";
 import TalentId from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/talent-id";
 import CandidateAlertsCard from "@/app/(auth)/dashboard/views/candidate/main-candidate-alerts";
+import ProfilePictureUpload from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/profile-picture";
 
 interface Job {
   id: number;
@@ -59,12 +60,14 @@ export function CandidateDashboard() {
   const { user: clerkUser } = useUser();
   const { setCandidateDashboard, setSelectedMenuItem } = useStore((state) => ({
     setCandidateDashboard: state.setCandidateDashboard,
-    setSelectedMenuItem: state.setSelectedMenuItem
+    setSelectedMenuItem: state.setSelectedMenuItem,
   }));
 
   const [data, setData] = useState<DashboardData>(mockData);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [bookmarkedJobs, setBookmarkedJobs] = useState<CandidateJobBookmark[]>([]);
+  const [bookmarkedJobs, setBookmarkedJobs] = useState<CandidateJobBookmark[]>(
+    []
+  );
 
   const candidateId = clerkUser?.publicMetadata?.cuid as string;
 
@@ -139,7 +142,6 @@ export function CandidateDashboard() {
     [setCandidateDashboard]
   );
 
-
   const handleTalentIDLearnMore = useCallback(
     (candidateId: string) => {
       setCandidateDashboard({
@@ -204,7 +206,13 @@ export function CandidateDashboard() {
         handleBrowseJobsClick={handleBrowseJobsClick}
       />
     ),
-    [bookmarkedJobs, handleViewMoreJobBookmarked, candidateId, handleBookmarkRemoved, handleBrowseJobsClick]
+    [
+      bookmarkedJobs,
+      handleViewMoreJobBookmarked,
+      candidateId,
+      handleBookmarkRemoved,
+      handleBrowseJobsClick,
+    ]
   );
 
   const memoizedJobInvited = useMemo(
@@ -222,17 +230,12 @@ export function CandidateDashboard() {
   return (
     <div className="max-w">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-xl font-bold text-gray-900">
-          Welcome back!
-        </h1>
+        <h1 className="text-xl font-bold text-gray-900">Welcome back!</h1>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="flex flex-col items-center justify-center p-4 border border-gray-300 rounded-md">
-          <p className="text-sm font-medium text-gray-700">Title</p>
-          <p className="text-lg font-semibold text-gray-900">Value</p>
-          <p className="text-sm text-gray-600">Change messages</p>
-        </div>
+        <ProfilePictureUpload userId={candidateId} />
+
         <CandidateAlertsCard onAlertAction={handleAlertAction} />
         <TalentId
           handleTalentIDLearnMore={handleTalentIDLearnMore}
