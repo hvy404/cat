@@ -34,7 +34,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error fetching image:', error);
     return new NextResponse('Uh oh, this profile photo does not exist.', { status: 500 });
   }
 }
