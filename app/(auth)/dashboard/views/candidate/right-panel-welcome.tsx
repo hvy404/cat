@@ -54,7 +54,7 @@ export default function CandidateDashboardRightPanelWelcome() {
             !isAnimated ? "text-center" : ""
           }`}
         >
-          <p>Hello, Huy 👋</p>
+          <p>Hello there 👋,</p>
           <p>You're in good hands.</p>
         </motion.div>
         {!isAnimated && (

@@ -20,10 +20,10 @@ export async function manageOnboardDialog2() {
       throw new Error("User not authenticated");
     }
 
-    const user = await clerkClient.users.getUser(userId);
+    const user = await clerkClient().users.getUser(userId);
     const updatedMetadata = { ...user.publicMetadata, "2": "true" };
 
-    await clerkClient.users.updateUser(userId, {
+    await clerkClient().users.updateUser(userId, {
       publicMetadata: updatedMetadata,
     });
 
@@ -41,10 +41,10 @@ export async function manageSearchTipAlert() {
       throw new Error("User not authenticated");
     }
 
-    const user = await clerkClient.users.getUser(userId);
+    const user = await clerkClient().users.getUser(userId);
     const updatedMetadata = { ...user.publicMetadata, "3": "true" };
 
-    await clerkClient.users.updateUser(userId, {
+    await clerkClient().users.updateUser(userId, {
       publicMetadata: updatedMetadata,
     });
 

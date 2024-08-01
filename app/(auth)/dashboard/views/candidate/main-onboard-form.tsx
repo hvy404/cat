@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import FormattedPhoneInput from "@/app/(auth)/dashboard/views/candidate/helpers/formatPhoneInput";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus, Check, ChevronsUpDown } from "lucide-react";
+import { Plus, Minus, Check, ChevronsUpDown, InfoIcon } from "lucide-react";
 import { fetchCandidatePreliminaryData } from "@/lib/dashboard/candidate/onboard-load-data";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Tooltip,
   TooltipContent,
@@ -41,7 +42,6 @@ import { handleUpload } from "@/lib/dashboard/candidate/onboard-confirm-profile"
 import { MonthYearPicker } from "@/app/(auth)/dashboard/views/candidate/assets/date-picker-my";
 import { candidateFinalizeOnboard } from "@/lib/candidate/onboard/onboardResume";
 import { QueryWorkerStatus } from "@/app/(main)/check-worker-status";
-
 
 interface Education {
   institution: string;
@@ -110,7 +110,6 @@ export function CandidateOnboardingForm() {
   const { user: clerkUser } = useUser();
   const user = clerkUser?.publicMetadata?.cuid as string | undefined;
 
-
   const [formData, setFormData] = useState<FormData>({
     name: "",
     phone: "",
@@ -130,6 +129,7 @@ export function CandidateOnboardingForm() {
   const [onboardingDialogOpen, setOnboardingDialogOpen] = useState(true); // State for onboarding dialog
   const [formLoaded, setFormLoaded] = useState(false); // State for form data loaded
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAlert, setShowAlert] = useState(true);
 
   const renderError = (key: string) => {
     if (errors[key]) {
@@ -265,7 +265,9 @@ export function CandidateOnboardingForm() {
       } else if (result.status === "failed" || result.status === "cancelled") {
         clearInterval(pollInterval);
         console.error("Worker failed or was cancelled");
-        toast.error("There was an error processing your resume. Please try again.");
+        toast.error(
+          "There was an error processing your resume. Please try again."
+        );
         setIsSubmitting(false);
       }
     }, 10000); // Poll every 10 seconds
@@ -282,10 +284,10 @@ export function CandidateOnboardingForm() {
 
     if (result.success) {
       toast.success(result.message);
-      
+
       // Call candidateFinalizeOnboard
       const finalizeResult = await candidateFinalizeOnboard(user);
-      
+
       if (finalizeResult.event) {
         // Start polling for worker status
         pollWorkerStatus(finalizeResult.event[0]);
@@ -322,6 +324,27 @@ export function CandidateOnboardingForm() {
 
   return (
     <div className="flex flex-col gap-4">
+      {showAlert && (
+        <Alert className="bg-yellow-50 border-yellow-200 text-yellow-800 mb-6 relative">
+          <InfoIcon className="h-5 w-5 text-yellow-600" />
+          <AlertTitle className="font-semibold mb-2">
+            Quick Confirmation
+          </AlertTitle>
+          <AlertDescription className="text-sm">
+            Don't stress over the details – they're all adjustable! Our AI tools
+            will help enhance your professional story once your dashboard is
+            ready. For now, just give it a quick glance and confirm.
+          </AlertDescription>
+          <Button
+            variant="link"
+            size="sm"
+            className="absolute top-2 right-2 text-yellow-800 hover:text-yellow-900"
+            onClick={() => setShowAlert(false)}
+          >
+            Dismiss
+          </Button>
+        </Alert>
+      )}
       {/* Personal Information */}
       <div className="rounded-lg border hover:border-2 hover:border-slate-800 p-4">
         <h2 className="text-md font-semibold mb-4 text-gray-700">
@@ -738,7 +761,8 @@ export function CandidateOnboardingForm() {
                 </div>
                 <div className="flex-grow">
                   <Label className="text-sm" htmlFor={`issuing-org-${index}`}>
-                    Issuing Organization <span className="text-xs font-normal">(optional)</span>
+                    Issuing Organization{" "}
+                    <span className="text-xs font-normal">(optional)</span>
                   </Label>
                   <Input
                     id={`issuing-org-${index}`}
@@ -753,7 +777,8 @@ export function CandidateOnboardingForm() {
               <div className="flex items-end space-x-4">
                 <div className="flex-grow">
                   <Label className="text-sm" htmlFor={`date-obtained-${index}`}>
-                    Date Obtained <span className="text-xs font-normal">(optional)</span>
+                    Date Obtained{" "}
+                    <span className="text-xs font-normal">(optional)</span>
                   </Label>
                   <MonthYearPicker
                     value={cert.date_obtained}
@@ -771,7 +796,8 @@ export function CandidateOnboardingForm() {
                     className="text-sm"
                     htmlFor={`expiration-date-${index}`}
                   >
-                    Expiration Date <span className="text-xs font-normal">(optional)</span>
+                    Expiration Date{" "}
+                    <span className="text-xs font-normal">(optional)</span>
                   </Label>
                   <MonthYearPicker
                     value={cert.expiration_date}
@@ -789,7 +815,8 @@ export function CandidateOnboardingForm() {
               <div className="flex items-end space-x-4">
                 <div className="flex-grow">
                   <Label className="text-sm" htmlFor={`credential-id-${index}`}>
-                    Credential ID <span className="text-xs font-normal">(optional)</span>
+                    Credential ID{" "}
+                    <span className="text-xs font-normal">(optional)</span>
                   </Label>
                   <Input
                     id={`credential-id-${index}`}
