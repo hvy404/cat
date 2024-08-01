@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import { useUser } from "@clerk/nextjs";
 import useStore from "@/app/state/useStore";
 import CandidateSettingOptions from "./options";
 import SidePanel from "./side-panel";
-import { Info } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 type ActiveInfoType = 'default' | 'resumes' | 'preferences';
 
 
 export default function CandidateDashboardSettings() {
-  const { isExpanded, setExpanded, user } = useStore();
+  const { user: clerkUser } = useUser();
+  const { isExpanded, setExpanded } = useStore();
   const [activeInfo, setActiveInfo] = useState<ActiveInfoType>('default');
+
+  const candidateId = clerkUser?.publicMetadata?.cuid as string;
 
   useEffect(() => {
     return () => {
@@ -18,7 +20,7 @@ export default function CandidateDashboardSettings() {
     };
   }, [setExpanded]);
 
-  if (!user) {
+  if (!candidateId) {
     return null;
   }
 
@@ -35,7 +37,7 @@ export default function CandidateDashboardSettings() {
           </h2>
         </div>
         <div className="flex flex-col gap-6">
-          {user && <CandidateSettingOptions setActiveInfo={setActiveInfo} />}
+          {candidateId && <CandidateSettingOptions setActiveInfo={setActiveInfo} />}
         </div>
       </div>
       <div

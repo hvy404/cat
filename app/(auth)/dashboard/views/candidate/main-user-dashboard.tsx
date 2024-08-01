@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useUser } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
 import useStore from "@/app/state/useStore";
 import { RefreshCw } from "lucide-react";
@@ -57,9 +58,9 @@ const cardVariants = {
 };
 
 export function CandidateDashboard() {
-  const { setCandidateDashboard, user, setSelectedMenuItem } = useStore((state) => ({
+  const { user: clerkUser } = useUser();
+  const { setCandidateDashboard, setSelectedMenuItem } = useStore((state) => ({
     setCandidateDashboard: state.setCandidateDashboard,
-    user: state.user,
     setSelectedMenuItem: state.setSelectedMenuItem
   }));
 
@@ -67,7 +68,7 @@ export function CandidateDashboard() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [bookmarkedJobs, setBookmarkedJobs] = useState<CandidateJobBookmark[]>([]);
 
-  const candidateId = user?.uuid || '';
+  const candidateId = clerkUser?.publicMetadata?.cuid as string;
 
   const refreshData = useCallback(async () => {
     setIsLoading(true);
@@ -218,13 +219,13 @@ export function CandidateDashboard() {
     [data.careerInsights]
   );
 
-  if (!user?.uuid) return <p>Loading...</p>;
+  if (!candidateId) return <p>Loading...</p>;
 
   return (
     <div className="max-w">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-xl font-bold text-gray-900">
-          Welcome back, {user?.email}
+          Welcome back!
         </h1>
         <Button
           onClick={refreshData}
@@ -249,7 +250,7 @@ export function CandidateDashboard() {
         <CandidateAlertsCard onAlertAction={handleAlertAction} />
         <TalentId
           handleTalentIDLearnMore={handleTalentIDLearnMore}
-          candidateId={user.uuid}
+          candidateId={candidateId}
         />
       </div>
 

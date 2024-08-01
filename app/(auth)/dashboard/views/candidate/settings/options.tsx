@@ -1,5 +1,5 @@
+import { useUser } from "@clerk/nextjs";
 import React, { useState, useEffect } from "react";
-import useStore from "@/app/state/useStore";
 import { getResumes } from "@/lib/candidate/apply/resume-choice";
 import { setDefaultResume } from "@/lib/candidate/preferences/resume-set-default";
 import { deleteResume } from "@/lib/candidate/preferences/delete-custom-resume";
@@ -38,7 +38,7 @@ interface CandidateSettingOptionsProps {
 export default function CandidateSettingOptions({
   setActiveInfo,
 }: CandidateSettingOptionsProps) {
-  const { user } = useStore();
+  const { user: clerkUser } = useUser();
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,13 +49,15 @@ export default function CandidateSettingOptions({
     interview_invite_opt_in: false,
   });
 
+  const candidateId = clerkUser?.publicMetadata?.cuid as string;
+
   useEffect(() => {
     async function fetchData() {
-      if (user) {
+      if (candidateId) {
         try {
           const [fetchedResumes, fetchedPreferences] = await Promise.all([
-            getResumes(user.uuid),
-            getCandidatePreferences(user.uuid),
+            getResumes(candidateId),
+            getCandidatePreferences(candidateId),
           ]);
           setResumes(fetchedResumes as Resume[]);
           setPreferences(fetchedPreferences);
@@ -69,14 +71,14 @@ export default function CandidateSettingOptions({
     }
 
     fetchData();
-  }, [user]);
+  }, [candidateId]);
 
   const handleSetDefault = async (resumeAddress: string) => {
-    if (!user) return;
+    if (!candidateId) return;
 
     setUpdating(true);
     try {
-      await setDefaultResume(user.uuid, resumeAddress);
+      await setDefaultResume(candidateId, resumeAddress);
       setResumes(
         resumes.map((resume) => ({
           ...resume,
@@ -109,12 +111,12 @@ export default function CandidateSettingOptions({
     setting: keyof CandidatePreferences,
     value: boolean
   ) => {
-    if (!user) return;
+    if (!candidateId) return;
 
     setUpdating(true);
     try {
       const updatedPreferences = { ...preferences, [setting]: value };
-      await updateCandidatePreferences(user.uuid, { [setting]: value });
+      await updateCandidatePreferences(candidateId, { [setting]: value });
       setPreferences(updatedPreferences);
       toast.success("Preference updated successfully", {
         duration: 3000,
@@ -132,11 +134,11 @@ export default function CandidateSettingOptions({
   };
 
   const handleDeleteResume = async (resumeAddress: string) => {
-    if (!user) return;
+    if (!candidateId) return;
 
     setUpdating(true);
     try {
-      await deleteResume(user.uuid, resumeAddress);
+      await deleteResume(candidateId, resumeAddress);
       setResumes(resumes.filter((resume) => resume.address !== resumeAddress));
       toast.success("Resume deleted successfully", {
         description: "The resume has been removed from your profile.",
@@ -153,7 +155,7 @@ export default function CandidateSettingOptions({
     }
   };
 
-  if (!user) return null;
+  if (!candidateId) return null;
 
   return (
     <>

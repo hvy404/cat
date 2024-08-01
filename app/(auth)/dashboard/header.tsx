@@ -1,6 +1,5 @@
 "use client"; // TODO: This can be removed when we no longer need to pull the user from the store
 import useStore from "@/app/state/useStore";
-import { useEffect } from "react";
 import { Bird, Rabbit, Settings, Share, Turtle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,7 +44,7 @@ export default function EmployerDashboardHeader() {
   // Inside your component
   let isLoaded = false;
 
-  // TODO: Remove this. Only used for development purposes
+/*   // TODO: Remove this. Only used for development purposes
   useEffect(() => {
     if (!isLoaded) {
       setUser({
@@ -57,7 +56,7 @@ export default function EmployerDashboardHeader() {
       });
       isLoaded = true; // Set the flag to true after setting the user
     }
-  }, []); // Dependency array remains empty to ensure this effect runs only once after the initial render
+  }, []); // Dependency array remains empty to ensure this effect runs only once after the initial render */
 
   return (
     <header className="sticky top-0 z-10 flex h-[57px] items-center gap-1 border-b bg-background px-4">

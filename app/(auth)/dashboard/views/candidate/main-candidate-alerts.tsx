@@ -1,6 +1,6 @@
+import { useUser } from "@clerk/nextjs";
 import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import useStore from "@/app/state/useStore";
 import {
   Bell,
   ChevronRight,
@@ -42,7 +42,7 @@ interface AlertsCardProps {
 }
 
 const AlertsCard: React.FC<AlertsCardProps> = ({ onAlertAction }) => {
-  const { user } = useStore();
+  const { user: clerkUser } = useUser();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [showOnlyUnread, setShowOnlyUnread] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
@@ -52,15 +52,17 @@ const AlertsCard: React.FC<AlertsCardProps> = ({ onAlertAction }) => {
   );
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
+  const candidateId = clerkUser?.publicMetadata?.cuid as string;
+
   useEffect(() => {
     fetchAlerts();
-  }, [user]);
+  }, [candidateId]);
 
   const fetchAlerts = async () => {
     setIsLoading(true);
     try {
-      if (user && user.uuid) {
-        const fetchedAlerts = await getAlerts(user.uuid);
+      if (candidateId) {
+        const fetchedAlerts = await getAlerts(candidateId);
         if (fetchedAlerts) {
           setAlerts(fetchedAlerts as Alert[]);
         }

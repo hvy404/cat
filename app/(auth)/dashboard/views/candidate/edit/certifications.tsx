@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useUser } from "@clerk/nextjs";
 import useStore from "@/app/state/useStore";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -24,16 +25,18 @@ import { MonthYearPicker } from "../assets/date-picker-my";
 type CertificationWithId = CertificationNode & NodeWithId;
 
 export default function Certifications() {
-  const { user } = useStore();
+  const { user: clerkUser } = useUser();
   const [certifications, setCertifications] = useState<CertificationWithId[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [savingStates, setSavingStates] = useState<{ [key: number]: boolean }>({});
 
+  const candidateId = clerkUser?.publicMetadata?.cuid as string | undefined;
+
   const fetchCertifications = useCallback(async () => {
-    if (user?.uuid) {
+    if (candidateId) {
       try {
         setIsLoading(true);
-        const fetchedCertifications = await getTalentCertifications(user.uuid);
+        const fetchedCertifications = await getTalentCertifications(candidateId);
         setCertifications(fetchedCertifications);
       } catch (error) {
         console.error("Error fetching certifications:", error);
@@ -42,7 +45,7 @@ export default function Certifications() {
         setIsLoading(false);
       }
     }
-  }, [user]);
+  }, [candidateId]);
 
   useEffect(() => {
     fetchCertifications();
@@ -94,13 +97,13 @@ export default function Certifications() {
   };
 
   const handleSaveCertification = async (cert: CertificationWithId, index: number) => {
-    if (!user?.uuid) return;
+    if (!candidateId) return;
 
     setSavingStates({ ...savingStates, [cert._id]: true });
     try {
       let savedCert: CertificationWithId;
       if (cert._id <= 0) { // New certification
-        const newCert = await addCertification(user.uuid, {
+        const newCert = await addCertification(candidateId, {
           name: cert.name,
           date_obtained: cert.date_obtained,
           issuing_organization: cert.issuing_organization,

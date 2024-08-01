@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import useStore from "@/app/state/useStore";
+import { useUser } from "@clerk/nextjs";
 import {
   MapPin,
   ShieldCheck,
@@ -78,6 +78,7 @@ interface JobSearchProps {
 const card_per = 5;
 
 export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
+  const { user: clerkUser } = useUser();
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchResults, setSearchResults] =
     useState<ExtendedJobSearchResult | null>(null);
@@ -90,8 +91,8 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
   const [isSearchSuggestionsOpen, setIsSearchSuggestionsOpen] = useState(
     !hasSearched
   );
-  const { user } = useStore();
-  const userId = user?.uuid;
+
+  const candidateId = clerkUser?.publicMetadata?.cuid as string;
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -101,7 +102,7 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
 
   const handleSearch = async (query: string = searchQuery): Promise<void> => {
     console.log("handleSearch called with query:", query);
-    if (!userId) {
+    if (!candidateId) {
       setError("User ID is not available. Please ensure you're logged in.");
       return;
     }
@@ -113,7 +114,7 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
     setIsSearchSuggestionsOpen(false);
 
     try {
-      const results = await jobSearchHandler(query, userId);
+      const results = await jobSearchHandler(query, candidateId);
       setSearchResults(results as ExtendedJobSearchResult);
       console.log("Job search results:", results);
     } catch (err) {
@@ -132,7 +133,7 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
   };
 
   const handleBookmarkToggle = async (jobId: string) => {
-    if (!userId) {
+    if (!candidateId) {
       setError("User ID is not available. Please ensure you're logged in.");
       return;
     }
@@ -140,9 +141,9 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
     try {
       const isCurrentlyBookmarked = bookmarkedJobs[jobId];
       if (isCurrentlyBookmarked) {
-        await removeCandidateJobBookmark(userId, jobId);
+        await removeCandidateJobBookmark(candidateId, jobId);
       } else {
-        await addCandidateJobBookmark(userId, jobId);
+        await addCandidateJobBookmark(candidateId, jobId);
       }
       setBookmarkedJobs((prev) => ({
         ...prev,
@@ -158,13 +159,13 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
 
   useEffect(() => {
     const checkBookmarks = async () => {
-      if (userId && searchResults?.similarJobs) {
+      if (candidateId && searchResults?.similarJobs) {
         try {
           const newBookmarkedJobs: BookmarkedJobs = {};
 
           for (const job of searchResults.similarJobs) {
             const isBookmarked = await checkCandidateJobBookmarkExists(
-              userId,
+              candidateId,
               job.job_id
             );
             newBookmarkedJobs[job.job_id] = isBookmarked;
@@ -179,16 +180,16 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
       }
     };
     checkBookmarks();
-  }, [userId, searchResults]);
+  }, [candidateId, searchResults]);
 
   const roleBuildRan = useRef(false);
 
   useEffect(() => {
-    if (roleBuildRan.current === false && userId) {
+    if (roleBuildRan.current === false && candidateId) {
       const fetchSearchSuggestions = async () => {
         try {
           const result = (await BuildSearchRoles(
-            userId
+            candidateId
           )) as BuildSearchRolesResult;
           if (result.status === "success") {
             setSearchSuggestions(result.roles);
@@ -210,11 +211,11 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
     return () => {
       roleBuildRan.current = false;
     };
-  }, [userId]);
+  }, [candidateId]);
 
   const handleThumbsUp = async () => {
-    if (userId && searchQuery) {
-      const result = await createJobAlert(userId, searchQuery);
+    if (candidateId && searchQuery) {
+      const result = await createJobAlert(candidateId, searchQuery);
       if (result.success) {
         toast.success(result.message);
       } else {
@@ -226,8 +227,8 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
   };
 
   const handleThumbsDown = async () => {
-    if (userId && searchQuery) {
-      const result = await disableJobAlert(userId, searchQuery);
+    if (candidateId && searchQuery) {
+      const result = await disableJobAlert(candidateId, searchQuery);
       if (result.success) {
         toast.success(result.message);
       } else {

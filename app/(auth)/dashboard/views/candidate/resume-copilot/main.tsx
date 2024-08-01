@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
-import useStore from "@/app/state/useStore";
 import getFetchSuggestionRoles from "./role-suggestions";
 import { getCompleteTalentProfile, TalentProfile } from "./get-data";
 import ResumeBuilder from "./builder";
@@ -13,7 +13,7 @@ import { contentModerationWordFilter } from "@/lib/content-moderation/explicit_w
 import { toast } from "sonner";
 
 export default function CandidateResumeCopilot() {
-  const { user } = useStore();
+  const { user: clerkUser } = useUser();
   const [talentProfile, setTalentProfile] = useState<TalentProfile | null>(
     null
   );
@@ -26,11 +26,13 @@ export default function CandidateResumeCopilot() {
   const [customRole, setCustomRole] = useState("");
   const [showRoleSelection, setShowRoleSelection] = useState(false);
 
+  const candidateId = clerkUser?.publicMetadata?.cuid as string;
+
   useEffect(() => {
     const fetchSuggestionRoles = async () => {
-      if (user && user.uuid) {
+      if (candidateId) {
         try {
-          const result = await getFetchSuggestionRoles(user.uuid);
+          const result = await getFetchSuggestionRoles(candidateId);
           console.log("Suggestion Roles:", result);
 
           if (result.status === "success") {
@@ -49,15 +51,15 @@ export default function CandidateResumeCopilot() {
     };
 
     fetchSuggestionRoles();
-  }, [user]);
+  }, [candidateId]);
 
   useEffect(() => {
     const fetchTalentProfile = async () => {
-      if (user && user.uuid) {
+      if (candidateId) {
         setIsLoading(true);
         setError(null);
         try {
-          const profile = await getCompleteTalentProfile(user.uuid);
+          const profile = await getCompleteTalentProfile(candidateId);
           console.log("Talent Profile:", profile);
           setTalentProfile(profile);
           setShowRoleSelection(true); // Show role selection after profile is loaded
@@ -71,7 +73,7 @@ export default function CandidateResumeCopilot() {
     };
 
     fetchTalentProfile();
-  }, [user]);
+  }, [candidateId]);
 
   const handleRoleSelect = (role: string) => {
     setSelectedRole(role);
@@ -198,13 +200,13 @@ export default function CandidateResumeCopilot() {
                     exit={{ opacity: 0, y: -20 }}
                   >
 
-                    {user?.uuid && (
+                    {candidateId && (
                       <ResumeBuilder
                         talentProfile={talentProfile}
                         onSelectedItemsChange={handleSelectedItemsChange}
                         selectedItems={selectedItems}
                         selectedRole={selectedRole}
-                        userId={user.uuid}
+                        userId={candidateId}
                       />
                     )}
                   </motion.div>

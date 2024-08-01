@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import useStore from "@/app/state/useStore";
+import { useUser } from "@clerk/nextjs";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -44,18 +44,20 @@ const isTempEducation = (
 };
 
 export default function Education() {
-  const { user } = useStore();
+  const { user: clerkUser } = useUser();
   const [educations, setEducations] = useState<EducationWithTempId[]>([]);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [loadingStates, setLoadingStates] = useState<{
     [key: string]: boolean;
   }>({});
 
+  const candidateId = clerkUser?.publicMetadata?.cuid as string;
+
   useEffect(() => {
     const fetchEducations = async () => {
-      if (user?.uuid) {
+      if (candidateId) {
         try {
-          const fetchedEducations = await getTalentEducation(user.uuid);
+          const fetchedEducations = await getTalentEducation(candidateId);
           setEducations(fetchedEducations);
         } catch (error) {
           console.error("Error fetching educations:", error);
@@ -67,7 +69,7 @@ export default function Education() {
     };
 
     fetchEducations();
-  }, [user]);
+  }, [candidateId]);
 
   const setLoadingState = (id: string | number, isLoading: boolean) => {
     setLoadingStates((prev) => ({ ...prev, [id.toString()]: isLoading }));
@@ -101,8 +103,8 @@ export default function Education() {
     setLoadingState(education._id, true);
     try {
       if (isTempEducation(education)) {
-        if (user?.uuid) {
-          const newEducation = await addEducation(user.uuid, education);
+        if (candidateId) {
+          const newEducation = await addEducation(candidateId, education);
           if (newEducation) {
             setEducations((prevEducations) =>
               prevEducations.map((edu) =>
@@ -114,7 +116,7 @@ export default function Education() {
             throw new Error("Failed to add new education");
           }
         } else {
-          throw new Error("User UUID is not available");
+          throw new Error("User ID is not available");
         }
       } else {
         for (const [key, value] of Object.entries(education)) {

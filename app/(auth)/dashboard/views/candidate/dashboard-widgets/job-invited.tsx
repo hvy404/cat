@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
 import {
   Briefcase,
   ChevronRight,
@@ -30,18 +31,21 @@ const ITEMS_PER_PAGE = 3;
 export const JobInvited: React.FC<JobInvitedProps> = ({
   handleViewMoreJobInvited,
 }) => {
+  const { user: clerkUser } = useUser();
   const [invitedJobs, setInvitedJobs] = useState<Job[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useStore((state) => ({ user: state.user }));
 
+  const candidateId = clerkUser?.publicMetadata?.cuid as string;
+
   useEffect(() => {
     const loadInvites = async () => {
-      if (user?.uuid) {
+      if (candidateId) {
         setIsLoading(true);
         setError(null);
-        const result = await fetchUserInvites(user.uuid);
+        const result = await fetchUserInvites(candidateId);
         if (result.success && result.invites) {
           setInvitedJobs(
             result.invites.map((invite: any) => ({

@@ -1,3 +1,4 @@
+import { useUser } from "@clerk/nextjs";
 import useStore from "@/app/state/useStore";
 import { PaperclipIcon, Trash, Loader } from "lucide-react";
 import Dropzone from "react-dropzone";
@@ -5,15 +6,16 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { sowUpload } from "@/lib/jd-builder/sow-upload"; // SOW Ingest - Step 1
 import { StartSOWParse } from "@/app/(auth)/dashboard/views/employer/jd-builder/lib/runners/starting-sow-parse"; // Start background SOW ingest
-import { set } from "zod";
 
 export default function SOWUploader() {
+  const { user: clerkUser } = useUser();
   const {
     jdBuilderWizard,
     setJDBuilderWizard,
     updateJDBuilderWizardStep,
-    user,
   } = useStore();
+
+  const candidateId = clerkUser?.publicMetadata?.cuid as string;
 
   // Handler to set the user selected files in state
   const onFileAdded = (acceptedFiles: File[]) => {
@@ -47,7 +49,7 @@ export default function SOWUploader() {
   };
 
   const uploadFile = async (fileData: FormData) => {
-    const employerID = user?.uuid;
+    const employerID = candidateId
     const sowUUID = jdBuilderWizard.sowID;
 
     // set the fileUploading state to true
@@ -86,7 +88,7 @@ export default function SOWUploader() {
         } else {
           const startIngest = await StartSOWParse({
             sowID: jdBuilderWizard.sowID,
-            employerID: user.uuid,
+            employerID: candidateId,
             filename: uploadSowFile,
           });
 

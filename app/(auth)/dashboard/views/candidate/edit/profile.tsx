@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import useStore from "@/app/state/useStore";
+import { useUser } from "@clerk/nextjs";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -90,18 +90,20 @@ const US_STATES = [
 ];
 
 export default function TalentPropertiesEditor() {
-  const { user } = useStore();
+  const { user: clerkUser } = useUser();
   const [talentProperties, setTalentProperties] =
     useState<TalentPropertiesState | null>(null);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
+  const candidateId = clerkUser?.publicMetadata?.cuid as string;
+
   useEffect(() => {
     const fetchTalentProperties = async () => {
-      if (user?.uuid) {
+      if (candidateId) {
         try {
-          const talent = await getTalentNodeNoEmbedding(user.uuid);
+          const talent = await getTalentNodeNoEmbedding(candidateId);
           if (talent) {
             const {
               city,
@@ -140,7 +142,7 @@ export default function TalentPropertiesEditor() {
     };
 
     fetchTalentProperties();
-  }, [user]);
+  }, [candidateId]);
 
   const handleInputChange = (
     field: keyof EditableTalentProperties,

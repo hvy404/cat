@@ -1,5 +1,5 @@
+import { useUser } from "@clerk/nextjs";
 import { useState, useEffect, useRef } from "react";
-import useStore from "@/app/state/useStore";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -51,7 +51,7 @@ const isTempExperience = (
 export default function WorkExperiences(props: {
   selectedSuggestion?: WorkExperience;
 }) {
-  const { user } = useStore();
+  const { user: clerkUser } = useUser();
   const [workExperiences, setWorkExperiences] = useState<
     WorkExperienceWithTempId[]
   >([]);
@@ -59,6 +59,8 @@ export default function WorkExperiences(props: {
   const [loadingStates, setLoadingStates] = useState<{
     [key: string]: boolean;
   }>({});
+
+  const candidateId = clerkUser?.publicMetadata?.cuid as string;
 
   // Track references to each experience div
   const experienceRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -74,9 +76,9 @@ export default function WorkExperiences(props: {
 
   useEffect(() => {
     const fetchWorkExperiences = async () => {
-      if (user?.uuid) {
+      if (candidateId) {
         try {
-          const experiences = await getTalentWorkExperiences(user.uuid);
+          const experiences = await getTalentWorkExperiences(candidateId);
           setWorkExperiences(experiences);
         } catch (error) {
           console.error("Error fetching work experiences:", error);
@@ -88,7 +90,7 @@ export default function WorkExperiences(props: {
     };
 
     fetchWorkExperiences();
-  }, [user]);
+  }, [candidateId]);
 
   const setLoadingState = (id: string | number, isLoading: boolean) => {
     setLoadingStates((prev) => ({ ...prev, [id.toString()]: isLoading }));
@@ -123,9 +125,9 @@ export default function WorkExperiences(props: {
     try {
       if (isTempExperience(experience)) {
         // This is a new experience that needs to be added to Neo4j
-        if (user?.uuid) {
+        if (candidateId) {
           const newExperience = await addNewWorkExperience(
-            user.uuid,
+            candidateId,
             experience
           );
           if (newExperience) {
@@ -139,7 +141,7 @@ export default function WorkExperiences(props: {
             throw new Error("Failed to add new work experience");
           }
         } else {
-          throw new Error("User UUID is not available");
+          throw new Error("User is not available");
         }
       } else {
         // This is an existing experience that needs to be updated

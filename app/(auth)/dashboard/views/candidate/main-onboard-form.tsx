@@ -1,6 +1,5 @@
 import { useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
-import useStore from "@/app/state/useStore";
 import { useUser } from "@clerk/nextjs";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
 import useStore from "@/app/state/useStore";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -77,18 +78,20 @@ const US_STATES = [
 ];
 
 export default function LocationEditor() {
-  const { user } = useStore();
+  const { user: clerkUser } = useUser();
   const [locationProperties, setLocationProperties] =
     useState<LocationState | null>(null);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
+  const candidateId = clerkUser?.publicMetadata?.cuid as string;
+
   useEffect(() => {
     const fetchLocationProperties = async () => {
-      if (user?.uuid) {
+      if (candidateId) {
         try {
-          const talent = await getTalentNode(user.uuid);
+          const talent = await getTalentNode(candidateId);
           if (talent) {
             const { city, state, zipcode, _id, labels } = talent;
             setLocationProperties({ city, state, zipcode, _id, labels });
@@ -105,7 +108,7 @@ export default function LocationEditor() {
     };
 
     fetchLocationProperties();
-  }, [user]);
+  }, [candidateId]);
 
   const handleInputChange = (
     field: keyof LocationProperties,

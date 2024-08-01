@@ -1,10 +1,10 @@
 import useStore from "@/app/state/useStore";
-import { useEffect, useState, useRef } from "react";
+import { useEffect } from "react";
 import TalentPropertiesEditor from "@/app/(auth)/dashboard/views/candidate/edit/profile";
 import RightPanel from "@/app/(auth)/dashboard/views/candidate/profile/panel";
 
 export default function CandidateDashboardProfile() {
-  const { isExpanded, setExpanded, user } = useStore();
+  const { isExpanded, setExpanded } = useStore();
   const candidateDashboardStep = useStore(
     (state) => state.candidateDashboard.step
   );

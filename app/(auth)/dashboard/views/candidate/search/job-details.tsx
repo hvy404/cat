@@ -1,3 +1,4 @@
+import { useUser } from "@clerk/nextjs";
 import useStore from "@/app/state/useStore";
 import { useState, useEffect } from "react";
 import {
@@ -57,7 +58,7 @@ interface ResumeCardProps {
 type JobNodeWithoutEmbedding = Omit<JobNode, "embedding">;
 
 const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
-  const { user } = useStore();
+  const { user: clerkUser } = useUser();
   const [jobDetails, setJobDetails] = useState<
     (JobNodeWithoutEmbedding & NodeWithId) | null
   >(null);
@@ -75,9 +76,11 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
   );
   const [hasApplied, setHasApplied] = useState(false);
 
+  const candidateId = clerkUser?.publicMetadata?.cuid as string;
+
   useEffect(() => {
     const loadJobDetails = async () => {
-      if (!user || !user.uuid) return;
+      if (!candidateId) return;
 
       setIsLoading(true);
       try {
@@ -96,13 +99,13 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
     };
 
     loadJobDetails();
-  }, [jobId, user]);
+  }, [jobId, candidateId]);
 
   useEffect(() => {
     const checkApplication = async () => {
-      if (user && user.uuid) {
+      if (candidateId) {
         try {
-          const exists = await checkExistingApplication(user.uuid, jobId);
+          const exists = await checkExistingApplication(candidateId, jobId);
           setHasApplied(exists);
         } catch (error) {
           console.error("Error checking application:", error);
@@ -111,13 +114,13 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
     };
 
     checkApplication();
-  }, [jobId, user]);
+  }, [jobId, candidateId]);
 
   const handleApplyNow = async () => {
-    if (!user || !user.uuid) return;
+    if (!candidateId) return;
 
     try {
-      const resumeData = await getResumes(user.uuid);
+      const resumeData = await getResumes(candidateId);
       setResumes(resumeData);
       setIsResumeDialogOpen(true);
     } catch (err) {
@@ -131,24 +134,24 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
   };
 
   const handleApplyWithResume = async () => {
-    if (selectedResume && user && user.uuid) {
+    if (selectedResume && candidateId) {
       try {
         // Check for existing application first
-        const exists = await checkExistingApplication(user.uuid, jobId);
-        
+        const exists = await checkExistingApplication(candidateId, jobId);
+
         if (exists) {
           setHasApplied(true);
           toast.info("You have already applied for this job.");
           handleCloseResumeDialog();
           return;
         }
-  
+
         const result = await AtomicRecordApplicationSubmission(
-          user.uuid,
+          candidateId,
           jobId,
           selectedResume.address
         );
-  
+
         if (result.success) {
           setHasApplied(true);
           toast.success("Your application has been submitted successfully!");
@@ -162,14 +165,13 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
       }
     }
   };
-  
 
   const handleCloseResumeDialog = () => {
     setIsResumeDialogOpen(false);
     setSelectedResume(null);
   };
 
-  if (!user || !user.uuid) {
+  if (!candidateId) {
     return null;
   }
 

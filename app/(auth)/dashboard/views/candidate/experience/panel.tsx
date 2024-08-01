@@ -1,6 +1,6 @@
 import React, { useState } from "react";
+import { useUser } from "@clerk/nextjs";
 import { motion } from "framer-motion";
-import useStore from "@/app/state/useStore";
 import { fetchAndAnalyzeTalent } from "@/lib/candidate/experience/overview";
 import { toast } from "sonner";
 import {
@@ -51,14 +51,16 @@ const retryFetchAndAnalyze = async (
 };
 
 export default function RightPanel(props: RightPanelProps) {
-  const candidate = useStore((state) => state.user?.uuid);
+  const { user: clerkUser } = useUser();
   const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeExperience, setActiveExperience] = useState<string | null>(null);
 
+  const candidateId = clerkUser?.publicMetadata?.cuid as string;
+
   const handleAnalysis = async () => {
-    if (!candidate || !props.workExperienceAnalysisSession) {
+    if (!candidateId || !props.workExperienceAnalysisSession) {
       setError("No candidate selected");
       return;
     }
@@ -70,19 +72,19 @@ export default function RightPanel(props: RightPanelProps) {
       // Try to get the cached result first
       const cachedResult = await getExperienceSuggestionCache(
         props.workExperienceAnalysisSession,
-        candidate
+        candidateId
       );
 
       if (cachedResult) {
         setAnalysis(JSON.parse(cachedResult) as AnalysisData);
       } else {
         // If not cached, fetch and analyze with retry logic
-        const result = await retryFetchAndAnalyze(candidate);
+        const result = await retryFetchAndAnalyze(candidateId);
         if (result) {
           // Cache the result
           await experienceSuggestionCacheStore(
             props.workExperienceAnalysisSession,
-            candidate,
+            candidateId,
             result
           );
           setAnalysis(JSON.parse(result) as AnalysisData);
@@ -134,7 +136,7 @@ export default function RightPanel(props: RightPanelProps) {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleAnalysis}
-              disabled={isLoading || !candidate}
+              disabled={isLoading || !candidateId}
               className="px-4 py-2 bg-gray-700 text-gray-100 rounded-md hover:bg-gray-600 disabled:bg-gray-400 transition-colors duration-200 text-sm font-medium"
             >
               {isLoading ? "Analyzing..." : "Get Analysis 🧑‍💻"}
