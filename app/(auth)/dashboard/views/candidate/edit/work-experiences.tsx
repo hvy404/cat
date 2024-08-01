@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Save } from "lucide-react";
+import { Plus, Trash2, Save, Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
   getTalentWorkExperiences,
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/tooltip";
 import { WorkExperience } from "@/app/(auth)/dashboard/views/candidate/experience/panel";
 import { MonthYearPicker } from "@/app/(auth)/dashboard/views/candidate/assets/date-picker-my";
+import LoadingState from "@/app/(auth)/dashboard/views/candidate/edit/loader";
 
 // Define the base WorkExperience type without _id
 type BaseWorkExperience = Omit<WorkExperienceNode, "_id"> & {
@@ -212,7 +213,7 @@ export default function WorkExperiences(props: {
   };
 
   if (isInitialLoading) {
-    return <div>Loading...</div>;
+    return <LoadingState />;
   }
 
   return (

@@ -21,6 +21,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { MonthYearPicker } from "../assets/date-picker-my";
+import LoadingState from "@/app/(auth)/dashboard/views/candidate/edit/loader";
 
 type CertificationWithId = CertificationNode & NodeWithId;
 
@@ -141,7 +142,7 @@ export default function Certifications() {
   };
 
   if (isLoading) {
-    return <div>Loading certifications...</div>;
+    return <LoadingState />;
   }
 
   return (

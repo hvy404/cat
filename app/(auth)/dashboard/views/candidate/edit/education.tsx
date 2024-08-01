@@ -21,6 +21,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { MonthYearPicker } from "@/app/(auth)/dashboard/views/candidate/assets/date-picker-my";
+import LoadingState from "@/app/(auth)/dashboard/views/candidate/edit/loader";
 
 type BaseEducation = Omit<EducationNode, "_id"> & {
   labels?: string[];
@@ -181,7 +182,7 @@ export default function Education() {
   };
 
   if (isInitialLoading) {
-    return <div>Loading...</div>;
+    return <LoadingState />;
   }
 
   return (

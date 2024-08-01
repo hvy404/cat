@@ -182,7 +182,7 @@ export default function EmployerDashboardNavigation() {
   };
 
   const getUserSettingsItem = () => {
-    return role === "candidate"
+    return role === "talent"
       ? "candidate-user-settings"
       : "employer-user-settings";
   };

@@ -26,6 +26,8 @@ import {
   CLEARANCE_LEVELS,
 } from "@/app/(auth)/dashboard/views/candidate/helpers/profileFormValidation";
 import { validateTalentProperties } from "@/app/(auth)/dashboard/views/candidate/helpers/profileFormValidationUtility";
+import LoadingState from "@/app/(auth)/dashboard/views/candidate/edit/loader";
+
 
 type EditableTalentProperties = Pick<
   TalentNode,
@@ -192,7 +194,7 @@ export default function TalentPropertiesEditor() {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <LoadingState />;
   }
 
   if (!talentProperties) {
