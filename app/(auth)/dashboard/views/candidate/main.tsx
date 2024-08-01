@@ -11,6 +11,7 @@ import { CandidateOnboardingForm } from "@/app/(auth)/dashboard/views/candidate/
 import { CandidateDashboard } from "@/app/(auth)/dashboard/views/candidate/main-user-dashboard";
 import CandidateDashboardRightPanelWelcome from "@/app/(auth)/dashboard/views/candidate/right-panel-welcome";
 import CandidateDashboardRightPanelDashboard from "@/app/(auth)/dashboard/views/candidate/right-panel-dashboard";
+import { useUser } from "@clerk/nextjs";
 
 const MainPanel = React.memo(function MainPanel({ step }: { step: number }) {
   switch (step) {
@@ -35,35 +36,32 @@ const RightPanel = React.memo(function RightPanel({ step }: { step: number }) {
 });
 
 export default function CandidateDashboardMain() {
-  const {
-    isExpanded,
-    setExpanded,
-    user,
-    candidateDashboard,
-    setCandidateDashboard,
-  } = useStore(
-    useCallback(
-      (state) => ({
-        isExpanded: state.isExpanded,
-        setExpanded: state.setExpanded,
-        user: state.user,
-        candidateDashboard: state.candidateDashboard,
-        setCandidateDashboard: state.setCandidateDashboard,
-      }),
-      []
-    )
-  );
+  const { isExpanded, setExpanded, candidateDashboard, setCandidateDashboard } =
+    useStore(
+      useCallback(
+        (state) => ({
+          isExpanded: state.isExpanded,
+          setExpanded: state.setExpanded,
+          user: state.user,
+          candidateDashboard: state.candidateDashboard,
+          setCandidateDashboard: state.setCandidateDashboard,
+        }),
+        []
+      )
+    );
 
+  const { user: clerkUser } = useUser();
+  const user = clerkUser?.publicMetadata?.cuid as string | undefined;
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const isActive = useRef(false);
 
   useEffect(() => {
-    if (!isActive.current && user && user.uuid) {
+    if (!isActive.current && user) {
       isActive.current = true;
       setIsLoading(true);
-      candidateStatus(user.uuid)
+      candidateStatus(user)
         .then((isOnboarded) => {
           setCandidateDashboard({
             step: isOnboarded ? 1 : 0,

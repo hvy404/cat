@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import useStore from "@/app/state/useStore";
+import { useUser } from "@clerk/nextjs";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import FormattedPhoneInput from "@/app/(auth)/dashboard/views/candidate/helpers/formatPhoneInput";
@@ -39,6 +40,9 @@ import { toast } from "sonner";
 import CandidateOnboardingDialog from "@/app/(auth)/dashboard/views/candidate/onboarding-dialog";
 import { handleUpload } from "@/lib/dashboard/candidate/onboard-confirm-profile";
 import { MonthYearPicker } from "@/app/(auth)/dashboard/views/candidate/assets/date-picker-my";
+import { candidateFinalizeOnboard } from "@/lib/candidate/onboard/onboardResume";
+import { QueryWorkerStatus } from "@/app/(main)/check-worker-status";
+
 
 interface Education {
   institution: string;
@@ -102,8 +106,11 @@ type InputChangeEvent =
 type ArrayField = "education" | "work_experience" | "certifications";
 
 export function CandidateOnboardingForm() {
-  const user = useStore((state) => state.user?.uuid);
-  const dashboardStep = useStore((state) => state.candidateDashboard.step);
+  //const user = useStore((state) => state.user?.uuid);
+  //const dashboardStep = useStore((state) => state.candidateDashboard.step);
+  const { user: clerkUser } = useUser();
+  const user = clerkUser?.publicMetadata?.cuid as string | undefined;
+
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -244,6 +251,27 @@ export function CandidateOnboardingForm() {
     }
   };
 
+  const pollWorkerStatus = useCallback(async (eventId: string) => {
+    const pollInterval = setInterval(async () => {
+      const result = await QueryWorkerStatus(eventId);
+
+      if (result.status === "completed") {
+        clearInterval(pollInterval);
+        console.log("Worker completed successfully");
+        toast.success("Resume processing completed!");
+        setIsSubmitting(false);
+        // Reload the component here
+        // You might want to use a state update or a router refresh depending on your setup
+        window.location.reload(); // This is a simple way to reload, but you might want a more elegant solution
+      } else if (result.status === "failed" || result.status === "cancelled") {
+        clearInterval(pollInterval);
+        console.error("Worker failed or was cancelled");
+        toast.error("There was an error processing your resume. Please try again.");
+        setIsSubmitting(false);
+      }
+    }, 10000); // Poll every 10 seconds
+  }, []);
+
   const handleFormSubmit = async () => {
     if (!user) {
       toast.error("Unable to save profile. Please try again later.");
@@ -252,17 +280,26 @@ export function CandidateOnboardingForm() {
 
     setIsSubmitting(true);
     const result = await handleUpload(formData, originalData, user);
-    setIsSubmitting(false);
 
     if (result.success) {
       toast.success(result.message);
+      
+      // Call candidateFinalizeOnboard
+      const finalizeResult = await candidateFinalizeOnboard(user);
+      
+      if (finalizeResult.event) {
+        // Start polling for worker status
+        pollWorkerStatus(finalizeResult.event[0]);
+      } else {
+        toast.error("Failed to finalize onboarding. Please try again.");
+        setIsSubmitting(false);
+      }
     } else {
       setErrors(result.errors || {});
       toast.error(result.message);
+      setIsSubmitting(false);
     }
   };
-
-  // if formLoaded is false return <div>Loading...</div>
 
   if (!formLoaded) {
     return (

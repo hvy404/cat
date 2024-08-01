@@ -11,7 +11,7 @@ const EnhancedLoadingComponent = ({ workerStatus }: { workerStatus?: string }) =
       const timeSinceLastPoll = now - lastPollTime;
       
       if (timeSinceLastPoll >= 10000) {
-        setProgress(prevProgress => Math.min(prevProgress + Math.random() * 15 + 5, 99));
+        setProgress(prevProgress => Math.min(prevProgress + Math.random() * 15 + 5, 99)); 
         setLastPollTime(now);
       } else {
         setProgress(prevProgress => {

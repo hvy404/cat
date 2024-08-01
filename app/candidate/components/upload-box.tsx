@@ -33,7 +33,9 @@ const ResumeUploadBox: React.FC = () => {
   const [candidateId, setCandidateId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [runId, setRunId] = useState<string | null>(null);
-  const [workerStatus, setWorkerStatus] = useState<string | undefined>(undefined);
+  const [workerStatus, setWorkerStatus] = useState<string | undefined>(
+    undefined
+  );
 
   useEffect(() => {
     const newCuid = createId();
@@ -62,8 +64,17 @@ const ResumeUploadBox: React.FC = () => {
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       setShowVerification(true);
       toast.success("Please check your email for the verification code.");
-    } catch (err) {
-      toast.error("There was an error during sign-up.");
+    } catch (err: any) {
+      if (err && err.errors) {
+        const errorMessage =
+          err.errors[0]?.longMessage ||
+          err.errors[0]?.message ||
+          "An error occurred during sign-up.";
+        toast.error(errorMessage);
+      } else {
+        toast.error("An unexpected error occurred during sign-up.");
+      }
+      console.error("Sign-up error:", err);
     }
   };
 
@@ -113,7 +124,9 @@ const ResumeUploadBox: React.FC = () => {
       } else if (result.status === "failed" || result.status === "cancelled") {
         clearInterval(pollInterval);
         console.error("Worker failed or was cancelled");
-        toast.error("There was an error processing your resume. Please try again.");
+        toast.error(
+          "There was an error processing your resume. Please try again."
+        );
         setIsLoading(false);
       }
     }, 10000); // Poll every 10 seconds
@@ -144,7 +157,11 @@ const ResumeUploadBox: React.FC = () => {
           if (userId) {
             const onboardResult = await candidateStartOnboard(userId);
             console.log("Onboarding Run", onboardResult);
-            if (onboardResult.message === "Success" && onboardResult.event && onboardResult.event.length > 0) {
+            if (
+              onboardResult.message === "Success" &&
+              onboardResult.event &&
+              onboardResult.event.length > 0
+            ) {
               toast.success("Onboarding process started successfully.");
               setRunId(onboardResult.event[0]);
               pollWorkerStatus(onboardResult.event[0]);
