@@ -292,7 +292,7 @@ const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Slide to zoom</DialogTitle>
+              <DialogTitle>Adjust to preference</DialogTitle>
             </DialogHeader>
             {originalImage && (
               <div className="w-full">

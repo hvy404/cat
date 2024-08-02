@@ -82,7 +82,7 @@ export default function TalentId({
       >
         <motion.div className="w-16 h-16 mb-4 relative">
           <motion.div
-            className="absolute inset-0 border-2 border-gray-300 rounded-full"
+            className="absolute inset-0 border-2 border-gray-200 rounded-full"
             initial="start"
             animate="end"
             variants={loadingVariants}
@@ -92,7 +92,7 @@ export default function TalentId({
             }}
           />
           <motion.div
-            className="absolute inset-2 border-2 border-gray-400 rounded-full"
+            className="absolute inset-2 border-2 border-gray-200 rounded-full"
             initial="start"
             animate="end"
             variants={loadingVariants}
@@ -102,7 +102,7 @@ export default function TalentId({
             }}
           />
           <motion.div
-            className="absolute inset-4 border-2 border-gray-500 rounded-full"
+            className="absolute inset-4 border-2 border-gray-200 rounded-full"
             initial="start"
             animate="end"
             variants={loadingVariants}
@@ -139,7 +139,7 @@ export default function TalentId({
 
   return (
     <motion.div
-      className="flex flex-col items-center justify-center p-4 border border-gray-300 rounded-md"
+      className="flex flex-col items-center justify-center p-4 border border-gray-200 rounded-md"
       initial={{ backgroundColor: "#ffffff", opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}

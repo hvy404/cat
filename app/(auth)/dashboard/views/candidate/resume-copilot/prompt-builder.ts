@@ -1,11 +1,13 @@
 "use server";
 
-import { TalentProfile } from "./get-data"; // Import type
+import { TalentProfile } from "./get-data";
 import { Item } from "./types";
 import OpenAI from "openai";
+import { ResumeCoachSchema } from "@/app/(auth)/dashboard/views/candidate/resume-copilot/resume-coach-schema";
+import { zodToJsonSchema } from "zod-to-json-schema";
 
 interface HistoryEntry {
-  action: "add" | "remove" | "reorder | modify";
+  action: "add" | "remove" | "reorder" | "modify";
   itemId: string;
   timestamp: number;
 }
@@ -15,21 +17,7 @@ const togetherAi = new OpenAI({
   baseURL: "https://api.together.xyz/v1",
 });
 
-// Utility function to check if a string is valid JSON
-const isValidJson = (str: string): boolean => {
-  try {
-    JSON.parse(str);
-    return true;
-  } catch (e) {
-    return false;
-  }
-};
-
-// Simple in-memory tracking (Note: This will reset on server restart)
-let totalCalls = 0;
-let invalidJsonResponses = 0;
-
-const MAX_RETRIES = 3;
+const jsonSchema = zodToJsonSchema(ResumeCoachSchema, "ResumeCoachSchema");
 
 export const buildAndLogPrompt = async (
   items: Record<string, Item[]>,
@@ -37,11 +25,28 @@ export const buildAndLogPrompt = async (
   talentProfile: TalentProfile,
   role: string
 ): Promise<{
-  recentEdit: string;
-  nextAction: "add" | "remove" | "modify" | "none";
-  nextItem: string;
-  nextReason: string;
-} | null> => {
+  analysis: {
+    recentEdit: string;
+    overallImpact: string;
+  };
+  recommendation: {
+    action: "add" | "remove" | "modify" | "none";
+    targetItem: string;
+    rationale: string;
+    implementation: string;
+  };
+  feedback: {
+    strengths: string[];
+    areasForImprovement: string[];
+    competitiveEdge: string;
+  };
+  nextSteps: {
+    priority: "High" | "Medium" | "Low";
+    focus: string;
+    guidance: string;
+    progression: string;
+  };
+} | { error: string }> => {
   const findTalentProfileData = (item: Item): any => {
     const [type, indexStr] = item.id.split("-");
     const index = parseInt(indexStr, 10);
@@ -66,7 +71,6 @@ export const buildAndLogPrompt = async (
     }
   };
 
-  // Build the relevant talent profile data
   const relevantTalentProfileData = items.available.reduce((acc, item) => {
     const data = findTalentProfileData(item);
     if (data) {
@@ -75,31 +79,25 @@ export const buildAndLogPrompt = async (
     return acc;
   }, {} as Record<string, any>);
 
-  // Get the last 5 history entries
-  const lastFiveHistory = history.slice(-5).reverse();
+  const lastEditMade = history.slice(-1).reverse();
 
-  // Build the prompt
-  const sysPrompt = `You are a resume coach helping a user write their resume for a ${role} position. Your task is to guide the user by evaluating the most recent edit to the resume, analyzing its impact, and recommending the next best action to improve the resume for the ${role} position.
+  const sysPrompt = `You are an AI resume coach helping a user optimize their resume for a ${role} position. Your task is to guide the user by evaluating the most recent edit to the resume, analyzing its impact, and recommending the next best action to improve the resume for the ${role} position.
 
 Instructions:
-1. Carefully review the recent edit to the resume.
+1. Carefully review the recent edit to the resume and the current resume items.
 2. Analyze how this edit affects the overall quality and relevance of the resume for the ${role} position.
 3. Consider the following factors:
    - Relevance of experiences to the ${role}
+   - Focus on quantifiable descriptions of skills and achievements
    - Potential time gaps created by removing experiences
    - Overall career narrative and progression
    - Demonstration of transferable skills
-4. Recommend ONE of the following actions:
-   a) Remove an existing item
-   b) Add a new item from the Available Talent Resume Items
-   c) Modify an existing item
-   d) No action needed (suggest that the user is on the right track and you have no specific recommendations at this time)
+4. Provide a comprehensive analysis and recommendation based on the JSON structure outlined below.
 
 Rules:
-Make only one suggestion per response.
-Ensure your suggestion directly relates to the most recent edit.
-
-Tone: Friendly, supportive, and focused on the user's success.
+- Ensure your suggestion directly relates to the most recent edit and the overall resume strategy.
+- Be specific and actionable in your recommendations.
+- Maintain a friendly, supportive tone focused on the user's success.
 
 IMPORTANT: Always refer to items by their human-readable name or reference:
 Experiences: Use the job title (e.g., "VP, Software Engineer" instead of "experience-0")
@@ -111,112 +109,75 @@ Projects: Use the project name
 Publications: Use the publication title
 
 Output Format:
-Respond ONLY with valid JSON matching this schema:
+Respond ONLY with valid JSON.
 
 {
-  "recentEdit": "Evaluation of the recent edit and its impact on the resume",
-  "nextAction": "add" | "remove" | "modify" | "none",
-  "nextItem": "Human-readable name or reference of the item to be acted upon",
-  "nextReason": "Concise explanation for the recommended action, focusing on its relevance to the ${role} position and overall resume improvement"
+  "analysis": {
+    "recentEdit": "Detailed evaluation of the most recent edit, including its impact on resume strength and relevance to the target role",
+    "overallImpact": "Assessment of how the edit affects the resume's overall quality for the target position",
+    "keywords": ["List", "of", "relevant", "keywords"],
+    "relevanceScore": 1-10
+  },
+  "recommendation": {
+    "action": "add" | "remove" | "modify" | "none",
+    "targetItem": "Human-readable name or reference of the item to be acted upon",
+    "rationale": "Explanation for the recommended action, focusing on relevance to the target role and overall resume improvement",
+    "implementation": "Specific suggestions on how to carry out the recommended action"
+  },
+  "feedback": {
+    "strengths": ["List", "of", "current", "resume", "strengths"],
+    "areasForImprovement": ["List", "of", "areas", "for", "improvement"],
+    "competitiveEdge": "Unique selling points for the specific role"
+  },
+  "nextSteps": {
+    "priority": "High" | "Medium" | "Low",
+    "focus": "Specific aspect of the resume to focus on next",
+    "guidance": "Brief advice on how to approach the next improvement",
+    "progression": "Outline of future improvements beyond the immediate next step"
+  }
 }
-  
-Response Guidelines
 
-recentEdit: Provide a thorough analysis of the most recent change, including its relevance to the ${role} and its effect on the resume's overall strength.
-nextAction: Choose the most appropriate action based on your analysis. Use "none" only if the resume is truly optimal for the ${role}.
-nextItem: Be specific and use the human-readable name or reference as instructed above.
-nextReason: Explain your recommendation concisely, focusing on how it enhances the resume for the ${role} position. Consider factors such as relevance, impact, and overall resume balance.
-
-Remember: Your goal is to help create a targeted, impactful resume for the ${role} position. Each recommendation should move the resume closer to this goal.`;
+Remember: Your goal is to help create a targeted, impactful resume for the ${role} position. Each recommendation should move the resume closer to this goal, considering both immediate improvements and long-term strategy.`;
 
   const userPrompt = `Current Resume Items:
 ${JSON.stringify(items.preview, null, 2)}
 
-Last 5 Actions:
-${JSON.stringify(lastFiveHistory, null, 2)}
+Most Recent Edit:
+${JSON.stringify(lastEditMade, null, 2)}
 
-Available Items:
+Available Resume Items:
 ${JSON.stringify(relevantTalentProfileData, null, 2)}
 
 Your response must be in valid JSON and follows the schema provided in the instructions above.`;
 
-  totalCalls++;
-  let retries = 0;
+  console.log("System", sysPrompt);
+  console.log("User", userPrompt);
 
-  while (retries < MAX_RETRIES) {
-    try {
-      const response = await togetherAi.chat.completions.create({
-        model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
-        messages: [
-          {
-            role: "system",
-            content: sysPrompt,
-          },
-          {
-            role: "user",
-            content: userPrompt,
-          },
-        ],
-        temperature: 0.7,
-        max_tokens: 1200,
-      });
+  const response = await togetherAi.chat.completions.create({
+    model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
+    // @ts-ignore
+    response_format: { type: "json_object", schema: jsonSchema },
+    messages: [
+      {
+        role: "system",
+        content: sysPrompt,
+      },
+      {
+        role: "user",
+        content: userPrompt,
+      },
+    ],
+    temperature: 0.7,
+    max_tokens: 2500,
+  });
 
-      const aiResponse = response.choices[0].message.content;
-      //console.log("AI Response:", aiResponse);
+  const aiResponse = response.choices[0].message.content;
+  console.log("AI Response:", aiResponse);
 
-      if (typeof aiResponse === "string" && isValidJson(aiResponse)) {
-        try {
-          const parsedResponse = JSON.parse(aiResponse) as {
-            recentEdit: string;
-            nextAction: "add" | "remove" | "modify" | "none";
-            nextItem: string;
-            nextReason: string;
-          };
-
-          if (
-            typeof parsedResponse === "object" &&
-            parsedResponse !== null &&
-            "recentEdit" in parsedResponse &&
-            "nextAction" in parsedResponse &&
-            "nextItem" in parsedResponse &&
-            "nextReason" in parsedResponse &&
-            typeof parsedResponse.recentEdit === "string" &&
-            typeof parsedResponse.nextAction === "string" &&
-            typeof parsedResponse.nextItem === "string" &&
-            typeof parsedResponse.nextReason === "string"
-          ) {
-            // Transform to expected format
-            return {
-              recentEdit: parsedResponse.recentEdit,
-              nextAction: parsedResponse.nextAction,
-              nextItem: parsedResponse.nextItem,
-              nextReason: parsedResponse.nextReason,
-            };
-          }
-        } catch (parseError) {
-          console.error("Error parsing AI response:", parseError);
-        }
-      }
-
-      invalidJsonResponses++;
-      console.error(
-        `Invalid JSON response (Attempt ${retries + 1}/${MAX_RETRIES})`
-      );
-      retries++;
-    } catch (error) {
-      console.error(
-        `Error calling AI (Attempt ${retries + 1}/${MAX_RETRIES}):`,
-        error
-      );
-      retries++;
-    }
+  if (response?.choices?.[0]?.message?.content) {
+    const output = JSON.parse(response?.choices?.[0]?.message?.content);
+    console.log(output);
+    return output;
   }
-
-  console.error(`Failed to get valid response after ${MAX_RETRIES} attempts`);
-  return null;
-};
-
-// Function to get current stats (can be called from another server action or API route)
-export const getStats = async () => {
-  return { totalCalls, invalidJsonResponses };
-};
+  return { error: "There was an error. Please try again." };
+}

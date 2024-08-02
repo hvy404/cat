@@ -1,12 +1,30 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Minus, Edit, History } from "lucide-react";
+import { Plus, Minus, Edit, History, AlertCircle, CheckCircle, ArrowRight } from "lucide-react";
 
 interface AlertProps {
   message: {
-    recentEdit: string;
-    nextAction: "add" | "remove" | "modify" | "none";
-    nextReason: string;
+    analysis: {
+      recentEdit: string;
+      overallImpact: string;
+    };
+    recommendation: {
+      action: "add" | "remove" | "modify" | "none";
+      targetItem: string;
+      rationale: string;
+      implementation: string;
+    };
+    feedback: {
+      strengths: string[];
+      areasForImprovement: string[];
+      competitiveEdge: string;
+    };
+    nextSteps: {
+      priority: "High" | "Medium" | "Low";
+      focus: string;
+      guidance: string;
+      progression: string;
+    };
   };
   isMinimized: boolean;
   onToggleMinimize: () => void;
@@ -25,26 +43,13 @@ const Alert: React.FC<AlertProps> = ({
 
     switch (action) {
       case "add":
-        return (
-          <Plus
-            {...iconProps}
-            className={`${iconProps.className} text-green-600`}
-          />
-        );
+        return <Plus {...iconProps} className={`${iconProps.className} text-green-600`} />;
       case "remove":
-        return (
-          <Minus
-            {...iconProps}
-            className={`${iconProps.className} text-red-600`}
-          />
-        );
+        return <Minus {...iconProps} className={`${iconProps.className} text-red-600`} />;
       case "modify":
-        return (
-          <Edit
-            {...iconProps}
-            className={`${iconProps.className} text-blue-600`}
-          />
-        );
+        return <Edit {...iconProps} className={`${iconProps.className} text-blue-600`} />;
+      default:
+        return null;
     }
   };
 
@@ -78,23 +83,54 @@ const Alert: React.FC<AlertProps> = ({
                 Dismiss
               </button>
               <div className="flex items-start mb-2">
-                <History
-                  size={20}
-                  className="flex-shrink-0 text-green-600 mt-0.5 mr-2"
-                />
-                <p className="text-green-700 text-xs font-medium">
-                  <span className="font-semibold mr-1">Recent:</span>{" "}
-                  {message.recentEdit}
-                </p>
+                <History size={20} className="flex-shrink-0 text-green-600 mt-0.5 mr-2" />
+                <div>
+                  <p className="text-green-700 text-xs font-medium">
+                    <span className="font-semibold mr-1">Recent Edit:</span> {message.analysis.recentEdit}
+                  </p>
+                  <p className="text-green-700 text-xs font-medium mt-1">
+                    <span className="font-semibold mr-1">Overall Impact:</span> {message.analysis.overallImpact}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start mb-2">
+                <div className="mt-0.5 mr-2">{getActionIcon(message.recommendation.action)}</div>
+                <div>
+                  <p className="text-green-700 text-xs font-medium">
+                    <span className="font-semibold mr-1">Recommendation:</span> {message.recommendation.rationale}
+                  </p>
+                  <p className="text-green-700 text-xs font-medium mt-1">
+                    <span className="font-semibold mr-1">Implementation:</span> {message.recommendation.implementation}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start mb-2">
+                <CheckCircle size={20} className="flex-shrink-0 text-green-600 mt-0.5 mr-2" />
+                <div>
+                  <p className="text-green-700 text-xs font-medium">
+                    <span className="font-semibold mr-1">Strengths:</span> {message.feedback.strengths.join(", ")}
+                  </p>
+                  <p className="text-green-700 text-xs font-medium mt-1">
+                    <span className="font-semibold mr-1">Areas for Improvement:</span> {message.feedback.areasForImprovement.join(", ")}
+                  </p>
+                  <p className="text-green-700 text-xs font-medium mt-1">
+                    <span className="font-semibold mr-1">Competitive Edge:</span> {message.feedback.competitiveEdge}
+                  </p>
+                </div>
               </div>
               <div className="flex items-start">
-                <div className="mt-0.5 mr-2">
-                  {getActionIcon(message.nextAction)}
+                <ArrowRight size={20} className="flex-shrink-0 text-green-600 mt-0.5 mr-2" />
+                <div>
+                  <p className="text-green-700 text-xs font-medium">
+                    <span className="font-semibold mr-1">Next Steps (Priority: {message.nextSteps.priority}):</span> {message.nextSteps.focus}
+                  </p>
+                  <p className="text-green-700 text-xs font-medium mt-1">
+                    <span className="font-semibold mr-1">Guidance:</span> {message.nextSteps.guidance}
+                  </p>
+                  <p className="text-green-700 text-xs font-medium mt-1">
+                    <span className="font-semibold mr-1">Progression:</span> {message.nextSteps.progression}
+                  </p>
                 </div>
-                <p className="text-green-700 text-xs font-medium">
-                  <span className="font-semibold mr-1">Next Steps:</span>
-                  {message.nextReason}
-                </p>
               </div>
             </div>
           </motion.div>

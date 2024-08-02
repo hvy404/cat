@@ -13,9 +13,27 @@ interface RenderItemContentProps {
   alerts: {
     id: string;
     message: {
-      recentEdit: string;
-      nextAction: "add" | "remove" | "modify" | "none";
-      nextReason: string;
+      analysis: {
+        recentEdit: string;
+        overallImpact: string;
+      };
+      recommendation: {
+        action: "add" | "remove" | "modify" | "none";
+        targetItem: string;
+        rationale: string;
+        implementation: string;
+      };
+      feedback: {
+        strengths: string[];
+        areasForImprovement: string[];
+        competitiveEdge: string;
+      };
+      nextSteps: {
+        priority: "High" | "Medium" | "Low";
+        focus: string;
+        guidance: string;
+        progression: string;
+      };
     };
     isMinimized: boolean;
   }[];
@@ -212,10 +230,10 @@ export const createRenderItemContent = (
             </div>
           ) : itemAlert ? (
             <Alert
-              message={itemAlert.message}
-              isMinimized={itemAlert.isMinimized}
-              onToggleMinimize={() => toggleAlertMinimize(editedItem.id)}
-            />
+  message={itemAlert.message}
+  isMinimized={itemAlert.isMinimized}
+  onToggleMinimize={() => toggleAlertMinimize(editedItem.id)}
+/>
           ) : null}
         </div>
       </div>

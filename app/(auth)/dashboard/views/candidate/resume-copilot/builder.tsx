@@ -53,6 +53,36 @@ interface CustomSection {
   items: CustomItem[];
 }
 
+interface AlertMessage {
+  analysis: {
+    recentEdit: string;
+    overallImpact: string;
+  };
+  recommendation: {
+    action: "add" | "remove" | "modify" | "none";
+    targetItem: string;
+    rationale: string;
+    implementation: string;
+  };
+  feedback: {
+    strengths: string[];
+    areasForImprovement: string[];
+    competitiveEdge: string;
+  };
+  nextSteps: {
+    priority: "High" | "Medium" | "Low";
+    focus: string;
+    guidance: string;
+    progression: string;
+  };
+}
+
+type Alert = {
+  id: string;
+  message: AlertMessage;
+  isMinimized: boolean;
+};
+
 const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   talentProfile,
   onSelectedItemsChange,
@@ -69,17 +99,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [alerts, setAlerts] = useState<
-    {
-      id: string;
-      message: {
-        recentEdit: string;
-        nextAction: "add" | "remove" | "modify" | "none";
-        nextReason: string;
-      };
-      isMinimized: boolean;
-    }[]
-  >([]);
+
+  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [lastModifiedItemId, setLastModifiedItemId] = useState<string | null>(
     null
   );
@@ -224,30 +245,38 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       setProcessingItems((prevProcessing) =>
         new Set(prevProcessing).add(lastModifiedItemId)
       );
-
+  
       if (!selectedRole) {
         return;
       }
-
+  
+      // Build AI suggestions
       return buildAndLogPrompt(items, history, talentProfile, selectedRole)
         .then((result) => {
-          if (result) {
-            const { recentEdit, nextAction, nextReason } = result;
-            setAlerts((prevAlerts) => {
-              const newAlert: AlertState = {
-                id: lastModifiedItemId,
-                message: { recentEdit, nextAction, nextReason },
-                isMinimized: false,
-              };
-
-              const updatedAlerts = prevAlerts.map((alert) => ({
-                ...alert,
-                isMinimized: true,
-              }));
-
-              return [...updatedAlerts, newAlert];
-            });
+          if ('error' in result) {
+            console.error(result.error);
+            return;
           }
+  
+          setAlerts((prevAlerts) => {
+            const newAlert: Alert = {
+              id: lastModifiedItemId,
+              isMinimized: false,
+              message: {
+                analysis: result.analysis,
+                recommendation: result.recommendation,
+                feedback: result.feedback,
+                nextSteps: result.nextSteps,
+              },
+            };
+          
+            const updatedAlerts = prevAlerts.map((alert) => ({
+              ...alert,
+              isMinimized: true,
+            }));
+          
+            return [...updatedAlerts, newAlert];
+          });
         })
         .finally(() => {
           setProcessingItems((prevProcessing) => {
