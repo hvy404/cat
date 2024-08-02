@@ -4,10 +4,6 @@ import { Plus, Minus, Edit, History, AlertCircle, CheckCircle, ArrowRight } from
 
 interface AlertProps {
   message: {
-    analysis: {
-      recentEdit: string;
-      overallImpact: string;
-    };
     recommendation: {
       action: "add" | "remove" | "modify" | "none";
       targetItem: string;
@@ -84,14 +80,6 @@ const Alert: React.FC<AlertProps> = ({
               </button>
               <div className="flex items-start mb-2">
                 <History size={20} className="flex-shrink-0 text-green-600 mt-0.5 mr-2" />
-                <div>
-                  <p className="text-green-700 text-xs font-medium">
-                    <span className="font-semibold mr-1">Recent Edit:</span> {message.analysis.recentEdit}
-                  </p>
-                  <p className="text-green-700 text-xs font-medium mt-1">
-                    <span className="font-semibold mr-1">Overall Impact:</span> {message.analysis.overallImpact}
-                  </p>
-                </div>
               </div>
               <div className="flex items-start mb-2">
                 <div className="mt-0.5 mr-2">{getActionIcon(message.recommendation.action)}</div>

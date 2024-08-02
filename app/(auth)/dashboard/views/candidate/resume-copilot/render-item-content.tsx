@@ -1,11 +1,11 @@
-import React from 'react';
-import { parse, format, isValid } from 'date-fns';
-import { Item } from './types';
-import { personalLabelMap } from './personal-labels';
-import { Button } from '@/components/ui/button';
-import { Edit2, ExternalLink } from 'lucide-react';
-import Alert from './alert';
-import Spinner from './spinner';
+import React from "react";
+import { parse, format, isValid } from "date-fns";
+import { Item } from "./types";
+import { personalLabelMap } from "./personal-labels";
+import { Button } from "@/components/ui/button";
+import { Edit2, ExternalLink } from "lucide-react";
+import Alert from "./alert";
+import Spinner from "./spinner";
 
 interface RenderItemContentProps {
   item: Item | undefined;
@@ -13,10 +13,6 @@ interface RenderItemContentProps {
   alerts: {
     id: string;
     message: {
-      analysis: {
-        recentEdit: string;
-        overallImpact: string;
-      };
       recommendation: {
         action: "add" | "remove" | "modify" | "none";
         targetItem: string;
@@ -43,19 +39,19 @@ interface RenderItemContentProps {
 }
 
 const formatDate = (dateString: string): string => {
-  if (dateString.toLowerCase() === 'present') {
-    return 'Present';
+  if (dateString.toLowerCase() === "present") {
+    return "Present";
   }
-  const date = parse(dateString, 'yyyy-MM', new Date());
+  const date = parse(dateString, "yyyy-MM", new Date());
   if (isValid(date)) {
-    return format(date, 'MMMM yyyy');
+    return format(date, "MMMM yyyy");
   }
   return dateString; // Return original string if parsing fails
 };
 
 export const createRenderItemContent = (
   editedItems: Record<string, Item>,
-  alerts: RenderItemContentProps['alerts'],
+  alerts: RenderItemContentProps["alerts"],
   processingItems: Set<string>,
   handleEdit: (item: Item) => void,
   toggleAlertMinimize: (id: string) => void
@@ -80,7 +76,6 @@ export const createRenderItemContent = (
             const locationParts = [city, state, zipcode].filter(Boolean);
             const locationString = locationParts.join(", ");
             return (
-              
               <div className="space-y-1 select-none">
                 <h3 className="text-md font-semibold text-gray-800">Address</h3>
                 <p className="text-sm text-gray-600">
@@ -110,7 +105,9 @@ export const createRenderItemContent = (
                 {editedItem.content.organization}
               </p>
               <p className="text-sm text-gray-600">
-                {`${formatDate(editedItem.content.start_date)} - ${formatDate(editedItem.content.end_date)}`}
+                {`${formatDate(editedItem.content.start_date)} - ${formatDate(
+                  editedItem.content.end_date
+                )}`}
               </p>
               <p className="text-sm text-gray-700 mt-2">
                 {editedItem.content.responsibilities}
@@ -127,7 +124,9 @@ export const createRenderItemContent = (
                 {editedItem.content.institution}
               </p>
               <p className="text-sm text-gray-600">
-                {`${formatDate(editedItem.content.start_date)} - ${formatDate(editedItem.content.end_date)}`}
+                {`${formatDate(editedItem.content.start_date)} - ${formatDate(
+                  editedItem.content.end_date
+                )}`}
               </p>
             </div>
           );
@@ -195,7 +194,9 @@ export const createRenderItemContent = (
               <p className="text-sm text-gray-700">
                 {editedItem.content.journal_or_conference}
               </p>
-              <p className="text-sm text-gray-600">{`Published: ${formatDate(editedItem.content.publication_date)}`}</p>
+              <p className="text-sm text-gray-600">{`Published: ${formatDate(
+                editedItem.content.publication_date
+              )}`}</p>
             </div>
           );
         default:
@@ -208,39 +209,38 @@ export const createRenderItemContent = (
 
     return (
       <div onClick={(e) => e.stopPropagation()}>
-      <div className="flex flex-col h-full">
-        <div className="flex justify-between items-start mb-2">
-          <div className="flex-grow pr-10">{content}</div>
-          <Button
-  onClick={(e) => {
-    e.stopPropagation();
-    handleEdit(editedItem);
-  }}
-  className="flex-shrink-0 p-1 h-6 w-6"
-  variant="ghost"
->
-  <Edit2 size={16} className="text-gray-400" />
-</Button>
-
+        <div className="flex flex-col h-full">
+          <div className="flex justify-between items-start mb-2">
+            <div className="flex-grow pr-10">{content}</div>
+            <Button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEdit(editedItem);
+              }}
+              className="flex-shrink-0 p-1 h-6 w-6"
+              variant="ghost"
+            >
+              <Edit2 size={16} className="text-gray-400" />
+            </Button>
+          </div>
+          <div className="mt-auto pt-2">
+            {isProcessing ? (
+              <div className="flex items-center justify-center h-8">
+                <Spinner />
+              </div>
+            ) : itemAlert ? (
+              <Alert
+                message={itemAlert.message}
+                isMinimized={itemAlert.isMinimized}
+                onToggleMinimize={() => toggleAlertMinimize(editedItem.id)}
+              />
+            ) : null}
+          </div>
         </div>
-        <div className="mt-auto pt-2">
-          {isProcessing ? (
-            <div className="flex items-center justify-center h-8">
-              <Spinner />
-            </div>
-          ) : itemAlert ? (
-            <Alert
-  message={itemAlert.message}
-  isMinimized={itemAlert.isMinimized}
-  onToggleMinimize={() => toggleAlertMinimize(editedItem.id)}
-/>
-          ) : null}
-        </div>
-      </div>
       </div>
     );
   };
 
-  RenderItemContent.displayName = 'RenderItemContent';
+  RenderItemContent.displayName = "RenderItemContent";
   return RenderItemContent;
 };

@@ -21,7 +21,6 @@ const jsonSchema = zodToJsonSchema(ResumeCoachSchema, "ResumeCoachSchema");
 
 export const buildAndLogPrompt = async (
   items: Record<string, Item[]>,
-  history: HistoryEntry[],
   talentProfile: TalentProfile,
   role: string
 ): Promise<{
@@ -79,8 +78,6 @@ export const buildAndLogPrompt = async (
     return acc;
   }, {} as Record<string, any>);
 
-  const lastEditMade = history.slice(-1).reverse();
-
   const sysPrompt = `You are an AI resume coach helping a user optimize their resume for a ${role} position. Your task is to guide the user by evaluating the most recent edit to the resume, analyzing its impact, and recommending the next best action to improve the resume for the ${role} position.
 
 Instructions:
@@ -112,12 +109,6 @@ Output Format:
 Respond ONLY with valid JSON.
 
 {
-  "analysis": {
-    "recentEdit": "Detailed evaluation of the most recent edit, including its impact on resume strength and relevance to the target role",
-    "overallImpact": "Assessment of how the edit affects the resume's overall quality for the target position",
-    "keywords": ["List", "of", "relevant", "keywords"],
-    "relevanceScore": 1-10
-  },
   "recommendation": {
     "action": "add" | "remove" | "modify" | "none",
     "targetItem": "Human-readable name or reference of the item to be acted upon",
@@ -141,9 +132,6 @@ Remember: Your goal is to help create a targeted, impactful resume for the ${rol
 
   const userPrompt = `Current Resume Items:
 ${JSON.stringify(items.preview, null, 2)}
-
-Most Recent Edit:
-${JSON.stringify(lastEditMade, null, 2)}
 
 Available Resume Items:
 ${JSON.stringify(relevantTalentProfileData, null, 2)}

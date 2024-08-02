@@ -1,12 +1,6 @@
 import { z } from 'zod';
 
 const ResumeCoachSchema = z.object({
-  analysis: z.object({
-    recentEdit: z.string().describe("Detailed evaluation of the most recent edit, including its impact on resume strength and relevance to the target role"),
-    overallImpact: z.string().describe("Assessment of how the edit affects the resume's overall quality for the target position"),
-    keywords: z.array(z.string()).describe("List of relevant keywords"),
-    relevanceScore: z.number().int().min(1).max(10).describe("Score from 1-10 indicating how well the current resume matches the requirements of the role")
-  }),
   recommendation: z.object({
     action: z.enum(["add", "remove", "modify", "none"]).describe("The recommended action to take"),
     targetItem: z.string().describe("Human-readable name or reference of the item to be acted upon"),

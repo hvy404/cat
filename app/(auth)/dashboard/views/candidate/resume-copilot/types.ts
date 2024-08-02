@@ -31,7 +31,7 @@ export interface CustomItem extends Item {
 }
 
 export interface HistoryEntry {
-  action: "add" | "remove" | "reorder";
+  action: "add" | "remove" | "reorder" | "move";
   itemId: string;
   timestamp: number;
 }

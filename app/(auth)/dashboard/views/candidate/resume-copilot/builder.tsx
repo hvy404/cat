@@ -19,7 +19,6 @@ import {
   ItemType,
   CustomItem,
   HistoryEntry,
-  AlertState,
   ResumeBuilderProps,
 } from "./types";
 import { buildAndLogPrompt } from "./prompt-builder";
@@ -54,10 +53,6 @@ interface CustomSection {
 }
 
 interface AlertMessage {
-  analysis: {
-    recentEdit: string;
-    overallImpact: string;
-  };
   recommendation: {
     action: "add" | "remove" | "modify" | "none";
     targetItem: string;
@@ -251,7 +246,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       }
   
       // Build AI suggestions
-      return buildAndLogPrompt(items, history, talentProfile, selectedRole)
+      return buildAndLogPrompt(items, talentProfile, selectedRole)
         .then((result) => {
           if ('error' in result) {
             console.error(result.error);
@@ -263,7 +258,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
               id: lastModifiedItemId,
               isMinimized: false,
               message: {
-                analysis: result.analysis,
                 recommendation: result.recommendation,
                 feedback: result.feedback,
                 nextSteps: result.nextSteps,
