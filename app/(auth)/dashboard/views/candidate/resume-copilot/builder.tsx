@@ -88,6 +88,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [dragOrigin, setDragOrigin] = useState<string | null>(null);
+  const [dragStartContainer, setDragStartContainer] = useState<string | null>(
+    null
+  );
 
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [lastModifiedItemId, setLastModifiedItemId] = useState<string | null>(
@@ -416,19 +419,18 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     const id = active.id as string;
-    const activeContainer = findContainer(id);
-    setDragOrigin(activeContainer || null);
-    setActiveId(id);
+    const startContainer = findContainer(id);
+    setDragStartContainer(startContainer || null);
   };
 
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
     const id = active.id as string;
     const overId = over?.id as string;
-  
+
     const activeContainer = findContainer(id);
     const overContainer = findContainer(overId);
-  
+
     if (
       !activeContainer ||
       !overContainer ||
@@ -436,11 +438,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     ) {
       return;
     }
-  
+
     setItems((prev) => {
       const activeItems = prev[activeContainer];
       const overItems = prev[overContainer];
-  
+
       if (!activeItems || !overItems) {
         console.error("Invalid containers:", {
           activeContainer,
@@ -449,10 +451,10 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         });
         return prev;
       }
-  
+
       const activeIndex = activeItems.findIndex((item) => item.id === id);
       const overIndex = overItems.findIndex((item) => item.id === overId);
-  
+
       let newIndex: number;
       if (overId in prev) {
         newIndex = overItems.length + 1;
@@ -460,7 +462,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         const isBelowLastItem = over && overIndex === overItems.length - 1;
         newIndex = isBelowLastItem ? overIndex + 1 : overIndex;
       }
-  
+
       const newItems = {
         ...prev,
         [activeContainer]: [
@@ -472,30 +474,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           ...prev[overContainer].slice(newIndex, prev[overContainer].length),
         ],
       };
-  
-      const draggedItem = activeItems[activeIndex];
-      const isExcludedPersonalItem =
-        draggedItem.type === "personal" &&
-        excludedPersonalItems.includes(draggedItem.content.key);
-  
-      if (!isExcludedPersonalItem) {
-        const action =
-          activeContainer === "available" && overContainer === "preview"
-            ? ("add" as const)
-            : ("remove" as const);
-        setLastModifiedItemId(id);
-  
-        // Log the last change
-        console.log("Last drag action:", {
-          action,
-          itemId: id,
-          itemType: draggedItem.type,
-          fromContainer: activeContainer,
-          toContainer: overContainer,
-          newIndex
-        });
-      }
-  
+
       return newItems;
     });
   };
@@ -589,10 +568,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       let newItems = { ...prevItems };
 
       if (activeContainer !== overContainer) {
-        // Moving item between containers
         newItems = {
           ...newItems,
-          [activeContainer as keyof typeof prevItems]: activeItems.filter((item) => item.id !== id),
+          [activeContainer as keyof typeof prevItems]: activeItems.filter(
+            (item) => item.id !== id
+          ),
           [overContainer as keyof typeof prevItems]: [
             ...overItems.slice(0, overIndex),
             activeItems[activeIndex],
@@ -600,15 +580,16 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           ],
         };
       } else {
-        // Reordering within the same container
         newItems = {
           ...newItems,
-          [overContainer as keyof typeof prevItems]: arrayMove(overItems, activeIndex, overIndex),
+          [overContainer as keyof typeof prevItems]: arrayMove(
+            overItems,
+            activeIndex,
+            overIndex
+          ),
         };
       }
 
-      // If the item is an experience or education item and it's in or moving to the preview container,
-      // sort all experience and education items in the preview
       if (
         ((activeItems[activeIndex].type === "experience" ||
           activeItems[activeIndex].type === "education") &&
@@ -637,24 +618,19 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             const aEndDate = a.content.end_date.toLowerCase();
             const bEndDate = b.content.end_date.toLowerCase();
 
-            // If both are 'present', compare start dates
             if (aEndDate === "present" && bEndDate === "present") {
               return b.content.start_date.localeCompare(a.content.start_date);
             }
 
-            // If either is 'present', it should come first
             if (aEndDate === "present") return -1;
             if (bEndDate === "present") return 1;
 
-            // If neither is 'present', compare end dates
             const endDateComparison = bEndDate.localeCompare(aEndDate);
             if (endDateComparison !== 0) return endDateComparison;
 
-            // If end dates are the same, compare start dates
             return b.content.start_date.localeCompare(a.content.start_date);
           });
 
-        // Group sorted items by type (experience first, then education)
         const sortedExperienceItems = sortedExperienceAndEducationItems.filter(
           (item) => item.type === "experience"
         );
@@ -676,12 +652,24 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
 
       if (!isExcludedPersonalItem) {
         setLastModifiedItemId(id);
+
+        console.log("Drag ended:", {
+          action:
+            dragStartContainer === "available" && overContainer === "preview"
+              ? "add"
+              : "remove",
+          itemId: id,
+          itemType: movedItem.type,
+          fromContainer: dragStartContainer,
+          toContainer: overContainer,
+          newIndex: overIndex,
+        });
       }
 
       return newItems;
     });
 
-    setDragOrigin(null); // Reset the drag origin
+    setDragOrigin(null);
     setActiveId(null);
   };
 
