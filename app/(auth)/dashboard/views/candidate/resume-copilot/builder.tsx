@@ -91,6 +91,16 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   const [dragStartContainer, setDragStartContainer] = useState<string | null>(
     null
   );
+  const [actionHistory, setActionHistory] = useState<
+    Array<{
+      action: "add" | "remove";
+      itemId: string;
+      itemType: string;
+      fromContainer: string | null;
+      toContainer: string | null;
+      newIndex: number;
+    }>
+  >([]);
 
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [lastModifiedItemId, setLastModifiedItemId] = useState<string | null>(
@@ -164,6 +174,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       };
     });
   };
+
+  // useEffect to console actionHistory on change
+  useEffect(() => {
+    console.log("History", actionHistory);
+  }, [actionHistory]);
 
   useEffect(() => {
     if (talentProfile) {
@@ -657,7 +672,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           dragStartContainer !== overContainer ||
           (dragStartContainer !== "preview" && overContainer !== "preview")
         ) {
-          console.log("Drag ended:", {
+          const newAction = {
             action:
               dragStartContainer === "available" && overContainer === "preview"
                 ? "add"
@@ -667,7 +682,17 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             fromContainer: dragStartContainer,
             toContainer: overContainer,
             newIndex: overIndex,
-          });
+          };
+
+          setActionHistory((prevHistory) => [
+            ...prevHistory,
+            {
+              ...newAction,
+              action: newAction.action as "add" | "remove",
+              itemType: newAction.itemType as string,
+              toContainer: newAction.toContainer as string | null,
+            },
+          ]);
         }
       }
 
