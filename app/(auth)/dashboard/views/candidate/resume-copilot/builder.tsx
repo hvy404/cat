@@ -653,17 +653,22 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       if (!isExcludedPersonalItem) {
         setLastModifiedItemId(id);
 
-        console.log("Drag ended:", {
-          action:
-            dragStartContainer === "available" && overContainer === "preview"
-              ? "add"
-              : "remove",
-          itemId: id,
-          itemType: movedItem.type,
-          fromContainer: dragStartContainer,
-          toContainer: overContainer,
-          newIndex: overIndex,
-        });
+        if (
+          dragStartContainer !== overContainer ||
+          (dragStartContainer !== "preview" && overContainer !== "preview")
+        ) {
+          console.log("Drag ended:", {
+            action:
+              dragStartContainer === "available" && overContainer === "preview"
+                ? "add"
+                : "remove",
+            itemId: id,
+            itemType: movedItem.type,
+            fromContainer: dragStartContainer,
+            toContainer: overContainer,
+            newIndex: overIndex,
+          });
+        }
       }
 
       return newItems;
