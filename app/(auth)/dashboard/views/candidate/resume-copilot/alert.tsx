@@ -1,6 +1,13 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Minus, Edit, History, AlertCircle, CheckCircle, ArrowRight } from "lucide-react";
+import {
+  Plus,
+  Minus,
+  Edit,
+  History,
+  CheckCircle,
+  ArrowRight,
+} from "lucide-react";
 
 interface AlertProps {
   message: {
@@ -39,11 +46,26 @@ const Alert: React.FC<AlertProps> = ({
 
     switch (action) {
       case "add":
-        return <Plus {...iconProps} className={`${iconProps.className} text-green-600`} />;
+        return (
+          <Plus
+            {...iconProps}
+            className={`${iconProps.className} text-green-600`}
+          />
+        );
       case "remove":
-        return <Minus {...iconProps} className={`${iconProps.className} text-red-600`} />;
+        return (
+          <Minus
+            {...iconProps}
+            className={`${iconProps.className} text-red-600`}
+          />
+        );
       case "modify":
-        return <Edit {...iconProps} className={`${iconProps.className} text-blue-600`} />;
+        return (
+          <Edit
+            {...iconProps}
+            className={`${iconProps.className} text-blue-600`}
+          />
+        );
       default:
         return null;
     }
@@ -79,44 +101,63 @@ const Alert: React.FC<AlertProps> = ({
                 Dismiss
               </button>
               <div className="flex items-start mb-2">
-                <History size={20} className="flex-shrink-0 text-green-600 mt-0.5 mr-2" />
-              </div>
-              <div className="flex items-start mb-2">
-                <div className="mt-0.5 mr-2">{getActionIcon(message.recommendation.action)}</div>
+                <div className="mt-0.5 mr-2">
+                  {getActionIcon(message.recommendation.action)}
+                </div>
                 <div>
                   <p className="text-green-700 text-xs font-medium">
-                    <span className="font-semibold mr-1">Recommendation:</span> {message.recommendation.rationale}
+                    <span className="font-semibold mr-1">Recommendation:</span>{" "}
+                    {message.recommendation.rationale}
                   </p>
                   <p className="text-green-700 text-xs font-medium mt-1">
-                    <span className="font-semibold mr-1">Implementation:</span> {message.recommendation.implementation}
+                    <span className="font-semibold mr-1">Implementation:</span>{" "}
+                    {message.recommendation.implementation}
                   </p>
                 </div>
               </div>
               <div className="flex items-start mb-2">
-                <CheckCircle size={20} className="flex-shrink-0 text-green-600 mt-0.5 mr-2" />
+                <CheckCircle
+                  size={20}
+                  className="flex-shrink-0 text-green-600 mt-0.5 mr-2"
+                />
                 <div>
                   <p className="text-green-700 text-xs font-medium">
-                    <span className="font-semibold mr-1">Strengths:</span> {message.feedback.strengths.join(", ")}
+                    <span className="font-semibold mr-1">Strengths:</span>{" "}
+                    {message.feedback.strengths.join(", ")}
                   </p>
                   <p className="text-green-700 text-xs font-medium mt-1">
-                    <span className="font-semibold mr-1">Areas for Improvement:</span> {message.feedback.areasForImprovement.join(", ")}
+                    <span className="font-semibold mr-1">
+                      Areas for Improvement:
+                    </span>{" "}
+                    {message.feedback.areasForImprovement.join(", ")}
                   </p>
                   <p className="text-green-700 text-xs font-medium mt-1">
-                    <span className="font-semibold mr-1">Competitive Edge:</span> {message.feedback.competitiveEdge}
+                    <span className="font-semibold mr-1">
+                      Competitive Edge:
+                    </span>{" "}
+                    {message.feedback.competitiveEdge}
                   </p>
                 </div>
               </div>
               <div className="flex items-start">
-                <ArrowRight size={20} className="flex-shrink-0 text-green-600 mt-0.5 mr-2" />
+                <ArrowRight
+                  size={20}
+                  className="flex-shrink-0 text-green-600 mt-0.5 mr-2"
+                />
                 <div>
                   <p className="text-green-700 text-xs font-medium">
-                    <span className="font-semibold mr-1">Next Steps (Priority: {message.nextSteps.priority}):</span> {message.nextSteps.focus}
+                    <span className="font-semibold mr-1">
+                      Next Steps (Priority: {message.nextSteps.priority}):
+                    </span>{" "}
+                    {message.nextSteps.focus}
                   </p>
                   <p className="text-green-700 text-xs font-medium mt-1">
-                    <span className="font-semibold mr-1">Guidance:</span> {message.nextSteps.guidance}
+                    <span className="font-semibold mr-1">Guidance:</span>{" "}
+                    {message.nextSteps.guidance}
                   </p>
                   <p className="text-green-700 text-xs font-medium mt-1">
-                    <span className="font-semibold mr-1">Progression:</span> {message.nextSteps.progression}
+                    <span className="font-semibold mr-1">Progression:</span>{" "}
+                    {message.nextSteps.progression}
                   </p>
                 </div>
               </div>

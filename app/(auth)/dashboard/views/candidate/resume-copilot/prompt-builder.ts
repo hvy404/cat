@@ -138,9 +138,6 @@ ${JSON.stringify(relevantTalentProfileData, null, 2)}
 
 Your response must be in valid JSON and follows the schema provided in the instructions above.`;
 
-  console.log("System", sysPrompt);
-  console.log("User", userPrompt);
-
   const response = await togetherAi.chat.completions.create({
     model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
     // @ts-ignore
@@ -159,12 +156,8 @@ Your response must be in valid JSON and follows the schema provided in the instr
     max_tokens: 2500,
   });
 
-  const aiResponse = response.choices[0].message.content;
-  console.log("AI Response:", aiResponse);
-
   if (response?.choices?.[0]?.message?.content) {
     const output = JSON.parse(response?.choices?.[0]?.message?.content);
-    console.log(output);
     return output;
   }
   return { error: "There was an error. Please try again." };

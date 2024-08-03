@@ -14,13 +14,7 @@ import {
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import Container from "./container";
 import SortableItem from "./sortable";
-import {
-  Item,
-  ItemType,
-  CustomItem,
-  HistoryEntry,
-  ResumeBuilderProps,
-} from "./types";
+import { Item, ItemType, CustomItem, ResumeBuilderProps } from "./types";
 import { buildAndLogPrompt } from "./prompt-builder";
 import { useDebounce } from "./use-debounce";
 import { Button } from "@/components/ui/button";
@@ -93,7 +87,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [dragOrigin, setDragOrigin] = useState<string | null>(null);
 
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [lastModifiedItemId, setLastModifiedItemId] = useState<string | null>(
@@ -240,19 +234,19 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       setProcessingItems((prevProcessing) =>
         new Set(prevProcessing).add(lastModifiedItemId)
       );
-  
+
       if (!selectedRole) {
         return;
       }
-  
+
       // Build AI suggestions
       return buildAndLogPrompt(items, talentProfile, selectedRole)
         .then((result) => {
-          if ('error' in result) {
+          if ("error" in result) {
             console.error(result.error);
             return;
           }
-  
+
           setAlerts((prevAlerts) => {
             const newAlert: Alert = {
               id: lastModifiedItemId,
@@ -263,12 +257,12 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
                 nextSteps: result.nextSteps,
               },
             };
-          
+
             const updatedAlerts = prevAlerts.map((alert) => ({
               ...alert,
               isMinimized: true,
             }));
-          
+
             return [...updatedAlerts, newAlert];
           });
         })
@@ -324,12 +318,12 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           preview: items.preview.map((item) => editedItems[item.id] || item),
         };
 
-        debouncedBuildAndLogPrompt(
+        /*         debouncedBuildAndLogPrompt(
           updatedItems,
           history,
           talentProfile,
           lastModifiedItemId
-        );
+        ); */
       }
     }
 
@@ -356,12 +350,10 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   };
 
   const findContainer = (id: string) => {
-    if (id in items) {
-      return id;
-    }
-    return Object.keys(items).find((key) =>
+    const container = Object.keys(items).find((key) =>
       items[key].some((item) => item.id === id)
     );
+    return container;
   };
 
   // Add new functions for custom sections and items
@@ -423,29 +415,20 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
-    const activeItem =
-      Object.values(items)
-        .flat()
-        .find((item) => item.id === active.id) ||
-      customSections
-        .flatMap((section) => section.items)
-        .find((item) => item.id === active.id);
-    if (activeItem) {
-      setActiveId(active.id as string);
-    } else {
-      console.warn(`Attempted to drag item with unknown id: ${active.id}`);
-      setActiveId(null);
-    }
+    const id = active.id as string;
+    const activeContainer = findContainer(id);
+    setDragOrigin(activeContainer || null);
+    setActiveId(id);
   };
 
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
     const id = active.id as string;
     const overId = over?.id as string;
-
+  
     const activeContainer = findContainer(id);
     const overContainer = findContainer(overId);
-
+  
     if (
       !activeContainer ||
       !overContainer ||
@@ -453,11 +436,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     ) {
       return;
     }
-
+  
     setItems((prev) => {
       const activeItems = prev[activeContainer];
       const overItems = prev[overContainer];
-
+  
       if (!activeItems || !overItems) {
         console.error("Invalid containers:", {
           activeContainer,
@@ -466,10 +449,10 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         });
         return prev;
       }
-
+  
       const activeIndex = activeItems.findIndex((item) => item.id === id);
       const overIndex = overItems.findIndex((item) => item.id === overId);
-
+  
       let newIndex: number;
       if (overId in prev) {
         newIndex = overItems.length + 1;
@@ -477,7 +460,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         const isBelowLastItem = over && overIndex === overItems.length - 1;
         newIndex = isBelowLastItem ? overIndex + 1 : overIndex;
       }
-
+  
       const newItems = {
         ...prev,
         [activeContainer]: [
@@ -489,26 +472,30 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           ...prev[overContainer].slice(newIndex, prev[overContainer].length),
         ],
       };
-
+  
       const draggedItem = activeItems[activeIndex];
       const isExcludedPersonalItem =
         draggedItem.type === "personal" &&
         excludedPersonalItems.includes(draggedItem.content.key);
-
+  
       if (!isExcludedPersonalItem) {
         const action =
           activeContainer === "available" && overContainer === "preview"
             ? ("add" as const)
             : ("remove" as const);
-        const newHistoryEntry: HistoryEntry = {
+        setLastModifiedItemId(id);
+  
+        // Log the last change
+        console.log("Last drag action:", {
           action,
           itemId: id,
-          timestamp: Date.now(),
-        };
-        setHistory((prevHistory) => [...prevHistory, newHistoryEntry]);
-        setLastModifiedItemId(id);
+          itemType: draggedItem.type,
+          fromContainer: activeContainer,
+          toContainer: overContainer,
+          newIndex
+        });
       }
-
+  
       return newItems;
     });
   };
@@ -583,13 +570,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     const activeContainer = findContainer(id);
     const overContainer = findContainer(overId);
 
-    if (!activeContainer || !overContainer) {
-      return;
-    }
-
     setItems((prevItems) => {
-      const activeItems = prevItems[activeContainer];
-      const overItems = prevItems[overContainer];
+      const activeItems = prevItems[activeContainer as keyof typeof prevItems];
+      const overItems = prevItems[overContainer as keyof typeof prevItems];
 
       if (!activeItems || !overItems) {
         console.error("Invalid containers:", {
@@ -609,8 +592,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         // Moving item between containers
         newItems = {
           ...newItems,
-          [activeContainer]: activeItems.filter((item) => item.id !== id),
-          [overContainer]: [
+          [activeContainer as keyof typeof prevItems]: activeItems.filter((item) => item.id !== id),
+          [overContainer as keyof typeof prevItems]: [
             ...overItems.slice(0, overIndex),
             activeItems[activeIndex],
             ...overItems.slice(overIndex),
@@ -620,7 +603,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         // Reordering within the same container
         newItems = {
           ...newItems,
-          [overContainer]: arrayMove(overItems, activeIndex, overIndex),
+          [overContainer as keyof typeof prevItems]: arrayMove(overItems, activeIndex, overIndex),
         };
       }
 
@@ -692,18 +675,13 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         excludedPersonalItems.includes(movedItem.content.key);
 
       if (!isExcludedPersonalItem) {
-        const newHistoryEntry: HistoryEntry = {
-          action: activeContainer === "available" ? "add" : "remove",
-          itemId: id,
-          timestamp: Date.now(),
-        };
-        setHistory((prevHistory) => [...prevHistory, newHistoryEntry]);
         setLastModifiedItemId(id);
       }
 
       return newItems;
     });
 
+    setDragOrigin(null); // Reset the drag origin
     setActiveId(null);
   };
 
