@@ -769,10 +769,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       if (!isExcludedPersonalItem) {
         setLastModifiedItemId(id);
 
-        if (
-          dragStartContainer !== overContainer ||
-          (dragStartContainer !== "preview" && overContainer !== "preview")
-        ) {
+        if (dragStartContainer !== overContainer) {
           const newAction = {
             action:
               dragStartContainer === "available" && overContainer === "preview"
