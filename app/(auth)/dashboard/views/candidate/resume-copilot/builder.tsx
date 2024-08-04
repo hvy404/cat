@@ -44,7 +44,7 @@ import {
   editCustomItem,
   deleteCustomItem,
   deleteCustomSection,
-} from './custom-section-utils';
+} from "./custom-section-utils";
 
 // Add new interfaces for custom sections and items
 interface CustomSection {
@@ -409,31 +409,16 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   // Add new functions for custom sections and items
   const handleAddCustomSection = () => {
     if (newSectionTitle.trim()) {
-      const newSection: CustomSection = {
-        id: `custom-section-${Date.now()}`,
-        title: newSectionTitle.trim(),
-        items: [],
-      };
-      setCustomSections([...customSections, newSection]);
+      setCustomSections((prevSections) =>
+        addCustomSection(prevSections, newSectionTitle)
+      );
       setNewSectionTitle("");
       setIsAddingSectionDialogOpen(false);
     }
   };
 
   const handleAddCustomItem = (sectionId: string) => {
-    const newItem: CustomItem = {
-      id: `custom-item-${Date.now()}`,
-      type: "custom",
-      content: { text: "" },
-      sectionId, // Added this line
-    };
-    setCustomSections(
-      customSections.map((section) =>
-        section.id === sectionId
-          ? { ...section, items: [...section.items, newItem] }
-          : section
-      )
-    );
+    setCustomSections((prevSections) => addCustomItem(prevSections, sectionId));
   };
 
   const handleEditCustomItem = (
@@ -441,17 +426,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     itemId: string,
     text: string
   ) => {
-    setCustomSections(
-      customSections.map((section) =>
-        section.id === sectionId
-          ? {
-              ...section,
-              items: section.items.map((item) =>
-                item.id === itemId ? { ...item, content: { text } } : item
-              ),
-            }
-          : section
-      )
+    setCustomSections((prevSections) =>
+      editCustomItem(prevSections, sectionId, itemId, text)
     );
   };
 
@@ -942,14 +918,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
 
   const handleDeleteCustomItem = (sectionId: string, itemId: string) => {
     setCustomSections((prevSections) =>
-      prevSections.map((section) =>
-        section.id === sectionId
-          ? {
-              ...section,
-              items: section.items.filter((item) => item.id !== itemId),
-            }
-          : section
-      )
+      deleteCustomItem(prevSections, sectionId, itemId)
     );
     setLastModifiedItemId(itemId);
   };
@@ -961,7 +930,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     setDeleteConfirmation({
       isOpen: true,
       itemToDelete: null,
-      sectionToDelete: sectionToDelete || null, // Use null if section is not found
+      sectionToDelete: sectionToDelete || null,
     });
   };
 
@@ -973,8 +942,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       );
     } else if (deleteConfirmation.sectionToDelete) {
       setCustomSections((prevSections) =>
-        prevSections.filter(
-          (section) => section.id !== deleteConfirmation.sectionToDelete!.id
+        deleteCustomSection(
+          prevSections,
+          deleteConfirmation.sectionToDelete!.id
         )
       );
     }
