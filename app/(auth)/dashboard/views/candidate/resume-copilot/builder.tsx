@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import {
   DndContext,
   DragOverlay,
@@ -432,299 +438,320 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   };
 
   // Modify the Available Items section to include a Custom Card
-  const renderAvailableItems = () => (
-    <AvailableItems
-      items={items.available}
-      renderCondensedItemContent={renderCondensedItemContent}
-    />
+  const renderAvailableItems = useMemo(
+    () => (
+      <AvailableItems
+        items={items.available}
+        renderCondensedItemContent={renderCondensedItemContent}
+      />
+    ),
+    [items.available, renderCondensedItemContent]
   );
 
-  const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    const id = active.id as string;
-    const startContainer = findContainer(id);
-    setDragStartContainer(startContainer || null);
+  const handleDragStart = useCallback(
+    (event: DragStartEvent) => {
+      const { active } = event;
+      const id = active.id as string;
+      const startContainer = findContainer(id);
+      setDragStartContainer(startContainer || null);
 
-    const item =
-      items[startContainer as keyof typeof items]?.find(
-        (item) => item.id === id
-      ) ||
-      customSections
-        .flatMap((section) => section.items)
-        .find((item) => item.id === id);
-    setDraggedItem(item || null);
-    setActiveId(id);
-  };
+      const item =
+        items[startContainer as keyof typeof items]?.find(
+          (item) => item.id === id
+        ) ||
+        customSections
+          .flatMap((section) => section.items)
+          .find((item) => item.id === id);
+      setDraggedItem(item || null);
+      setActiveId(id);
+    },
+    [items, customSections, findContainer]
+  );
 
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-    const id = active.id as string;
-    const overId = over?.id as string;
+  const handleDragOver = useCallback(
+    (event: DragOverEvent) => {
+      const { active, over } = event;
+      const id = active.id as string;
+      const overId = over?.id as string;
 
-    const activeContainer = findContainer(id);
-    const overContainer = findContainer(overId);
+      const activeContainer = findContainer(id);
+      const overContainer = findContainer(overId);
 
-    if (
-      !activeContainer ||
-      !overContainer ||
-      activeContainer === overContainer
-    ) {
-      return;
-    }
-
-    setItems((prev) => {
-      const activeItems = prev[activeContainer];
-      const overItems = prev[overContainer];
-
-      if (!activeItems || !overItems) {
-        console.error("Invalid containers:", {
-          activeContainer,
-          overContainer,
-          prev,
-        });
-        return prev;
+      if (
+        !activeContainer ||
+        !overContainer ||
+        activeContainer === overContainer
+      ) {
+        return;
       }
 
-      const activeIndex = activeItems.findIndex((item) => item.id === id);
-      const overIndex = overItems.findIndex((item) => item.id === overId);
+      setItems((prev) => {
+        const activeItems = prev[activeContainer];
+        const overItems = prev[overContainer];
 
-      let newIndex: number;
-      if (overId in prev) {
-        newIndex = overItems.length + 1;
-      } else {
-        const isBelowLastItem = over && overIndex === overItems.length - 1;
-        newIndex = isBelowLastItem ? overIndex + 1 : overIndex;
+        if (!activeItems || !overItems) {
+          console.error("Invalid containers:", {
+            activeContainer,
+            overContainer,
+            prev,
+          });
+          return prev;
+        }
+
+        const activeIndex = activeItems.findIndex((item) => item.id === id);
+        const overIndex = overItems.findIndex((item) => item.id === overId);
+
+        let newIndex: number;
+        if (overId in prev) {
+          newIndex = overItems.length + 1;
+        } else {
+          const isBelowLastItem = over && overIndex === overItems.length - 1;
+          newIndex = isBelowLastItem ? overIndex + 1 : overIndex;
+        }
+
+        const newItems = {
+          ...prev,
+          [activeContainer]: [
+            ...prev[activeContainer].filter((item) => item.id !== active.id),
+          ],
+          [overContainer]: [
+            ...prev[overContainer].slice(0, newIndex),
+            activeItems[activeIndex],
+            ...prev[overContainer].slice(newIndex, prev[overContainer].length),
+          ],
+        };
+
+        return newItems;
+      });
+    },
+    [findContainer]
+  );
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      const id = active.id as string;
+      const overId = over?.id as string;
+
+      if (id === "custom-card" && overId) {
+        const targetSection = customSections.find((section) =>
+          section.items.some((item) => item.id === overId)
+        );
+        if (targetSection) {
+          handleAddCustomItem(targetSection.id);
+        } else {
+          const newSectionId = `custom-section-${Date.now()}`;
+          const newSection: CustomSection = {
+            id: newSectionId,
+            title: "New Custom Section",
+            items: [],
+          };
+          setCustomSections([...customSections, newSection]);
+          handleAddCustomItem(newSectionId);
+        }
+        return;
       }
 
-      const newItems = {
-        ...prev,
-        [activeContainer]: [
-          ...prev[activeContainer].filter((item) => item.id !== active.id),
-        ],
-        [overContainer]: [
-          ...prev[overContainer].slice(0, newIndex),
-          activeItems[activeIndex],
-          ...prev[overContainer].slice(newIndex, prev[overContainer].length),
-        ],
-      };
-
-      return newItems;
-    });
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    const id = active.id as string;
-    const overId = over?.id as string;
-
-    if (id === "custom-card" && overId) {
+      const sourceSection = customSections.find((section) =>
+        section.items.some((item) => item.id === id)
+      );
       const targetSection = customSections.find((section) =>
         section.items.some((item) => item.id === overId)
       );
-      if (targetSection) {
-        handleAddCustomItem(targetSection.id);
-      } else {
-        const newSectionId = `custom-section-${Date.now()}`;
-        const newSection: CustomSection = {
-          id: newSectionId,
-          title: "New Custom Section",
-          items: [],
-        };
-        setCustomSections([...customSections, newSection]);
-        handleAddCustomItem(newSectionId);
-      }
-      return;
-    }
 
-    const sourceSection = customSections.find((section) =>
-      section.items.some((item) => item.id === id)
-    );
-    const targetSection = customSections.find((section) =>
-      section.items.some((item) => item.id === overId)
-    );
-
-    if (sourceSection && targetSection) {
-      setCustomSections((prevSections) =>
-        prevSections.map((section) => {
-          if (
-            section.id === sourceSection.id &&
-            section.id === targetSection.id
-          ) {
-            const oldIndex = section.items.findIndex((item) => item.id === id);
-            const newIndex = section.items.findIndex(
-              (item) => item.id === overId
-            );
-            const newItems = arrayMove(section.items, oldIndex, newIndex);
-            return { ...section, items: newItems };
-          } else if (section.id === sourceSection.id) {
-            return {
-              ...section,
-              items: section.items.filter((item) => item.id !== id),
-            };
-          } else if (section.id === targetSection.id) {
-            const itemToMove = sourceSection.items.find(
-              (item) => item.id === id
-            )!;
-            const overIndex = section.items.findIndex(
-              (item) => item.id === overId
-            );
-            const newItems = [...section.items];
-            newItems.splice(overIndex, 0, itemToMove);
-            return { ...section, items: newItems };
-          }
-          return section;
-        })
-      );
-      return;
-    }
-
-    const activeContainer = findContainer(id);
-    const overContainer = findContainer(overId);
-
-    setItems((prevItems) => {
-      const activeItems = prevItems[activeContainer as keyof typeof prevItems];
-      const overItems = prevItems[overContainer as keyof typeof prevItems];
-
-      if (!activeItems || !overItems) {
-        console.error("Invalid containers:", {
-          activeContainer,
-          overContainer,
-          prevItems,
-        });
-        return prevItems;
-      }
-
-      const activeIndex = activeItems.findIndex((item) => item.id === id);
-      const overIndex = overItems.findIndex((item) => item.id === overId);
-
-      let newItems = { ...prevItems };
-
-      if (activeContainer !== overContainer) {
-        newItems = {
-          ...newItems,
-          [activeContainer as keyof typeof prevItems]: activeItems.filter(
-            (item) => item.id !== id
-          ),
-          [overContainer as keyof typeof prevItems]: [
-            ...overItems.slice(0, overIndex),
-            activeItems[activeIndex],
-            ...overItems.slice(overIndex),
-          ],
-        };
-      } else {
-        newItems = {
-          ...newItems,
-          [overContainer as keyof typeof prevItems]: arrayMove(
-            overItems,
-            activeIndex,
-            overIndex
-          ),
-        };
-      }
-
-      if (
-        ((activeItems[activeIndex].type === "experience" ||
-          activeItems[activeIndex].type === "education") &&
-          overContainer === "preview") ||
-        (overContainer === "preview" &&
-          newItems["preview"].some(
-            (item) => item.type === "experience" || item.type === "education"
-          ))
-      ) {
-        const allItems = newItems["preview"];
-        const experienceAndEducationItems = allItems.filter(
-          (item) => item.type === "experience" || item.type === "education"
-        );
-        const otherItems = allItems.filter(
-          (item) => item.type !== "experience" && item.type !== "education"
-        );
-
-        const sortedExperienceAndEducationItems =
-          experienceAndEducationItems.sort((a, b) => {
+      if (sourceSection && targetSection) {
+        setCustomSections((prevSections) =>
+          prevSections.map((section) => {
             if (
-              (a.type !== "experience" && a.type !== "education") ||
-              (b.type !== "experience" && b.type !== "education")
-            )
-              return 0;
-
-            const aEndDate = a.content.end_date.toLowerCase();
-            const bEndDate = b.content.end_date.toLowerCase();
-
-            if (aEndDate === "present" && bEndDate === "present") {
-              return b.content.start_date.localeCompare(a.content.start_date);
+              section.id === sourceSection.id &&
+              section.id === targetSection.id
+            ) {
+              const oldIndex = section.items.findIndex(
+                (item) => item.id === id
+              );
+              const newIndex = section.items.findIndex(
+                (item) => item.id === overId
+              );
+              const newItems = arrayMove(section.items, oldIndex, newIndex);
+              return { ...section, items: newItems };
+            } else if (section.id === sourceSection.id) {
+              return {
+                ...section,
+                items: section.items.filter((item) => item.id !== id),
+              };
+            } else if (section.id === targetSection.id) {
+              const itemToMove = sourceSection.items.find(
+                (item) => item.id === id
+              )!;
+              const overIndex = section.items.findIndex(
+                (item) => item.id === overId
+              );
+              const newItems = [...section.items];
+              newItems.splice(overIndex, 0, itemToMove);
+              return { ...section, items: newItems };
             }
+            return section;
+          })
+        );
+        return;
+      }
 
-            if (aEndDate === "present") return -1;
-            if (bEndDate === "present") return 1;
+      const activeContainer = findContainer(id);
+      const overContainer = findContainer(overId);
 
-            const endDateComparison = bEndDate.localeCompare(aEndDate);
-            if (endDateComparison !== 0) return endDateComparison;
+      setItems((prevItems) => {
+        const activeItems =
+          prevItems[activeContainer as keyof typeof prevItems];
+        const overItems = prevItems[overContainer as keyof typeof prevItems];
 
-            return b.content.start_date.localeCompare(a.content.start_date);
+        if (!activeItems || !overItems) {
+          console.error("Invalid containers:", {
+            activeContainer,
+            overContainer,
+            prevItems,
           });
-
-        const sortedExperienceItems = sortedExperienceAndEducationItems.filter(
-          (item) => item.type === "experience"
-        );
-        const sortedEducationItems = sortedExperienceAndEducationItems.filter(
-          (item) => item.type === "education"
-        );
-
-        newItems["preview"] = [
-          ...sortedExperienceItems,
-          ...sortedEducationItems,
-          ...otherItems,
-        ];
-      }
-
-      const movedItem = activeItems[activeIndex];
-      const isExcludedPersonalItem =
-        movedItem.type === "personal" &&
-        excludedPersonalItems.includes(movedItem.content.key);
-
-      if (!isExcludedPersonalItem) {
-        // Only update lastModifiedItemId, add to processing queue, and show spinner
-        // if the item is moved from available to preview
-        if (dragStartContainer === "available" && overContainer === "preview") {
-          setLastModifiedItemId(id);
-
-          const newAction = {
-            action: "add",
-            itemId: id,
-            itemType: movedItem.type,
-            fromContainer: dragStartContainer,
-            toContainer: overContainer,
-            newIndex: overIndex,
-          };
-
-          setActionHistory((prevHistory) => [
-            ...prevHistory,
-            {
-              ...newAction,
-              action: newAction.action as "add" | "remove",
-              itemType: newAction.itemType as string,
-              toContainer: newAction.toContainer as string | null,
-            },
-          ]);
-
-          // Add the item to the processing queue
-          setProcessingQueue((prevQueue) => [
-            ...prevQueue,
-            { itemId: id, cardContent: movedItem.content },
-          ]);
-
-          // Add the item to processingItems to show the spinner
-          setProcessingItems((prev) => new Set(prev).add(id));
+          return prevItems;
         }
-      }
 
-      return newItems;
-    });
+        const activeIndex = activeItems.findIndex((item) => item.id === id);
+        const overIndex = overItems.findIndex((item) => item.id === overId);
 
-    setDragOrigin(null);
-    setActiveId(null);
-    setDraggedItem(null);
-  };
+        let newItems = { ...prevItems };
+
+        if (activeContainer !== overContainer) {
+          newItems = {
+            ...newItems,
+            [activeContainer as keyof typeof prevItems]: activeItems.filter(
+              (item) => item.id !== id
+            ),
+            [overContainer as keyof typeof prevItems]: [
+              ...overItems.slice(0, overIndex),
+              activeItems[activeIndex],
+              ...overItems.slice(overIndex),
+            ],
+          };
+        } else {
+          newItems = {
+            ...newItems,
+            [overContainer as keyof typeof prevItems]: arrayMove(
+              overItems,
+              activeIndex,
+              overIndex
+            ),
+          };
+        }
+
+        if (
+          ((activeItems[activeIndex].type === "experience" ||
+            activeItems[activeIndex].type === "education") &&
+            overContainer === "preview") ||
+          (overContainer === "preview" &&
+            newItems["preview"].some(
+              (item) => item.type === "experience" || item.type === "education"
+            ))
+        ) {
+          const allItems = newItems["preview"];
+          const experienceAndEducationItems = allItems.filter(
+            (item) => item.type === "experience" || item.type === "education"
+          );
+          const otherItems = allItems.filter(
+            (item) => item.type !== "experience" && item.type !== "education"
+          );
+
+          const sortedExperienceAndEducationItems =
+            experienceAndEducationItems.sort((a, b) => {
+              if (
+                (a.type !== "experience" && a.type !== "education") ||
+                (b.type !== "experience" && b.type !== "education")
+              )
+                return 0;
+
+              const aEndDate = a.content.end_date.toLowerCase();
+              const bEndDate = b.content.end_date.toLowerCase();
+
+              if (aEndDate === "present" && bEndDate === "present") {
+                return b.content.start_date.localeCompare(a.content.start_date);
+              }
+
+              if (aEndDate === "present") return -1;
+              if (bEndDate === "present") return 1;
+
+              const endDateComparison = bEndDate.localeCompare(aEndDate);
+              if (endDateComparison !== 0) return endDateComparison;
+
+              return b.content.start_date.localeCompare(a.content.start_date);
+            });
+
+          const sortedExperienceItems =
+            sortedExperienceAndEducationItems.filter(
+              (item) => item.type === "experience"
+            );
+          const sortedEducationItems = sortedExperienceAndEducationItems.filter(
+            (item) => item.type === "education"
+          );
+
+          newItems["preview"] = [
+            ...sortedExperienceItems,
+            ...sortedEducationItems,
+            ...otherItems,
+          ];
+        }
+
+        const movedItem = activeItems[activeIndex];
+        const isExcludedPersonalItem =
+          movedItem.type === "personal" &&
+          excludedPersonalItems.includes(movedItem.content.key);
+
+        if (!isExcludedPersonalItem) {
+          if (
+            dragStartContainer === "available" &&
+            overContainer === "preview"
+          ) {
+            setLastModifiedItemId(id);
+
+            const newAction = {
+              action: "add",
+              itemId: id,
+              itemType: movedItem.type,
+              fromContainer: dragStartContainer,
+              toContainer: overContainer,
+              newIndex: overIndex,
+            };
+
+            setActionHistory((prevHistory) => [
+              ...prevHistory,
+              {
+                ...newAction,
+                action: newAction.action as "add" | "remove",
+                itemType: newAction.itemType as string,
+                toContainer: newAction.toContainer as string | null,
+              },
+            ]);
+
+            setProcessingQueue((prevQueue) => [
+              ...prevQueue,
+              { itemId: id, cardContent: movedItem.content },
+            ]);
+
+            setProcessingItems((prev) => new Set(prev).add(id));
+          }
+        }
+
+        return newItems;
+      });
+
+      setDragOrigin(null);
+      setActiveId(null);
+      setDraggedItem(null);
+    },
+    [
+      customSections,
+      findContainer,
+      dragStartContainer,
+      excludedPersonalItems,
+      handleAddCustomItem,
+    ]
+  );
 
   /* Editor */
   const handleEdit = (item: Item) => {
@@ -766,7 +793,39 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     toggleAlertMinimize
   );
 
-  const renderPreview = () => {
+  const handleDeleteCustomSection = (sectionId: string) => {
+    const sectionToDelete = customSections.find(
+      (section) => section.id === sectionId
+    );
+    setDeleteConfirmation({
+      isOpen: true,
+      itemToDelete: null,
+      sectionToDelete: sectionToDelete || null,
+    });
+  };
+
+  const confirmDelete = () => {
+    if (deleteConfirmation.itemToDelete) {
+      handleDeleteCustomItem(
+        deleteConfirmation.itemToDelete.sectionId,
+        deleteConfirmation.itemToDelete.id
+      );
+    } else if (deleteConfirmation.sectionToDelete) {
+      setCustomSections((prevSections) =>
+        deleteCustomSection(
+          prevSections,
+          deleteConfirmation.sectionToDelete!.id
+        )
+      );
+    }
+    setDeleteConfirmation({
+      isOpen: false,
+      itemToDelete: null,
+      sectionToDelete: null,
+    });
+  };
+
+  const renderPreview = useMemo(() => {
     if (!items.preview) {
       console.error("Preview items are undefined");
       return null;
@@ -831,7 +890,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           );
         })}
 
-        {/* Render custom sections */}
         {customSections.map((section) => (
           <div
             key={section.id}
@@ -892,7 +950,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           </div>
         ))}
 
-        {/* Add Custom Section button */}
         <Button
           onClick={() => setIsAddingSectionDialogOpen(true)}
           className="mt-4"
@@ -914,45 +971,23 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         />
       </div>
     );
-  };
+  }, [
+    items.preview,
+    customSections,
+    editedItems,
+    renderItemContent,
+    handleDeleteCustomSection,
+    handleAddCustomItem,
+    handleEditCustomItem,
+    deleteConfirmation,
+    confirmDelete,
+  ]);
 
   const handleDeleteCustomItem = (sectionId: string, itemId: string) => {
     setCustomSections((prevSections) =>
       deleteCustomItem(prevSections, sectionId, itemId)
     );
     setLastModifiedItemId(itemId);
-  };
-
-  const handleDeleteCustomSection = (sectionId: string) => {
-    const sectionToDelete = customSections.find(
-      (section) => section.id === sectionId
-    );
-    setDeleteConfirmation({
-      isOpen: true,
-      itemToDelete: null,
-      sectionToDelete: sectionToDelete || null,
-    });
-  };
-
-  const confirmDelete = () => {
-    if (deleteConfirmation.itemToDelete) {
-      handleDeleteCustomItem(
-        deleteConfirmation.itemToDelete.sectionId,
-        deleteConfirmation.itemToDelete.id
-      );
-    } else if (deleteConfirmation.sectionToDelete) {
-      setCustomSections((prevSections) =>
-        deleteCustomSection(
-          prevSections,
-          deleteConfirmation.sectionToDelete!.id
-        )
-      );
-    }
-    setDeleteConfirmation({
-      isOpen: false,
-      itemToDelete: null,
-      sectionToDelete: null,
-    });
   };
 
   const handleCreateResume = () => {
@@ -1022,7 +1057,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       };
     });
 
-    // Add custom sections to the resumeData
     customSections.forEach((section) => {
       resumeData.push({
         type: "custom",
@@ -1118,7 +1152,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       onDragEnd={handleDragEnd}
     >
       <div className="flex gap-6 h-[calc(100vh-12rem)] overflow-hidden">
-        {renderAvailableItems()}
+        {renderAvailableItems}
         <div className="w-2/3 flex flex-col">
           <h2 className="text-md font-semibold text-gray-800 mb-4">
             Resume Preview
@@ -1131,7 +1165,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
                 ...customSections.flatMap((section) => section.items),
               ]}
             >
-              {renderPreview()}
+              {renderPreview}
             </Container>
           </div>
           <div className="flex justify-end mt-4 gap-4">
