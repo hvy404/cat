@@ -38,6 +38,13 @@ import { addResumeEntryAction } from "./add-resume-entry";
 import createId from "@/lib/global/cuid-generate";
 import { base64ToBlob } from "@/app/(auth)/dashboard/views/candidate/resume-copilot/convert-to-file";
 import { toast } from "sonner";
+import {
+  addCustomSection,
+  addCustomItem,
+  editCustomItem,
+  deleteCustomItem,
+  deleteCustomSection,
+} from './custom-section-utils';
 
 // Add new interfaces for custom sections and items
 interface CustomSection {
@@ -134,8 +141,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     itemToDelete: null,
     sectionToDelete: null,
   });
-
-  const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const processingMap = useRef(
     new Map<
@@ -344,6 +349,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   ];
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout | null = null;
+
     if (onSelectedItemsChange) {
       onSelectedItemsChange(items.preview);
     }
@@ -358,11 +365,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         excludedPersonalItems.includes(lastModifiedItem.content.key);
 
       if (!isExcludedPersonalItem) {
-        if (processingTimeoutRef.current) {
-          clearTimeout(processingTimeoutRef.current);
-        }
-
-        processingTimeoutRef.current = setTimeout(() => {
+        timeoutId = setTimeout(() => {
           setProcessingItems((prevProcessing) =>
             new Set(prevProcessing).add(lastModifiedItemId)
           );
@@ -374,17 +377,15 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
 
     // Cleanup function
     return () => {
-      if (processingTimeoutRef.current) {
-        clearTimeout(processingTimeoutRef.current);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
       }
     };
   }, [
     items.preview,
     onSelectedItemsChange,
     history,
-    talentProfile,
     lastModifiedItemId,
-    editedItems,
     excludedPersonalItems,
   ]);
 
