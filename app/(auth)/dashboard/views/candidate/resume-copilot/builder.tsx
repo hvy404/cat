@@ -21,7 +21,7 @@ import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import Container from "./container";
 import SortableItem from "./sortable";
 import { Item, ItemType, CustomItem, ResumeBuilderProps } from "./types";
-import { buildAndLogPrompt } from "./prompt-builder";
+import { buildEditReview } from "./prompt-builder";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2, Save, Download } from "lucide-react";
@@ -291,7 +291,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         throw new Error("Selected role is not defined");
       }
 
-      const result = await buildAndLogPrompt(
+      const result = await buildEditReview(
         items,
         talentProfile,
         selectedRole,
@@ -375,7 +375,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           setProcessingItems((prevProcessing) =>
             new Set(prevProcessing).add(lastModifiedItemId)
           );
-        }, 3000);
+        }, 1500);
       }
     }
 

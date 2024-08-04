@@ -19,11 +19,6 @@ interface RenderItemContentProps {
         rationale: string;
         implementation: string;
       };
-      feedback: {
-        strengths: string[];
-        areasForImprovement: string[];
-        competitiveEdge: string;
-      };
       nextSteps: {
         priority: "High" | "Medium" | "Low";
         focus: string;
