@@ -511,6 +511,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         newIndex = isBelowLastItem ? overIndex + 1 : overIndex;
       }
 
+      
       const newItems = {
         ...prev,
         [activeContainer]: [
@@ -531,7 +532,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     const { active, over } = event;
     const id = active.id as string;
     const overId = over?.id as string;
-
+  
     if (id === "custom-card" && overId) {
       const targetSection = customSections.find((section) =>
         section.items.some((item) => item.id === overId)
@@ -550,25 +551,20 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       }
       return;
     }
-
+  
     const sourceSection = customSections.find((section) =>
       section.items.some((item) => item.id === id)
     );
     const targetSection = customSections.find((section) =>
       section.items.some((item) => item.id === overId)
     );
-
+  
     if (sourceSection && targetSection) {
       setCustomSections((prevSections) =>
         prevSections.map((section) => {
-          if (
-            section.id === sourceSection.id &&
-            section.id === targetSection.id
-          ) {
+          if (section.id === sourceSection.id && section.id === targetSection.id) {
             const oldIndex = section.items.findIndex((item) => item.id === id);
-            const newIndex = section.items.findIndex(
-              (item) => item.id === overId
-            );
+            const newIndex = section.items.findIndex((item) => item.id === overId);
             const newItems = arrayMove(section.items, oldIndex, newIndex);
             return { ...section, items: newItems };
           } else if (section.id === sourceSection.id) {
@@ -577,12 +573,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
               items: section.items.filter((item) => item.id !== id),
             };
           } else if (section.id === targetSection.id) {
-            const itemToMove = sourceSection.items.find(
-              (item) => item.id === id
-            )!;
-            const overIndex = section.items.findIndex(
-              (item) => item.id === overId
-            );
+            const itemToMove = sourceSection.items.find((item) => item.id === id)!;
+            const overIndex = section.items.findIndex((item) => item.id === overId);
             const newItems = [...section.items];
             newItems.splice(overIndex, 0, itemToMove);
             return { ...section, items: newItems };
@@ -590,17 +582,16 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           return section;
         })
       );
-      setLastModifiedItemId(id);
       return;
     }
-
+  
     const activeContainer = findContainer(id);
     const overContainer = findContainer(overId);
-
+  
     setItems((prevItems) => {
       const activeItems = prevItems[activeContainer as keyof typeof prevItems];
       const overItems = prevItems[overContainer as keyof typeof prevItems];
-
+  
       if (!activeItems || !overItems) {
         console.error("Invalid containers:", {
           activeContainer,
@@ -609,12 +600,12 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         });
         return prevItems;
       }
-
+  
       const activeIndex = activeItems.findIndex((item) => item.id === id);
       const overIndex = overItems.findIndex((item) => item.id === overId);
-
+  
       let newItems = { ...prevItems };
-
+  
       if (activeContainer !== overContainer) {
         newItems = {
           ...newItems,
@@ -637,7 +628,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           ),
         };
       }
-
+  
       if (
         ((activeItems[activeIndex].type === "experience" ||
           activeItems[activeIndex].type === "education") &&
@@ -654,66 +645,64 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         const otherItems = allItems.filter(
           (item) => item.type !== "experience" && item.type !== "education"
         );
-
-        const sortedExperienceAndEducationItems =
-          experienceAndEducationItems.sort((a, b) => {
-            if (
-              (a.type !== "experience" && a.type !== "education") ||
-              (b.type !== "experience" && b.type !== "education")
-            )
-              return 0;
-
-            const aEndDate = a.content.end_date.toLowerCase();
-            const bEndDate = b.content.end_date.toLowerCase();
-
-            if (aEndDate === "present" && bEndDate === "present") {
-              return b.content.start_date.localeCompare(a.content.start_date);
-            }
-
-            if (aEndDate === "present") return -1;
-            if (bEndDate === "present") return 1;
-
-            const endDateComparison = bEndDate.localeCompare(aEndDate);
-            if (endDateComparison !== 0) return endDateComparison;
-
+  
+        const sortedExperienceAndEducationItems = experienceAndEducationItems.sort((a, b) => {
+          if (
+            (a.type !== "experience" && a.type !== "education") ||
+            (b.type !== "experience" && b.type !== "education")
+          )
+            return 0;
+  
+          const aEndDate = a.content.end_date.toLowerCase();
+          const bEndDate = b.content.end_date.toLowerCase();
+  
+          if (aEndDate === "present" && bEndDate === "present") {
             return b.content.start_date.localeCompare(a.content.start_date);
-          });
-
+          }
+  
+          if (aEndDate === "present") return -1;
+          if (bEndDate === "present") return 1;
+  
+          const endDateComparison = bEndDate.localeCompare(aEndDate);
+          if (endDateComparison !== 0) return endDateComparison;
+  
+          return b.content.start_date.localeCompare(a.content.start_date);
+        });
+  
         const sortedExperienceItems = sortedExperienceAndEducationItems.filter(
           (item) => item.type === "experience"
         );
         const sortedEducationItems = sortedExperienceAndEducationItems.filter(
           (item) => item.type === "education"
         );
-
+  
         newItems["preview"] = [
           ...sortedExperienceItems,
           ...sortedEducationItems,
           ...otherItems,
         ];
       }
-
+  
       const movedItem = activeItems[activeIndex];
       const isExcludedPersonalItem =
         movedItem.type === "personal" &&
         excludedPersonalItems.includes(movedItem.content.key);
-
+  
       if (!isExcludedPersonalItem) {
-        setLastModifiedItemId(id);
-
-        if (dragStartContainer !== overContainer) {
+        // Only update lastModifiedItemId, add to processing queue, and show spinner
+        // if the item is moved from available to preview
+        if (dragStartContainer === "available" && overContainer === "preview") {
+          setLastModifiedItemId(id);
+  
           const newAction = {
-            action:
-              dragStartContainer === "available" && overContainer === "preview"
-                ? "add"
-                : "remove",
+            action: "add",
             itemId: id,
             itemType: movedItem.type,
             fromContainer: dragStartContainer,
             toContainer: overContainer,
             newIndex: overIndex,
           };
-
+  
           setActionHistory((prevHistory) => [
             ...prevHistory,
             {
@@ -723,23 +712,27 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
               toContainer: newAction.toContainer as string | null,
             },
           ]);
-
+  
           // Add the item to the processing queue
           setProcessingQueue((prevQueue) => [
             ...prevQueue,
             { itemId: id, cardContent: movedItem.content },
           ]);
+  
+          // Add the item to processingItems to show the spinner
+          setProcessingItems((prev) => new Set(prev).add(id));
         }
       }
-
+  
       return newItems;
     });
-
+  
     setDragOrigin(null);
     setActiveId(null);
     setDraggedItem(null);
-    setActiveId(null);
   };
+  
+
   /* Editor */
   const handleEdit = (item: Item) => {
     setEditingItem(item);
