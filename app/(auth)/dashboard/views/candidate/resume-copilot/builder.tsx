@@ -129,6 +129,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
 
   const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const processingMap = useRef(new Map<string, {
+    timer: NodeJS.Timeout | null,
+    processingTimer: NodeJS.Timeout | null
+  }>());
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -247,18 +252,55 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     }
   }, []);
 
-  const debouncedBuildAndLogPrompt = useDebounce(
-    (items, history, talentProfile, lastModifiedItemId) => {
-      setProcessingItems((prevProcessing) =>
-        new Set(prevProcessing).add(lastModifiedItemId)
-      );
+  const handleCardDrop = (itemId: string, cardContent: any) => {
+    // Clear any existing timers for this item
+    if (processingMap.current.has(itemId)) {
+      const existing = processingMap.current.get(itemId)!;
+      if (existing.timer) clearTimeout(existing.timer);
+      if (existing.processingTimer) clearTimeout(existing.processingTimer);
+    }
 
+    // Set processing state immediately
+    setProcessingItems((prev) => new Set(prev).add(itemId));
+
+    // Set up new timers
+    const newTimers = {
+      // Timer for debounced API call
+      timer: setTimeout(() => {
+        debouncedBuildAndLogPrompt(items, actionHistory, talentProfile, itemId, cardContent);
+        
+        // Clear processing state after API call
+        const processingTimer = setTimeout(() => {
+          setProcessingItems((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(itemId);
+            return newSet;
+          });
+          processingMap.current.delete(itemId);
+        }, 3000); // Adjust this time as needed
+
+        processingMap.current.set(itemId, { ...newTimers, processingTimer });
+      }, 3000), // 3 second debounce
+      processingTimer: null
+    };
+
+    processingMap.current.set(itemId, newTimers);
+  };
+
+  const debouncedBuildAndLogPrompt = useDebounce(
+    (items: Record<string, Item[]>, history: any[], talentProfile: any, itemId: string, cardContent: any) => {
       if (!selectedRole) {
         return;
       }
 
+      console.log("To be sent to buildAndLogPrompt:");
+      console.log("items:", items);
+      console.log("talentProfile:", talentProfile);
+      console.log("selectedRole:", selectedRole);
+      console.log("itemId:", itemId);
+      console.log("cardContent:", cardContent);
       // Build AI suggestions
-      return buildAndLogPrompt(items, talentProfile, selectedRole)
+      return buildAndLogPrompt(items, talentProfile, selectedRole, itemId, cardContent)
         .then((result) => {
           if ("error" in result) {
             console.error(result.error);
@@ -267,7 +309,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
 
           setAlerts((prevAlerts) => {
             const newAlert: Alert = {
-              id: lastModifiedItemId,
+              id: itemId,
               isMinimized: false,
               message: {
                 recommendation: result.recommendation,
@@ -282,13 +324,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             }));
 
             return [...updatedAlerts, newAlert];
-          });
-        })
-        .finally(() => {
-          setProcessingItems((prevProcessing) => {
-            const newProcessing = new Set(prevProcessing);
-            newProcessing.delete(lastModifiedItemId);
-            return newProcessing;
           });
         });
     },
@@ -498,7 +533,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     const { active, over } = event;
     const id = active.id as string;
     const overId = over?.id as string;
-
+  
     if (id === "custom-card" && overId) {
       const targetSection = customSections.find((section) =>
         section.items.some((item) => item.id === overId)
@@ -517,14 +552,14 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       }
       return;
     }
-
+  
     const sourceSection = customSections.find((section) =>
       section.items.some((item) => item.id === id)
     );
     const targetSection = customSections.find((section) =>
       section.items.some((item) => item.id === overId)
     );
-
+  
     if (sourceSection && targetSection) {
       setCustomSections((prevSections) =>
         prevSections.map((section) => {
@@ -560,14 +595,14 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       setLastModifiedItemId(id);
       return;
     }
-
+  
     const activeContainer = findContainer(id);
     const overContainer = findContainer(overId);
-
+  
     setItems((prevItems) => {
       const activeItems = prevItems[activeContainer as keyof typeof prevItems];
       const overItems = prevItems[overContainer as keyof typeof prevItems];
-
+  
       if (!activeItems || !overItems) {
         console.error("Invalid containers:", {
           activeContainer,
@@ -576,12 +611,12 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         });
         return prevItems;
       }
-
+  
       const activeIndex = activeItems.findIndex((item) => item.id === id);
       const overIndex = overItems.findIndex((item) => item.id === overId);
-
+  
       let newItems = { ...prevItems };
-
+  
       if (activeContainer !== overContainer) {
         newItems = {
           ...newItems,
@@ -604,7 +639,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           ),
         };
       }
-
+  
       if (
         ((activeItems[activeIndex].type === "experience" ||
           activeItems[activeIndex].type === "education") &&
@@ -621,7 +656,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         const otherItems = allItems.filter(
           (item) => item.type !== "experience" && item.type !== "education"
         );
-
+  
         const sortedExperienceAndEducationItems =
           experienceAndEducationItems.sort((a, b) => {
             if (
@@ -629,45 +664,45 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
               (b.type !== "experience" && b.type !== "education")
             )
               return 0;
-
+  
             const aEndDate = a.content.end_date.toLowerCase();
             const bEndDate = b.content.end_date.toLowerCase();
-
+  
             if (aEndDate === "present" && bEndDate === "present") {
               return b.content.start_date.localeCompare(a.content.start_date);
             }
-
+  
             if (aEndDate === "present") return -1;
             if (bEndDate === "present") return 1;
-
+  
             const endDateComparison = bEndDate.localeCompare(aEndDate);
             if (endDateComparison !== 0) return endDateComparison;
-
+  
             return b.content.start_date.localeCompare(a.content.start_date);
           });
-
+  
         const sortedExperienceItems = sortedExperienceAndEducationItems.filter(
           (item) => item.type === "experience"
         );
         const sortedEducationItems = sortedExperienceAndEducationItems.filter(
           (item) => item.type === "education"
         );
-
+  
         newItems["preview"] = [
           ...sortedExperienceItems,
           ...sortedEducationItems,
           ...otherItems,
         ];
       }
-
+  
       const movedItem = activeItems[activeIndex];
       const isExcludedPersonalItem =
         movedItem.type === "personal" &&
         excludedPersonalItems.includes(movedItem.content.key);
-
+  
       if (!isExcludedPersonalItem) {
         setLastModifiedItemId(id);
-
+  
         if (
           dragStartContainer !== overContainer ||
           (dragStartContainer !== "preview" && overContainer !== "preview")
@@ -683,7 +718,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             toContainer: overContainer,
             newIndex: overIndex,
           };
-
+  
           setActionHistory((prevHistory) => [
             ...prevHistory,
             {
@@ -693,12 +728,14 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
               toContainer: newAction.toContainer as string | null,
             },
           ]);
+  
+          handleCardDrop(id, movedItem.content);
         }
       }
-
+  
       return newItems;
     });
-
+  
     setDragOrigin(null);
     setActiveId(null);
   };

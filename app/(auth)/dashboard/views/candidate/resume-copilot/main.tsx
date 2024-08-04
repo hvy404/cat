@@ -60,7 +60,6 @@ export default function CandidateResumeCopilot() {
         setError(null);
         try {
           const profile = await getCompleteTalentProfile(candidateId);
-          console.log("Talent Profile:", profile);
           setTalentProfile(profile);
           setShowRoleSelection(true); // Show role selection after profile is loaded
         } catch (err) {
