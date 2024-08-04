@@ -21,7 +21,7 @@ import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import Container from "./container";
 import SortableItem from "./sortable";
 import { Item, ItemType, CustomItem, ResumeBuilderProps } from "./types";
-import { buildEditReview } from "./prompt-builder";
+import { buildEditReview } from "./prompt-builder"; // AI Call
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2, Save, Download } from "lucide-react";
@@ -51,6 +51,7 @@ import {
   deleteCustomItem,
   deleteCustomSection,
 } from "./custom-section-utils";
+import ProcessingIndicator from "./processing-indicator";
 
 // Add new interfaces for custom sections and items
 interface CustomSection {
@@ -97,6 +98,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   selectedRole,
   userId,
 }) => {
+  console.log("Cards", talentProfile);
+
   const [items, setItems] = useState<Record<string, Item[]>>({
     available: [],
     preview: selectedItems,
@@ -728,12 +731,19 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
               },
             ]);
 
-            setProcessingQueue((prevQueue) => [
-              ...prevQueue,
-              { itemId: id, cardContent: movedItem.content },
-            ]);
+            // Only add to processing queue and set as processing if it's not a personal item
+            if (
+              movedItem.type !== "personal" ||
+              (movedItem.type === "personal" &&
+                movedItem.content.key === "intro")
+            ) {
+              setProcessingQueue((prevQueue) => [
+                ...prevQueue,
+                { itemId: id, cardContent: movedItem.content },
+              ]);
 
-            setProcessingItems((prev) => new Set(prev).add(id));
+              setProcessingItems((prev) => new Set(prev).add(id));
+            }
           }
         }
 
@@ -783,6 +793,15 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
 
     setEditingItem(null);
     setLastModifiedItemId(editedItem.id);
+
+    // Add the edited item to the processing queue
+    setProcessingQueue((prevQueue) => [
+      ...prevQueue,
+      { itemId: editedItem.id, cardContent: editedItem.content },
+    ]);
+
+    // Set the item as processing
+    setProcessingItems((prev) => new Set(prev).add(editedItem.id));
   };
 
   const renderItemContent = createRenderItemContent(
@@ -790,7 +809,10 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     alerts,
     processingItems,
     handleEdit,
-    toggleAlertMinimize
+    toggleAlertMinimize,
+    (itemId) => (
+      <ProcessingIndicator message="Analyzing and optimizing..." />
+    )
   );
 
   const handleDeleteCustomSection = (sectionId: string) => {

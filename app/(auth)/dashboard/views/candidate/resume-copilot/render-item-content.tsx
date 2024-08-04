@@ -49,7 +49,8 @@ export const createRenderItemContent = (
   alerts: RenderItemContentProps["alerts"],
   processingItems: Set<string>,
   handleEdit: (item: Item) => void,
-  toggleAlertMinimize: (id: string) => void
+  toggleAlertMinimize: (id: string) => void,
+  renderProcessingIndicator: (itemId: string) => React.ReactNode
 ) => {
   const RenderItemContent = (item: Item | undefined) => {
     if (!item) {
@@ -221,7 +222,7 @@ export const createRenderItemContent = (
           <div className="mt-auto pt-2">
             {isProcessing ? (
               <div className="flex items-center justify-center h-8">
-                <Spinner />
+                {renderProcessingIndicator(editedItem.id)}
               </div>
             ) : itemAlert ? (
               <Alert
