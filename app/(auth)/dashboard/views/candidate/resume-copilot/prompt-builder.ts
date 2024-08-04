@@ -25,25 +25,28 @@ export const buildAndLogPrompt = async (
   role: string,
   itemId: string,
   cardContent: any
-): Promise<{
-  recommendation: {
-    action: "add" | "remove" | "modify" | "none";
-    targetItem: string;
-    rationale: string;
-    implementation: string;
-  };
-  feedback: {
-    strengths: string[];
-    areasForImprovement: string[];
-    competitiveEdge: string;
-  };
-  nextSteps: {
-    priority: "High" | "Medium" | "Low";
-    focus: string;
-    guidance: string;
-    progression: string;
-  };
-} | { error: string }> => {
+): Promise<
+  | {
+      recommendation: {
+        action: "add" | "remove" | "modify" | "none";
+        targetItem: string;
+        rationale: string;
+        implementation: string;
+      };
+      feedback: {
+        strengths: string[];
+        areasForImprovement: string[];
+        competitiveEdge: string;
+      };
+      nextSteps: {
+        priority: "High" | "Medium" | "Low";
+        focus: string;
+        guidance: string;
+        progression: string;
+      };
+    }
+  | { error: string }
+> => {
   const findTalentProfileData = (item: Item): any => {
     const [type, indexStr] = item.id.split("-");
     const index = parseInt(indexStr, 10);
@@ -119,7 +122,6 @@ Respond ONLY with valid JSON.
 
 Remember: Your goal is to help create a targeted, impactful resume for the ${role} position. Each recommendation should move the resume closer to this goal, considering both immediate improvements and long-term strategy.`;
 
-
   const userPrompt = `Current Resume Items:
 ${JSON.stringify(items.preview, null, 2)}
 
@@ -131,9 +133,9 @@ ${JSON.stringify(cardContent, null, 2)}
 
 Your response must be in valid JSON and follows the schema provided in the instructions above.`;
 
-console.log(userPrompt);
+  console.log("Received Card Content", cardContent);
 
-  const response = await togetherAi.chat.completions.create({
+  /*   const response = await togetherAi.chat.completions.create({
     model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
     // @ts-ignore
     response_format: { type: "json_object", schema: jsonSchema },
@@ -151,11 +153,42 @@ console.log(userPrompt);
     max_tokens: 2500,
   });
 
-  console.log(response.choices[0].message.content);
-
   if (response?.choices?.[0]?.message?.content) {
     const output = JSON.parse(response?.choices?.[0]?.message?.content);
     return output;
   }
-  return { error: "There was an error. Please try again." };
-}
+  return { error: "There was an error. Please try again." }; */
+
+  // Simulate a successful return with a 3-second delay
+  const delay = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
+  await delay(3000);
+  // Simulate a sucessful return
+  return {
+    recommendation: {
+      action: "modify",
+      targetItem: "Experience - Software Engineer at Acme Corp",
+      rationale:
+        "While this experience demonstrates relevant technical skills, focusing more on quantifiable achievements could strengthen the resume for the Software Engineer role.",
+      implementation:
+        "Consider expanding on any projects or initiatives led that delivered measurable business impact or improved processes.",
+    },
+    feedback: {
+      strengths: [
+        "Demonstrated history of technical roles",
+        "Strong programming skills",
+      ],
+      areasForImprovement: ["Could emphasize results and achievements more"],
+      competitiveEdge:
+        "Experience leading complex projects from ideation to deployment",
+    },
+    nextSteps: {
+      priority: "Medium",
+      focus: "Education section",
+      guidance:
+        "Review and see if any details can be updated or emphasized to further support qualifications for the role.",
+      progression:
+        "Longer term, consider adding a portfolio or projects section to provide more evidence of skills",
+    },
+  };
+};

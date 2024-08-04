@@ -16,7 +16,6 @@ import Container from "./container";
 import SortableItem from "./sortable";
 import { Item, ItemType, CustomItem, ResumeBuilderProps } from "./types";
 import { buildAndLogPrompt } from "./prompt-builder";
-import { useDebounce } from "./use-debounce";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2, Save, Download } from "lucide-react";
@@ -332,60 +331,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     setProcessingQueue((prev) => [...prev, { itemId, cardContent }]);
   };
 
-  const debouncedBuildAndLogPrompt = useDebounce(
-    (
-      items: Record<string, Item[]>,
-      history: any[],
-      talentProfile: any,
-      itemId: string,
-      cardContent: any
-    ) => {
-      if (!selectedRole) {
-        return;
-      }
-
-      return buildAndLogPrompt(
-        items,
-        talentProfile,
-        selectedRole,
-        itemId,
-        cardContent
-      ).then((result) => {
-        if ("error" in result) {
-          console.error(result.error);
-          return;
-        }
-
-        setAlerts((prevAlerts) => {
-          const newAlert: Alert = {
-            id: itemId,
-            isMinimized: false,
-            message: {
-              recommendation: result.recommendation,
-              feedback: result.feedback,
-              nextSteps: result.nextSteps,
-            },
-          };
-
-          const updatedAlerts = prevAlerts.map((alert) => ({
-            ...alert,
-            isMinimized: true,
-          }));
-
-          return [...updatedAlerts, newAlert];
-        });
-
-        setProcessingItems((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(itemId);
-          return newSet;
-        });
-        processingMap.current.delete(itemId);
-      });
-    },
-    3000
-  );
-
   const excludedPersonalItems = [
     "name",
     "email",
@@ -421,18 +366,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             new Set(prevProcessing).add(lastModifiedItemId)
           );
         }, 3000);
-
-        const updatedItems = {
-          ...items,
-          preview: items.preview.map((item) => editedItems[item.id] || item),
-        };
-
-        /*         debouncedBuildAndLogPrompt(
-          updatedItems,
-          history,
-          talentProfile,
-          lastModifiedItemId
-        ); */
       }
     }
 
@@ -444,7 +377,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     talentProfile,
     lastModifiedItemId,
     editedItems,
-    debouncedBuildAndLogPrompt,
     excludedPersonalItems,
   ]);
 
