@@ -66,6 +66,11 @@ interface AlertMessage {
   };
 }
 
+interface QueueItem {
+  itemId: string;
+  cardContent: any;
+}
+
 type Alert = {
   id: string;
   message: AlertMessage;
@@ -91,6 +96,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   const [dragStartContainer, setDragStartContainer] = useState<string | null>(
     null
   );
+  const [draggedItem, setDraggedItem] = useState<Item | null>(null);
   const [actionHistory, setActionHistory] = useState<
     Array<{
       action: "add" | "remove";
@@ -106,6 +112,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   const [lastModifiedItemId, setLastModifiedItemId] = useState<string | null>(
     null
   );
+  const [processingQueue, setProcessingQueue] = useState<QueueItem[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [processingItems, setProcessingItems] = useState<Set<string>>(
     new Set()
   );
@@ -129,10 +137,15 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
 
   const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const processingMap = useRef(new Map<string, {
-    timer: NodeJS.Timeout | null,
-    processingTimer: NodeJS.Timeout | null
-  }>());
+  const processingMap = useRef(
+    new Map<
+      string,
+      {
+        timer: NodeJS.Timeout | null;
+        processingTimer: NodeJS.Timeout | null;
+      }
+    >()
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -252,70 +265,126 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     }
   }, []);
 
-  const handleCardDrop = (itemId: string, cardContent: any) => {
-    if (processingMap.current.has(itemId)) {
-      const existing = processingMap.current.get(itemId)!;
-      if (existing.timer) clearTimeout(existing.timer);
-      if (existing.processingTimer) clearTimeout(existing.processingTimer);
+  const processNextInQueue = async () => {
+    if (processingQueue.length === 0 || isProcessing) {
+      return;
     }
-  
-    setProcessingItems((prev) => new Set(prev).add(itemId));
-  
-    const newTimers = {
-      timer: setTimeout(() => {
-        debouncedBuildAndLogPrompt(items, actionHistory, talentProfile, itemId, cardContent);
-      }, 3000),
-      processingTimer: null
-    };
-  
-    processingMap.current.set(itemId, newTimers);
+
+    setIsProcessing(true);
+    const { itemId, cardContent } = processingQueue[0];
+
+    try {
+      setProcessingItems((prev) => new Set(prev).add(itemId));
+
+      if (!selectedRole) {
+        throw new Error("Selected role is not defined");
+      }
+
+      const result = await buildAndLogPrompt(
+        items,
+        talentProfile,
+        selectedRole,
+        itemId,
+        cardContent
+      );
+
+      if ("error" in result) {
+        console.error(result.error);
+      } else {
+        setAlerts((prevAlerts) => {
+          const newAlert: Alert = {
+            id: itemId,
+            isMinimized: false,
+            message: {
+              recommendation: result.recommendation,
+              feedback: result.feedback,
+              nextSteps: result.nextSteps,
+            },
+          };
+
+          const updatedAlerts = prevAlerts.map((alert) => ({
+            ...alert,
+            isMinimized: true,
+          }));
+
+          return [...updatedAlerts, newAlert];
+        });
+      }
+    } catch (error) {
+      console.error("Error processing item:", error);
+    } finally {
+      setProcessingItems((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(itemId);
+        return newSet;
+      });
+
+      setProcessingQueue((prev) => prev.slice(1));
+      setIsProcessing(false);
+    }
   };
-  
-  
+
+  useEffect(() => {
+    processNextInQueue();
+  }, [processingQueue, isProcessing]);
+
+  const handleCardDrop = (itemId: string, cardContent: any) => {
+    setProcessingQueue((prev) => [...prev, { itemId, cardContent }]);
+  };
 
   const debouncedBuildAndLogPrompt = useDebounce(
-    (items: Record<string, Item[]>, history: any[], talentProfile: any, itemId: string, cardContent: any) => {
+    (
+      items: Record<string, Item[]>,
+      history: any[],
+      talentProfile: any,
+      itemId: string,
+      cardContent: any
+    ) => {
       if (!selectedRole) {
         return;
       }
-  
-      return buildAndLogPrompt(items, talentProfile, selectedRole, itemId, cardContent)
-        .then((result) => {
-          if ("error" in result) {
-            console.error(result.error);
-            return;
-          }
-  
-          setAlerts((prevAlerts) => {
-            const newAlert: Alert = {
-              id: itemId,
-              isMinimized: false,
-              message: {
-                recommendation: result.recommendation,
-                feedback: result.feedback,
-                nextSteps: result.nextSteps,
-              },
-            };
-  
-            const updatedAlerts = prevAlerts.map((alert) => ({
-              ...alert,
-              isMinimized: true,
-            }));
-  
-            return [...updatedAlerts, newAlert];
-          });
-  
-          setProcessingItems((prev) => {
-            const newSet = new Set(prev);
-            newSet.delete(itemId);
-            return newSet;
-          });
-          processingMap.current.delete(itemId);
+
+      return buildAndLogPrompt(
+        items,
+        talentProfile,
+        selectedRole,
+        itemId,
+        cardContent
+      ).then((result) => {
+        if ("error" in result) {
+          console.error(result.error);
+          return;
+        }
+
+        setAlerts((prevAlerts) => {
+          const newAlert: Alert = {
+            id: itemId,
+            isMinimized: false,
+            message: {
+              recommendation: result.recommendation,
+              feedback: result.feedback,
+              nextSteps: result.nextSteps,
+            },
+          };
+
+          const updatedAlerts = prevAlerts.map((alert) => ({
+            ...alert,
+            isMinimized: true,
+          }));
+
+          return [...updatedAlerts, newAlert];
         });
+
+        setProcessingItems((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(itemId);
+          return newSet;
+        });
+        processingMap.current.delete(itemId);
+      });
     },
     3000
   );
-  
 
   const excludedPersonalItems = [
     "name",
@@ -458,6 +527,16 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     const id = active.id as string;
     const startContainer = findContainer(id);
     setDragStartContainer(startContainer || null);
+
+    const item =
+      items[startContainer as keyof typeof items]?.find(
+        (item) => item.id === id
+      ) ||
+      customSections
+        .flatMap((section) => section.items)
+        .find((item) => item.id === id);
+    setDraggedItem(item || null);
+    setActiveId(id);
   };
 
   const handleDragOver = (event: DragOverEvent) => {
@@ -520,7 +599,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     const { active, over } = event;
     const id = active.id as string;
     const overId = over?.id as string;
-  
+
     if (id === "custom-card" && overId) {
       const targetSection = customSections.find((section) =>
         section.items.some((item) => item.id === overId)
@@ -539,14 +618,14 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       }
       return;
     }
-  
+
     const sourceSection = customSections.find((section) =>
       section.items.some((item) => item.id === id)
     );
     const targetSection = customSections.find((section) =>
       section.items.some((item) => item.id === overId)
     );
-  
+
     if (sourceSection && targetSection) {
       setCustomSections((prevSections) =>
         prevSections.map((section) => {
@@ -582,14 +661,14 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       setLastModifiedItemId(id);
       return;
     }
-  
+
     const activeContainer = findContainer(id);
     const overContainer = findContainer(overId);
-  
+
     setItems((prevItems) => {
       const activeItems = prevItems[activeContainer as keyof typeof prevItems];
       const overItems = prevItems[overContainer as keyof typeof prevItems];
-  
+
       if (!activeItems || !overItems) {
         console.error("Invalid containers:", {
           activeContainer,
@@ -598,12 +677,12 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         });
         return prevItems;
       }
-  
+
       const activeIndex = activeItems.findIndex((item) => item.id === id);
       const overIndex = overItems.findIndex((item) => item.id === overId);
-  
+
       let newItems = { ...prevItems };
-  
+
       if (activeContainer !== overContainer) {
         newItems = {
           ...newItems,
@@ -626,7 +705,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           ),
         };
       }
-  
+
       if (
         ((activeItems[activeIndex].type === "experience" ||
           activeItems[activeIndex].type === "education") &&
@@ -643,7 +722,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         const otherItems = allItems.filter(
           (item) => item.type !== "experience" && item.type !== "education"
         );
-  
+
         const sortedExperienceAndEducationItems =
           experienceAndEducationItems.sort((a, b) => {
             if (
@@ -651,45 +730,45 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
               (b.type !== "experience" && b.type !== "education")
             )
               return 0;
-  
+
             const aEndDate = a.content.end_date.toLowerCase();
             const bEndDate = b.content.end_date.toLowerCase();
-  
+
             if (aEndDate === "present" && bEndDate === "present") {
               return b.content.start_date.localeCompare(a.content.start_date);
             }
-  
+
             if (aEndDate === "present") return -1;
             if (bEndDate === "present") return 1;
-  
+
             const endDateComparison = bEndDate.localeCompare(aEndDate);
             if (endDateComparison !== 0) return endDateComparison;
-  
+
             return b.content.start_date.localeCompare(a.content.start_date);
           });
-  
+
         const sortedExperienceItems = sortedExperienceAndEducationItems.filter(
           (item) => item.type === "experience"
         );
         const sortedEducationItems = sortedExperienceAndEducationItems.filter(
           (item) => item.type === "education"
         );
-  
+
         newItems["preview"] = [
           ...sortedExperienceItems,
           ...sortedEducationItems,
           ...otherItems,
         ];
       }
-  
+
       const movedItem = activeItems[activeIndex];
       const isExcludedPersonalItem =
         movedItem.type === "personal" &&
         excludedPersonalItems.includes(movedItem.content.key);
-  
+
       if (!isExcludedPersonalItem) {
         setLastModifiedItemId(id);
-  
+
         if (
           dragStartContainer !== overContainer ||
           (dragStartContainer !== "preview" && overContainer !== "preview")
@@ -705,7 +784,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             toContainer: overContainer,
             newIndex: overIndex,
           };
-  
+
           setActionHistory((prevHistory) => [
             ...prevHistory,
             {
@@ -715,18 +794,23 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
               toContainer: newAction.toContainer as string | null,
             },
           ]);
-  
-          handleCardDrop(id, movedItem.content);
+
+          // Add the item to the processing queue
+          setProcessingQueue((prevQueue) => [
+            ...prevQueue,
+            { itemId: id, cardContent: movedItem.content },
+          ]);
         }
       }
-  
+
       return newItems;
     });
-  
+
     setDragOrigin(null);
     setActiveId(null);
+    setDraggedItem(null);
+    setActiveId(null);
   };
-
   /* Editor */
   const handleEdit = (item: Item) => {
     setEditingItem(item);
@@ -1160,7 +1244,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         </div>
       </div>
       <DragOverlay>
-        {activeId ? (
+        {activeId && draggedItem ? (
           <div className="bg-white shadow-lg rounded-lg p-4">
             {activeId === "custom-card" ? (
               <div className="bg-gray-100 p-4 rounded-lg">
@@ -1172,16 +1256,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
                 </p>
               </div>
             ) : (
-              (() => {
-                const container = findContainer(activeId);
-                const item = container
-                  ? items[container]?.find((item) => item.id === activeId) ||
-                    customSections
-                      .flatMap((section) => section.items)
-                      .find((item) => item.id === activeId)
-                  : undefined;
-                return renderItemContent(item);
-              })()
+              renderItemContent(draggedItem)
             )}
           </div>
         ) : null}
