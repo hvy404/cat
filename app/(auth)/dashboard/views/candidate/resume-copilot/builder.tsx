@@ -253,60 +253,39 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   }, []);
 
   const handleCardDrop = (itemId: string, cardContent: any) => {
-    // Clear any existing timers for this item
     if (processingMap.current.has(itemId)) {
       const existing = processingMap.current.get(itemId)!;
       if (existing.timer) clearTimeout(existing.timer);
       if (existing.processingTimer) clearTimeout(existing.processingTimer);
     }
-
-    // Set processing state immediately
+  
     setProcessingItems((prev) => new Set(prev).add(itemId));
-
-    // Set up new timers
+  
     const newTimers = {
-      // Timer for debounced API call
       timer: setTimeout(() => {
         debouncedBuildAndLogPrompt(items, actionHistory, talentProfile, itemId, cardContent);
-        
-        // Clear processing state after API call
-        const processingTimer = setTimeout(() => {
-          setProcessingItems((prev) => {
-            const newSet = new Set(prev);
-            newSet.delete(itemId);
-            return newSet;
-          });
-          processingMap.current.delete(itemId);
-        }, 3000); // Adjust this time as needed
-
-        processingMap.current.set(itemId, { ...newTimers, processingTimer });
-      }, 3000), // 3 second debounce
+      }, 3000),
       processingTimer: null
     };
-
+  
     processingMap.current.set(itemId, newTimers);
   };
+  
+  
 
   const debouncedBuildAndLogPrompt = useDebounce(
     (items: Record<string, Item[]>, history: any[], talentProfile: any, itemId: string, cardContent: any) => {
       if (!selectedRole) {
         return;
       }
-
-      console.log("To be sent to buildAndLogPrompt:");
-      console.log("items:", items);
-      console.log("talentProfile:", talentProfile);
-      console.log("selectedRole:", selectedRole);
-      console.log("itemId:", itemId);
-      console.log("cardContent:", cardContent);
-      // Build AI suggestions
+  
       return buildAndLogPrompt(items, talentProfile, selectedRole, itemId, cardContent)
         .then((result) => {
           if ("error" in result) {
             console.error(result.error);
             return;
           }
-
+  
           setAlerts((prevAlerts) => {
             const newAlert: Alert = {
               id: itemId,
@@ -317,18 +296,26 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
                 nextSteps: result.nextSteps,
               },
             };
-
+  
             const updatedAlerts = prevAlerts.map((alert) => ({
               ...alert,
               isMinimized: true,
             }));
-
+  
             return [...updatedAlerts, newAlert];
           });
+  
+          setProcessingItems((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(itemId);
+            return newSet;
+          });
+          processingMap.current.delete(itemId);
         });
     },
     3000
   );
+  
 
   const excludedPersonalItems = [
     "name",
