@@ -67,11 +67,6 @@ interface AlertMessage {
     rationale: string;
     implementation: string;
   };
-  feedback: {
-    strengths: string[];
-    areasForImprovement: string[];
-    competitiveEdge: string;
-  };
   nextSteps: {
     priority: "High" | "Medium" | "Low";
     focus: string;
@@ -98,11 +93,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   selectedRole,
   userId,
 }) => {
-  console.log("Cards", talentProfile);
-
   const [items, setItems] = useState<Record<string, Item[]>>({
     available: [],
-    preview: selectedItems,
+    chosen: selectedItems,
   });
   const [editedItems, setEditedItems] = useState<Record<string, Item>>({});
   const [editingItem, setEditingItem] = useState<Item | null>(null);
@@ -185,10 +178,10 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   );
 
   // Presets
-  const moveItemsToPreview = (itemKeys: string[]) => {
+  const moveItemsToChosen = (itemKeys: string[]) => {
     setItems((prevItems) => {
       const newAvailable = [...prevItems.available];
-      const newPreview = [...prevItems.preview];
+      const newChosen = [...prevItems.chosen];
 
       itemKeys.forEach((key) => {
         const index = newAvailable.findIndex(
@@ -196,16 +189,21 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         );
         if (index !== -1) {
           const [item] = newAvailable.splice(index, 1);
-          newPreview.push(item);
+          newChosen.push(item);
         }
       });
 
       return {
         available: newAvailable,
-        preview: newPreview,
+        chosen: newChosen,
       };
     });
   };
+
+  useEffect(() => {
+    console.log("Current alerts:", alerts);
+  }, [alerts]);
+  
 
   // useEffect to console actionHistory on change
   useEffect(() => {
@@ -267,15 +265,15 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         available: availableItems.filter(
           (item) => !selectedItems.some((selected) => selected.id === item.id)
         ),
-        preview: selectedItems,
+        chosen: selectedItems,
       }));
     }
   }, [talentProfile, selectedItems]);
 
-  // Autoload items to preview
+  // Autoload items to chosen
   useEffect(() => {
     if (talentProfile) {
-      moveItemsToPreview(["name", "email", "city", "state", "zipcode"]);
+      moveItemsToChosen(["name", "email", "city", "state", "zipcode"]);
     }
   }, []);
 
@@ -311,7 +309,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             isMinimized: false,
             message: {
               recommendation: result.recommendation,
-              feedback: result.feedback,
               nextSteps: result.nextSteps,
             },
           };
@@ -361,11 +358,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     let timeoutId: NodeJS.Timeout | null = null;
 
     if (onSelectedItemsChange) {
-      onSelectedItemsChange(items.preview);
+      onSelectedItemsChange(items.chosen);
     }
 
-    if (items.preview.length > 0 && history.length > 0 && lastModifiedItemId) {
-      const lastModifiedItem = items.preview.find(
+    if (items.chosen.length > 0 && history.length > 0 && lastModifiedItemId) {
+      const lastModifiedItem = items.chosen.find(
         (item) => item.id === lastModifiedItemId
       );
 
@@ -391,7 +388,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       }
     };
   }, [
-    items.preview,
+    items.chosen,
     onSelectedItemsChange,
     history,
     lastModifiedItemId,
@@ -409,7 +406,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   };
 
   const findContainer = (id: string) => {
-    if (id === 'preview') return 'preview';
+    if (id === "chosen") return "chosen";
     return Object.keys(items).find((key) =>
       items[key].some((item) => item.id === id)
     );
@@ -476,31 +473,28 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       const { active, over } = event;
       const id = active.id as string;
       const overId = over?.id as string;
-  
+
       const activeContainer = findContainer(id);
       let overContainer = findContainer(overId);
-  
-      // If overContainer is null, it means we're likely hovering over an empty Preview
+
+      // If overContainer is null, it means we're likely hovering over an empty Chosen
       if (!overContainer) {
-        // Check if we're actually over the Preview container
-        if (over && over.id === 'preview') {
-          overContainer = 'preview';
+        // Check if we're actually over the Chosen container
+        if (over && over.id === "chosen") {
+          overContainer = "chosen";
         } else {
           return; // Not over a valid container, do nothing
         }
       }
-  
-      if (
-        !activeContainer ||
-        activeContainer === overContainer
-      ) {
+
+      if (!activeContainer || activeContainer === overContainer) {
         return;
       }
-  
+
       setItems((prev) => {
         const activeItems = prev[activeContainer];
         const overItems = prev[overContainer];
-  
+
         if (!activeItems || !overItems) {
           console.error("Invalid containers:", {
             activeContainer,
@@ -509,10 +503,10 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           });
           return prev;
         }
-  
+
         const activeIndex = activeItems.findIndex((item) => item.id === id);
         const overIndex = overItems.findIndex((item) => item.id === overId);
-  
+
         let newIndex: number;
         if (overId in prev) {
           newIndex = overItems.length + 1;
@@ -520,7 +514,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           const isBelowLastItem = over && overIndex === overItems.length - 1;
           newIndex = isBelowLastItem ? overIndex + 1 : overIndex;
         }
-  
+
         const newItems = {
           ...prev,
           [activeContainer]: [
@@ -532,7 +526,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             ...prev[overContainer].slice(newIndex, prev[overContainer].length),
           ],
         };
-  
+
         return newItems;
       });
     },
@@ -656,13 +650,13 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         if (
           ((activeItems[activeIndex].type === "experience" ||
             activeItems[activeIndex].type === "education") &&
-            overContainer === "preview") ||
-          (overContainer === "preview" &&
-            newItems["preview"].some(
+            overContainer === "chosen") ||
+          (overContainer === "chosen" &&
+            newItems["chosen"].some(
               (item) => item.type === "experience" || item.type === "education"
             ))
         ) {
-          const allItems = newItems["preview"];
+          const allItems = newItems["chosen"];
           const experienceAndEducationItems = allItems.filter(
             (item) => item.type === "experience" || item.type === "education"
           );
@@ -702,7 +696,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             (item) => item.type === "education"
           );
 
-          newItems["preview"] = [
+          newItems["chosen"] = [
             ...sortedExperienceItems,
             ...sortedEducationItems,
             ...otherItems,
@@ -717,7 +711,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         if (!isExcludedPersonalItem) {
           if (
             dragStartContainer === "available" &&
-            overContainer === "preview"
+            overContainer === "chosen"
           ) {
             setLastModifiedItemId(id);
 
@@ -786,7 +780,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     if (editedItem.type === "personal") {
       setItems((prevItems) => ({
         ...prevItems,
-        preview: prevItems.preview.map((item) =>
+        chosen: prevItems.chosen.map((item) =>
           item.id === editedItem.id
             ? {
                 ...item,
@@ -819,9 +813,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     processingItems,
     handleEdit,
     toggleAlertMinimize,
-    (itemId) => (
-      <ProcessingIndicator message="Analyzing and optimizing..." />
-    )
+    (itemId) => <ProcessingIndicator message="Analyzing and optimizing..." />
   );
 
   const handleDeleteCustomSection = (sectionId: string) => {
@@ -856,13 +848,13 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     });
   };
 
-  const renderPreview = useMemo(() => {
-    if (!items.preview) {
-      console.error("Preview items are undefined");
+  const renderChosen = useMemo(() => {
+    if (!items.chosen) {
+      console.error("Chosen items are undefined");
       return null;
     }
 
-    const groupedItems = items.preview.reduce((acc, item) => {
+    const groupedItems = items.chosen.reduce((acc, item) => {
       if (item.type === "personal" && item.content.key === "intro") {
         if (!acc["introduction"]) acc["introduction"] = [];
         acc["introduction"].push(item);
@@ -1003,7 +995,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       </div>
     );
   }, [
-    items.preview,
+    items.chosen,
     customSections,
     editedItems,
     renderItemContent,
@@ -1028,7 +1020,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   const handleSelectTemplate = async (template: string) => {
     setIsTemplateDialogOpen(false);
     try {
-      const resumeData: ResumeData = items.preview.map((item) => ({
+      const resumeData: ResumeData = items.chosen.map((item) => ({
         type: editedItems[item.id]?.type || item.type,
         content: editedItems[item.id]?.content || item.content,
       }));
@@ -1078,9 +1070,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     }
   };
 
-  // Function to prepare resume data for the template preview
+  // Function to prepare resume data for the template chosen
   const prepareResumeData = (): ResumeData => {
-    const resumeData: ResumeData = items.preview.map((item): ResumeItem => {
+    const resumeData: ResumeData = items.chosen.map((item): ResumeItem => {
       const editedItem = editedItems[item.id] || item;
       return {
         type: editedItem.type,
@@ -1186,17 +1178,17 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         {renderAvailableItems}
         <div className="w-2/3 flex flex-col">
           <h2 className="text-md font-semibold text-gray-800 mb-4">
-            Resume Preview
+            Resume Chosen
           </h2>
           <div className="flex-1 overflow-y-auto pr-4">
             <Container
-              id="preview"
+              id="chosen"
               items={[
-                ...items.preview,
+                ...items.chosen,
                 ...customSections.flatMap((section) => section.items),
               ]}
             >
-              {renderPreview}
+              {renderChosen}
             </Container>
           </div>
           <div className="flex justify-end mt-4 gap-4">

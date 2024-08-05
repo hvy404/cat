@@ -26,7 +26,7 @@ const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({
     .filter(([name]) => name !== "minimalistTimeline")
     .map(([name, layout]) => ({
       name: name.charAt(0).toUpperCase() + name.slice(1),
-      component: <TemplatePreview layout={layout} resumeData={resumeData} />,
+      component: <TemplateChosen layout={layout} resumeData={resumeData} />,
     }));
 
   return (
@@ -59,7 +59,7 @@ const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({
   );
 };
 
-const TemplatePreview: React.FC<{
+const TemplateChosen: React.FC<{
     layout: LayoutConfig;
     resumeData: ResumeData;
   }> = ({ layout, resumeData }) => {

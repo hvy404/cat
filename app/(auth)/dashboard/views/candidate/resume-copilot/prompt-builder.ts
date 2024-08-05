@@ -118,7 +118,7 @@ Output Format:
 Remember: Your goal is to help create a targeted, impactful resume for the ${role} position. Each recommendation should move the resume closer to this goal, considering both immediate improvements and long-term strategy.`;
 
   const userPrompt = `Current Resume Items:
-${JSON.stringify(items.preview, null, 2)}
+${JSON.stringify(items.chosen, null, 2)}
 
 Available Resume Items:
 ${JSON.stringify(relevantTalentProfileData, null, 2)}
