@@ -409,10 +409,10 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   };
 
   const findContainer = (id: string) => {
-    const container = Object.keys(items).find((key) =>
+    if (id === 'preview') return 'preview';
+    return Object.keys(items).find((key) =>
       items[key].some((item) => item.id === id)
     );
-    return container;
   };
 
   // Add new functions for custom sections and items
@@ -476,22 +476,31 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       const { active, over } = event;
       const id = active.id as string;
       const overId = over?.id as string;
-
+  
       const activeContainer = findContainer(id);
-      const overContainer = findContainer(overId);
-
+      let overContainer = findContainer(overId);
+  
+      // If overContainer is null, it means we're likely hovering over an empty Preview
+      if (!overContainer) {
+        // Check if we're actually over the Preview container
+        if (over && over.id === 'preview') {
+          overContainer = 'preview';
+        } else {
+          return; // Not over a valid container, do nothing
+        }
+      }
+  
       if (
         !activeContainer ||
-        !overContainer ||
         activeContainer === overContainer
       ) {
         return;
       }
-
+  
       setItems((prev) => {
         const activeItems = prev[activeContainer];
         const overItems = prev[overContainer];
-
+  
         if (!activeItems || !overItems) {
           console.error("Invalid containers:", {
             activeContainer,
@@ -500,10 +509,10 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           });
           return prev;
         }
-
+  
         const activeIndex = activeItems.findIndex((item) => item.id === id);
         const overIndex = overItems.findIndex((item) => item.id === overId);
-
+  
         let newIndex: number;
         if (overId in prev) {
           newIndex = overItems.length + 1;
@@ -511,7 +520,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           const isBelowLastItem = over && overIndex === overItems.length - 1;
           newIndex = isBelowLastItem ? overIndex + 1 : overIndex;
         }
-
+  
         const newItems = {
           ...prev,
           [activeContainer]: [
@@ -523,7 +532,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             ...prev[overContainer].slice(newIndex, prev[overContainer].length),
           ],
         };
-
+  
         return newItems;
       });
     },
