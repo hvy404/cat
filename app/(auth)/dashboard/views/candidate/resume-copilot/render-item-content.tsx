@@ -135,41 +135,45 @@ export const createRenderItemContent = (
               </p>
             </div>
           );
-        case "certifications":
-          return (
-            <div className="space-y-1 select-none">
-              <h4 className="text-sm font-semibold text-gray-800">
-                {editedItem.content.name}
-              </h4>
-              <p className="text-sm text-gray-700">
-                {editedItem.content.issuing_organization}
-              </p>
-              <p className="text-sm text-gray-600">
-                {`Obtained: ${formatDate(editedItem.content.date_obtained)}`}
-              </p>
-              {editedItem.content.expiration_date && (
-                <p className="text-sm text-gray-600">
-                  {`Expires: ${formatDate(editedItem.content.expiration_date)}`}
-                </p>
-              )}
-              {editedItem.content.credential_id && (
-                <p className="text-sm text-gray-600">
-                  {`Credential ID: ${editedItem.content.credential_id}`}
-                </p>
-              )}
-              {editedItem.content.credential_url && (
-                <a
-                  href={editedItem.content.credential_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
-                >
-                  View Credential
-                  <ExternalLink size={14} className="ml-1" />
-                </a>
-              )}
-            </div>
-          );
+          case "certifications":
+            return (
+              <div className="space-y-1 select-none">
+                <h4 className="text-sm font-semibold text-gray-800">
+                  {editedItem.content.name}
+                </h4>
+                {editedItem.content.issuing_organization && (
+                  <p className="text-sm text-gray-700">
+                    {editedItem.content.issuing_organization}
+                  </p>
+                )}
+                {editedItem.content.date_obtained && (
+                  <p className="text-sm text-gray-600">
+                    {`Obtained: ${formatDate(editedItem.content.date_obtained)}`}
+                  </p>
+                )}
+                {editedItem.content.expiration_date && (
+                  <p className="text-sm text-gray-600">
+                    {`Expires: ${formatDate(editedItem.content.expiration_date)}`}
+                  </p>
+                )}
+                {editedItem.content.credential_id && (
+                  <p className="text-sm text-gray-600">
+                    {`Credential ID: ${editedItem.content.credential_id}`}
+                  </p>
+                )}
+                {editedItem.content.credential_url && (
+                  <a
+                    href={editedItem.content.credential_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                  >
+                    View Credential
+                    <ExternalLink size={14} className="ml-1" />
+                  </a>
+                )}
+              </div>
+            );
         case "projects":
           return (
             <div className="space-y-1 select-none">
