@@ -8,9 +8,13 @@ import React, {
 } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Edit2, Send, X } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+  } from "@/components/ui/tooltip";
 
 interface Message {
   text: string;
@@ -106,16 +110,25 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
               {message.text}
             </p>
             {!isBot && (
-              <div className="w-full flex justify-end mt-2">
-                <Button
-                  onClick={onEditStart}
-                  variant="ghost"
-                  size="sm"
-                  className="p-1"
-                >
-                  <Edit2 size={16} />
-                </Button>
-              </div>
+             <div className="w-full flex justify-end mt-2">
+             <TooltipProvider>
+               <Tooltip>
+                 <TooltipTrigger asChild>
+                   <Button
+                     onClick={onEditStart}
+                     variant="ghost"
+                     size="sm"
+                     className="p-1"
+                   >
+                     <Edit2 size={16} />
+                   </Button>
+                 </TooltipTrigger>
+                 <TooltipContent className="text-white text-xs bg-black border-none">
+                   <p>Edit message</p>
+                 </TooltipContent>
+               </Tooltip>
+             </TooltipProvider>
+           </div>
             )}
           </div>
         )}
@@ -259,7 +272,7 @@ const CustomChatbot: React.FC = () => {
           >
             <div className="p-4 h-full flex flex-col">
               <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-400">
-                <h2 className="text-xl font-bold text-white">AI Assistant</h2>
+                <h2 className="text-xl font-bold text-white">Talent</h2>
                 <Button
                   onClick={() => setIsOpen(false)}
                   variant="ghost"
