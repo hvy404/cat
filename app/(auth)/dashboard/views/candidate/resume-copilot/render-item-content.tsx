@@ -5,7 +5,6 @@ import { personalLabelMap } from "./personal-labels";
 import { Button } from "@/components/ui/button";
 import { Edit2, ExternalLink } from "lucide-react";
 import Alert from "./alert";
-import Spinner from "./spinner";
 
 interface RenderItemContentProps {
   item: Item | undefined;

@@ -52,6 +52,7 @@ import {
   deleteCustomSection,
 } from "./custom-section-utils";
 import ProcessingIndicator from "./processing-indicator";
+import CopilotTalk from "./copilot-talk";
 
 // Add new interfaces for custom sections and items
 interface CustomSection {
@@ -200,10 +201,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     });
   };
 
+  const memoizedAlerts = useMemo(() => alerts, [alerts]);
+
   useEffect(() => {
     console.log("Current alerts:", alerts);
   }, [alerts]);
-  
 
   // useEffect to console actionHistory on change
   useEffect(() => {
@@ -395,7 +397,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     excludedPersonalItems,
   ]);
 
-  const toggleAlertMinimize = (id: string) => {
+  const toggleAlertMinimize = useCallback((id: string) => {
     setAlerts((prevAlerts) =>
       prevAlerts.map((alert) =>
         alert.id === id
@@ -403,7 +405,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           : { ...alert, isMinimized: true }
       )
     );
-  };
+  }, []);
 
   const findContainer = (id: string) => {
     if (id === "chosen") return "chosen";
@@ -807,13 +809,25 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     setProcessingItems((prev) => new Set(prev).add(editedItem.id));
   };
 
-  const renderItemContent = createRenderItemContent(
-    editedItems,
-    alerts,
-    processingItems,
-    handleEdit,
-    toggleAlertMinimize,
-    (itemId) => <ProcessingIndicator message="Analyzing and optimizing..." />
+  const renderItemContent = useMemo(
+    () =>
+      createRenderItemContent(
+        editedItems,
+        memoizedAlerts,
+        processingItems,
+        handleEdit,
+        toggleAlertMinimize,
+        (itemId) => (
+          <ProcessingIndicator message="Analyzing and optimizing..." />
+        )
+      ),
+    [
+      editedItems,
+      memoizedAlerts,
+      processingItems,
+      handleEdit,
+      toggleAlertMinimize,
+    ]
   );
 
   const handleDeleteCustomSection = (sectionId: string) => {
@@ -1177,9 +1191,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       <div className="flex gap-6 h-[calc(100vh-12rem)] overflow-hidden">
         {renderAvailableItems}
         <div className="w-2/3 flex flex-col">
-          <h2 className="text-md font-semibold text-gray-800 mb-4">
-            Resume Chosen
-          </h2>
+          <h2 className="text-md font-semibold text-gray-800 mb-4">Resume</h2>
           <div className="flex-1 overflow-y-auto pr-4">
             <Container
               id="chosen"
@@ -1206,6 +1218,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             </div>
           </div>
         </div>
+        <CopilotTalk />
       </div>
       <DragOverlay>
         {activeId && draggedItem ? (

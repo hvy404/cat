@@ -47,11 +47,11 @@ const CustomAlert: React.FC<AlertProps> = ({
 
     switch (action) {
       case "add":
-        return <Plus {...iconProps} className={`${iconProps.className} text-emerald-500`} />;
+        return <Plus {...iconProps} className={`${iconProps.className} text-emerald-400`} />;
       case "remove":
-        return <Minus {...iconProps} className={`${iconProps.className} text-red-500`} />;
+        return <Minus {...iconProps} className={`${iconProps.className} text-red-400`} />;
       case "modify":
-        return <Edit {...iconProps} className={`${iconProps.className} text-slate-400`} />;
+        return <Edit {...iconProps} className={`${iconProps.className} text-amber-400`} />;
       default:
         return null;
     }
@@ -60,13 +60,13 @@ const CustomAlert: React.FC<AlertProps> = ({
   const getPriorityColor = (priority: "High" | "Medium" | "Low") => {
     switch (priority) {
       case "High":
-        return "bg-red-100 text-red-800";
+        return "bg-red-500 bg-opacity-15 text-red-100 border border-red-400 border-opacity-30";
       case "Medium":
-        return "bg-orange-100 text-orange-800";
+        return "bg-amber-500 bg-opacity-15 text-amber-100 border border-amber-400 border-opacity-30";
       case "Low":
-        return "bg-blue-100 text-blue-800";
+        return "bg-emerald-500 bg-opacity-15 text-emerald-100 border border-emerald-400 border-opacity-30";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-blue-500 bg-opacity-15 text-blue-100 border border-blue-400 border-opacity-30";
     }
   };
 
@@ -83,7 +83,7 @@ const CustomAlert: React.FC<AlertProps> = ({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="bg-white text-slate-700 text-sm font-medium py-2 px-4 rounded-md cursor-pointer shadow-sm hover:bg-slate-50 transition-all duration-300 flex items-center space-x-2 border border-slate-200"
+            className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-sm font-medium py-2 px-4 rounded-md cursor-pointer shadow-md hover:from-blue-600 hover:to-blue-700 transition-all duration-300 flex items-center space-x-2"
             onClick={onToggleMinimize}
           >
             <span>View AI Recommendation</span>
@@ -97,13 +97,13 @@ const CustomAlert: React.FC<AlertProps> = ({
             exit={{ opacity: 0, y: -20 }}
             className="mb-6"
           >
-            <Alert className="bg-white rounded-lg p-5 border-none">
-              <div className="flex justify-between items-center mb-4">
-                <AlertTitle className="text-slate-800 font-bold text-lg">
+            <Alert className="bg-gradient-to-br from-gray-900 to-blue-900 rounded-lg p-6 border border-blue-500 border-opacity-30 shadow-2xl">
+              <div className="flex justify-between items-center mb-6">
+                <AlertTitle className="text-blue-100 font-bold text-xl">
                   AI Recommendation
                 </AlertTitle>
                 <button
-                  className="text-slate-500 text-sm font-medium hover:text-slate-700 transition-colors duration-200 flex items-center space-x-1"
+                  className="text-blue-300 text-sm font-medium hover:text-blue-100 transition-colors duration-200 flex items-center space-x-1"
                   onClick={onToggleMinimize}
                 >
                   <span>Minimize</span>
@@ -111,15 +111,15 @@ const CustomAlert: React.FC<AlertProps> = ({
                 </button>
               </div>
               <AlertDescription>
-                <div className="space-y-5">
-                  <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                <div className="space-y-6">
+                  <div className="bg-blue-900 bg-opacity-30 rounded-lg p-5 border border-blue-700 border-opacity-50 shadow-inner">
                     <div className="flex items-start">
                       <div className="mt-1 mr-4">
                         {getActionIcon(message.recommendation.action)}
                       </div>
                       <div>
-                        <h4 className="text-slate-700 font-semibold mb-2">Recommendation</h4>
-                        <p className="text-slate-600 text-sm mb-2">
+                        <h4 className="text-blue-100 font-semibold mb-3">Recommendation</h4>
+                        <p className="text-blue-200 text-sm mb-3 leading-relaxed">
                           {showFullRecommendation
                             ? message.recommendation.rationale
                             : truncate(message.recommendation.rationale, 150)}
@@ -127,7 +127,7 @@ const CustomAlert: React.FC<AlertProps> = ({
                         {message.recommendation.rationale.length > 150 && (
                           <button
                             onClick={() => setShowFullRecommendation(!showFullRecommendation)}
-                            className="text-blue-600 text-sm font-medium flex items-center hover:underline mb-3"
+                            className="text-blue-300 text-sm font-medium flex items-center hover:text-blue-100 transition-colors duration-200 mb-3"
                           >
                             {showFullRecommendation ? "Show Less" : "Show More"}
                             <ChevronRight size={16} className={`ml-1 transform transition-transform ${showFullRecommendation ? 'rotate-90' : ''}`} />
@@ -136,7 +136,7 @@ const CustomAlert: React.FC<AlertProps> = ({
                         <div>
                           <button
                             onClick={() => setShowImplementation(!showImplementation)}
-                            className="text-blue-600 text-sm font-medium flex items-center hover:underline"
+                            className="text-blue-300 text-sm font-medium flex items-center hover:text-blue-100 transition-colors duration-200"
                           >
                             {showImplementation ? "Hide" : "Show"} Implementation
                             <ChevronRight size={16} className={`ml-1 transform transition-transform ${showImplementation ? 'rotate-90' : ''}`} />
@@ -147,7 +147,7 @@ const CustomAlert: React.FC<AlertProps> = ({
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: "auto" }}
                                 exit={{ opacity: 0, height: 0 }}
-                                className="text-slate-600 text-sm mt-2"
+                                className="text-blue-200 text-sm mt-3 leading-relaxed"
                               >
                                 {message.recommendation.implementation}
                               </motion.p>
@@ -158,14 +158,14 @@ const CustomAlert: React.FC<AlertProps> = ({
                     </div>
                   </div>
 
-                  <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                  <div className="bg-blue-900 bg-opacity-30 rounded-lg p-5 border border-blue-700 border-opacity-50 shadow-inner">
                     <div className="flex items-start">
                       <ArrowRight
                         size={20}
-                        className="flex-shrink-0 text-slate-400 mt-1 mr-4"
+                        className="flex-shrink-0 text-blue-400 mt-1 mr-4"
                       />
                       <div>
-                        <h4 className="text-slate-700 font-semibold mb-2 flex items-center">
+                        <h4 className="text-blue-100 font-semibold mb-3 flex items-center">
                           Next Steps
                           <span
                             className={`ml-2 text-xs font-medium px-2 py-1 rounded-full ${getPriorityColor(
@@ -175,16 +175,16 @@ const CustomAlert: React.FC<AlertProps> = ({
                             {message.nextSteps.priority} Priority
                           </span>
                         </h4>
-                        <ul className="space-y-3 text-slate-600 text-sm">
+                        <ul className="space-y-4 text-blue-200 text-sm">
                           <li>
-                            <span className="font-medium">Focus:</span>{" "}
+                            <span className="font-medium text-blue-100">Focus:</span>{" "}
                             {message.nextSteps.focus}
                           </li>
                           <li>
                             <div>
                               <button
                                 onClick={() => setShowGuidance(!showGuidance)}
-                                className="text-blue-600 text-sm font-medium flex items-center hover:underline"
+                                className="text-blue-300 text-sm font-medium flex items-center hover:text-blue-100 transition-colors duration-200"
                               >
                                 <span className="font-medium">Guidance</span>
                                 <ChevronRight size={16} className={`ml-1 transform transition-transform ${showGuidance ? 'rotate-90' : ''}`} />
@@ -195,7 +195,7 @@ const CustomAlert: React.FC<AlertProps> = ({
                                     initial={{ opacity: 0, height: 0 }}
                                     animate={{ opacity: 1, height: "auto" }}
                                     exit={{ opacity: 0, height: 0 }}
-                                    className="mt-2"
+                                    className="mt-3 leading-relaxed"
                                   >
                                     {message.nextSteps.guidance}
                                   </motion.p>
@@ -204,7 +204,7 @@ const CustomAlert: React.FC<AlertProps> = ({
                             </div>
                           </li>
                           <li>
-                            <span className="font-medium">Progression:</span>{" "}
+                            <span className="font-medium text-blue-100">Progression:</span>{" "}
                             {message.nextSteps.progression}
                           </li>
                         </ul>
