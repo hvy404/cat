@@ -1,11 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  ChangeEvent,
-  KeyboardEvent,
-  MouseEvent,
-} from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Edit2, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useChat } from "ai/react";
 
 interface Message {
   text: string;
@@ -22,135 +16,85 @@ interface Message {
   sender: "bot" | "user";
 }
 
-const initialMessages: Message[] = [
-  {
-    text: "Hello!",
-    id: 1,
-    sender: "bot",
-  },
-  {
-    text: "How can I help you with your resume today?",
-    id: 2,
-    sender: "bot",
-  },
-];
-
-interface MessageBubbleProps {
-  message: Message;
-  isEditing: boolean;
-  editText: string;
-  onEditStart: () => void;
-  onEditChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
-  onEditSave: () => void;
-  onEditCancel: () => void;
+interface NextStep {
+  message: string;
+  suggestion: string;
+  reasoning: string;
 }
-
-const MessageBubble: React.FC<MessageBubbleProps> = ({
-  message,
-  isEditing,
-  editText,
-  onEditStart,
-  onEditChange,
-  onEditSave,
-  onEditCancel,
-}) => {
-  const isBot = message.sender === "bot";
-  const editTextareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    if (isEditing && editTextareaRef.current) {
-      editTextareaRef.current.style.height = "auto";
-      editTextareaRef.current.style.height = `${editTextareaRef.current.scrollHeight}px`;
-    }
-  }, [isEditing, editText]);
-
-  const handleEditKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      onEditSave();
-    }
-  };
-
-  return (
-    <div className={`flex ${isBot ? "justify-start" : "justify-end"} mb-4`}>
-      <div
-        className={`max-w-[70%] p-3 rounded-lg ${
-          isBot
-            ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white"
-            : "bg-gradient-to-br from-gray-200 to-gray-300 text-gray-800"
-        } shadow-md`}
-      >
-        {isEditing ? (
-          <div className="w-full">
-            <textarea
-              ref={editTextareaRef}
-              value={editText}
-              onChange={onEditChange}
-              onKeyDown={handleEditKeyDown}
-              className="w-full mb-2 p-2 bg-white bg-opacity-20 rounded resize-none overflow-hidden text-inherit font-inherit focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              style={{
-                minHeight: "1.5em",
-                maxHeight: "150px",
-              }}
-            />
-            <div className="flex justify-end space-x-2">
-              <Button onClick={onEditSave} variant="ghost" size="sm">
-                Save
-              </Button>
-              <Button onClick={onEditCancel} variant="ghost" size="sm">
-                Cancel
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="w-full">
-            <p className="text-sm break-words whitespace-pre-wrap">
-              {message.text}
-            </p>
-            {!isBot && (
-              <div className="w-full flex justify-end mt-2">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        onClick={onEditStart}
-                        variant="ghost"
-                        size="sm"
-                        className="p-1"
-                      >
-                        <Edit2 size={16} />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="text-white text-xs bg-black border-none">
-                      <p>Edit message</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
 
 interface CopilotTalkProps {
   isOpen: boolean;
   onClose: () => void;
+  nextSteps: NextStep[];
+  setNextSteps: React.Dispatch<React.SetStateAction<NextStep[]>>;
 }
 
-const CopilotTalk: React.FC<CopilotTalkProps> = ({ isOpen, onClose }) => {
-  const [chatMessages, setChatMessages] = useState<Message[]>(initialMessages);
-  const [inputMessage, setInputMessage] = useState<string>("");
+const CopilotTalk: React.FC<CopilotTalkProps> = ({
+  isOpen,
+  onClose,
+  nextSteps,
+  setNextSteps,
+}) => {
+  const {
+    messages: aiMessages,
+    input,
+    handleInputChange,
+    handleSubmit,
+  } = useChat({
+    api: "/api/hey-coach",
+  });
+
+  const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const [editingMessageId, setEditingMessageId] = useState<number | null>(null);
   const [editText, setEditText] = useState<string>("");
   const chatRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [lineCount, setLineCount] = useState(1);
 
-  const handleTextareaChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    setInputMessage(e.target.value);
+  useEffect(() => {
+    // Handle AI messages
+    if (aiMessages.length > 0) {
+      const lastAiMessage = aiMessages[aiMessages.length - 1];
+      
+      setChatMessages((prevMessages) => {
+        const lastMessage = prevMessages[prevMessages.length - 1];
+        
+        if (lastMessage && lastMessage.sender === "bot" && lastAiMessage.role === "assistant") {
+          // Update the existing bot message
+          return prevMessages.map((msg, index) => 
+            index === prevMessages.length - 1 
+              ? { ...msg, text: lastAiMessage.content }
+              : msg
+          );
+        } else {
+          // Add a new message
+          return [...prevMessages, {
+            text: lastAiMessage.content,
+            id: Date.now(),
+            sender: lastAiMessage.role === "user" ? "user" : "bot",
+          }];
+        }
+      });
+    }
+  }, [aiMessages]);
+
+  useEffect(() => {
+    // Add new nextSteps messages to chat
+    const newNextStepMessages = nextSteps
+      .filter((step) => !chatMessages.some((msg) => msg.text === step.message))
+      .map((step) => ({
+        text: step.message,
+        id: Date.now() + Math.random(),
+        sender: "bot" as const,
+      }));
+
+    if (newNextStepMessages.length > 0) {
+      setChatMessages((prev) => [...prev, ...newNextStepMessages]);
+    }
+  }, [nextSteps, chatMessages]);
+
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    handleInputChange(e);
     setLineCount(e.target.value.split("\n").length);
   };
 
@@ -168,13 +112,13 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({ isOpen, onClose }) => {
     };
 
     if (isOpen) {
-      document.addEventListener("keydown", handleEsc as any);
-      document.addEventListener("mousedown", handleOutsideClick as any);
+      document.addEventListener("keydown", handleEsc);
+      document.addEventListener("mousedown", handleOutsideClick);
     }
 
     return () => {
-      document.removeEventListener("keydown", handleEsc as any);
-      document.removeEventListener("mousedown", handleOutsideClick as any);
+      document.removeEventListener("keydown", handleEsc);
+      document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, [isOpen, onClose]);
 
@@ -183,40 +127,23 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({ isOpen, onClose }) => {
       textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
-  }, [inputMessage]);
-
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (inputMessage.trim() !== "") {
-      setChatMessages([
-        ...chatMessages,
-        { text: inputMessage, id: Date.now(), sender: "user" },
-      ]);
-      setInputMessage("");
-    }
-  };
+  }, [input]);
 
   const handleEditStart = (id: number, text: string) => {
     setEditingMessageId(id);
     setEditText(text);
   };
 
-  const handleEditChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+  const handleEditChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setEditText(e.target.value);
   };
 
   const handleEditSave = (id: number) => {
-    const messageIndex = chatMessages.findIndex((msg) => msg.id === id);
-    if (messageIndex !== -1) {
-      const updatedMessages = [...chatMessages];
-      updatedMessages[messageIndex] = {
-        ...updatedMessages[messageIndex],
-        text: editText,
-      };
-
-      // Remove all messages after the edited message
-      setChatMessages(updatedMessages.slice(0, messageIndex + 1));
-    }
+    setChatMessages((prevMessages) =>
+      prevMessages.map((msg) =>
+        msg.id === id ? { ...msg, text: editText } : msg
+      )
+    );
     setEditingMessageId(null);
     setEditText("");
   };
@@ -252,31 +179,84 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({ isOpen, onClose }) => {
             </div>
             <div className="flex-grow overflow-y-auto mb-4 p-4 rounded">
               {chatMessages.map((msg) => (
-                <MessageBubble
+                <div
                   key={msg.id}
-                  message={msg}
-                  isEditing={editingMessageId === msg.id}
-                  editText={editText}
-                  onEditStart={() => handleEditStart(msg.id, msg.text)}
-                  onEditChange={handleEditChange}
-                  onEditSave={() => handleEditSave(msg.id)}
-                  onEditCancel={handleEditCancel}
-                />
+                  className={`flex ${
+                    msg.sender === "bot" ? "justify-start" : "justify-end"
+                  } mb-4`}
+                >
+                  <div
+                    className={`max-w-[70%] p-3 rounded-lg ${
+                      msg.sender === "bot"
+                        ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white"
+                        : "bg-gradient-to-br from-gray-200 to-gray-300 text-gray-800"
+                    } shadow-md`}
+                  >
+                    {editingMessageId === msg.id ? (
+                      <div className="w-full">
+                        <textarea
+                          value={editText}
+                          onChange={handleEditChange}
+                          className="w-full mb-2 p-2 bg-white bg-opacity-20 rounded resize-none overflow-hidden text-inherit font-inherit focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          style={{
+                            minHeight: "1.5em",
+                            maxHeight: "150px",
+                          }}
+                        />
+                        <div className="flex justify-end space-x-2">
+                          <Button onClick={() => handleEditSave(msg.id)} variant="ghost" size="sm">
+                            Save
+                          </Button>
+                          <Button onClick={handleEditCancel} variant="ghost" size="sm">
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="w-full">
+                        <p className="text-sm break-words whitespace-pre-wrap">
+                          {msg.text}
+                        </p>
+                        {msg.sender === "user" && (
+                          <div className="w-full flex justify-end mt-2">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    onClick={() => handleEditStart(msg.id, msg.text)}
+                                    variant="ghost"
+                                    size="sm"
+                                    className="p-1"
+                                  >
+                                    <Edit2 size={16} />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent className="text-white text-xs bg-black border-none">
+                                  <p>Edit message</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
               ))}
             </div>
             <form
-              onSubmit={handleSendMessage}
+              onSubmit={handleSubmit}
               className="flex items-center relative"
             >
               <div className="w-full relative">
                 <textarea
                   ref={textareaRef}
-                  value={inputMessage}
+                  value={input}
                   onChange={handleTextareaChange}
-                  onKeyDown={(e: KeyboardEvent<HTMLTextAreaElement>) => {
+                  onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
-                      handleSendMessage(e);
+                      handleSubmit(e as any);
                     }
                   }}
                   placeholder="Type your message..."

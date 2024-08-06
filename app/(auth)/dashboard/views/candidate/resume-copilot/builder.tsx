@@ -1233,7 +1233,12 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             </Container>
           </div>
         </div>
-        <CopilotTalk isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+        <CopilotTalk 
+  isOpen={isChatOpen} 
+  onClose={() => setIsChatOpen(false)}
+  nextSteps={nextSteps}
+  setNextSteps={setNextSteps}
+/>
         <ControlPanel
           onCreateResume={handleCreateResume}
           onSaveVersion={handleSaveVersion}
