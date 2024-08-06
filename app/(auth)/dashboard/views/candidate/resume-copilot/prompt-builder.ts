@@ -28,21 +28,11 @@ export const buildEditReview = async (
 ): Promise<
   | {
       recommendation: {
+        priority: "High" | "Medium" | "Low";
         action: "add" | "remove" | "modify" | "none";
         targetItem: string;
         rationale: string;
         implementation: string;
-      };
-      feedback: {
-        strengths: string[];
-        areasForImprovement: string[];
-        competitiveEdge: string;
-      };
-      nextSteps: {
-        priority: "High" | "Medium" | "Low";
-        focus: string;
-        guidance: string;
-        progression: string;
       };
     }
   | { error: string }
@@ -79,14 +69,16 @@ export const buildEditReview = async (
     return acc;
   }, {} as Record<string, any>);
 
-  const sysPrompt = `You are an AI resume coach optimizing a resume for a ${role} position. Your task is to guide and evaluate the most recent edit to the resume, analyzing its impact, and recommending the next best action to improve the resume for the ${role} position.
+  const sysPrompt = `You are an AI resume coach optimizing a resume for a ${role} position. Your task is to evaluate the most recent edit to the resume, analyzing its impact the ${role} position.
 
 Instructions:
 1. Analyze how this edit affects the overall quality and relevance of the resume for the ${role} position.
-2. Consider the following factors:
+2. Suggestion any modifications to the recent edit's content.
+
+Consider the following optimization strategies:
    - Relevance of experiences to the ${role}
    - Focus on quantifiable descriptions of skills and achievements
-   - Potential time gaps created by removing experiences
+   - Potential time gaps and skill gaps
    - Overall career narrative and progression
    - Demonstration of transferable skills
 
@@ -103,15 +95,10 @@ Output Format:
 {
   "recommendation": {
     "action": "add" | "remove" | "modify" | "none",
+    "priority": "High" | "Medium" | "Low",
     "targetItem": "Human-readable name or reference of the item to be acted upon",
     "rationale": "Explanation for the recommended action, focusing on relevance to the target role and overall resume improvement",
     "implementation": "Specific suggestions on how to carry out the recommended action"
-  },
-  "nextSteps": {
-    "priority": "High" | "Medium" | "Low",
-    "focus": "Specific aspect of the resume to focus on next",
-    "guidance": "Brief advice on how to approach the next improvement",
-    "progression": "Outline of future improvements beyond the immediate next step"
   }
 }
 
@@ -123,12 +110,14 @@ ${JSON.stringify(items.chosen, null, 2)}
 Available Resume Items:
 ${JSON.stringify(relevantTalentProfileData, null, 2)}
 
-The content of the edit the user made most recently:
+Most recent edit's content:
 ${JSON.stringify(cardContent, null, 2)}
 
 In your resppnse:
 - You must never refer to an object by their ID (e.g. "experience-, experience-, skills-, education-, personal-"), instead use a human-readable name or reference from that object.
 - Your response must be in valid JSON and follows the schema provided in the instructions above.`;
+
+console.log("User Prompt: ", userPrompt);
 
   const response = await togetherAi.chat.completions.create({
     model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",

@@ -5,6 +5,9 @@ const ResumeCoachSchema = z.object({
     action: z
       .enum(["add", "remove", "modify", "none"])
       .describe("The recommended action to take"),
+    priority: z
+      .enum(["High", "Medium", "Low"])
+      .describe("Urgency of the recommended action"),
     targetItem: z
       .string()
       .describe(
@@ -21,7 +24,7 @@ const ResumeCoachSchema = z.object({
         "Specific suggestions on how to carry out the recommended action"
       ),
   }),
-  nextSteps: z.object({
+  /* nextSteps: z.object({
     priority: z
       .enum(["High", "Medium", "Low"])
       .describe("Urgency of the recommended action"),
@@ -36,7 +39,7 @@ const ResumeCoachSchema = z.object({
       .describe(
         "Outline of future improvements beyond the immediate next step"
       ),
-  }),
+  }), */
 });
 
 export type ResumeCoachResponse = z.infer<typeof ResumeCoachSchema>;

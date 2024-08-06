@@ -36,16 +36,6 @@ export interface HistoryEntry {
   timestamp: number;
 }
 
-export interface AlertState {
-  id: string;
-  message: {
-    recentEdit: string;
-    nextAction: "add" | "remove" | "modify" | "none";
-    nextReason: string;
-  };
-  isMinimized: boolean;
-}
-
 export interface ResumeBuilderProps {
   talentProfile: TalentProfile;
   onSelectedItemsChange?: (items: Item[]) => void;

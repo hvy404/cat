@@ -15,15 +15,10 @@ interface AlertProps {
   message: {
     recommendation: {
       action: "add" | "remove" | "modify" | "none";
+      priority: "High" | "Medium" | "Low";
       targetItem: string;
       rationale: string;
       implementation: string;
-    };
-    nextSteps: {
-      priority: "High" | "Medium" | "Low";
-      focus: string;
-      guidance: string;
-      progression: string;
     };
   };
   isMinimized: boolean;
@@ -37,7 +32,6 @@ const CustomAlert: React.FC<AlertProps> = ({
 }) => {
   const [showFullRecommendation, setShowFullRecommendation] = useState(false);
   const [showImplementation, setShowImplementation] = useState(false);
-  const [showGuidance, setShowGuidance] = useState(false);
 
   const getActionIcon = (action: "add" | "remove" | "modify" | "none") => {
     const iconProps = {
@@ -117,8 +111,13 @@ const CustomAlert: React.FC<AlertProps> = ({
                       <div className="mt-1 mr-4">
                         {getActionIcon(message.recommendation.action)}
                       </div>
-                      <div>
-                        <h4 className="text-blue-100 font-semibold mb-3">Recommendation</h4>
+                      <div className="flex-grow">
+                        <div className="flex justify-between items-center mb-3">
+                          <h4 className="text-blue-100 font-semibold">Recommendation</h4>
+                          <span className={`text-xs font-medium px-2 py-1 rounded-full ${getPriorityColor(message.recommendation.priority)}`}>
+                            {message.recommendation.priority} Priority
+                          </span>
+                        </div>
                         <p className="text-blue-200 text-sm mb-3 leading-relaxed">
                           {showFullRecommendation
                             ? message.recommendation.rationale
@@ -154,60 +153,6 @@ const CustomAlert: React.FC<AlertProps> = ({
                             )}
                           </AnimatePresence>
                         </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-blue-900 bg-opacity-30 rounded-lg p-5 border border-blue-700 border-opacity-50 shadow-inner">
-                    <div className="flex items-start">
-                      <ArrowRight
-                        size={20}
-                        className="flex-shrink-0 text-blue-400 mt-1 mr-4"
-                      />
-                      <div>
-                        <h4 className="text-blue-100 font-semibold mb-3 flex items-center">
-                          Next Steps
-                          <span
-                            className={`ml-2 text-xs font-medium px-2 py-1 rounded-full ${getPriorityColor(
-                              message.nextSteps.priority
-                            )}`}
-                          >
-                            {message.nextSteps.priority} Priority
-                          </span>
-                        </h4>
-                        <ul className="space-y-4 text-blue-200 text-sm">
-                          <li>
-                            <span className="font-medium text-blue-100">Focus:</span>{" "}
-                            {message.nextSteps.focus}
-                          </li>
-                          <li>
-                            <div>
-                              <button
-                                onClick={() => setShowGuidance(!showGuidance)}
-                                className="text-blue-300 text-sm font-medium flex items-center hover:text-blue-100 transition-colors duration-200"
-                              >
-                                <span className="font-medium">Guidance</span>
-                                <ChevronRight size={16} className={`ml-1 transform transition-transform ${showGuidance ? 'rotate-90' : ''}`} />
-                              </button>
-                              <AnimatePresence>
-                                {showGuidance && (
-                                  <motion.p
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: "auto" }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                    className="mt-3 leading-relaxed"
-                                  >
-                                    {message.nextSteps.guidance}
-                                  </motion.p>
-                                )}
-                              </AnimatePresence>
-                            </div>
-                          </li>
-                          <li>
-                            <span className="font-medium text-blue-100">Progression:</span>{" "}
-                            {message.nextSteps.progression}
-                          </li>
-                        </ul>
                       </div>
                     </div>
                   </div>

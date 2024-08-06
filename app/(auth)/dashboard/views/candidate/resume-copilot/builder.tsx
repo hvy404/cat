@@ -61,31 +61,24 @@ interface CustomSection {
   items: CustomItem[];
 }
 
-interface AlertMessage {
-  recommendation: {
-    action: "add" | "remove" | "modify" | "none";
-    targetItem: string;
-    rationale: string;
-    implementation: string;
-  };
-  nextSteps: {
-    priority: "High" | "Medium" | "Low";
-    focus: string;
-    guidance: string;
-    progression: string;
-  };
-}
-
 interface QueueItem {
   itemId: string;
   cardContent: any;
 }
 
-type Alert = {
+interface Alert {
   itemId: string;
-  message: AlertMessage;
+  message: {
+    recommendation: {
+      action: "add" | "remove" | "modify" | "none";
+      priority: "High" | "Medium" | "Low";
+      targetItem: string;
+      rationale: string;
+      implementation: string;
+    };
+  };
   isMinimized: boolean;
-};
+}
 
 const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   talentProfile,
@@ -310,16 +303,21 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             itemId: itemId,
             isMinimized: false,
             message: {
-              recommendation: result.recommendation,
-              nextSteps: result.nextSteps,
+              recommendation: {
+                action: result.recommendation.action,
+                priority: result.recommendation.priority, // Add this line
+                targetItem: result.recommendation.targetItem,
+                rationale: result.recommendation.rationale,
+                implementation: result.recommendation.implementation,
+              },
             },
           };
-
+        
           const updatedAlerts = prevAlerts.map((alert) => ({
             ...alert,
             isMinimized: true,
           }));
-
+        
           return [...updatedAlerts, newAlert];
         });
       }

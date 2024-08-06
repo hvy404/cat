@@ -14,15 +14,10 @@ interface RenderItemContentProps {
     message: {
       recommendation: {
         action: "add" | "remove" | "modify" | "none";
+        priority: "High" | "Medium" | "Low";
         targetItem: string;
         rationale: string;
         implementation: string;
-      };
-      nextSteps: {
-        priority: "High" | "Medium" | "Low";
-        focus: string;
-        guidance: string;
-        progression: string;
       };
     };
     isMinimized: boolean;
