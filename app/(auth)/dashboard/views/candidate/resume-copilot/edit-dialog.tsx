@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,11 +11,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Item } from "./types";
 import { getFieldsForItemType, fieldLabels } from "./item-fields";
 import { MonthYearPicker } from "@/app/(auth)/dashboard/views/candidate/assets/date-picker-my";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface EditDialogProps {
   editingItem: Item | null;
   setEditingItem: (item: Item | null) => void;
-  handleSaveEdit: (item: Item) => void;
+  handleSaveEdit: (item: Item, regenerateSuggestions: boolean) => void;
 }
 
 const EditDialog: React.FC<EditDialogProps> = ({
@@ -23,6 +25,8 @@ const EditDialog: React.FC<EditDialogProps> = ({
   setEditingItem,
   handleSaveEdit,
 }) => {
+  const [regenerateSuggestions, setRegenerateSuggestions] = useState(false);
+
   if (!editingItem) return null;
 
   const fields = getFieldsForItemType(editingItem.type);
@@ -114,7 +118,7 @@ const EditDialog: React.FC<EditDialogProps> = ({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            handleSaveEdit(editingItem);
+            handleSaveEdit(editingItem, regenerateSuggestions);
           }}
         >
           {fields.map((field) => (
@@ -128,7 +132,19 @@ const EditDialog: React.FC<EditDialogProps> = ({
               {renderField(field)}
             </div>
           ))}
-          <Button type="submit">Save</Button>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="regenerate-suggestions"
+                checked={regenerateSuggestions}
+                onCheckedChange={setRegenerateSuggestions}
+              />
+              <Label htmlFor="regenerate-suggestions" className="text-sm">
+                Regenerate AI suggestions
+              </Label>
+            </div>
+            <Button type="submit">Save</Button>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

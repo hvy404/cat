@@ -1,3 +1,4 @@
+import React from "react";
 import { Loader2 } from "lucide-react";
 
 export interface ProcessingIndicatorProps {
@@ -8,12 +9,14 @@ const ProcessingIndicator: React.FC<ProcessingIndicatorProps> = ({
   message,
 }) => {
   return (
-    <div className="flex items-center space-x-2 text-gray-500">
-      <div className="relative">
-        <Loader2 className="h-5 w-5 animate-spin" />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-gray-500 rounded-full" />
+    <div className="w-full mb-6 mt-4">
+      <div className="inline-flex bg-gradient-to-br from-blue-500 to-blue-600 rounded-md py-2 px-4 shadow-md items-center space-x-3">
+        <div className="relative flex-shrink-0">
+          <Loader2 className="h-5 w-5 animate-spin text-white" />
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-white rounded-full" />
+        </div>
+        <p className="text-white text-sm font-medium truncate">{message}</p>
       </div>
-      <span className="text-sm">{message}</span>
     </div>
   );
 };

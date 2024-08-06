@@ -82,7 +82,7 @@ interface QueueItem {
 }
 
 type Alert = {
-  id: string;
+  itemId: string;
   message: AlertMessage;
   isMinimized: boolean;
 };
@@ -307,7 +307,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       } else {
         setAlerts((prevAlerts) => {
           const newAlert: Alert = {
-            id: itemId,
+            itemId: itemId,
             isMinimized: false,
             message: {
               recommendation: result.recommendation,
@@ -400,7 +400,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   const toggleAlertMinimize = useCallback((id: string) => {
     setAlerts((prevAlerts) =>
       prevAlerts.map((alert) =>
-        alert.id === id
+        alert.itemId === id
           ? { ...alert, isMinimized: !alert.isMinimized }
           : { ...alert, isMinimized: true }
       )
@@ -773,7 +773,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     setEditingItem(item);
   };
 
-  const handleSaveEdit = (editedItem: Item) => {
+  const handleSaveEdit = async (editedItem: Item, regenerateSuggestions: boolean) => {
     setEditedItems((prev) => ({
       ...prev,
       [editedItem.id]: editedItem,
@@ -799,14 +799,16 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     setEditingItem(null);
     setLastModifiedItemId(editedItem.id);
 
-    // Add the edited item to the processing queue
-    setProcessingQueue((prevQueue) => [
-      ...prevQueue,
-      { itemId: editedItem.id, cardContent: editedItem.content },
-    ]);
+    if (regenerateSuggestions) {
+      // Add the edited item to the processing queue
+      setProcessingQueue((prevQueue) => [
+        ...prevQueue,
+        { itemId: editedItem.id, cardContent: editedItem.content },
+      ]);
 
-    // Set the item as processing
-    setProcessingItems((prev) => new Set(prev).add(editedItem.id));
+      // Set the item as processing
+      setProcessingItems((prev) => new Set(prev).add(editedItem.id));
+    }
   };
 
   const renderItemContent = useMemo(
