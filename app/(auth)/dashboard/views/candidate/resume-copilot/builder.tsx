@@ -22,6 +22,7 @@ import Container from "./container";
 import SortableItem from "./sortable";
 import { Item, ItemType, CustomItem, ResumeBuilderProps } from "./types";
 import { buildEditReview } from "./prompt-builder"; // AI Call
+import { suggestNextSteps } from "./next-steps"; // AI Call #2
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2, Save, Download } from "lucide-react";
@@ -79,6 +80,12 @@ interface Alert {
     };
   };
   isMinimized: boolean;
+}
+
+interface NextStep {
+  message: string;
+  suggestion: string;
+  reasoning: string;
 }
 
 const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
@@ -140,6 +147,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     sectionToDelete: null,
   });
 
+  // New state for next steps
+  const [nextSteps, setNextSteps] = useState<NextStep[]>([]);
+
   const handleOpenChat = () => {
     setIsChatOpen(true);
   };
@@ -195,6 +205,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   useEffect(() => {
     console.log("Current alerts:", alerts);
   }, [alerts]);
+
+  // useEffect console nextSteps on changes
+  useEffect(() => {
+    console.log("Next steps:", nextSteps);
+  }, [nextSteps]);
 
   // useEffect to console actionHistory on change
   useEffect(() => {
@@ -301,7 +316,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             message: {
               recommendation: {
                 action: result.recommendation.action,
-                priority: result.recommendation.priority, // Add this line
+                priority: result.recommendation.priority,
                 targetItem: result.recommendation.targetItem,
                 rationale: result.recommendation.rationale,
                 implementation: result.recommendation.implementation,
@@ -316,6 +331,21 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
 
           return [...updatedAlerts, newAlert];
         });
+
+        // Call suggestNextSteps after buildEditReview
+        const nextStepsResult = await suggestNextSteps(
+          items,
+          talentProfile,
+          selectedRole,
+          itemId,
+          cardContent
+        );
+
+        if (!("error" in nextStepsResult)) {
+          setNextSteps((prevNextSteps) => [...prevNextSteps, nextStepsResult]);
+        } else {
+          console.error("Error in suggestNextSteps:", nextStepsResult.error);
+        }
       }
     } catch (error) {
       console.error("Error processing item:", error);

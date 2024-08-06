@@ -6,12 +6,6 @@ import OpenAI from "openai";
 import { ResumeCoachSchema } from "@/app/(auth)/dashboard/views/candidate/resume-copilot/resume-coach-schema";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
-interface HistoryEntry {
-  action: "add" | "remove" | "reorder" | "modify";
-  itemId: string;
-  timestamp: number;
-}
-
 const togetherAi = new OpenAI({
   apiKey: process.env.TOGETHER_API_KEY,
   baseURL: "https://api.together.xyz/v1",
@@ -116,8 +110,6 @@ ${JSON.stringify(cardContent, null, 2)}
 In your resppnse:
 - You must never refer to an object by their ID (e.g. "experience-, experience-, skills-, education-, personal-"), instead use a human-readable name or reference from that object.
 - Your response must be in valid JSON and follows the schema provided in the instructions above.`;
-
-console.log("User Prompt: ", userPrompt);
 
   const response = await togetherAi.chat.completions.create({
     model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",

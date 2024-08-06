@@ -48,7 +48,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
         variants={buttonVariants}
       >
         <motion.span
-          className="mr-2 overflow-hidden whitespace-nowrap"
+          className="mr-2 overflow-hidden whitespace-nowrap text-sm"
           variants={textVariants}
         >
           {text}
@@ -65,7 +65,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
       <ButtonWrapper
         onClick={onCreateResume}
         icon={<Download className="h-5 w-5" />}
-        text="Create Resume"
+        text="Export Resume"
       />
       <ButtonWrapper
         onClick={onSaveVersion}
