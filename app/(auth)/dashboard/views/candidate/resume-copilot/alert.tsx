@@ -10,6 +10,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { containsPercentage } from "./formatting";
 
 interface AlertProps {
   message: {
@@ -33,6 +34,9 @@ const CustomAlert: React.FC<AlertProps> = ({
   const [showFullRecommendation, setShowFullRecommendation] = useState(false);
   const [showImplementation, setShowImplementation] = useState(false);
 
+  const { implementation } = message.recommendation;
+  const hasPercentage = containsPercentage(implementation);
+
   const getActionIcon = (action: "add" | "remove" | "modify" | "none") => {
     const iconProps = {
       size: 20,
@@ -41,11 +45,26 @@ const CustomAlert: React.FC<AlertProps> = ({
 
     switch (action) {
       case "add":
-        return <Plus {...iconProps} className={`${iconProps.className} text-emerald-400`} />;
+        return (
+          <Plus
+            {...iconProps}
+            className={`${iconProps.className} text-emerald-400`}
+          />
+        );
       case "remove":
-        return <Minus {...iconProps} className={`${iconProps.className} text-red-400`} />;
+        return (
+          <Minus
+            {...iconProps}
+            className={`${iconProps.className} text-red-400`}
+          />
+        );
       case "modify":
-        return <Edit {...iconProps} className={`${iconProps.className} text-amber-400`} />;
+        return (
+          <Edit
+            {...iconProps}
+            className={`${iconProps.className} text-amber-400`}
+          />
+        );
       default:
         return null;
     }
@@ -113,8 +132,14 @@ const CustomAlert: React.FC<AlertProps> = ({
                       </div>
                       <div className="flex-grow">
                         <div className="flex justify-between items-center mb-3">
-                          <h4 className="text-blue-100 font-semibold">Recommendation</h4>
-                          <span className={`text-xs font-medium px-2 py-1 rounded-full ${getPriorityColor(message.recommendation.priority)}`}>
+                          <h4 className="text-blue-100 font-semibold">
+                            Recommendation
+                          </h4>
+                          <span
+                            className={`text-xs font-medium px-2 py-1 rounded-full ${getPriorityColor(
+                              message.recommendation.priority
+                            )}`}
+                          >
                             {message.recommendation.priority} Priority
                           </span>
                         </div>
@@ -125,31 +150,54 @@ const CustomAlert: React.FC<AlertProps> = ({
                         </p>
                         {message.recommendation.rationale.length > 150 && (
                           <button
-                            onClick={() => setShowFullRecommendation(!showFullRecommendation)}
+                            onClick={() =>
+                              setShowFullRecommendation(!showFullRecommendation)
+                            }
                             className="text-blue-300 text-sm font-medium flex items-center hover:text-blue-100 transition-colors duration-200 mb-3"
                           >
                             {showFullRecommendation ? "Show Less" : "Show More"}
-                            <ChevronRight size={16} className={`ml-1 transform transition-transform ${showFullRecommendation ? 'rotate-90' : ''}`} />
+                            <ChevronRight
+                              size={16}
+                              className={`ml-1 transform transition-transform ${
+                                showFullRecommendation ? "rotate-90" : ""
+                              }`}
+                            />
                           </button>
                         )}
                         <div>
                           <button
-                            onClick={() => setShowImplementation(!showImplementation)}
+                            onClick={() =>
+                              setShowImplementation(!showImplementation)
+                            }
                             className="text-blue-300 text-sm font-medium flex items-center hover:text-blue-100 transition-colors duration-200"
                           >
-                            {showImplementation ? "Hide" : "Show"} Implementation
-                            <ChevronRight size={16} className={`ml-1 transform transition-transform ${showImplementation ? 'rotate-90' : ''}`} />
+                            {showImplementation ? "Hide" : "Show"}{" "}
+                            Implementation
+                            <ChevronRight
+                              size={16}
+                              className={`ml-1 transform transition-transform ${
+                                showImplementation ? "rotate-90" : ""
+                              }`}
+                            />
                           </button>
                           <AnimatePresence>
                             {showImplementation && (
-                              <motion.p
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: "auto" }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className="text-blue-200 text-sm mt-3 leading-relaxed"
-                              >
-                                {message.recommendation.implementation}
-                              </motion.p>
+                              <>
+                                <motion.p
+                                  initial={{ opacity: 0, height: 0 }}
+                                  animate={{ opacity: 1, height: "auto" }}
+                                  exit={{ opacity: 0, height: 0 }}
+                                  className="text-blue-200 text-sm mt-3 leading-relaxed"
+                                >
+                                  {message.recommendation.implementation}
+                                  {hasPercentage && (
+                                    <p className="text-xs text-white mt-2">
+                                      Note: Percentages shown are illustrative.
+                                      Verify actual data independently.
+                                    </p>
+                                  )}
+                                </motion.p>
+                              </>
                             )}
                           </AnimatePresence>
                         </div>
