@@ -10,11 +10,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Edit2, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-  } from "@/components/ui/tooltip";
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Message {
   text: string;
@@ -40,7 +40,7 @@ interface MessageBubbleProps {
   isEditing: boolean;
   editText: string;
   onEditStart: () => void;
-  onEditChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  onEditChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
   onEditSave: () => void;
   onEditCancel: () => void;
 }
@@ -85,9 +85,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             <textarea
               ref={editTextareaRef}
               value={editText}
-              onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-                onEditChange(e as unknown as ChangeEvent<HTMLInputElement>)
-              }
+              onChange={onEditChange}
               onKeyDown={handleEditKeyDown}
               className="w-full mb-2 p-2 bg-white bg-opacity-20 rounded resize-none overflow-hidden text-inherit font-inherit focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               style={{
@@ -110,25 +108,25 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
               {message.text}
             </p>
             {!isBot && (
-             <div className="w-full flex justify-end mt-2">
-             <TooltipProvider>
-               <Tooltip>
-                 <TooltipTrigger asChild>
-                   <Button
-                     onClick={onEditStart}
-                     variant="ghost"
-                     size="sm"
-                     className="p-1"
-                   >
-                     <Edit2 size={16} />
-                   </Button>
-                 </TooltipTrigger>
-                 <TooltipContent className="text-white text-xs bg-black border-none">
-                   <p>Edit message</p>
-                 </TooltipContent>
-               </Tooltip>
-             </TooltipProvider>
-           </div>
+              <div className="w-full flex justify-end mt-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        onClick={onEditStart}
+                        variant="ghost"
+                        size="sm"
+                        className="p-1"
+                      >
+                        <Edit2 size={16} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="text-white text-xs bg-black border-none">
+                      <p>Edit message</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             )}
           </div>
         )}
@@ -137,8 +135,12 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   );
 };
 
-const CustomChatbot: React.FC = () => {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+interface CopilotTalkProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const CopilotTalk: React.FC<CopilotTalkProps> = ({ isOpen, onClose }) => {
   const [chatMessages, setChatMessages] = useState<Message[]>(initialMessages);
   const [inputMessage, setInputMessage] = useState<string>("");
   const [editingMessageId, setEditingMessageId] = useState<number | null>(null);
@@ -155,39 +157,26 @@ const CustomChatbot: React.FC = () => {
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setIsOpen(false);
+        onClose();
       }
     };
 
     const handleOutsideClick = (event: MouseEvent) => {
       if (chatRef.current && !chatRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+        onClose();
       }
     };
 
     if (isOpen) {
-      window.addEventListener("keydown", handleEsc as unknown as EventListener);
-      document.addEventListener(
-        "mousedown",
-        handleOutsideClick as unknown as EventListener
-      );
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
+      document.addEventListener("keydown", handleEsc as any);
+      document.addEventListener("mousedown", handleOutsideClick as any);
     }
 
     return () => {
-      window.removeEventListener(
-        "keydown",
-        handleEsc as unknown as EventListener
-      );
-      document.removeEventListener(
-        "mousedown",
-        handleOutsideClick as unknown as EventListener
-      );
-      document.body.style.overflow = "unset";
+      document.removeEventListener("keydown", handleEsc as any);
+      document.removeEventListener("mousedown", handleOutsideClick as any);
     };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -212,7 +201,7 @@ const CustomChatbot: React.FC = () => {
     setEditText(text);
   };
 
-  const handleEditChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleEditChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setEditText(e.target.value);
   };
 
@@ -238,102 +227,80 @@ const CustomChatbot: React.FC = () => {
   };
 
   return (
-    <>
-      <Button
-        onClick={() => setIsOpen(true)}
-        className="fixed top-1/2 right-4 transform -translate-y-1/2 bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full shadow-lg z-40 transition-all duration-300 ease-in-out hover:scale-105"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          ref={chatRef}
+          initial={{ y: "100%" }}
+          animate={{ y: 0 }}
+          exit={{ y: "100%" }}
+          transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+          className="fixed bottom-4 right-4 rounded-lg shadow-2xl overflow-hidden z-50 bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-lg"
+          style={{ width: "400px", height: "calc(100vh - 2rem)" }}
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-          />
-        </svg>
-      </Button>
-
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            ref={chatRef}
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-            className="fixed bottom-4 right-4 rounded-lg shadow-2xl overflow-hidden z-50 bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-lg"
-            style={{ width: "400px", height: "calc(100vh - 2rem)" }}
-          >
-            <div className="p-4 h-full flex flex-col">
-              <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-400">
-                <h2 className="text-xl font-bold text-white">Talent</h2>
+          <div className="p-4 h-full flex flex-col">
+            <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-400">
+              <h2 className="text-xl font-bold text-white">Talent</h2>
+              <Button
+                onClick={onClose}
+                variant="ghost"
+                size="sm"
+                className="text-gray-300 hover:text-white transition-colors duration-200"
+              >
+                <X size={24} />
+              </Button>
+            </div>
+            <div className="flex-grow overflow-y-auto mb-4 p-4 rounded">
+              {chatMessages.map((msg) => (
+                <MessageBubble
+                  key={msg.id}
+                  message={msg}
+                  isEditing={editingMessageId === msg.id}
+                  editText={editText}
+                  onEditStart={() => handleEditStart(msg.id, msg.text)}
+                  onEditChange={handleEditChange}
+                  onEditSave={() => handleEditSave(msg.id)}
+                  onEditCancel={handleEditCancel}
+                />
+              ))}
+            </div>
+            <form
+              onSubmit={handleSendMessage}
+              className="flex items-center relative"
+            >
+              <div className="w-full relative">
+                <textarea
+                  ref={textareaRef}
+                  value={inputMessage}
+                  onChange={handleTextareaChange}
+                  onKeyDown={(e: KeyboardEvent<HTMLTextAreaElement>) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage(e);
+                    }
+                  }}
+                  placeholder="Type your message..."
+                  className="w-full p-2 pr-12 bg-gray-700 bg-opacity-50 text-white border border-gray-600 rounded-lg resize-none overflow-hidden placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 min-h-[40px] max-h-[120px] pb-6"
+                />
+                {lineCount <= 2 && (
+                  <span className="absolute bottom-1 left-2 text-xs text-gray-400 pb-1">
+                    Shift+Return for new line
+                  </span>
+                )}
                 <Button
-                  onClick={() => setIsOpen(false)}
-                  variant="ghost"
-                  size="sm"
-                  className="text-gray-300 hover:text-white transition-colors duration-200"
+                  type="submit"
+                  size="icon"
+                  className="absolute right-2 top-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200"
                 >
-                  <X size={24} />
+                  <Send size={16} />
                 </Button>
               </div>
-              <div className="flex-grow overflow-y-auto mb-4 p-4 rounded">
-                {chatMessages.map((msg) => (
-                  <MessageBubble
-                    key={msg.id}
-                    message={msg}
-                    isEditing={editingMessageId === msg.id}
-                    editText={editText}
-                    onEditStart={() => handleEditStart(msg.id, msg.text)}
-                    onEditChange={handleEditChange}
-                    onEditSave={() => handleEditSave(msg.id)}
-                    onEditCancel={handleEditCancel}
-                  />
-                ))}
-              </div>
-              <form
-                onSubmit={handleSendMessage}
-                className="flex items-center relative"
-              >
-                <div className="w-full relative">
-                  <textarea
-                    ref={textareaRef}
-                    value={inputMessage}
-                    onChange={handleTextareaChange}
-                    onKeyDown={(e: KeyboardEvent<HTMLTextAreaElement>) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage(e);
-                      }
-                    }}
-                    placeholder="Type your message..."
-                    className="w-full p-2 pr-12 bg-gray-700 bg-opacity-50 text-white border border-gray-600 rounded-lg resize-none overflow-hidden placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 min-h-[40px] max-h-[120px] pb-6"
-                  />
-                  {lineCount <= 2 && (
-                    <span className="absolute bottom-1 left-2 text-xs text-gray-400 pb-1">
-                      Shift+Return for new line
-                    </span>
-                  )}
-                  <Button
-                    type="submit"
-                    size={"icon"}
-                    className="absolute right-2 top-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200"
-                  >
-                    <Send size={16} />
-                  </Button>
-                </div>
-              </form>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+            </form>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
-export default CustomChatbot;
+export default CopilotTalk;

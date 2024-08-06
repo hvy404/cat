@@ -53,6 +53,7 @@ import {
 } from "./custom-section-utils";
 import ProcessingIndicator from "./processing-indicator";
 import CopilotTalk from "./copilot-talk";
+import ControlPanel from "./control-panel";
 
 // Add new interfaces for custom sections and items
 interface CustomSection {
@@ -122,6 +123,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   );
   const [isSaveVersionDialogOpen, setIsSaveVersionDialogOpen] = useState(false);
   const [filename, setFilename] = useState("");
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Add new state for custom sections
   const [customSections, setCustomSections] = useState<CustomSection[]>([]);
@@ -138,15 +140,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     sectionToDelete: null,
   });
 
-  const processingMap = useRef(
-    new Map<
-      string,
-      {
-        timer: NodeJS.Timeout | null;
-        processingTimer: NodeJS.Timeout | null;
-      }
-    >()
-  );
+  const handleOpenChat = () => {
+    setIsChatOpen(true);
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -312,12 +308,12 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
               },
             },
           };
-        
+
           const updatedAlerts = prevAlerts.map((alert) => ({
             ...alert,
             isMinimized: true,
           }));
-        
+
           return [...updatedAlerts, newAlert];
         });
       }
@@ -771,7 +767,10 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     setEditingItem(item);
   };
 
-  const handleSaveEdit = async (editedItem: Item, regenerateSuggestions: boolean) => {
+  const handleSaveEdit = async (
+    editedItem: Item,
+    regenerateSuggestions: boolean
+  ) => {
     setEditedItems((prev) => ({
       ...prev,
       [editedItem.id]: editedItem,
@@ -1203,22 +1202,13 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
               {renderChosen}
             </Container>
           </div>
-          <div className="flex justify-end mt-4 gap-4">
-            <div className="flex">
-              <Button variant={"secondary"} onClick={handleCreateResume}>
-                <Download className="mr-2 h-4 w-4" />
-                <span className="text-sm">Export Copy</span>
-              </Button>
-            </div>
-            <div className="flex">
-              <Button onClick={handleSaveVersion}>
-                <Save className="mr-2 h-4 w-4" />
-                <span className="text-sm">Save Version</span>
-              </Button>
-            </div>
-          </div>
         </div>
-        <CopilotTalk />
+        <CopilotTalk isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+        <ControlPanel
+          onCreateResume={handleCreateResume}
+          onSaveVersion={handleSaveVersion}
+          onOpenChat={handleOpenChat}
+        />
       </div>
       <DragOverlay>
         {activeId && draggedItem ? (
