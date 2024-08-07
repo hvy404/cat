@@ -11,6 +11,10 @@ const openai = createOpenAI({
 
 export async function POST(req: Request) {
   const { messages }: { messages: CoreMessage[] } = await req.json();
+  // Read the Magic-Rail value from the header
+  const magicRailValue = req.headers.get("Magic-Rail");
+
+  console.log("MagicRail value:", magicRailValue);
 
   console.log("Received messages:", messages);
 

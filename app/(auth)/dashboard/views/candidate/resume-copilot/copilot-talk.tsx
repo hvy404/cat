@@ -26,19 +26,33 @@ interface CopilotTalkProps {
   isOpen: boolean;
   onClose: () => void;
   nextSteps: NextStep[];
-  setNextSteps: React.Dispatch<React.SetStateAction<NextStep[]>>;
+  //setNextSteps: React.Dispatch<React.SetStateAction<NextStep[]>>;
+  builderSession: string;
 }
 
 const CopilotTalk: React.FC<CopilotTalkProps> = ({
   isOpen,
   onClose,
   nextSteps,
-  setNextSteps,
+  //setNextSteps,
+  builderSession,
 }) => {
-  const { messages, input, handleInputChange, handleSubmit, setMessages, isLoading } =
-    useChat({
-      api: "/api/hey-coach",
-    });
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    setMessages,
+    isLoading,
+  } = useChat({
+    body: {
+    },
+    api: "/api/hey-coach",
+    headers: {
+      "Content-Type": "application/json",
+      "Magic-Rail": builderSession,
+    },
+  });
 
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editText, setEditText] = useState<string>("");

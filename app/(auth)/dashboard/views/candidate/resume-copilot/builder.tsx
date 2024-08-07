@@ -56,6 +56,10 @@ import ProcessingIndicator from "./processing-indicator";
 import CopilotTalk from "./copilot-talk";
 import ControlPanel from "./control-panel";
 
+interface BuilderSession {
+  sessionId: string;
+}
+
 // Add new interfaces for custom sections and items
 interface CustomSection {
   id: string;
@@ -95,6 +99,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   selectedRole,
   userId,
 }) => {
+  const [builderSession, setBuilderSession] = useState<BuilderSession>({
+    sessionId: createId(),
+  });
   const [items, setItems] = useState<Record<string, Item[]>>({
     available: [],
     chosen: selectedItems,
@@ -1245,7 +1252,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           isOpen={isChatOpen}
           onClose={() => setIsChatOpen(false)}
           nextSteps={nextSteps}
-          setNextSteps={setNextSteps}
+          builderSession={builderSession.sessionId}
         />
         <ControlPanel
           onCreateResume={handleCreateResume}
