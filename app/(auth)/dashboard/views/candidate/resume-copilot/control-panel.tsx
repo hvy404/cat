@@ -47,7 +47,14 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
     >
       <motion.button
         onClick={onClick}
-        className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-all duration-300 ease-in-out hover:scale-105 flex items-center justify-end overflow-hidden"
+        className={`
+          ${isExpanded 
+            ? "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700" 
+            : "bg-blue-500 hover:bg-blue-600"
+          }
+          text-white p-3 rounded-full shadow-lg transition-all duration-300 ease-in-out hover:scale-105 flex items-center justify-end overflow-hidden
+          ${isExpanded ? "ring-2 ring-white ring-opacity-50" : ""}
+        `}
         variants={buttonVariants}
       >
         <motion.span

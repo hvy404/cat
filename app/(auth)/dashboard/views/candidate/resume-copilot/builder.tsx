@@ -314,7 +314,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         setAlerts((prevAlerts) => {
           const newAlert: Alert = {
             itemId: itemId,
-            isMinimized: false,
+            isMinimized: false, // Set the new alert to be maximized
             message: {
               recommendation: {
                 action: result.recommendation.action,
@@ -325,12 +325,14 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
               },
             },
           };
-
+      
+          // Minimize all existing alerts
           const updatedAlerts = prevAlerts.map((alert) => ({
             ...alert,
             isMinimized: true,
           }));
-
+      
+          // Add the new, maximized alert
           return [...updatedAlerts, newAlert];
         });
 
@@ -853,7 +855,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         handleEdit,
         toggleAlertMinimize,
         (itemId) => (
-          <ProcessingIndicator message="Analyzing and optimizing..." />
+          <ProcessingIndicator message="Analyzing edit..." />
         )
       ),
     [
