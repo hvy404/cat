@@ -102,8 +102,6 @@ Remember:
 - Never refer to items by their ID; use human-readable names or descriptions
 - Your response must be in valid JSON and follow the schema provided in the instructions.`;
 
-  console.log("User Prompt: ", userPrompt);
-
   const response = await togetherAi.chat.completions.create({
     model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
     // @ts-ignore

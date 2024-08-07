@@ -10,8 +10,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useChat, Message as AIMessage } from "ai/react";
 import ReactMarkdown from "react-markdown";
-import EnhancedViewMorePanel from './enhanced-view-more-panel';
-
+import EnhancedViewMorePanel from "./enhanced-view-more-panel";
 
 interface NextStep {
   message: string;
@@ -82,7 +81,11 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
     };
 
     const handleOutsideClick = (event: MouseEvent) => {
-      if (chatRef.current && !chatRef.current.contains(event.target as Node) && !viewMoreOpen) {
+      if (
+        chatRef.current &&
+        !chatRef.current.contains(event.target as Node) &&
+        !viewMoreOpen
+      ) {
         onClose();
       }
     };
@@ -137,7 +140,7 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
     <AnimatePresence>
       {isOpen && (
         <div className="fixed bottom-4 right-4 flex items-end space-x-4 z-50">
-           <AnimatePresence>
+          <AnimatePresence>
             {viewMoreOpen && (
               <motion.div
                 initial={{ x: "-100%", opacity: 0 }}
@@ -148,7 +151,10 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
                 style={{ width: "300px", height: "calc(100vh - 2rem)" }}
               >
                 <EnhancedViewMorePanel
-                  message={(messages.find((msg) => msg.id === viewMoreOpen) as any)?.nextStep}
+                  message={
+                    (messages.find((msg) => msg.id === viewMoreOpen) as any)
+                      ?.nextStep
+                  }
                   onClose={() => setViewMoreOpen(null)}
                 />
               </motion.div>
@@ -168,7 +174,10 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
               <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-400">
                 <h2 className="text-xl font-bold text-white">Talent</h2>
                 <Button
-                  onClick={onClose}
+                  onClick={() => {
+                    setViewMoreOpen(null);
+                    onClose();
+                  }}
                   variant="link"
                   size="sm"
                   className="text-gray-300 hover:text-white transition-colors duration-200"
@@ -301,7 +310,7 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
                                   )}
                                   {viewMoreOpen === msg.id
                                     ? "Hide Details"
-                                    : "View More"}
+                                    : "View Next Steps"}
                                 </Button>
                               </div>
                             )}
