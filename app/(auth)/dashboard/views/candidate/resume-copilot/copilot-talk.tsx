@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Edit2, Send, X, ChevronDown } from "lucide-react";
+import { Edit2, Send, X, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/tooltip";
 import { useChat, Message as AIMessage } from "ai/react";
 import ReactMarkdown from "react-markdown";
+import EnhancedViewMorePanel from './enhanced-view-more-panel';
+
 
 interface NextStep {
   message: string;
@@ -17,7 +19,6 @@ interface NextStep {
   reasoning: string;
 }
 
-// Extend the AIMessage type to include the nextStep property
 interface ExtendedAIMessage extends AIMessage {
   nextStep?: NextStep;
 }
@@ -40,13 +41,12 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
       api: "/api/hey-coach",
     });
 
-  console.log("Receive next steps", nextSteps);
-
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editText, setEditText] = useState<string>("");
   const chatRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [lineCount, setLineCount] = useState(1);
+  const [viewMoreOpen, setViewMoreOpen] = useState<string | null>(null);
 
   const addNextStepMessages = useCallback(() => {
     const newNextStepMessages = nextSteps
@@ -82,7 +82,7 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
     };
 
     const handleOutsideClick = (event: MouseEvent) => {
-      if (chatRef.current && !chatRef.current.contains(event.target as Node)) {
+      if (chatRef.current && !chatRef.current.contains(event.target as Node) && !viewMoreOpen) {
         onClose();
       }
     };
@@ -96,7 +96,7 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
       document.removeEventListener("keydown", handleEsc);
       document.removeEventListener("mousedown", handleOutsideClick);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, viewMoreOpen]);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -129,201 +129,225 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
     setEditText("");
   };
 
+  const handleViewMore = (id: string) => {
+    setViewMoreOpen(viewMoreOpen === id ? null : id);
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
-          ref={chatRef}
-          initial={{ y: "100%" }}
-          animate={{ y: 0 }}
-          exit={{ y: "100%" }}
-          transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-          className="fixed bottom-4 right-4 rounded-lg shadow-2xl overflow-hidden z-50 bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-lg"
-          style={{ width: "400px", height: "calc(100vh - 2rem)" }}
-        >
-          <div className="p-4 h-full flex flex-col">
-            <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-400">
-              <h2 className="text-xl font-bold text-white">Talent</h2>
-              <Button
-                onClick={onClose}
-                variant="ghost"
-                size="sm"
-                className="text-gray-300 hover:text-white transition-colors duration-200"
+        <div className="fixed bottom-4 right-4 flex items-end space-x-4 z-50">
+           <AnimatePresence>
+            {viewMoreOpen && (
+              <motion.div
+                initial={{ x: "-100%", opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: "-100%", opacity: 0 }}
+                transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+                className="rounded-lg shadow-2xl overflow-hidden"
+                style={{ width: "300px", height: "calc(100vh - 2rem)" }}
               >
-                <X size={24} />
-              </Button>
-            </div>
-            <div className="flex-grow overflow-y-auto mb-4 p-4 rounded">
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex ${
-                    msg.role === "assistant" ? "justify-start" : "justify-end"
-                  } mb-4`}
-                >
-                  <div
-                    className={`max-w-[70%] p-3 rounded-lg ${
-                      msg.role === "assistant"
-                        ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white"
-                        : "bg-gradient-to-br from-gray-200 to-gray-300 text-gray-800"
-                    } shadow-md`}
-                  >
-                    {editingMessageId === msg.id ? (
-                      <div className="w-full">
-                        <textarea
-                          value={editText}
-                          onChange={handleEditChange}
-                          className="w-full mb-2 p-2 bg-white bg-opacity-20 rounded resize-none overflow-hidden text-inherit font-inherit focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          style={{
-                            minHeight: "1.5em",
-                            maxHeight: "150px",
-                          }}
-                        />
-                        <div className="flex justify-end space-x-2">
-                          <Button
-                            onClick={() => handleEditSave(msg.id)}
-                            variant="ghost"
-                            size="sm"
-                          >
-                            Save
-                          </Button>
-                          <Button
-                            onClick={handleEditCancel}
-                            variant="ghost"
-                            size="sm"
-                          >
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="w-full">
-                        <ReactMarkdown
-                          className="text-sm break-words whitespace-pre-wrap markdown-content"
-                          components={{
-                            p: ({ node, ...props }) => (
-                              <p className="mb-2" {...props} />
-                            ),
-                            h1: ({ node, ...props }) => (
-                              <h1
-                                className="text-xl font-bold mb-2"
-                                {...props}
-                              />
-                            ),
-                            h2: ({ node, ...props }) => (
-                              <h2
-                                className="text-lg font-semibold mb-2"
-                                {...props}
-                              />
-                            ),
-                            ul: ({ node, ...props }) => (
-                              <ul
-                                className="list-disc list-inside mb-2"
-                                {...props}
-                              />
-                            ),
-                            ol: ({ node, ...props }) => (
-                              <ol
-                                className="list-decimal list-inside mb-2"
-                                {...props}
-                              />
-                            ),
-                            code: ({ node, ...props }) => (
-                              <code
-                                className="bg-gray-100 rounded px-1"
-                                {...props}
-                              />
-                            ),
-                          }}
-                        >
-                          {msg.content}
-                        </ReactMarkdown>
-
-                        {msg.role === "user" && (
-                          <div className="w-full flex justify-end mt-2">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    onClick={() =>
-                                      handleEditStart(msg.id, msg.content)
-                                    }
-                                    variant="ghost"
-                                    size="sm"
-                                    className="p-1"
-                                  >
-                                    <Edit2 size={16} />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent className="text-white text-xs bg-black border-none">
-                                  <p>Edit message</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                        )}
-                        {msg.role === "assistant" && (msg as any).nextStep && (
-                          <div className="mt-2">
-                            <Button
-                              onClick={() => {
-                                console.log(
-                                  "Suggestion:",
-                                  (msg as any).nextStep.suggestion
-                                );
-                                console.log(
-                                  "Reasoning:",
-                                  (msg as any).nextStep.reasoning
-                                );
-                              }}
-                              variant="link"
-                              size="sm"
-                              className="text-white hover:text-blue-200 transition-colors duration-200"
-                            >
-                              <ChevronDown size={16} className="mr-1" />
-                              View More
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <form
-              onSubmit={handleSubmit}
-              className="flex items-center relative"
-            >
-              <div className="w-full relative">
-                <textarea
-                  ref={textareaRef}
-                  value={input}
-                  onChange={handleTextareaChange}
-                  onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSubmit(e as any);
-                    }
-                  }}
-                  placeholder="Type your message..."
-                  className="w-full p-2 pr-12 bg-gray-700 bg-opacity-50 text-white border border-gray-600 rounded-lg resize-none overflow-hidden placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 min-h-[40px] max-h-[120px] pb-6"
+                <EnhancedViewMorePanel
+                  message={(messages.find((msg) => msg.id === viewMoreOpen) as any)?.nextStep}
+                  onClose={() => setViewMoreOpen(null)}
                 />
-                {lineCount <= 2 && (
-                  <span className="absolute bottom-1 left-2 text-xs text-gray-400 pb-1">
-                    Shift+Return for new line
-                  </span>
-                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <motion.div
+            ref={chatRef}
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+            className="rounded-lg shadow-2xl overflow-hidden bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-lg"
+            style={{ width: "400px", height: "calc(100vh - 2rem)" }}
+          >
+            <div className="p-4 h-full flex flex-col">
+              <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-400">
+                <h2 className="text-xl font-bold text-white">Talent</h2>
                 <Button
-                  type="submit"
-                  size="icon"
-                  className="absolute right-2 top-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200"
+                  onClick={onClose}
+                  variant="link"
+                  size="sm"
+                  className="text-gray-300 hover:text-white transition-colors duration-200"
                 >
-                  <Send size={16} />
+                  <X size={24} />
                 </Button>
               </div>
-            </form>
-          </div>
-        </motion.div>
+              <div className="flex-grow overflow-y-auto mb-4 p-4 rounded">
+                {messages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`flex ${
+                      msg.role === "assistant" ? "justify-start" : "justify-end"
+                    } mb-4`}
+                  >
+                    <div
+                      className={`max-w-[70%] p-3 rounded-lg ${
+                        msg.role === "assistant"
+                          ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white"
+                          : "bg-gradient-to-br from-gray-200 to-gray-300 text-gray-800"
+                      } shadow-md`}
+                    >
+                      {editingMessageId === msg.id ? (
+                        <div className="w-full">
+                          <textarea
+                            value={editText}
+                            onChange={handleEditChange}
+                            className="w-full mb-2 p-2 bg-white bg-opacity-20 rounded resize-none overflow-hidden text-inherit font-inherit focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            style={{
+                              minHeight: "1.5em",
+                              maxHeight: "150px",
+                            }}
+                          />
+                          <div className="flex justify-end space-x-2">
+                            <Button
+                              onClick={() => handleEditSave(msg.id)}
+                              variant="ghost"
+                              size="sm"
+                            >
+                              Save
+                            </Button>
+                            <Button
+                              onClick={handleEditCancel}
+                              variant="ghost"
+                              size="sm"
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="w-full">
+                          <ReactMarkdown
+                            className="text-sm break-words whitespace-pre-wrap markdown-content"
+                            components={{
+                              p: ({ node, ...props }) => (
+                                <p className="mb-2" {...props} />
+                              ),
+                              h1: ({ node, ...props }) => (
+                                <h1
+                                  className="text-xl font-bold mb-2"
+                                  {...props}
+                                />
+                              ),
+                              h2: ({ node, ...props }) => (
+                                <h2
+                                  className="text-lg font-semibold mb-2"
+                                  {...props}
+                                />
+                              ),
+                              ul: ({ node, ...props }) => (
+                                <ul
+                                  className="list-disc list-inside mb-2"
+                                  {...props}
+                                />
+                              ),
+                              ol: ({ node, ...props }) => (
+                                <ol
+                                  className="list-decimal list-inside mb-2"
+                                  {...props}
+                                />
+                              ),
+                              code: ({ node, ...props }) => (
+                                <code
+                                  className="bg-gray-100 rounded px-1"
+                                  {...props}
+                                />
+                              ),
+                            }}
+                          >
+                            {msg.content}
+                          </ReactMarkdown>
+
+                          {msg.role === "user" && (
+                            <div className="w-full flex justify-end mt-2">
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      onClick={() =>
+                                        handleEditStart(msg.id, msg.content)
+                                      }
+                                      variant="ghost"
+                                      size="sm"
+                                      className="p-1"
+                                    >
+                                      <Edit2 size={16} />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="text-white text-xs bg-black border-none">
+                                    <p>Edit message</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                          )}
+                          {msg.role === "assistant" &&
+                            (msg as any).nextStep && (
+                              <div className="mt-2">
+                                <Button
+                                  onClick={() => handleViewMore(msg.id)}
+                                  variant="link"
+                                  size="sm"
+                                  className="text-white hover:text-blue-200 transition-colors duration-200"
+                                >
+                                  {viewMoreOpen === msg.id ? (
+                                    <ChevronRight size={16} className="mr-1" />
+                                  ) : (
+                                    <ChevronDown size={16} className="mr-1" />
+                                  )}
+                                  {viewMoreOpen === msg.id
+                                    ? "Hide Details"
+                                    : "View More"}
+                                </Button>
+                              </div>
+                            )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <form
+                onSubmit={handleSubmit}
+                className="flex items-center relative"
+              >
+                <div className="w-full relative">
+                  <textarea
+                    ref={textareaRef}
+                    value={input}
+                    onChange={handleTextareaChange}
+                    onKeyDown={(
+                      e: React.KeyboardEvent<HTMLTextAreaElement>
+                    ) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSubmit(e as any);
+                      }
+                    }}
+                    placeholder="Type your message..."
+                    className="w-full p-2 pr-12 bg-gray-700 bg-opacity-50 text-white border border-gray-600 rounded-lg resize-none overflow-hidden placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 min-h-[40px] max-h-[120px] pb-6"
+                  />
+                  {lineCount <= 2 && (
+                    <span className="absolute bottom-1 left-2 text-xs text-gray-400 pb-1">
+                      Shift+Return for new line
+                    </span>
+                  )}
+                  <Button
+                    type="submit"
+                    size="icon"
+                    className="absolute right-2 top-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200"
+                  >
+                    <Send size={16} />
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </motion.div>
+        </div>
       )}
     </AnimatePresence>
   );
