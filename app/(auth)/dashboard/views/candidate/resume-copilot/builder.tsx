@@ -334,12 +334,12 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
               },
             },
           };
-      
+
           const updatedAlerts = prevAlerts.map((alert) => ({
             ...alert,
             isMinimized: true,
           }));
-      
+
           return [...updatedAlerts, newAlert];
         });
 
@@ -374,7 +374,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       setIsProcessing(false);
     }
   }, [processingQueue, isProcessing, items, talentProfile, selectedRole]);
-
 
   useEffect(() => {
     processNextInQueue();
@@ -808,66 +807,71 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   );
 
   /* Editor */
-  const handleEdit = (item: Item) => {
+  const handleEdit = useCallback((item: Item) => {
     setEditingItem(item);
-  };
+  }, []);
 
-  const handleSaveEdit = async (
-    editedItem: Item,
-    regenerateSuggestions: boolean
-  ) => {
-    setEditedItems((prev) => ({
-      ...prev,
-      [editedItem.id]: editedItem,
-    }));
-
-    if (editedItem.type === "personal") {
-      setItems((prevItems) => ({
-        ...prevItems,
-        chosen: prevItems.chosen.map((item) =>
-          item.id === editedItem.id
-            ? {
-                ...item,
-                content: {
-                  ...item.content,
-                  value: editedItem.content.value,
-                },
-              }
-            : item
-        ),
+  const handleSaveEdit = useCallback(
+    async (editedItem: Item, regenerateSuggestions: boolean) => {
+      setEditedItems((prev) => ({
+        ...prev,
+        [editedItem.id]: editedItem,
       }));
-    }
 
-    setEditingItem(null);
-    setLastModifiedItemId(editedItem.id);
+      if (editedItem.type === "personal") {
+        setItems((prevItems) => ({
+          ...prevItems,
+          chosen: prevItems.chosen.map((item) =>
+            item.id === editedItem.id
+              ? {
+                  ...item,
+                  content: {
+                    ...item.content,
+                    value: editedItem.content.value,
+                  },
+                }
+              : item
+          ),
+        }));
+      }
 
-    if (regenerateSuggestions) {
-      // Add the edited item to the processing queue
-      setProcessingQueue((prevQueue) => [
-        ...prevQueue,
-        { itemId: editedItem.id, cardContent: editedItem.content },
-      ]);
+      setEditingItem(null);
+      setLastModifiedItemId(editedItem.id);
 
-      // Set the item as processing
-      setProcessingItems((prev) => new Set(prev).add(editedItem.id));
-    }
-  };
+      if (regenerateSuggestions) {
+        // Add the edited item to the processing queue
+        setProcessingQueue((prevQueue) => [
+          ...prevQueue,
+          { itemId: editedItem.id, cardContent: editedItem.content },
+        ]);
+
+        // Set the item as processing
+        setProcessingItems((prev) => new Set(prev).add(editedItem.id));
+      }
+    },
+    [
+      setEditedItems,
+      setItems,
+      setEditingItem,
+      setLastModifiedItemId,
+      setProcessingQueue,
+      setProcessingItems,
+    ]
+  );
 
   const renderItemContent = useMemo(
     () =>
       createRenderItemContent(
         editedItems,
-        memoizedAlerts,
+        memoizedAlerts, // Use memoizedAlerts instead of alerts
         processingItems,
         handleEdit,
         toggleAlertMinimize,
-        (itemId) => (
-          <ProcessingIndicator message="Analyzing edit..." />
-        )
+        (itemId) => <ProcessingIndicator message="Analyzing edit..." />
       ),
     [
       editedItems,
-      memoizedAlerts,
+      memoizedAlerts, // Use memoizedAlerts in the dependency array
       processingItems,
       handleEdit,
       toggleAlertMinimize,
