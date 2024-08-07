@@ -35,7 +35,7 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
   nextSteps,
   setNextSteps,
 }) => {
-  const { messages, input, handleInputChange, handleSubmit, setMessages } =
+  const { messages, input, handleInputChange, handleSubmit, setMessages, isLoading } =
     useChat({
       api: "/api/hey-coach",
     });
@@ -348,6 +348,8 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
                   <Button
                     type="submit"
                     size="icon"
+                    // Disable if isLoading is true
+                    disabled={isLoading}
                     className="absolute right-2 top-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200"
                   >
                     <Send size={16} />
