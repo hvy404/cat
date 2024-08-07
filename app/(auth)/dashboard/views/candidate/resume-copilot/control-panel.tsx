@@ -7,15 +7,17 @@ interface ControlPanelProps {
   onCreateResume: () => void;
   onSaveVersion: () => void;
   onOpenChat: () => void;
+  isChatButtonExpanded: boolean;
 }
 
 const ControlPanel: React.FC<ControlPanelProps> = ({
   onCreateResume,
   onSaveVersion,
   onOpenChat,
+  isChatButtonExpanded,
 }) => {
   const buttonVariants = {
-    initial: { width: "48px" },
+    initial: { width: "46px" },
     hover: {
       width: "180px",
       transition: { duration: 0.3, ease: "easeInOut" },
@@ -35,11 +37,12 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
     onClick: () => void;
     icon: React.ReactNode;
     text: string;
-  }> = ({ onClick, icon, text }) => (
+    isExpanded?: boolean;
+  }> = ({ onClick, icon, text, isExpanded = false }) => (
     <motion.div
       initial="initial"
       whileHover="hover"
-      animate="initial"
+      animate={isExpanded ? "hover" : "initial"}
       className="flex justify-end"
     >
       <motion.button
@@ -75,7 +78,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
       <ButtonWrapper
         onClick={onOpenChat}
         icon={<MessageCircle className="h-5 w-5" />}
-        text="Open Chat"
+        text={isChatButtonExpanded ? "New Message" : "Open Chat"}
+        isExpanded={isChatButtonExpanded}
       />
     </div>
   );

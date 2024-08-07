@@ -131,6 +131,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   const [isSaveVersionDialogOpen, setIsSaveVersionDialogOpen] = useState(false);
   const [filename, setFilename] = useState("");
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatButtonExpanded, setIsChatButtonExpanded] = useState(false);
 
   // Add new state for custom sections
   const [customSections, setCustomSections] = useState<CustomSection[]>([]);
@@ -152,6 +153,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
 
   const handleOpenChat = () => {
     setIsChatOpen(true);
+    setIsChatButtonExpanded(false);
   };
 
   const sensors = useSensors(
@@ -342,7 +344,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         );
 
         if (!("error" in nextStepsResult)) {
-          setNextSteps((prevNextSteps) => [...prevNextSteps, nextStepsResult]);
+          setNextSteps((prevNextSteps) => {
+            const updatedNextSteps = [...prevNextSteps, nextStepsResult];
+            setIsChatButtonExpanded(true);
+            return updatedNextSteps;
+          });
         } else {
           console.error("Error in suggestNextSteps:", nextStepsResult.error);
         }
@@ -1233,16 +1239,17 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             </Container>
           </div>
         </div>
-        <CopilotTalk 
-  isOpen={isChatOpen} 
-  onClose={() => setIsChatOpen(false)}
-  nextSteps={nextSteps}
-  setNextSteps={setNextSteps}
-/>
+        <CopilotTalk
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+          nextSteps={nextSteps}
+          setNextSteps={setNextSteps}
+        />
         <ControlPanel
           onCreateResume={handleCreateResume}
           onSaveVersion={handleSaveVersion}
           onOpenChat={handleOpenChat}
+          isChatButtonExpanded={isChatButtonExpanded}
         />
       </div>
       <DragOverlay>

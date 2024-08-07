@@ -11,6 +11,8 @@ const together = createOpenAI({
 
 export async function agentResponseConvo(messages: CoreMessage[]) {
 
+  console.log("Server action", messages);
+
   const result = await streamText({
     model: together.completion("mistralai/Mixtral-8x7B-Instruct-v0.1"),
     messages,
