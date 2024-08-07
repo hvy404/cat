@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Edit2, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,13 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useChat } from "ai/react";
-
-interface Message {
-  text: string;
-  id: number;
-  sender: "bot" | "user";
-}
+import { useChat, Message as AIMessage } from "ai/react";
 
 interface NextStep {
   message: string;
@@ -35,63 +29,36 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
   nextSteps,
   setNextSteps,
 }) => {
-  const {
-    messages: aiMessages,
-    input,
-    handleInputChange,
-    handleSubmit,
-  } = useChat({
-    api: "/api/hey-coach",
-  });
+  const { messages, input, handleInputChange, handleSubmit, setMessages } =
+    useChat({
+      api: "/api/hey-coach",
+    });
 
-  const [chatMessages, setChatMessages] = useState<Message[]>([]);
-  const [editingMessageId, setEditingMessageId] = useState<number | null>(null);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editText, setEditText] = useState<string>("");
   const chatRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [lineCount, setLineCount] = useState(1);
 
-  useEffect(() => {
-    // Handle AI messages
-    if (aiMessages.length > 0) {
-      const lastAiMessage = aiMessages[aiMessages.length - 1];
-      
-      setChatMessages((prevMessages) => {
-        const lastMessage = prevMessages[prevMessages.length - 1];
-        
-        if (lastMessage && lastMessage.sender === "bot" && lastAiMessage.role === "assistant") {
-          // Update the existing bot message
-          return prevMessages.map((msg, index) => 
-            index === prevMessages.length - 1 
-              ? { ...msg, text: lastAiMessage.content }
-              : msg
-          );
-        } else {
-          // Add a new message
-          return [...prevMessages, {
-            text: lastAiMessage.content,
-            id: Date.now(),
-            sender: lastAiMessage.role === "user" ? "user" : "bot",
-          }];
-        }
-      });
-    }
-  }, [aiMessages]);
-
-  useEffect(() => {
-    // Add new nextSteps messages to chat
+  const addNextStepMessages = useCallback(() => {
     const newNextStepMessages = nextSteps
-      .filter((step) => !chatMessages.some((msg) => msg.text === step.message))
-      .map((step) => ({
-        text: step.message,
-        id: Date.now() + Math.random(),
-        sender: "bot" as const,
-      }));
+      .filter((step) => !messages.some((msg) => msg.content === step.message))
+      .map(
+        (step): AIMessage => ({
+          id: `nextstep-${Date.now()}-${Math.random()}`,
+          content: step.message,
+          role: "assistant",
+        })
+      );
 
     if (newNextStepMessages.length > 0) {
-      setChatMessages((prev) => [...prev, ...newNextStepMessages]);
+      setMessages((prevMessages) => [...prevMessages, ...newNextStepMessages]);
     }
-  }, [nextSteps, chatMessages]);
+  }, [nextSteps, messages, setMessages]);
+
+  useEffect(() => {
+    addNextStepMessages();
+  }, [nextSteps, addNextStepMessages]);
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     handleInputChange(e);
@@ -129,19 +96,19 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
     }
   }, [input]);
 
-  const handleEditStart = (id: number, text: string) => {
+  const handleEditStart = (id: string, content: string) => {
     setEditingMessageId(id);
-    setEditText(text);
+    setEditText(content);
   };
 
   const handleEditChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setEditText(e.target.value);
   };
 
-  const handleEditSave = (id: number) => {
-    setChatMessages((prevMessages) =>
+  const handleEditSave = (id: string) => {
+    setMessages((prevMessages) =>
       prevMessages.map((msg) =>
-        msg.id === id ? { ...msg, text: editText } : msg
+        msg.id === id ? { ...msg, content: editText } : msg
       )
     );
     setEditingMessageId(null);
@@ -178,16 +145,16 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
               </Button>
             </div>
             <div className="flex-grow overflow-y-auto mb-4 p-4 rounded">
-              {chatMessages.map((msg) => (
+              {messages.map((msg) => (
                 <div
                   key={msg.id}
                   className={`flex ${
-                    msg.sender === "bot" ? "justify-start" : "justify-end"
+                    msg.role === "assistant" ? "justify-start" : "justify-end"
                   } mb-4`}
                 >
                   <div
                     className={`max-w-[70%] p-3 rounded-lg ${
-                      msg.sender === "bot"
+                      msg.role === "assistant"
                         ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white"
                         : "bg-gradient-to-br from-gray-200 to-gray-300 text-gray-800"
                     } shadow-md`}
@@ -204,10 +171,18 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
                           }}
                         />
                         <div className="flex justify-end space-x-2">
-                          <Button onClick={() => handleEditSave(msg.id)} variant="ghost" size="sm">
+                          <Button
+                            onClick={() => handleEditSave(msg.id)}
+                            variant="ghost"
+                            size="sm"
+                          >
                             Save
                           </Button>
-                          <Button onClick={handleEditCancel} variant="ghost" size="sm">
+                          <Button
+                            onClick={handleEditCancel}
+                            variant="ghost"
+                            size="sm"
+                          >
                             Cancel
                           </Button>
                         </div>
@@ -215,15 +190,17 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
                     ) : (
                       <div className="w-full">
                         <p className="text-sm break-words whitespace-pre-wrap">
-                          {msg.text}
+                          {msg.content}
                         </p>
-                        {msg.sender === "user" && (
+                        {msg.role === "user" && (
                           <div className="w-full flex justify-end mt-2">
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <Button
-                                    onClick={() => handleEditStart(msg.id, msg.text)}
+                                    onClick={() =>
+                                      handleEditStart(msg.id, msg.content)
+                                    }
                                     variant="ghost"
                                     size="sm"
                                     className="p-1"

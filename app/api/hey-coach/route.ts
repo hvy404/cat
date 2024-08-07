@@ -12,6 +12,8 @@ const openai = createOpenAI({
 export async function POST(req: Request) {
   const { messages }: { messages: CoreMessage[] } = await req.json();
 
+  console.log("Received messages:", messages);
+
   const result = await streamText({
     model: openai("mistralai/Mixtral-8x7B-Instruct-v0.1"),
     messages,
