@@ -135,6 +135,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   const [processingItems, setProcessingItems] = useState<Set<string>>(
     new Set()
   );
+  const [completedItems, setCompletedItems] = useState<Set<string>>(new Set());
+
   const [isSaveVersionDialogOpen, setIsSaveVersionDialogOpen] = useState(false);
   const [filename, setFilename] = useState("");
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -292,7 +294,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     }
   }, []);
 
-  const processNextInQueue = async () => {
+  const processNextInQueue = useCallback(async () => {
     if (processingQueue.length === 0 || isProcessing) {
       return;
     }
@@ -321,7 +323,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         setAlerts((prevAlerts) => {
           const newAlert: Alert = {
             itemId: itemId,
-            isMinimized: false, // Set the new alert to be maximized
+            isMinimized: false,
             message: {
               recommendation: {
                 action: result.recommendation.action,
@@ -333,17 +335,14 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             },
           };
       
-          // Minimize all existing alerts
           const updatedAlerts = prevAlerts.map((alert) => ({
             ...alert,
             isMinimized: true,
           }));
       
-          // Add the new, maximized alert
           return [...updatedAlerts, newAlert];
         });
 
-        // Call suggestNextSteps after buildEditReview
         const nextStepsResult = await suggestNextSteps(
           items,
           talentProfile,
@@ -359,7 +358,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             return updatedNextSteps;
           });
         } else {
-          //console.error("Error in suggestNextSteps:", nextStepsResult.error);
+          console.error("Error in suggestNextSteps:", nextStepsResult.error);
         }
       }
     } catch (error) {
@@ -370,19 +369,20 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         newSet.delete(itemId);
         return newSet;
       });
-
+      setCompletedItems((prev) => new Set(prev).add(itemId));
       setProcessingQueue((prev) => prev.slice(1));
       setIsProcessing(false);
     }
-  };
+  }, [processingQueue, isProcessing, items, talentProfile, selectedRole]);
+
 
   useEffect(() => {
     processNextInQueue();
-  }, [processingQueue, isProcessing]);
+  }, [processNextInQueue]);
 
-  const handleCardDrop = (itemId: string, cardContent: any) => {
+  const handleCardDrop = useCallback((itemId: string, cardContent: any) => {
     setProcessingQueue((prev) => [...prev, { itemId, cardContent }]);
-  };
+  }, []);
 
   const excludedPersonalItems = [
     "name",
