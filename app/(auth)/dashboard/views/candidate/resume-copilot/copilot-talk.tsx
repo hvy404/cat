@@ -9,6 +9,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useChat, Message as AIMessage } from "ai/react";
+import ReactMarkdown from "react-markdown";
 
 interface NextStep {
   message: string;
@@ -189,9 +190,47 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
                       </div>
                     ) : (
                       <div className="w-full">
-                        <p className="text-sm break-words whitespace-pre-wrap">
+                        <ReactMarkdown
+                          className="text-sm break-words whitespace-pre-wrap markdown-content"
+                          components={{
+                            p: ({ node, ...props }) => (
+                              <p className="mb-2" {...props} />
+                            ),
+                            h1: ({ node, ...props }) => (
+                              <h1
+                                className="text-xl font-bold mb-2"
+                                {...props}
+                              />
+                            ),
+                            h2: ({ node, ...props }) => (
+                              <h2
+                                className="text-lg font-semibold mb-2"
+                                {...props}
+                              />
+                            ),
+                            ul: ({ node, ...props }) => (
+                              <ul
+                                className="list-disc list-inside mb-2"
+                                {...props}
+                              />
+                            ),
+                            ol: ({ node, ...props }) => (
+                              <ol
+                                className="list-decimal list-inside mb-2"
+                                {...props}
+                              />
+                            ),
+                            code: ({ node, ...props }) => (
+                              <code
+                                className="bg-gray-100 rounded px-1"
+                                {...props}
+                              />
+                            ),
+                          }}
+                        >
                           {msg.content}
-                        </p>
+                        </ReactMarkdown>
+
                         {msg.role === "user" && (
                           <div className="w-full flex justify-end mt-2">
                             <TooltipProvider>
