@@ -352,7 +352,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             return updatedNextSteps;
           });
         } else {
-          console.error("Error in suggestNextSteps:", nextStepsResult.error);
+          //console.error("Error in suggestNextSteps:", nextStepsResult.error);
         }
       }
     } catch (error) {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Edit2, Send, X } from "lucide-react";
+import { Edit2, Send, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -15,6 +15,11 @@ interface NextStep {
   message: string;
   suggestion: string;
   reasoning: string;
+}
+
+// Extend the AIMessage type to include the nextStep property
+interface ExtendedAIMessage extends AIMessage {
+  nextStep?: NextStep;
 }
 
 interface CopilotTalkProps {
@@ -35,6 +40,8 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
       api: "/api/hey-coach",
     });
 
+  console.log("Receive next steps", nextSteps);
+
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editText, setEditText] = useState<string>("");
   const chatRef = useRef<HTMLDivElement>(null);
@@ -45,10 +52,11 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
     const newNextStepMessages = nextSteps
       .filter((step) => !messages.some((msg) => msg.content === step.message))
       .map(
-        (step): AIMessage => ({
+        (step): ExtendedAIMessage => ({
           id: `nextstep-${Date.now()}-${Math.random()}`,
           content: step.message,
           role: "assistant",
+          nextStep: step,
         })
       );
 
@@ -252,6 +260,28 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
+                          </div>
+                        )}
+                        {msg.role === "assistant" && (msg as any).nextStep && (
+                          <div className="mt-2">
+                            <Button
+                              onClick={() => {
+                                console.log(
+                                  "Suggestion:",
+                                  (msg as any).nextStep.suggestion
+                                );
+                                console.log(
+                                  "Reasoning:",
+                                  (msg as any).nextStep.reasoning
+                                );
+                              }}
+                              variant="link"
+                              size="sm"
+                              className="text-white hover:text-blue-200 transition-colors duration-200"
+                            >
+                              <ChevronDown size={16} className="mr-1" />
+                              View More
+                            </Button>
                           </div>
                         )}
                       </div>
