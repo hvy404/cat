@@ -20,8 +20,8 @@ interface RenderItemContentProps {
         implementation: string;
       };
     };
-    isMinimized: boolean;
   }[];
+  alertMinimizedState: Record<string, boolean>;
   processingItems: Set<string>;
   handleEdit: (item: Item) => void;
   toggleAlertMinimize: (id: string) => void;
@@ -41,6 +41,7 @@ const formatDate = (dateString: string): string => {
 export const createRenderItemContent = (
   editedItems: Record<string, Item>,
   alerts: RenderItemContentProps["alerts"],
+  alertMinimizedState: Record<string, boolean>,
   processingItems: Set<string>,
   handleEdit: (item: Item) => void,
   toggleAlertMinimize: (id: string) => void,
@@ -200,6 +201,7 @@ export const createRenderItemContent = (
 
     const itemAlert = alerts.find((alert) => alert.itemId === editedItem.id);
     const isProcessing = processingItems.has(editedItem.id);
+    const isMinimized = alertMinimizedState[editedItem.id] || false;
 
     return (
       <div onClick={(e) => e.stopPropagation()}>
@@ -225,7 +227,7 @@ export const createRenderItemContent = (
             ) : itemAlert ? (
               <Alert
                 message={itemAlert.message}
-                isMinimized={itemAlert.isMinimized}
+                isMinimized={isMinimized}
                 onToggleMinimize={() => toggleAlertMinimize(editedItem.id)}
               />
             ) : null}

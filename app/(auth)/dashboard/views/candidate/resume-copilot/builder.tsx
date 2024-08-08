@@ -153,6 +153,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   // New state for next steps
   const [nextSteps, setNextSteps] = useState<NextStep[]>([]);
 
+  const [alertMinimizedState, setAlertMinimizedState] = useState<Record<string, boolean>>({});
+
+
   const memoizedAlerts = useMemo(() => alerts, [alerts]);
 
   const sensors = useSensors(
@@ -413,14 +416,12 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     excludedPersonalItems,
   ]);
 
+
   const toggleAlertMinimize = useCallback((id: string) => {
-    setAlerts((prevAlerts) =>
-      prevAlerts.map((alert) =>
-        alert.itemId === id
-          ? { ...alert, isMinimized: !alert.isMinimized }
-          : { ...alert, isMinimized: true }
-      )
-    );
+    setAlertMinimizedState(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
   }, []);
 
   const findContainer = (id: string) => {
@@ -585,12 +586,13 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     () => createRenderItemContent(
       editedItems,
       memoizedAlerts,
+      alertMinimizedState,  // Add this line
       processingItems,
       handleEdit,
       toggleAlertMinimize,
       (itemId) => <ProcessingIndicator message="Analyzing edit..." />
     ),
-    [editedItems, memoizedAlerts, processingItems, handleEdit, toggleAlertMinimize]
+    [editedItems, memoizedAlerts, alertMinimizedState, processingItems, handleEdit, toggleAlertMinimize]  // Add alertMinimizedState to the dependency array
   );
 
   const handleDeleteCustomSection = (sectionId: string) => {
