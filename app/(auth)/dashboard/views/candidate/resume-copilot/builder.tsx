@@ -20,7 +20,13 @@ import {
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import Container from "./container";
 import SortableItem from "./sortable";
-import { Item, ItemType, CustomItem, ResumeBuilderProps, QueueItem } from "./types";
+import {
+  Item,
+  ItemType,
+  CustomItem,
+  ResumeBuilderProps,
+  QueueItem,
+} from "./types";
 import { buildEditReview } from "./prompt-builder"; // AI Call
 import { suggestNextSteps } from "./next-steps"; // AI Call #2
 import { Button } from "@/components/ui/button";
@@ -56,6 +62,7 @@ import ProcessingIndicator from "./processing-indicator";
 import CopilotTalk from "./copilot-talk";
 import ControlPanel from "./control-panel";
 import { handleDragEnd } from "./handler-drag-end";
+import { handleDragOver } from "./handler-drag-over";
 
 interface BuilderSession {
   sessionId: string;
@@ -504,69 +511,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     [items, customSections, findContainer]
   );
 
-  const handleDragOver = useCallback(
-    (event: DragOverEvent) => {
-      const { active, over } = event;
-      const id = active.id as string;
-      const overId = over?.id as string;
-
-      const activeContainer = findContainer(id);
-      let overContainer = findContainer(overId);
-
-      // If overContainer is null, it means we're likely hovering over an empty Chosen
-      if (!overContainer) {
-        // Check if we're actually over the Chosen container
-        if (over && over.id === "chosen") {
-          overContainer = "chosen";
-        } else {
-          return; // Not over a valid container, do nothing
-        }
-      }
-
-      if (!activeContainer || activeContainer === overContainer) {
-        return;
-      }
-
-      setItems((prev) => {
-        const activeItems = prev[activeContainer];
-        const overItems = prev[overContainer];
-
-        if (!activeItems || !overItems) {
-          console.error("Invalid containers:", {
-            activeContainer,
-            overContainer,
-            prev,
-          });
-          return prev;
-        }
-
-        const activeIndex = activeItems.findIndex((item) => item.id === id);
-        const overIndex = overItems.findIndex((item) => item.id === overId);
-
-        let newIndex: number;
-        if (overId in prev) {
-          newIndex = overItems.length + 1;
-        } else {
-          const isBelowLastItem = over && overIndex === overItems.length - 1;
-          newIndex = isBelowLastItem ? overIndex + 1 : overIndex;
-        }
-
-        const newItems = {
-          ...prev,
-          [activeContainer]: [
-            ...prev[activeContainer].filter((item) => item.id !== active.id),
-          ],
-          [overContainer]: [
-            ...prev[overContainer].slice(0, newIndex),
-            activeItems[activeIndex],
-            ...prev[overContainer].slice(newIndex, prev[overContainer].length),
-          ],
-        };
-
-        return newItems;
-      });
-    },
-    [findContainer]
+  const handleDragOverCallback = useCallback(
+    (event: DragOverEvent) => handleDragOver(event, findContainer, setItems),
+    [findContainer, setItems]
   );
 
   const dragEnd = useCallback(
@@ -605,11 +552,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       setActionHistory,
       setProcessingQueue,
       setProcessingItems,
-      handleAddCustomItem
+      handleAddCustomItem,
     ]
   );
-  
-  
 
   /* Editor */
   const handleEdit = useCallback((item: Item) => {
@@ -1038,7 +983,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       sensors={sensors}
       collisionDetection={closestCorners}
       onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
+      onDragOver={handleDragOverCallback}
       onDragEnd={dragEnd}
     >
       <div className="flex gap-6 h-[calc(100vh-12rem)] overflow-hidden">
