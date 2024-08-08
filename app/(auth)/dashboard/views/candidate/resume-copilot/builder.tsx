@@ -53,6 +53,7 @@ import {
   handleSaveVersionSubmit,
 } from "./handler-resume-save";
 import { handleSelectTemplate } from "./handler-download-doc";
+import cranium from "./cranium";
 
 interface BuilderSession {
   sessionId: string;
@@ -416,7 +417,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     excludedPersonalItems,
   ]);
 
-
   const toggleAlertMinimize = useCallback((id: string) => {
     setAlertMinimizedState(prev => ({
       ...prev,
@@ -528,6 +528,22 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       handleAddCustomItem,
     ]
   );
+
+  const handleStoreItems = async () => {
+    try {
+      const result = await cranium(builderSession.sessionId, userId, items);
+      if (result.success) {
+        console.log(result.message);
+      }
+    } catch (error) {
+      console.error("Error storing items:", error);
+    }
+  };
+
+  // useEfect to handleStoreItems on mount
+  useEffect(() => {
+    handleStoreItems();
+  }, [handleStoreItems]);
 
   /* Editor */
   const handleEdit = useCallback((item: Item) => {
