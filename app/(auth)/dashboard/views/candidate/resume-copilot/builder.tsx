@@ -40,11 +40,7 @@ import {
 } from "./assemble-docx";
 import TemplateSelectionDialog from "./template-selection";
 import SaveResumeDialog from "./save-resume-dialog";
-import { uploadResumeAction } from "./resume-upload";
-import { addResumeEntryAction } from "./add-resume-entry";
 import createId from "@/lib/global/cuid-generate";
-import { base64ToBlob } from "@/app/(auth)/dashboard/views/candidate/resume-copilot/convert-to-file";
-import { toast } from "sonner";
 import {
   addCustomSection,
   addCustomItem,
@@ -61,10 +57,7 @@ import {
   handleSaveVersion,
   handleSaveVersionSubmit,
 } from "./handler-resume-save";
-import {
-  handleSelectTemplate,
-  prepareResumeData,
-} from "./handler-download-doc";
+import { handleSelectTemplate } from "./handler-download-doc";
 
 interface BuilderSession {
   sessionId: string;
@@ -300,74 +293,41 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   }, []);
 
   const processNextInQueue = useCallback(async () => {
-    if (processingQueue.length === 0 || isProcessing) {
-      return;
-    }
-
+    if (processingQueue.length === 0 || isProcessing) return;
+  
     setIsProcessing(true);
     const { itemId, cardContent } = processingQueue[0];
-
+  
     try {
       setProcessingItems((prev) => new Set(prev).add(itemId));
-
-      if (!selectedRole) {
-        throw new Error("Selected role is not defined");
-      }
-
-      const result = await buildEditReview(
-        items,
-        talentProfile,
-        selectedRole,
-        itemId,
-        cardContent
-      );
-
-      if ("error" in result) {
-        console.error(result.error);
-      } else {
+  
+      if (!selectedRole) throw new Error("Selected role is not defined");
+  
+      const [editReviewResult, nextStepsResult] = await Promise.all([
+        buildEditReview(items, talentProfile, selectedRole, itemId, cardContent),
+        suggestNextSteps(items, talentProfile, selectedRole, itemId, cardContent)
+      ]);
+  
+      if (!("error" in editReviewResult)) {
         setAlerts((prevAlerts) => {
           const newAlert: Alert = {
-            itemId: itemId,
+            itemId,
             isMinimized: false,
-            message: {
-              recommendation: {
-                action: result.recommendation.action,
-                priority: result.recommendation.priority,
-                targetItem: result.recommendation.targetItem,
-                rationale: result.recommendation.rationale,
-                implementation: result.recommendation.implementation,
-              },
-            },
+            message: { recommendation: editReviewResult.recommendation },
           };
-
-          const updatedAlerts = prevAlerts.map((alert) => ({
-            ...alert,
-            isMinimized: true,
-          }));
-
-          return [...updatedAlerts, newAlert];
+          return [...prevAlerts.map(alert => ({ ...alert, isMinimized: true })), newAlert];
         });
-
-        const nextStepsResult = await suggestNextSteps(
-          items,
-          talentProfile,
-          selectedRole,
-          itemId,
-          cardContent
-        );
-
-        if (!("error" in nextStepsResult)) {
-          setNextSteps((prevNextSteps) => {
-            const updatedNextSteps = [...prevNextSteps, nextStepsResult];
-            setIsChatButtonExpanded(true);
-            return updatedNextSteps;
-          });
-        } else {
-          console.error("Error in suggestNextSteps:", nextStepsResult.error);
-        }
+      }
+  
+      if (!("error" in nextStepsResult)) {
+        setNextSteps((prevNextSteps) => {
+          setIsChatButtonExpanded(true);
+          return [...prevNextSteps, nextStepsResult];
+        });
       }
     } catch (error) {
       console.error("Error processing item:", error);
+      // Implement error handling strategy here (e.g., retry logic, user notification)
     } finally {
       setProcessingItems((prev) => {
         const newSet = new Set(prev);
@@ -377,7 +337,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       setProcessingQueue((prev) => prev.slice(1));
       setIsProcessing(false);
     }
-  }, [processingQueue, isProcessing, items, talentProfile, selectedRole]);
+  }, [processingQueue, isProcessing, items, talentProfile, selectedRole, buildEditReview, suggestNextSteps]);  
 
   useEffect(() => {
     processNextInQueue();
