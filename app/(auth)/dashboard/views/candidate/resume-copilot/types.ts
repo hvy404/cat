@@ -16,6 +16,11 @@ export interface Item {
   content: any;
 }
 
+export interface QueueItem {
+  itemId: string;
+  cardContent: any;
+}
+
 // Add new interfaces for custom sections and items
 export interface CustomSection {
   id: string;

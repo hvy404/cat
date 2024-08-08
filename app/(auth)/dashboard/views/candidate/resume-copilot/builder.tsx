@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useMemo,
-  useCallback,
-} from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -17,34 +11,31 @@ import {
   DragOverEvent,
   DragEndEvent,
 } from "@dnd-kit/core";
-import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import Container from "./container";
 import SortableItem from "./sortable";
-import { Item, ItemType, CustomItem, ResumeBuilderProps } from "./types";
+import {
+  Item,
+  ItemType,
+  CustomItem,
+  ResumeBuilderProps,
+  QueueItem,
+} from "./types";
 import { buildEditReview } from "./prompt-builder"; // AI Call
 import { suggestNextSteps } from "./next-steps"; // AI Call #2
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, Save, Download } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { DeleteConfirmationDialog } from "./delete-dialog";
 import { AvailableItems } from "./available-items";
 import AddSectionDialog from "./add-section-dialog";
 import EditDialog from "./edit-dialog";
 import { renderCondensedItemContent } from "./condensed-content";
 import { createRenderItemContent } from "./render-item-content";
-import {
-  generateResume,
-  ResumeData,
-  ResumeItem,
-  DocxCustomSection,
-} from "./assemble-docx";
+import { ResumeData, ResumeItem, DocxCustomSection } from "./assemble-docx";
 import TemplateSelectionDialog from "./template-selection";
 import SaveResumeDialog from "./save-resume-dialog";
-import { uploadResumeAction } from "./resume-upload";
-import { addResumeEntryAction } from "./add-resume-entry";
 import createId from "@/lib/global/cuid-generate";
-import { base64ToBlob } from "@/app/(auth)/dashboard/views/candidate/resume-copilot/convert-to-file";
-import { toast } from "sonner";
 import {
   addCustomSection,
   addCustomItem,
@@ -55,6 +46,13 @@ import {
 import ProcessingIndicator from "./processing-indicator";
 import CopilotTalk from "./copilot-talk";
 import ControlPanel from "./control-panel";
+import { handleDragEnd } from "./handler-drag-end";
+import { handleDragOver } from "./handler-drag-over";
+import {
+  handleSaveVersion,
+  handleSaveVersionSubmit,
+} from "./handler-resume-save";
+import { handleSelectTemplate } from "./handler-download-doc";
 
 interface BuilderSession {
   sessionId: string;
@@ -65,11 +63,6 @@ interface CustomSection {
   id: string;
   title: string;
   items: CustomItem[];
-}
-
-interface QueueItem {
-  itemId: string;
-  cardContent: any;
 }
 
 interface Alert {
@@ -102,15 +95,16 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   const [builderSession, setBuilderSession] = useState<BuilderSession>({
     sessionId: createId(),
   });
+
   const [items, setItems] = useState<Record<string, Item[]>>({
     available: [],
     chosen: selectedItems,
   });
+
   const [editedItems, setEditedItems] = useState<Record<string, Item>>({});
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [dragOrigin, setDragOrigin] = useState<string | null>(null);
   const [dragStartContainer, setDragStartContainer] = useState<string | null>(
     null
   );
@@ -135,7 +129,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   const [processingItems, setProcessingItems] = useState<Set<string>>(
     new Set()
   );
-  const [completedItems, setCompletedItems] = useState<Set<string>>(new Set());
 
   const [isSaveVersionDialogOpen, setIsSaveVersionDialogOpen] = useState(false);
   const [filename, setFilename] = useState("");
@@ -160,10 +153,10 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   // New state for next steps
   const [nextSteps, setNextSteps] = useState<NextStep[]>([]);
 
-  const handleOpenChat = () => {
-    setIsChatOpen(true);
-    setIsChatButtonExpanded(false);
-  };
+  const [alertMinimizedState, setAlertMinimizedState] = useState<Record<string, boolean>>({});
+
+
+  const memoizedAlerts = useMemo(() => alerts, [alerts]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -188,6 +181,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     })
   );
 
+  const handleOpenChat = () => {
+    setIsChatOpen(true);
+    setIsChatButtonExpanded(false);
+  };
+
   // Presets
   const moveItemsToChosen = (itemKeys: string[]) => {
     setItems((prevItems) => {
@@ -210,8 +208,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       };
     });
   };
-
-  const memoizedAlerts = useMemo(() => alerts, [alerts]);
 
   useEffect(() => {
     console.log("Current alerts:", alerts);
@@ -295,9 +291,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   }, []);
 
   const processNextInQueue = useCallback(async () => {
-    if (processingQueue.length === 0 || isProcessing) {
-      return;
-    }
+    if (processingQueue.length === 0 || isProcessing) return;
 
     setIsProcessing(true);
     const { itemId, cardContent } = processingQueue[0];
@@ -305,83 +299,70 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     try {
       setProcessingItems((prev) => new Set(prev).add(itemId));
 
-      if (!selectedRole) {
-        throw new Error("Selected role is not defined");
-      }
+      if (!selectedRole) throw new Error("Selected role is not defined");
 
-      const result = await buildEditReview(
-        items,
-        talentProfile,
-        selectedRole,
-        itemId,
-        cardContent
-      );
-
-      if ("error" in result) {
-        console.error(result.error);
-      } else {
-        setAlerts((prevAlerts) => {
-          const newAlert: Alert = {
-            itemId: itemId,
-            isMinimized: false,
-            message: {
-              recommendation: {
-                action: result.recommendation.action,
-                priority: result.recommendation.priority,
-                targetItem: result.recommendation.targetItem,
-                rationale: result.recommendation.rationale,
-                implementation: result.recommendation.implementation,
-              },
-            },
-          };
-
-          const updatedAlerts = prevAlerts.map((alert) => ({
-            ...alert,
-            isMinimized: true,
-          }));
-
-          return [...updatedAlerts, newAlert];
-        });
-
-        const nextStepsResult = await suggestNextSteps(
+      const [editReviewResult, nextStepsResult] = await Promise.all([
+        buildEditReview(
           items,
           talentProfile,
           selectedRole,
           itemId,
           cardContent
-        );
+        ),
+        suggestNextSteps(
+          items,
+          talentProfile,
+          selectedRole,
+          itemId,
+          cardContent
+        ),
+      ]);
 
-        if (!("error" in nextStepsResult)) {
-          setNextSteps((prevNextSteps) => {
-            const updatedNextSteps = [...prevNextSteps, nextStepsResult];
-            setIsChatButtonExpanded(true);
-            return updatedNextSteps;
-          });
-        } else {
-          console.error("Error in suggestNextSteps:", nextStepsResult.error);
-        }
+      if (!("error" in editReviewResult)) {
+        setAlerts((prevAlerts) => {
+          const newAlert: Alert = {
+            itemId,
+            isMinimized: false,
+            message: { recommendation: editReviewResult.recommendation },
+          };
+          return [
+            ...prevAlerts.map((alert) => ({ ...alert, isMinimized: true })),
+            newAlert,
+          ];
+        });
+      }
+
+      if (!("error" in nextStepsResult)) {
+        setNextSteps((prevNextSteps) => {
+          setIsChatButtonExpanded(true);
+          return [...prevNextSteps, nextStepsResult];
+        });
       }
     } catch (error) {
       console.error("Error processing item:", error);
+      // Implement error handling strategy here (e.g., retry logic, user notification)
     } finally {
       setProcessingItems((prev) => {
         const newSet = new Set(prev);
         newSet.delete(itemId);
         return newSet;
       });
-      setCompletedItems((prev) => new Set(prev).add(itemId));
       setProcessingQueue((prev) => prev.slice(1));
       setIsProcessing(false);
     }
-  }, [processingQueue, isProcessing, items, talentProfile, selectedRole]);
+  }, [
+    processingQueue,
+    isProcessing,
+    items,
+    talentProfile,
+    selectedRole,
+    buildEditReview,
+    suggestNextSteps,
+  ]);
 
   useEffect(() => {
     processNextInQueue();
   }, [processNextInQueue]);
-
-  const handleCardDrop = useCallback((itemId: string, cardContent: any) => {
-    setProcessingQueue((prev) => [...prev, { itemId, cardContent }]);
-  }, []);
 
   const excludedPersonalItems = [
     "name",
@@ -435,14 +416,12 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     excludedPersonalItems,
   ]);
 
+
   const toggleAlertMinimize = useCallback((id: string) => {
-    setAlerts((prevAlerts) =>
-      prevAlerts.map((alert) =>
-        alert.itemId === id
-          ? { ...alert, isMinimized: !alert.isMinimized }
-          : { ...alert, isMinimized: true }
-      )
-    );
+    setAlertMinimizedState(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
   }, []);
 
   const findContainer = (id: string) => {
@@ -477,7 +456,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     );
   };
 
-  // Modify the Available Items section to include a Custom Card
   const renderAvailableItems = useMemo(
     () => (
       <AvailableItems
@@ -508,300 +486,45 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     [items, customSections, findContainer]
   );
 
-  const handleDragOver = useCallback(
-    (event: DragOverEvent) => {
-      const { active, over } = event;
-      const id = active.id as string;
-      const overId = over?.id as string;
-
-      const activeContainer = findContainer(id);
-      let overContainer = findContainer(overId);
-
-      // If overContainer is null, it means we're likely hovering over an empty Chosen
-      if (!overContainer) {
-        // Check if we're actually over the Chosen container
-        if (over && over.id === "chosen") {
-          overContainer = "chosen";
-        } else {
-          return; // Not over a valid container, do nothing
-        }
-      }
-
-      if (!activeContainer || activeContainer === overContainer) {
-        return;
-      }
-
-      setItems((prev) => {
-        const activeItems = prev[activeContainer];
-        const overItems = prev[overContainer];
-
-        if (!activeItems || !overItems) {
-          console.error("Invalid containers:", {
-            activeContainer,
-            overContainer,
-            prev,
-          });
-          return prev;
-        }
-
-        const activeIndex = activeItems.findIndex((item) => item.id === id);
-        const overIndex = overItems.findIndex((item) => item.id === overId);
-
-        let newIndex: number;
-        if (overId in prev) {
-          newIndex = overItems.length + 1;
-        } else {
-          const isBelowLastItem = over && overIndex === overItems.length - 1;
-          newIndex = isBelowLastItem ? overIndex + 1 : overIndex;
-        }
-
-        const newItems = {
-          ...prev,
-          [activeContainer]: [
-            ...prev[activeContainer].filter((item) => item.id !== active.id),
-          ],
-          [overContainer]: [
-            ...prev[overContainer].slice(0, newIndex),
-            activeItems[activeIndex],
-            ...prev[overContainer].slice(newIndex, prev[overContainer].length),
-          ],
-        };
-
-        return newItems;
-      });
-    },
-    [findContainer]
+  const handleDragOverCallback = useCallback(
+    (event: DragOverEvent) => handleDragOver(event, findContainer, setItems),
+    [findContainer, setItems]
   );
 
-  const handleDragEnd = useCallback(
+  const dragEnd = useCallback(
     (event: DragEndEvent) => {
-      const { active, over } = event;
-      const id = active.id as string;
-      const overId = over?.id as string;
-
-      if (id === "custom-card" && overId) {
-        const targetSection = customSections.find((section) =>
-          section.items.some((item) => item.id === overId)
-        );
-        if (targetSection) {
-          handleAddCustomItem(targetSection.id);
-        } else {
-          const newSectionId = `custom-section-${Date.now()}`;
-          const newSection: CustomSection = {
-            id: newSectionId,
-            title: "New Custom Section",
-            items: [],
-          };
-          setCustomSections([...customSections, newSection]);
-          handleAddCustomItem(newSectionId);
-        }
-        return;
-      }
-
-      const sourceSection = customSections.find((section) =>
-        section.items.some((item) => item.id === id)
+      handleDragEnd(
+        event,
+        items,
+        customSections,
+        findContainer,
+        setItems,
+        setCustomSections,
+        setActiveId,
+        setDraggedItem,
+        dragStartContainer,
+        excludedPersonalItems,
+        setLastModifiedItemId,
+        setActionHistory,
+        setProcessingQueue,
+        setProcessingItems,
+        handleAddCustomItem
       );
-      const targetSection = customSections.find((section) =>
-        section.items.some((item) => item.id === overId)
-      );
-
-      if (sourceSection && targetSection) {
-        setCustomSections((prevSections) =>
-          prevSections.map((section) => {
-            if (
-              section.id === sourceSection.id &&
-              section.id === targetSection.id
-            ) {
-              const oldIndex = section.items.findIndex(
-                (item) => item.id === id
-              );
-              const newIndex = section.items.findIndex(
-                (item) => item.id === overId
-              );
-              const newItems = arrayMove(section.items, oldIndex, newIndex);
-              return { ...section, items: newItems };
-            } else if (section.id === sourceSection.id) {
-              return {
-                ...section,
-                items: section.items.filter((item) => item.id !== id),
-              };
-            } else if (section.id === targetSection.id) {
-              const itemToMove = sourceSection.items.find(
-                (item) => item.id === id
-              )!;
-              const overIndex = section.items.findIndex(
-                (item) => item.id === overId
-              );
-              const newItems = [...section.items];
-              newItems.splice(overIndex, 0, itemToMove);
-              return { ...section, items: newItems };
-            }
-            return section;
-          })
-        );
-        return;
-      }
-
-      const activeContainer = findContainer(id);
-      const overContainer = findContainer(overId);
-
-      setItems((prevItems) => {
-        const activeItems =
-          prevItems[activeContainer as keyof typeof prevItems];
-        const overItems = prevItems[overContainer as keyof typeof prevItems];
-
-        if (!activeItems || !overItems) {
-          console.error("Invalid containers:", {
-            activeContainer,
-            overContainer,
-            prevItems,
-          });
-          return prevItems;
-        }
-
-        const activeIndex = activeItems.findIndex((item) => item.id === id);
-        const overIndex = overItems.findIndex((item) => item.id === overId);
-
-        let newItems = { ...prevItems };
-
-        if (activeContainer !== overContainer) {
-          newItems = {
-            ...newItems,
-            [activeContainer as keyof typeof prevItems]: activeItems.filter(
-              (item) => item.id !== id
-            ),
-            [overContainer as keyof typeof prevItems]: [
-              ...overItems.slice(0, overIndex),
-              activeItems[activeIndex],
-              ...overItems.slice(overIndex),
-            ],
-          };
-        } else {
-          newItems = {
-            ...newItems,
-            [overContainer as keyof typeof prevItems]: arrayMove(
-              overItems,
-              activeIndex,
-              overIndex
-            ),
-          };
-        }
-
-        if (
-          ((activeItems[activeIndex].type === "experience" ||
-            activeItems[activeIndex].type === "education") &&
-            overContainer === "chosen") ||
-          (overContainer === "chosen" &&
-            newItems["chosen"].some(
-              (item) => item.type === "experience" || item.type === "education"
-            ))
-        ) {
-          const allItems = newItems["chosen"];
-          const experienceAndEducationItems = allItems.filter(
-            (item) => item.type === "experience" || item.type === "education"
-          );
-          const otherItems = allItems.filter(
-            (item) => item.type !== "experience" && item.type !== "education"
-          );
-
-          const sortedExperienceAndEducationItems =
-            experienceAndEducationItems.sort((a, b) => {
-              if (
-                (a.type !== "experience" && a.type !== "education") ||
-                (b.type !== "experience" && b.type !== "education")
-              )
-                return 0;
-
-              const aEndDate = a.content.end_date.toLowerCase();
-              const bEndDate = b.content.end_date.toLowerCase();
-
-              if (aEndDate === "present" && bEndDate === "present") {
-                return b.content.start_date.localeCompare(a.content.start_date);
-              }
-
-              if (aEndDate === "present") return -1;
-              if (bEndDate === "present") return 1;
-
-              const endDateComparison = bEndDate.localeCompare(aEndDate);
-              if (endDateComparison !== 0) return endDateComparison;
-
-              return b.content.start_date.localeCompare(a.content.start_date);
-            });
-
-          const sortedExperienceItems =
-            sortedExperienceAndEducationItems.filter(
-              (item) => item.type === "experience"
-            );
-          const sortedEducationItems = sortedExperienceAndEducationItems.filter(
-            (item) => item.type === "education"
-          );
-
-          newItems["chosen"] = [
-            ...sortedExperienceItems,
-            ...sortedEducationItems,
-            ...otherItems,
-          ];
-        }
-
-        const movedItem = activeItems[activeIndex];
-        const isExcludedPersonalItem =
-          movedItem.type === "personal" &&
-          excludedPersonalItems.includes(movedItem.content.key);
-
-        if (!isExcludedPersonalItem) {
-          if (
-            dragStartContainer === "available" &&
-            overContainer === "chosen"
-          ) {
-            setLastModifiedItemId(id);
-
-            const newAction = {
-              action: "add",
-              itemId: id,
-              itemType: movedItem.type,
-              fromContainer: dragStartContainer,
-              toContainer: overContainer,
-              newIndex: overIndex,
-            };
-
-            setActionHistory((prevHistory) => [
-              ...prevHistory,
-              {
-                ...newAction,
-                action: newAction.action as "add" | "remove",
-                itemType: newAction.itemType as string,
-                toContainer: newAction.toContainer as string | null,
-              },
-            ]);
-
-            // Only add to processing queue and set as processing if it's not a personal item
-            if (
-              movedItem.type !== "personal" ||
-              (movedItem.type === "personal" &&
-                movedItem.content.key === "intro")
-            ) {
-              setProcessingQueue((prevQueue) => [
-                ...prevQueue,
-                { itemId: id, cardContent: movedItem.content },
-              ]);
-
-              setProcessingItems((prev) => new Set(prev).add(id));
-            }
-          }
-        }
-
-        return newItems;
-      });
-
-      setDragOrigin(null);
-      setActiveId(null);
-      setDraggedItem(null);
     },
     [
+      items,
       customSections,
       findContainer,
+      setItems,
+      setCustomSections,
+      setActiveId,
+      setDraggedItem,
       dragStartContainer,
       excludedPersonalItems,
+      setLastModifiedItemId,
+      setActionHistory,
+      setProcessingQueue,
+      setProcessingItems,
       handleAddCustomItem,
     ]
   );
@@ -860,22 +583,16 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   );
 
   const renderItemContent = useMemo(
-    () =>
-      createRenderItemContent(
-        editedItems,
-        memoizedAlerts, // Use memoizedAlerts instead of alerts
-        processingItems,
-        handleEdit,
-        toggleAlertMinimize,
-        (itemId) => <ProcessingIndicator message="Analyzing edit..." />
-      ),
-    [
+    () => createRenderItemContent(
       editedItems,
-      memoizedAlerts, // Use memoizedAlerts in the dependency array
+      memoizedAlerts,
+      alertMinimizedState,  // Add this line
       processingItems,
       handleEdit,
       toggleAlertMinimize,
-    ]
+      (itemId) => <ProcessingIndicator message="Analyzing edit..." />
+    ),
+    [editedItems, memoizedAlerts, alertMinimizedState, processingItems, handleEdit, toggleAlertMinimize]  // Add alertMinimizedState to the dependency array
   );
 
   const handleDeleteCustomSection = (sectionId: string) => {
@@ -1079,59 +796,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     setIsTemplateDialogOpen(true);
   };
 
-  const handleSelectTemplate = async (template: string) => {
-    setIsTemplateDialogOpen(false);
-    try {
-      const resumeData: ResumeData = items.chosen.map((item) => ({
-        type: editedItems[item.id]?.type || item.type,
-        content: editedItems[item.id]?.content || item.content,
-      }));
-
-      // Add custom sections to the resumeData
-      customSections.forEach((section) => {
-        resumeData.push({
-          type: "custom",
-          title: section.title,
-          items: section.items.map((item) => ({
-            type: "custom",
-            content: { text: item.content.text },
-          })),
-        });
-      });
-
-      const base64Data = await generateResume(
-        resumeData,
-        template as "classic" | "modern" | "minimal"
-      );
-
-      if (!base64Data) {
-        throw new Error("Failed to generate resume: base64Data is empty");
-      }
-
-      const blob = base64ToBlob(
-        base64Data,
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-      );
-
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.style.display = "none";
-      a.href = url;
-      a.download = `resume_${template}.docx`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Error generating resume:", error);
-      toast.error("Failed to generate resume", {
-        description:
-          "An error occurred while creating your resume. Please try again.",
-        duration: 5000,
-      });
-    }
-  };
-
   // Function to prepare resume data for the template chosen
   const prepareResumeData = (): ResumeData => {
     const resumeData: ResumeData = items.chosen.map((item): ResumeItem => {
@@ -1156,85 +820,35 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     return resumeData;
   };
 
+  const handleSelectTemplateDesign = async (template: string) => {
+    await handleSelectTemplate(
+      template,
+      items,
+      editedItems,
+      customSections,
+      setIsTemplateDialogOpen
+    );
+  };
+
   /* Save custom */
-  const handleSaveVersion = () => {
-    setIsSaveVersionDialogOpen(true);
-  };
+  const handleSaveVersionLocal = () =>
+    handleSaveVersion(setIsSaveVersionDialogOpen);
 
-  const handleSaveVersionSubmit = async () => {
-    setIsSaveVersionDialogOpen(false);
-    if (!filename || !userId) {
-      toast.error("Missing information", {
-        description: "Filename or user ID is missing. Please try again.",
-        duration: 5000,
-      });
-      return;
-    }
-
-    try {
-      const resumeData = prepareResumeData();
-      const base64Data = await generateResume(resumeData, "modern");
-
-      if (!base64Data) {
-        throw new Error("Failed to generate resume: base64Data is empty");
-      }
-
-      const blob = base64ToBlob(
-        base64Data,
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-      );
-
-      // Create FormData and append necessary data
-      const filenameGen = createId();
-      const formData = new FormData();
-      formData.append("file", blob, `${filename}.docx`);
-      formData.append("userId", userId);
-      formData.append("filename", filenameGen);
-
-      // Upload file to Supabase storage
-      const { data: uploadData, error: uploadError } = await uploadResumeAction(
-        formData
-      );
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      // Add entry to the database
-      if (uploadData) {
-        const { data: dbData, error: dbError } = await addResumeEntryAction(
-          userId,
-          uploadData,
-          filename
-        );
-
-        if (dbError) {
-          throw dbError;
-        }
-      }
-
-      // Show success toast
-      toast.success("Resume version saved successfully!", {
-        description: `Your resume "${filename}" has been saved.`,
-        duration: 5000,
-      });
-    } catch (error) {
-      console.error("Error saving resume version:", error);
-      toast.error("Failed to save resume version", {
-        description:
-          "An error occurred while saving your resume. Please try again.",
-        duration: 5000,
-      });
-    }
-  };
+  const handleSaveVersionSubmitProfile = () =>
+    handleSaveVersionSubmit(
+      setIsSaveVersionDialogOpen,
+      filename,
+      userId,
+      prepareResumeData
+    );
 
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={closestCorners}
       onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
+      onDragOver={handleDragOverCallback}
+      onDragEnd={dragEnd}
     >
       <div className="flex gap-6 h-[calc(100vh-12rem)] overflow-hidden">
         {renderAvailableItems}
@@ -1260,7 +874,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         />
         <ControlPanel
           onCreateResume={handleCreateResume}
-          onSaveVersion={handleSaveVersion}
+          onSaveVersion={handleSaveVersionLocal}
           onOpenChat={handleOpenChat}
           isChatButtonExpanded={isChatButtonExpanded}
         />
@@ -1299,7 +913,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       <TemplateSelectionDialog
         isOpen={isTemplateDialogOpen}
         onOpenChange={setIsTemplateDialogOpen}
-        onSelectTemplate={handleSelectTemplate}
+        onSelectTemplate={handleSelectTemplateDesign}
         resumeData={prepareResumeData()}
       />
       <SaveResumeDialog
@@ -1307,7 +921,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         onOpenChange={setIsSaveVersionDialogOpen}
         filename={filename}
         setFilename={setFilename}
-        onSave={handleSaveVersionSubmit}
+        onSave={handleSaveVersionSubmitProfile}
       />
     </DndContext>
   );
