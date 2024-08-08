@@ -9,20 +9,23 @@ export const handleDragEnd = (
   findContainer: (id: string) => string | undefined,
   setItems: React.Dispatch<React.SetStateAction<Record<string, Item[]>>>,
   setCustomSections: React.Dispatch<React.SetStateAction<CustomSection[]>>,
-  setDragOrigin: React.Dispatch<React.SetStateAction<string | null>>,
   setActiveId: React.Dispatch<React.SetStateAction<string | null>>,
   setDraggedItem: React.Dispatch<React.SetStateAction<Item | null>>,
   dragStartContainer: string | null,
   excludedPersonalItems: string[],
   setLastModifiedItemId: React.Dispatch<React.SetStateAction<string | null>>,
-  setActionHistory: React.Dispatch<React.SetStateAction<Array<{
-    action: "add" | "remove";
-    itemId: string;
-    itemType: string;
-    fromContainer: string | null;
-    toContainer: string | null;
-    newIndex: number;
-  }>>>,
+  setActionHistory: React.Dispatch<
+    React.SetStateAction<
+      Array<{
+        action: "add" | "remove";
+        itemId: string;
+        itemType: string;
+        fromContainer: string | null;
+        toContainer: string | null;
+        newIndex: number;
+      }>
+    >
+  >,
   setProcessingQueue: React.Dispatch<React.SetStateAction<QueueItem[]>>,
   setProcessingItems: React.Dispatch<React.SetStateAction<Set<string>>>,
   handleAddCustomItem: (sectionId: string) => void
@@ -64,9 +67,7 @@ export const handleDragEnd = (
           section.id === sourceSection.id &&
           section.id === targetSection.id
         ) {
-          const oldIndex = section.items.findIndex(
-            (item) => item.id === id
-          );
+          const oldIndex = section.items.findIndex((item) => item.id === id);
           const newIndex = section.items.findIndex(
             (item) => item.id === overId
           );
@@ -98,8 +99,7 @@ export const handleDragEnd = (
   const overContainer = findContainer(overId);
 
   setItems((prevItems) => {
-    const activeItems =
-      prevItems[activeContainer as keyof typeof prevItems];
+    const activeItems = prevItems[activeContainer as keyof typeof prevItems];
     const overItems = prevItems[overContainer as keyof typeof prevItems];
 
     if (!activeItems || !overItems) {
@@ -180,10 +180,9 @@ export const handleDragEnd = (
           return b.content.start_date.localeCompare(a.content.start_date);
         });
 
-      const sortedExperienceItems =
-        sortedExperienceAndEducationItems.filter(
-          (item) => item.type === "experience"
-        );
+      const sortedExperienceItems = sortedExperienceAndEducationItems.filter(
+        (item) => item.type === "experience"
+      );
       const sortedEducationItems = sortedExperienceAndEducationItems.filter(
         (item) => item.type === "education"
       );
@@ -201,10 +200,7 @@ export const handleDragEnd = (
       excludedPersonalItems.includes(movedItem.content.key);
 
     if (!isExcludedPersonalItem) {
-      if (
-        dragStartContainer === "available" &&
-        overContainer === "chosen"
-      ) {
+      if (dragStartContainer === "available" && overContainer === "chosen") {
         setLastModifiedItemId(id);
 
         const newAction = {
@@ -228,8 +224,7 @@ export const handleDragEnd = (
 
         if (
           movedItem.type !== "personal" ||
-          (movedItem.type === "personal" &&
-            movedItem.content.key === "intro")
+          (movedItem.type === "personal" && movedItem.content.key === "intro")
         ) {
           setProcessingQueue((prevQueue) => [
             ...prevQueue,
@@ -244,7 +239,6 @@ export const handleDragEnd = (
     return newItems;
   });
 
-  setDragOrigin(null);
   setActiveId(null);
   setDraggedItem(null);
 };

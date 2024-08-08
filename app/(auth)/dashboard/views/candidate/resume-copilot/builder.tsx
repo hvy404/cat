@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useMemo,
-  useCallback,
-} from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -17,7 +11,7 @@ import {
   DragOverEvent,
   DragEndEvent,
 } from "@dnd-kit/core";
-import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import Container from "./container";
 import SortableItem from "./sortable";
 import {
@@ -31,7 +25,7 @@ import { buildEditReview } from "./prompt-builder"; // AI Call
 import { suggestNextSteps } from "./next-steps"; // AI Call #2
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, Save, Download } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { DeleteConfirmationDialog } from "./delete-dialog";
 import { AvailableItems } from "./available-items";
 import AddSectionDialog from "./add-section-dialog";
@@ -63,6 +57,14 @@ import CopilotTalk from "./copilot-talk";
 import ControlPanel from "./control-panel";
 import { handleDragEnd } from "./handler-drag-end";
 import { handleDragOver } from "./handler-drag-over";
+import {
+  handleSaveVersion,
+  handleSaveVersionSubmit,
+} from "./handler-resume-save";
+import {
+  handleSelectTemplate,
+  prepareResumeData,
+} from "./handler-download-doc";
 
 interface BuilderSession {
   sessionId: string;
@@ -105,15 +107,16 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   const [builderSession, setBuilderSession] = useState<BuilderSession>({
     sessionId: createId(),
   });
+
   const [items, setItems] = useState<Record<string, Item[]>>({
     available: [],
     chosen: selectedItems,
   });
+
   const [editedItems, setEditedItems] = useState<Record<string, Item>>({});
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [dragOrigin, setDragOrigin] = useState<string | null>(null);
   const [dragStartContainer, setDragStartContainer] = useState<string | null>(
     null
   );
@@ -138,7 +141,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   const [processingItems, setProcessingItems] = useState<Set<string>>(
     new Set()
   );
-  const [completedItems, setCompletedItems] = useState<Set<string>>(new Set());
 
   const [isSaveVersionDialogOpen, setIsSaveVersionDialogOpen] = useState(false);
   const [filename, setFilename] = useState("");
@@ -163,10 +165,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   // New state for next steps
   const [nextSteps, setNextSteps] = useState<NextStep[]>([]);
 
-  const handleOpenChat = () => {
-    setIsChatOpen(true);
-    setIsChatButtonExpanded(false);
-  };
+  const memoizedAlerts = useMemo(() => alerts, [alerts]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -191,6 +190,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     })
   );
 
+  const handleOpenChat = () => {
+    setIsChatOpen(true);
+    setIsChatButtonExpanded(false);
+  };
+
   // Presets
   const moveItemsToChosen = (itemKeys: string[]) => {
     setItems((prevItems) => {
@@ -213,8 +217,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       };
     });
   };
-
-  const memoizedAlerts = useMemo(() => alerts, [alerts]);
 
   useEffect(() => {
     console.log("Current alerts:", alerts);
@@ -372,7 +374,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         newSet.delete(itemId);
         return newSet;
       });
-      setCompletedItems((prev) => new Set(prev).add(itemId));
       setProcessingQueue((prev) => prev.slice(1));
       setIsProcessing(false);
     }
@@ -381,10 +382,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   useEffect(() => {
     processNextInQueue();
   }, [processNextInQueue]);
-
-  const handleCardDrop = useCallback((itemId: string, cardContent: any) => {
-    setProcessingQueue((prev) => [...prev, { itemId, cardContent }]);
-  }, []);
 
   const excludedPersonalItems = [
     "name",
@@ -480,7 +477,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     );
   };
 
-  // Modify the Available Items section to include a Custom Card
   const renderAvailableItems = useMemo(
     () => (
       <AvailableItems
@@ -525,7 +521,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         findContainer,
         setItems,
         setCustomSections,
-        setDragOrigin,
         setActiveId,
         setDraggedItem,
         dragStartContainer,
@@ -543,7 +538,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       findContainer,
       setItems,
       setCustomSections,
-      setDragOrigin,
       setActiveId,
       setDraggedItem,
       dragStartContainer,
@@ -829,59 +823,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     setIsTemplateDialogOpen(true);
   };
 
-  const handleSelectTemplate = async (template: string) => {
-    setIsTemplateDialogOpen(false);
-    try {
-      const resumeData: ResumeData = items.chosen.map((item) => ({
-        type: editedItems[item.id]?.type || item.type,
-        content: editedItems[item.id]?.content || item.content,
-      }));
-
-      // Add custom sections to the resumeData
-      customSections.forEach((section) => {
-        resumeData.push({
-          type: "custom",
-          title: section.title,
-          items: section.items.map((item) => ({
-            type: "custom",
-            content: { text: item.content.text },
-          })),
-        });
-      });
-
-      const base64Data = await generateResume(
-        resumeData,
-        template as "classic" | "modern" | "minimal"
-      );
-
-      if (!base64Data) {
-        throw new Error("Failed to generate resume: base64Data is empty");
-      }
-
-      const blob = base64ToBlob(
-        base64Data,
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-      );
-
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.style.display = "none";
-      a.href = url;
-      a.download = `resume_${template}.docx`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Error generating resume:", error);
-      toast.error("Failed to generate resume", {
-        description:
-          "An error occurred while creating your resume. Please try again.",
-        duration: 5000,
-      });
-    }
-  };
-
   // Function to prepare resume data for the template chosen
   const prepareResumeData = (): ResumeData => {
     const resumeData: ResumeData = items.chosen.map((item): ResumeItem => {
@@ -906,77 +847,27 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     return resumeData;
   };
 
+  const handleSelectTemplateDesign = async (template: string) => {
+    await handleSelectTemplate(
+      template,
+      items,
+      editedItems,
+      customSections,
+      setIsTemplateDialogOpen
+    );
+  };
+
   /* Save custom */
-  const handleSaveVersion = () => {
-    setIsSaveVersionDialogOpen(true);
-  };
+  const handleSaveVersionLocal = () =>
+    handleSaveVersion(setIsSaveVersionDialogOpen);
 
-  const handleSaveVersionSubmit = async () => {
-    setIsSaveVersionDialogOpen(false);
-    if (!filename || !userId) {
-      toast.error("Missing information", {
-        description: "Filename or user ID is missing. Please try again.",
-        duration: 5000,
-      });
-      return;
-    }
-
-    try {
-      const resumeData = prepareResumeData();
-      const base64Data = await generateResume(resumeData, "modern");
-
-      if (!base64Data) {
-        throw new Error("Failed to generate resume: base64Data is empty");
-      }
-
-      const blob = base64ToBlob(
-        base64Data,
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-      );
-
-      // Create FormData and append necessary data
-      const filenameGen = createId();
-      const formData = new FormData();
-      formData.append("file", blob, `${filename}.docx`);
-      formData.append("userId", userId);
-      formData.append("filename", filenameGen);
-
-      // Upload file to Supabase storage
-      const { data: uploadData, error: uploadError } = await uploadResumeAction(
-        formData
-      );
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      // Add entry to the database
-      if (uploadData) {
-        const { data: dbData, error: dbError } = await addResumeEntryAction(
-          userId,
-          uploadData,
-          filename
-        );
-
-        if (dbError) {
-          throw dbError;
-        }
-      }
-
-      // Show success toast
-      toast.success("Resume version saved successfully!", {
-        description: `Your resume "${filename}" has been saved.`,
-        duration: 5000,
-      });
-    } catch (error) {
-      console.error("Error saving resume version:", error);
-      toast.error("Failed to save resume version", {
-        description:
-          "An error occurred while saving your resume. Please try again.",
-        duration: 5000,
-      });
-    }
-  };
+  const handleSaveVersionSubmitProfile = () =>
+    handleSaveVersionSubmit(
+      setIsSaveVersionDialogOpen,
+      filename,
+      userId,
+      prepareResumeData
+    );
 
   return (
     <DndContext
@@ -1010,7 +901,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         />
         <ControlPanel
           onCreateResume={handleCreateResume}
-          onSaveVersion={handleSaveVersion}
+          onSaveVersion={handleSaveVersionLocal}
           onOpenChat={handleOpenChat}
           isChatButtonExpanded={isChatButtonExpanded}
         />
@@ -1049,7 +940,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       <TemplateSelectionDialog
         isOpen={isTemplateDialogOpen}
         onOpenChange={setIsTemplateDialogOpen}
-        onSelectTemplate={handleSelectTemplate}
+        onSelectTemplate={handleSelectTemplateDesign}
         resumeData={prepareResumeData()}
       />
       <SaveResumeDialog
@@ -1057,7 +948,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         onOpenChange={setIsSaveVersionDialogOpen}
         filename={filename}
         setFilename={setFilename}
-        onSave={handleSaveVersionSubmit}
+        onSave={handleSaveVersionSubmitProfile}
       />
     </DndContext>
   );
