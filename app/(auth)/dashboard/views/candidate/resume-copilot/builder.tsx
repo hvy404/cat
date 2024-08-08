@@ -32,12 +32,7 @@ import AddSectionDialog from "./add-section-dialog";
 import EditDialog from "./edit-dialog";
 import { renderCondensedItemContent } from "./condensed-content";
 import { createRenderItemContent } from "./render-item-content";
-import {
-  generateResume,
-  ResumeData,
-  ResumeItem,
-  DocxCustomSection,
-} from "./assemble-docx";
+import { ResumeData, ResumeItem, DocxCustomSection } from "./assemble-docx";
 import TemplateSelectionDialog from "./template-selection";
 import SaveResumeDialog from "./save-resume-dialog";
 import createId from "@/lib/global/cuid-generate";
@@ -294,20 +289,32 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
 
   const processNextInQueue = useCallback(async () => {
     if (processingQueue.length === 0 || isProcessing) return;
-  
+
     setIsProcessing(true);
     const { itemId, cardContent } = processingQueue[0];
-  
+
     try {
       setProcessingItems((prev) => new Set(prev).add(itemId));
-  
+
       if (!selectedRole) throw new Error("Selected role is not defined");
-  
+
       const [editReviewResult, nextStepsResult] = await Promise.all([
-        buildEditReview(items, talentProfile, selectedRole, itemId, cardContent),
-        suggestNextSteps(items, talentProfile, selectedRole, itemId, cardContent)
+        buildEditReview(
+          items,
+          talentProfile,
+          selectedRole,
+          itemId,
+          cardContent
+        ),
+        suggestNextSteps(
+          items,
+          talentProfile,
+          selectedRole,
+          itemId,
+          cardContent
+        ),
       ]);
-  
+
       if (!("error" in editReviewResult)) {
         setAlerts((prevAlerts) => {
           const newAlert: Alert = {
@@ -315,10 +322,13 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
             isMinimized: false,
             message: { recommendation: editReviewResult.recommendation },
           };
-          return [...prevAlerts.map(alert => ({ ...alert, isMinimized: true })), newAlert];
+          return [
+            ...prevAlerts.map((alert) => ({ ...alert, isMinimized: true })),
+            newAlert,
+          ];
         });
       }
-  
+
       if (!("error" in nextStepsResult)) {
         setNextSteps((prevNextSteps) => {
           setIsChatButtonExpanded(true);
@@ -337,7 +347,15 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       setProcessingQueue((prev) => prev.slice(1));
       setIsProcessing(false);
     }
-  }, [processingQueue, isProcessing, items, talentProfile, selectedRole, buildEditReview, suggestNextSteps]);  
+  }, [
+    processingQueue,
+    isProcessing,
+    items,
+    talentProfile,
+    selectedRole,
+    buildEditReview,
+    suggestNextSteps,
+  ]);
 
   useEffect(() => {
     processNextInQueue();
@@ -564,22 +582,15 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   );
 
   const renderItemContent = useMemo(
-    () =>
-      createRenderItemContent(
-        editedItems,
-        memoizedAlerts, // Use memoizedAlerts instead of alerts
-        processingItems,
-        handleEdit,
-        toggleAlertMinimize,
-        (itemId) => <ProcessingIndicator message="Analyzing edit..." />
-      ),
-    [
+    () => createRenderItemContent(
       editedItems,
-      memoizedAlerts, // Use memoizedAlerts in the dependency array
+      memoizedAlerts,
       processingItems,
       handleEdit,
       toggleAlertMinimize,
-    ]
+      (itemId) => <ProcessingIndicator message="Analyzing edit..." />
+    ),
+    [editedItems, memoizedAlerts, processingItems, handleEdit, toggleAlertMinimize]
   );
 
   const handleDeleteCustomSection = (sectionId: string) => {
