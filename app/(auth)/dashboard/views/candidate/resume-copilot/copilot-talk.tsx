@@ -11,12 +11,9 @@ import {
 import { useChat, Message as AIMessage } from "ai/react";
 import ReactMarkdown from "react-markdown";
 import EnhancedViewMorePanel from "./enhanced-view-more-panel";
-
-interface NextStep {
-  message: string;
-  suggestion: string;
-  reasoning: string;
-}
+import { NextStep } from "@/app/(auth)/dashboard/views/candidate/resume-copilot/types";
+import cranium from "./cranium";
+import { useUser } from "@clerk/nextjs";
 
 interface ExtendedAIMessage extends AIMessage {
   nextStep?: NextStep;
@@ -26,7 +23,6 @@ interface CopilotTalkProps {
   isOpen: boolean;
   onClose: () => void;
   nextSteps: NextStep[];
-  //setNextSteps: React.Dispatch<React.SetStateAction<NextStep[]>>;
   builderSession: string;
 }
 
@@ -34,7 +30,6 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
   isOpen,
   onClose,
   nextSteps,
-  //setNextSteps,
   builderSession,
 }) => {
   const {
@@ -45,14 +40,21 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
     setMessages,
     isLoading,
   } = useChat({
-    body: {
-    },
+    body: {},
     api: "/api/hey-coach",
     headers: {
       "Content-Type": "application/json",
       "Magic-Rail": builderSession,
     },
+    onFinish: (data) => {
+      if (data.content) {
+        handleCraniumChatHistory();
+      }
+    },
   });
+
+  const { user: clerkUser } = useUser();
+  const userId = clerkUser?.publicMetadata?.cuid as string | undefined;
 
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editText, setEditText] = useState<string>("");
@@ -81,6 +83,13 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
   useEffect(() => {
     addNextStepMessages();
   }, [nextSteps, addNextStepMessages]);
+
+  const handleCraniumChatHistory = () => {
+    cranium(builderSession, userId!, {
+      cacheKeyType: "chat",
+      items: messages,
+    });
+  };
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     handleInputChange(e);

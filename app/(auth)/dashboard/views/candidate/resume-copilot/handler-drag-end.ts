@@ -1,6 +1,6 @@
 import { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
-import { Item, CustomSection, QueueItem } from "./types";
+import { Item, CustomSection, QueueItem, HistoryItems } from "./types";
 
 export const handleDragEnd = (
   event: DragEndEvent,
@@ -14,21 +14,12 @@ export const handleDragEnd = (
   dragStartContainer: string | null,
   excludedPersonalItems: string[],
   setLastModifiedItemId: React.Dispatch<React.SetStateAction<string | null>>,
-  setActionHistory: React.Dispatch<
-    React.SetStateAction<
-      Array<{
-        action: "add" | "remove";
-        itemId: string;
-        itemType: string;
-        fromContainer: string | null;
-        toContainer: string | null;
-        newIndex: number;
-      }>
-    >
-  >,
+  setActionHistory: React.Dispatch<React.SetStateAction<HistoryItems[]>>,
   setProcessingQueue: React.Dispatch<React.SetStateAction<QueueItem[]>>,
   setProcessingItems: React.Dispatch<React.SetStateAction<Set<string>>>,
-  handleAddCustomItem: (sectionId: string) => void
+  handleAddCustomItem: (sectionId: string) => void,
+  handleCraniumItems: () => Promise<void>,
+  handleCraniumHistory: () => Promise<void>
 ) => {
   const { active, over } = event;
   const id = active.id as string;
@@ -241,4 +232,8 @@ export const handleDragEnd = (
 
   setActiveId(null);
   setDraggedItem(null);
+  // Update choice memory bank
+  handleCraniumItems();
+   // Update Cranium History
+   handleCraniumHistory();
 };

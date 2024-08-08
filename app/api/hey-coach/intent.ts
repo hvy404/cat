@@ -32,8 +32,6 @@ Intent Definitions:
 - Compliment: Expressing appreciation, praise, or positive feedback.
 - Draft: A question or comment specifically about the current state of the resume draft.
 
-Provide your classification along with a confidence score (0-1) and a brief reasoning for your decision.
-
 Examples:
 
 1. Message: "What else should I add to my resume?"

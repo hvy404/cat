@@ -48,3 +48,43 @@ export interface ResumeBuilderProps {
   selectedRole?: string | null;
   userId: string;
 }
+
+export interface Alert {
+  itemId: string;
+  message: {
+    recommendation: {
+      action: "add" | "remove" | "modify" | "none";
+      priority: "High" | "Medium" | "Low";
+      targetItem: string;
+      rationale: string;
+      implementation: string;
+    };
+  };
+  isMinimized: boolean;
+}
+
+export interface NextStep {
+  message: string;
+  suggestion: string;
+  reasoning: string;
+}
+
+
+export interface CustomSection {
+  id: string;
+  title: string;
+  items: CustomItem[];
+}
+
+export interface BuilderSession {
+  sessionId: string;
+}
+
+export type HistoryItems = {
+  action: "add" | "remove";
+  itemId: string;
+  itemType: string;
+  fromContainer: string | null;
+  toContainer: string | null;
+  newIndex: number;
+};
