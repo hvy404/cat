@@ -17,7 +17,6 @@ export const buildEditReview = async (
   items: Record<string, Item[]>,
   talentProfile: TalentProfile,
   role: string,
-  itemId: string,
   cardContent: any
 ): Promise<
   | {

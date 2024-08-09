@@ -32,6 +32,13 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
   nextSteps,
   builderSession,
 }) => {
+  const { user: clerkUser } = useUser();
+  const userId = clerkUser?.publicMetadata?.cuid as string | undefined;
+
+  if (!userId) {
+    return <div>You must be logged in.</div>;
+  }
+
   const {
     messages,
     input,
@@ -45,6 +52,7 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
     headers: {
       "Content-Type": "application/json",
       "Magic-Rail": builderSession,
+      "Magic-Gate": userId,
     },
     onFinish: (data) => {
       if (data.content) {
@@ -52,9 +60,6 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
       }
     },
   });
-
-  const { user: clerkUser } = useUser();
-  const userId = clerkUser?.publicMetadata?.cuid as string | undefined;
 
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editText, setEditText] = useState<string>("");

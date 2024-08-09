@@ -78,6 +78,7 @@
     "ioredis": "^5.4.1",
     "jsonwebtoken": "^9.0.2",
     "langchain": "^0.1.32",
+    "llama3-tokenizer-js": "^1.2.0",
     "lucide-react": "^0.372.0",
     "mammoth": "^1.7.1",
     "nanoid": "^5.0.7",

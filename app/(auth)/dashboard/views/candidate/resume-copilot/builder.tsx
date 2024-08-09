@@ -273,7 +273,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
           items,
           talentProfile,
           selectedRole,
-          itemId,
           cardContent
         ),
         suggestNextSteps(
