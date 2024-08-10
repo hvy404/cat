@@ -65,30 +65,36 @@ Your response must be a JSON object with the following structure:
 }`;
 
   const userPrompt = `Classify the intent of the following message: 
-  ${message}`;
+${message}`;
 
-  const response = await togetherAi.chat.completions.create({
-    model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
-    // @ts-ignore
-    response_format: { type: "json_object", schema: jsonSchema },
-    messages: [
-      {
-        role: "system",
-        content: sysPrompt,
-      },
-      {
-        role: "user",
-        content: userPrompt,
-      },
-    ],
-    temperature: 0.3,
-    max_tokens: 2500,
-  });
+  try {
+    const response = await togetherAi.chat.completions.create({
+      model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
+      // @ts-ignore
+      response_format: { type: "json_object", schema: jsonSchema },
+      messages: [
+        {
+          role: "system",
+          content: sysPrompt,
+        },
+        {
+          role: "user",
+          content: userPrompt,
+        },
+      ],
+      temperature: 0.3,
+      max_tokens: 500,
+    });
 
-  if (response?.choices?.[0]?.message?.content) {
-    const output = JSON.parse(response?.choices?.[0]?.message?.content);
-    return output;
+    if (response?.choices?.[0]?.message?.content) {
+      const output = JSON.parse(response?.choices?.[0]?.message?.content);
+      return output;
+    }
+
+    // Default response if the AI call failed
+    return { classification: "general" };
+  } catch (error) {
+
+    return { classification: "general" };
   }
-
-  return;
 }

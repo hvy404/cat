@@ -17,11 +17,11 @@ type CacheKeyType = "choice" | "history" | "feedback" | "chat";
 // Define a mapping of intents to cache key types
 const intentToCacheKeyTypes: Record<string, CacheKeyType[]> = {
   general: ["chat"],
-  history: ["history"],
-  option: ["choice"],
-  advice: ["feedback", "history"],
+  history: ["feedback", "chat"],
+  option: ["choice", "chat"],
+  advice: ["feedback", "chat"],
   compliment: ["chat"],
-  draft: ["history", "feedback"],
+  draft: ["choice"],
 };
 
 // Function to fetch data from Cranium based on intent
@@ -30,29 +30,31 @@ async function fetchDataBasedOnIntent(
   sessionId: string,
   userId: string
 ) {
-  const cacheKeyTypes = intentToCacheKeyTypes[intent] || ["choice"];
-  let combinedResults: Record<string, any> = {};
+  const cacheKeyTypes = intentToCacheKeyTypes[intent];
+  let results: Record<string, any> = {};
+
+  console.log(intent, sessionId, userId);
 
   for (const cacheKeyType of cacheKeyTypes) {
     const result = await fetchCranium(sessionId, userId, cacheKeyType);
     if (result.success) {
       try {
-        const parsedData = JSON.parse(result.data);
-        console.log("Parsed data:", parsedData);
-        combinedResults = { ...combinedResults, ...parsedData };
+        results[cacheKeyType] = JSON.parse(result.data);
       } catch (error) {
         console.error(`Failed to parse ${cacheKeyType} data:`, error);
-        combinedResults[cacheKeyType] = result.data; // Store as string if parsing fails
+        results[cacheKeyType] = result.data; // Store as string if parsing fails
       }
     } else {
       console.error(`Failed to fetch ${cacheKeyType} data:`, result.message);
-      combinedResults[cacheKeyType] = null; // Indicate that fetching this data failed
+      results[cacheKeyType] = null; // Indicate that fetching this data failed
     }
   }
 
-  return combinedResults;
+  return results;
 }
 
+
+// Count tokens
 function tokenizeAndCountMessages(messages: CoreMessage[]): {
   tokenizedMessages: number[][];
   totalTokens: number;
@@ -97,7 +99,6 @@ export async function POST(req: Request) {
 
   const messageCount = messages.length;
   const { totalTokens } = tokenizeAndCountMessages(messages);
-  console.log("Tokenized messages:", totalTokens);
 
   const systemMessage = `You are a friendly and helpful AI resume coach at G2X Talent. You assist users while they are building their resumes using our drag and drop builder tool. 
   

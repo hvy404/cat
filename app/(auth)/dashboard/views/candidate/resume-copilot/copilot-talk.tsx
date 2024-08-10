@@ -35,9 +35,12 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
   const { user: clerkUser } = useUser();
   const userId = clerkUser?.publicMetadata?.cuid as string | undefined;
 
-  if (!userId) {
-    return <div>You must be logged in.</div>;
-  }
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editText, setEditText] = useState<string>("");
+  const chatRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [lineCount, setLineCount] = useState(1);
+  const [viewMoreOpen, setViewMoreOpen] = useState<string | null>(null);
 
   const {
     messages,
@@ -52,21 +55,9 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
     headers: {
       "Content-Type": "application/json",
       "Magic-Rail": builderSession,
-      "Magic-Gate": userId,
-    },
-    onFinish: (data) => {
-      if (data.content) {
-        handleCraniumChatHistory();
-      }
+      "Magic-Gate": userId!,
     },
   });
-
-  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
-  const [editText, setEditText] = useState<string>("");
-  const chatRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [lineCount, setLineCount] = useState(1);
-  const [viewMoreOpen, setViewMoreOpen] = useState<string | null>(null);
 
   const addNextStepMessages = useCallback(() => {
     const newNextStepMessages = nextSteps
@@ -89,10 +80,10 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
     addNextStepMessages();
   }, [nextSteps, addNextStepMessages]);
 
-  const handleCraniumChatHistory = () => {
+  const handleCraniumChatHistory = (updatedMessages: typeof messages) => {
     cranium(builderSession, userId!, {
       cacheKeyType: "chat",
-      items: messages,
+      items: updatedMessages,
     });
   };
 
@@ -163,6 +154,10 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
   const handleViewMore = (id: string) => {
     setViewMoreOpen(viewMoreOpen === id ? null : id);
   };
+
+  if (!userId) {
+    return <div>You must be logged in.</div>;
+  }
 
   return (
     <AnimatePresence>
