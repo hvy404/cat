@@ -122,7 +122,6 @@ Remember:
 
   if (response?.choices?.[0]?.message?.content) {
     const output = JSON.parse(response?.choices?.[0]?.message?.content);
-    console.log(output);
     return output;
   }
   return { error: "There was an error. Please try again." };

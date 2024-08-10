@@ -15,15 +15,23 @@ const openai = createOpenAI({
 
 type CacheKeyType = "choice" | "history" | "feedback" | "chat";
 
+// Define the structure of a chat message
+interface ChatMessage {
+  id: string;
+  createdAt: string;
+  role: "user" | "assistant";
+  content: string;
+}
+
 // Define a mapping of intents to cache key types
 const intentToCacheKeyTypes: Record<string, CacheKeyType[]> = {
-  general: ["chat"],
-  history: ["feedback", "chat"],
-  option: ["choice", "chat"],
-  advice: ["feedback", "chat"],
-  compliment: ["chat"],
-  draft: ["choice", "chat"],
-  documentation: ["choice", "chat"],
+  general: ["choice"],
+  history: ["feedback"],
+  option: ["choice"],
+  advice: ["feedback"],
+  compliment: [],
+  draft: ["choice"],
+  documentation: ["choice"],
 };
 
 // Function to fetch data from Cranium based on intent
@@ -31,15 +39,20 @@ async function fetchDataBasedOnIntent(
   intent: string,
   sessionId: string,
   userId: string
-) {
-  const cacheKeyTypes = intentToCacheKeyTypes[intent];
-  let results: Record<string, any> = {};
+): Promise<Record<CacheKeyType, any>> {
+  const cacheKeyTypes = intentToCacheKeyTypes[intent] || [];
+  let results: Record<CacheKeyType, any> = {
+    choice: null,
+    history: null,
+    feedback: null,
+    chat: null,
+  };
 
   for (const cacheKeyType of cacheKeyTypes) {
     const result = await fetchCranium(sessionId, userId, cacheKeyType);
     if (result.success) {
       try {
-        results[cacheKeyType] = JSON.parse(result.data);
+        results[cacheKeyType] = result.data;
       } catch (error) {
         console.error(`Failed to parse ${cacheKeyType} data:`, error);
         results[cacheKeyType] = result.data; // Store as string if parsing fails
@@ -53,7 +66,7 @@ async function fetchDataBasedOnIntent(
   return results;
 }
 
-// Count tokens
+// Helper function Count tokens
 function tokenizeAndCountMessages(messages: CoreMessage[]): {
   tokenizedMessages: number[][];
   totalTokens: number;
@@ -68,15 +81,13 @@ function tokenizeAndCountMessages(messages: CoreMessage[]): {
   return { tokenizedMessages, totalTokens };
 }
 
+// Helper function to generate a unique ID
+function generateUniqueId(): string {
+  return "uniqueId" + Date.now();
+}
+
 export async function POST(req: Request) {
-  //const { messages }: { messages: CoreMessage[] } = await req.json();
   const lastMessage = await req.json();
-  const lastUserInput: CoreMessage[] = [
-    {
-      role: "user",
-      content: lastMessage,
-    },
-  ];
 
   const magicRailValue = req.headers.get("Magic-Rail");
   const magicGateValue = req.headers.get("Magic-Gate");
@@ -93,7 +104,6 @@ export async function POST(req: Request) {
     );
   }
 
-  //const lastMessage = messages[messages.length - 1].content.toString();
   const intent = await intentClassifier(lastMessage);
 
   const craniumData = await fetchDataBasedOnIntent(
@@ -102,19 +112,78 @@ export async function POST(req: Request) {
     userId
   );
 
-  console.log("message", lastMessage);
+  // Chat data always retreive for conversational memory
+  const chatDataResult = await fetchCranium(sessionId, userId, "chat");
 
-  console.log("Fetched data from Cranium:", craniumData);
+  let chatData: ChatMessage[] = [];
+  if (chatDataResult.success && typeof chatDataResult.data === "string") {
+    try {
+      chatData = JSON.parse(chatDataResult.data) as ChatMessage[];
+    } catch (error) {
+      console.error("Failed to parse chat data:", error);
+    }
+  }
 
-  //const messageCount = messages.length;
-  //const { totalTokens } = tokenizeAndCountMessages(messages);
+  // Function to get the header based on intent
+  function getHeaderForIntent(intent: string): string {
+    switch (intent) {
+      case "history":
+        return "\n\nPrevious Feedback:";
+      case "option":
+      case "draft":
+        return "\n\nAvailable Choices:";
+      case "advice":
+        return "\n\nRelevant Feedback:";
+      case "documentation":
+      //return "\n\nDocumentation:";
+      default:
+        return "\n\nAdditional Context:";
+    }
+  }
 
-  const systemMessage = buildSystemMessage(intent.classification, craniumData);
+  // Append the retrieved context to the last user message
+  let enhancedMessage = lastMessage;
+  const header = getHeaderForIntent(intent.classification);
+  const relevantDataKey = intentToCacheKeyTypes[intent.classification][0];
+  const relevantDataString = craniumData[relevantDataKey];
+
+  if (relevantDataString) {
+    try {
+      const relevantData = JSON.parse(relevantDataString);
+
+      enhancedMessage += `${header}\n${JSON.stringify(relevantData, null, 2)}`;
+    } catch (error) {
+      console.error("Error parsing relevantData:", error);
+      enhancedMessage += `${header}\n${relevantDataString}`;
+    }
+  }
+
+  const enrichedUserLastMessage: ChatMessage = {
+    id: generateUniqueId(),
+    createdAt: new Date().toISOString(),
+    role: "user",
+    content: enhancedMessage,
+  };
+
+  // Append new user message to chat history
+  chatData.push(enrichedUserLastMessage);
+
+  const messages: CoreMessage[] = chatData.map((msg) => ({
+    role: msg.role as "user" | "assistant",
+    content: msg.content,
+  }));
+
+  // Retreive correct system message based on intent
+  const systemMessage = buildSystemMessage(intent.classification);
+
+  console.log("Intent: ", intent)
+  console.log("System Message: ", systemMessage);
+  console.log("Message Array", messages);
 
   const result = await streamText({
     system: systemMessage,
     model: openai("mistralai/Mixtral-8x7B-Instruct-v0.1"),
-    messages: lastUserInput,
+    messages: messages,
   });
 
   return result.toDataStreamResponse();
