@@ -149,9 +149,9 @@ export async function POST(req: Request) {
 
   if (relevantDataString) {
     try {
-      const relevantData = JSON.parse(relevantDataString);
+      const cleanJsonString = JSON.stringify(JSON.parse(relevantDataString));
 
-      enhancedMessage += `${header}\n${JSON.stringify(relevantData, null, 2)}`;
+      enhancedMessage += `${header}\n${cleanJsonString}`;
     } catch (error) {
       console.error("Error parsing relevantData:", error);
       enhancedMessage += `${header}\n${relevantDataString}`;
@@ -176,7 +176,7 @@ export async function POST(req: Request) {
   // Retreive correct system message based on intent
   const systemMessage = buildSystemMessage(intent.classification);
 
-  console.log("Intent: ", intent)
+  console.log("Intent: ", intent);
   console.log("System Message: ", systemMessage);
   console.log("Message Array", messages);
 
