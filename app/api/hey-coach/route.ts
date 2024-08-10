@@ -3,6 +3,7 @@ import { CoreMessage, streamText } from "ai";
 import intentClassifier from "./intent";
 import fetchCranium from "@/app/(auth)/dashboard/views/candidate/resume-copilot/cranium-read";
 import llama3Tokenizer from "llama3-tokenizer-js";
+import { buildSystemMessage } from "@/app/api/hey-coach/build-system-message";
 
 export const runtime = "edge";
 
@@ -21,7 +22,8 @@ const intentToCacheKeyTypes: Record<string, CacheKeyType[]> = {
   option: ["choice", "chat"],
   advice: ["feedback", "chat"],
   compliment: ["chat"],
-  draft: ["choice"],
+  draft: ["choice", "chat"],
+  documentation: ["choice", "chat"],
 };
 
 // Function to fetch data from Cranium based on intent
@@ -32,8 +34,6 @@ async function fetchDataBasedOnIntent(
 ) {
   const cacheKeyTypes = intentToCacheKeyTypes[intent];
   let results: Record<string, any> = {};
-
-  console.log(intent, sessionId, userId);
 
   for (const cacheKeyType of cacheKeyTypes) {
     const result = await fetchCranium(sessionId, userId, cacheKeyType);
@@ -46,7 +46,7 @@ async function fetchDataBasedOnIntent(
       }
     } else {
       console.error(`Failed to fetch ${cacheKeyType} data:`, result.message);
-      results[cacheKeyType] = null; // Indicate that fetching this data failed
+      results[cacheKeyType] = null; // Indicates fetching this data failed
     }
   }
 
@@ -71,6 +71,12 @@ function tokenizeAndCountMessages(messages: CoreMessage[]): {
 export async function POST(req: Request) {
   //const { messages }: { messages: CoreMessage[] } = await req.json();
   const lastMessage = await req.json();
+  const lastUserInput: CoreMessage[] = [
+    {
+      role: "user",
+      content: lastMessage,
+    },
+  ];
 
   const magicRailValue = req.headers.get("Magic-Rail");
   const magicGateValue = req.headers.get("Magic-Gate");
@@ -103,20 +109,12 @@ export async function POST(req: Request) {
   //const messageCount = messages.length;
   //const { totalTokens } = tokenizeAndCountMessages(messages);
 
-  const systemMessage = `You are a friendly and helpful AI resume coach at G2X Talent. You assist users while they are building their resumes using our drag and drop builder tool. 
-  
-  Here's some context based on the user's question:
-  ${JSON.stringify(craniumData, null, 2)}`;
+  const systemMessage = buildSystemMessage(intent.classification, craniumData);
 
   const result = await streamText({
     system: systemMessage,
     model: openai("mistralai/Mixtral-8x7B-Instruct-v0.1"),
-    messages: [
-      {
-        role: "user",
-        content: lastMessage,
-      },
-    ],
+    messages: lastUserInput,
   });
 
   return result.toDataStreamResponse();

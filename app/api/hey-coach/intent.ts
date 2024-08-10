@@ -17,6 +17,7 @@ export default async function intentClassifier(message: string) {
       "advice",
       "compliment",
       "draft",
+      "documentation",
     ]),
   });
 
@@ -31,6 +32,7 @@ Intent Definitions:
 - Advice: Seeking guidance or recommendations on a specific aspect of resume writing or job search.
 - Compliment: Expressing appreciation, praise, or positive feedback.
 - Draft: A question or comment specifically about the current state of the resume draft.
+- Documentation: Seeking documentation or instructions on using the resume builder tool.
 
 Examples:
 
@@ -58,6 +60,12 @@ Examples:
    Response: {
      "classification": "compliment",
    }
+
+6. Message: "How do I add a skills section to my resume?"
+   Response: {
+     "classification": "documentation"
+   }
+}
 
 Your response must be a JSON object with the following structure:
 {

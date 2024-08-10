@@ -73,7 +73,6 @@ export const jdWizardDetectRoles = inngest.createFunction(
     // Merge the roles
     const allRoles = personnelRoles.concat(keyPersonnelRoles);
     const allDetectedRoles = Array.from(new Set(allRoles));
-    console.log(allDetectedRoles);
 
     return {
       success: true,
