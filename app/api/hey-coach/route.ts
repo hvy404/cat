@@ -53,7 +53,6 @@ async function fetchDataBasedOnIntent(
   return results;
 }
 
-
 // Count tokens
 function tokenizeAndCountMessages(messages: CoreMessage[]): {
   tokenizedMessages: number[][];
@@ -70,7 +69,9 @@ function tokenizeAndCountMessages(messages: CoreMessage[]): {
 }
 
 export async function POST(req: Request) {
-  const { messages }: { messages: CoreMessage[] } = await req.json();
+  //const { messages }: { messages: CoreMessage[] } = await req.json();
+  const lastMessage = await req.json();
+
   const magicRailValue = req.headers.get("Magic-Rail");
   const magicGateValue = req.headers.get("Magic-Gate");
   const sessionId = magicRailValue || "default-session";
@@ -86,7 +87,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const lastMessage = messages[messages.length - 1].content.toString();
+  //const lastMessage = messages[messages.length - 1].content.toString();
   const intent = await intentClassifier(lastMessage);
 
   const craniumData = await fetchDataBasedOnIntent(
@@ -95,10 +96,12 @@ export async function POST(req: Request) {
     userId
   );
 
+  console.log("message", lastMessage);
+
   console.log("Fetched data from Cranium:", craniumData);
 
-  const messageCount = messages.length;
-  const { totalTokens } = tokenizeAndCountMessages(messages);
+  //const messageCount = messages.length;
+  //const { totalTokens } = tokenizeAndCountMessages(messages);
 
   const systemMessage = `You are a friendly and helpful AI resume coach at G2X Talent. You assist users while they are building their resumes using our drag and drop builder tool. 
   
@@ -108,7 +111,12 @@ export async function POST(req: Request) {
   const result = await streamText({
     system: systemMessage,
     model: openai("mistralai/Mixtral-8x7B-Instruct-v0.1"),
-    messages,
+    messages: [
+      {
+        role: "user",
+        content: lastMessage,
+      },
+    ],
   });
 
   return result.toDataStreamResponse();

@@ -52,7 +52,9 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
     setMessages,
     isLoading,
   } = useChat({
-    body: {},
+    experimental_prepareRequestBody: ({ messages }) => {
+      return messages[messages.length - 1].content;
+    },
     api: "/api/hey-coach",
     headers: {
       "Content-Type": "application/json",
@@ -86,7 +88,7 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
   const handleStoreToLocal = () => {
     setLocalMessages(messages);
     setIsMessageComplete(false);
-  };
+  }
 
   const handleCraniumChatHistory = () => {
     cranium(builderSession, userId!, {
@@ -94,11 +96,13 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
       items: localMessages,
     });
   };
-
+  
   useEffect(() => {
-    if (isMessageComplete) handleStoreToLocal();
+    if (isMessageComplete)
+      handleStoreToLocal();
     handleCraniumChatHistory();
   }, [isMessageComplete]);
+
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     handleInputChange(e);
