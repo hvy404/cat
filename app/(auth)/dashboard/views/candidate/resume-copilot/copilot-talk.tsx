@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Edit2, Send, X, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,8 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [lineCount, setLineCount] = useState(1);
   const [viewMoreOpen, setViewMoreOpen] = useState<string | null>(null);
+  const [isMessageComplete, setIsMessageComplete] = useState(false);
+  const [localMessages, setLocalMessages] = useState<ExtendedAIMessage[]>([]);
 
   const {
     messages,
@@ -57,6 +59,7 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
       "Magic-Rail": builderSession,
       "Magic-Gate": userId!,
     },
+    onFinish: () => setIsMessageComplete(true),
   });
 
   const addNextStepMessages = useCallback(() => {
@@ -80,12 +83,22 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
     addNextStepMessages();
   }, [nextSteps, addNextStepMessages]);
 
-  const handleCraniumChatHistory = (updatedMessages: typeof messages) => {
+  const handleStoreToLocal = () => {
+    setLocalMessages(messages);
+    setIsMessageComplete(false);
+  };
+
+  const handleCraniumChatHistory = () => {
     cranium(builderSession, userId!, {
       cacheKeyType: "chat",
-      items: updatedMessages,
+      items: localMessages,
     });
   };
+
+  useEffect(() => {
+    if (isMessageComplete) handleStoreToLocal();
+    handleCraniumChatHistory();
+  }, [isMessageComplete]);
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     handleInputChange(e);
@@ -155,6 +168,18 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
     setViewMoreOpen(viewMoreOpen === id ? null : id);
   };
 
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const scrollToBottom = () => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
+    }
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
   if (!userId) {
     return <div>You must be logged in.</div>;
   }
@@ -208,7 +233,10 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
                   <X size={24} />
                 </Button>
               </div>
-              <div className="flex-grow overflow-y-auto mb-4 p-4 rounded">
+              <div
+                ref={chatContainerRef}
+                className="flex-grow overflow-y-auto p-4 rounded"
+              >
                 {messages.map((msg) => (
                   <div
                     key={msg.id}
@@ -217,7 +245,7 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
                     } mb-4`}
                   >
                     <div
-                      className={`max-w-[70%] p-3 rounded-lg ${
+                      className={`max-w-[88%] p-3 rounded-lg ${
                         msg.role === "assistant"
                           ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white"
                           : "bg-gradient-to-br from-gray-200 to-gray-300 text-gray-800"
@@ -256,30 +284,25 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
                           <ReactMarkdown
                             className="text-sm break-words whitespace-pre-wrap markdown-content"
                             components={{
-                              p: ({ node, ...props }) => (
-                                <p className="mb-2" {...props} />
-                              ),
+                              p: ({ node, ...props }) => <p {...props} />,
                               h1: ({ node, ...props }) => (
-                                <h1
-                                  className="text-xl font-bold mb-2"
-                                  {...props}
-                                />
+                                <h1 className="text-xl font-bold" {...props} />
                               ),
                               h2: ({ node, ...props }) => (
                                 <h2
-                                  className="text-lg font-semibold mb-2"
+                                  className="text-lg font-semibold"
                                   {...props}
                                 />
                               ),
                               ul: ({ node, ...props }) => (
                                 <ul
-                                  className="list-disc list-inside mb-2"
+                                  className="list-disc list-inside"
                                   {...props}
                                 />
                               ),
                               ol: ({ node, ...props }) => (
                                 <ol
-                                  className="list-decimal list-inside mb-2"
+                                  className="list-decimal list-inside"
                                   {...props}
                                 />
                               ),
