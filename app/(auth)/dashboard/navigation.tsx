@@ -89,8 +89,8 @@ export default function EmployerDashboardNavigation() {
     return null; // TOOD: Or we could return a loading indicator or sign-in prompt
   }
 
-  const cuid = clerkUser?.publicMetadata?.cuid as string | undefined;
-  const role = clerkUser?.publicMetadata?.role as string | undefined;
+  const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+  const role = clerkUser?.publicMetadata?.aiq_role as string | undefined;
 
   const renderNavItems = () => {
     switch (role) {

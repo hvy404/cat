@@ -61,7 +61,7 @@ export default function WorkExperiences(props: {
     [key: string]: boolean;
   }>({});
 
-  const candidateId = clerkUser?.publicMetadata?.cuid as string;
+  const candidateId = clerkUser?.publicMetadata?.aiq_cuid as string;
   const dialogDismissed =
     (clerkUser?.publicMetadata?.["2"] as string) === "true";
   const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(!dialogDismissed);

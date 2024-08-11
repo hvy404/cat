@@ -35,7 +35,7 @@ export default function Certifications() {
     {}
   );
 
-  const candidateId = clerkUser?.publicMetadata?.cuid as string | undefined;
+  const candidateId = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
   const dialogDismissed =
     (clerkUser?.publicMetadata?.["2"] as string) === "true";
   const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(!dialogDismissed);

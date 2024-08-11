@@ -69,7 +69,7 @@ export function CandidateDashboard() {
     []
   );
 
-  const candidateId = clerkUser?.publicMetadata?.cuid as string;
+  const candidateId = clerkUser?.publicMetadata?.aiq_cuid as string;
 
   const refreshData = useCallback(async () => {
     setIsLoading(true);

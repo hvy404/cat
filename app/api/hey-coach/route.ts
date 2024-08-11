@@ -134,7 +134,7 @@ export async function POST(req: Request) {
   );
 
   const contextInstructions = `\n\nUse the following context to help with your answer.`;
-  const humanReadableRule = `In your response: You must never refer to an object by their ID (e.g. "experience-, experience-, skills-, education-, personal-"), instead use a human-readable name or reference from that object.`;
+  const humanReadableRule = `In your response: You must never refer to an object by their ID (e.g. "experience-, experience-, skills-, education-, personal-"), instead use a human-readable name or reference from that object. Never say "Based on the context provided...", because that breaks immersion.`;
 
   let enhancedMessage = lastMessage;
   const relevantContext = generateRelevantContext(intent.classification, craniumData);

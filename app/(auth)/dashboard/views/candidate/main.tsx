@@ -51,7 +51,7 @@ export default function CandidateDashboardMain() {
     );
 
   const { user: clerkUser } = useUser();
-  const user = clerkUser?.publicMetadata?.cuid as string | undefined;
+  const user = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

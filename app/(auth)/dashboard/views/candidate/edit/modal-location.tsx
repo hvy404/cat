@@ -85,7 +85,7 @@ export default function LocationEditor() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  const candidateId = clerkUser?.publicMetadata?.cuid as string;
+  const candidateId = clerkUser?.publicMetadata?.aiq_cuid as string;
 
   useEffect(() => {
     const fetchLocationProperties = async () => {

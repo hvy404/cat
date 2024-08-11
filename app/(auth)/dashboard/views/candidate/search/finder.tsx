@@ -93,7 +93,7 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
     !hasSearched
   );
 
-  const candidateId = clerkUser?.publicMetadata?.cuid as string;
+  const candidateId = clerkUser?.publicMetadata?.aiq_cuid as string;
   const dialogDismissed =
     (clerkUser?.publicMetadata?.["3"] as string) === "true";
   const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(

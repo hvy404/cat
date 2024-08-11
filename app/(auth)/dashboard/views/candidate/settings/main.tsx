@@ -12,7 +12,7 @@ export default function CandidateDashboardSettings() {
   const { isExpanded, setExpanded } = useStore();
   const [activeInfo, setActiveInfo] = useState<ActiveInfoType>('default');
 
-  const candidateId = clerkUser?.publicMetadata?.cuid as string;
+  const candidateId = clerkUser?.publicMetadata?.aiq_cuid as string;
 
   useEffect(() => {
     return () => {

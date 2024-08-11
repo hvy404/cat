@@ -76,7 +76,7 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
   );
   const [hasApplied, setHasApplied] = useState(false);
 
-  const candidateId = clerkUser?.publicMetadata?.cuid as string;
+  const candidateId = clerkUser?.publicMetadata?.aiq_cuid as string;
 
   useEffect(() => {
     const loadJobDetails = async () => {

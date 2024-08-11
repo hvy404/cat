@@ -15,7 +15,7 @@ export default function SOWUploader() {
     updateJDBuilderWizardStep,
   } = useStore();
 
-  const candidateId = clerkUser?.publicMetadata?.cuid as string;
+  const candidateId = clerkUser?.publicMetadata?.aiq_cuid as string;
 
   // Handler to set the user selected files in state
   const onFileAdded = (acceptedFiles: File[]) => {

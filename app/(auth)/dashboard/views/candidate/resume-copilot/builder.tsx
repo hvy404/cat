@@ -508,6 +508,11 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     }
   };
 
+  // Set choices to cache on load
+  useEffect(() => {
+    handleCraniumItems();
+  }, []); // Run only once
+
   // Suggestions and feedback
   const handleCraniumFeedback = async (nextSteps: NextStep[]) => {
     try {

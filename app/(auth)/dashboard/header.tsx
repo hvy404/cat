@@ -30,8 +30,8 @@ export default function EmployerDashboardHeader() {
   // Clerk
   const { user: clerkUser } = useUser();
 
-  const cuid = clerkUser?.publicMetadata?.cuid as string | undefined;
-  const role = clerkUser?.publicMetadata?.role as string | undefined;
+  const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+  const role = clerkUser?.publicMetadata?.aiq_role as string | undefined;
 
   // const employerIdentity = "f5246ce0-da92-4916-b1c8-dedf415a8dd2";
   // TODO: Login user

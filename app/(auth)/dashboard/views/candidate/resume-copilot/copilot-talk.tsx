@@ -33,7 +33,7 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
   builderSession,
 }) => {
   const { user: clerkUser } = useUser();
-  const userId = clerkUser?.publicMetadata?.cuid as string | undefined;
+  const userId = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
 
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editText, setEditText] = useState<string>("");

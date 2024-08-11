@@ -73,31 +73,17 @@ const categories: Category[] = [
     id: 1,
     type: "menu",
     category: "For Candidates",
-    callsToAction: [
+   /*  callsToAction: [
       { name: "Watch demo", href: "/#experience-demo", icon: PlayCircleIcon },
       { name: "Contact sales", href: "/contact-us", icon: PhoneIcon },
-    ],
+    ], */
     items: [
       {
-        name: "Health",
+        name: "Alpha...Details",
         description:
-          "Actionable health insights from federal healthcare intel.",
+          "Alpha",
         href: "/services-health",
         icon: HeartIcon,
-      },
-      {
-        name: "FedCiv",
-        description:
-          "Strategic intelligence on tech innovations in federal civilian contracts.",
-        href: "/services-fedciv",
-        icon: UsersIcon,
-      },
-      {
-        name: "Defense",
-        description:
-          "Decisive intelligence for enhancing Defense & Intelligence contract strategies.",
-        href: "/services-defense",
-        icon: ShieldCheckIcon,
       },
     ],
   },
@@ -108,24 +94,11 @@ const categories: Category[] = [
     callsToAction: [],
     items: [
       {
-        name: "Alerts",
+        name: "Alpha...Details",
         description:
-          "Contract opportunities, awards, and insights in real-time.",
-        href: "/alerts",
+          "Alpha",
+        href: "/employers",
         icon: BellAlertIcon,
-      },
-      {
-        name: "The Daily Take",
-        description:
-          "The most trusted newsletter for GovCon growth professionals.",
-        href: "/daily-take",
-        icon: NewspaperIcon,
-      },
-      {
-        name: "Events",
-        description: "Track GovCon's most important events.",
-        href: "/events",
-        icon: UserGroupIcon,
       },
       // Add other platform items...
     ],

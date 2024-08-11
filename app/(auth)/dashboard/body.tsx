@@ -31,8 +31,8 @@ export default function EmployerDashboardBody() {
     );
   }
 
-  const cuid = clerkUser?.publicMetadata?.cuid as string | undefined;
-  const role = clerkUser?.publicMetadata?.role as string | undefined;
+  const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+  const role = clerkUser?.publicMetadata?.aiq_role as string | undefined;
 
   /**
    * Returns the active sub-component based on the selected menu item.
