@@ -106,7 +106,7 @@ ${JSON.stringify(relevantTalentProfileData, null, 2)}
 Most recent edit's content:
 ${JSON.stringify(cardContent, null, 2)}
 
-In your resppnse:
+In your response:
 - You must never refer to an object by their ID (e.g. "experience-, experience-, skills-, education-, personal-"), instead use a human-readable name or reference from that object.
 - Your response must be in valid JSON and follows the schema provided in the instructions above.`;
 

@@ -1,6 +1,9 @@
 "use server";
 import { initializeRedis } from "@/lib/redis/connect";
-import { Item, HistoryItems as HistoryItemType } from "@/app/(auth)/dashboard/views/candidate/resume-copilot/types";
+import {
+  Item,
+  HistoryItems as HistoryItemType,
+} from "@/app/(auth)/dashboard/views/candidate/resume-copilot/types";
 import { Message as AIMessage } from "ai/react";
 import { NextStep } from "@/app/(auth)/dashboard/views/candidate/resume-copilot/types";
 
@@ -10,10 +13,12 @@ interface ExtendedAIMessage extends AIMessage {
   nextStep?: NextStep;
 }
 
+
+
 // Define the different item types
 type ChoiceItems = Record<string, Item[]>;
 type HistoryItems = Array<HistoryItemType>;
-type FeedbackItems = { feedback: string };
+type FeedbackItems = NextStep[];
 type ChatMessageItems = ExtendedAIMessage[];
 
 // union type
@@ -46,7 +51,10 @@ export default async function cranium(
 
   try {
     // Validate items
-    if (!items || (typeof items === 'object' && Object.keys(items).length === 0)) {
+    if (
+      !items ||
+      (typeof items === "object" && Object.keys(items).length === 0)
+    ) {
       return { success: false, message: "No items to store" };
     }
 

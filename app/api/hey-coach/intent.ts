@@ -12,7 +12,6 @@ export default async function intentClassifier(message: string) {
   const intentSchema = z.object({
     classification: z.enum([
       "general",
-      "history",
       "option",
       "advice",
       "compliment",
@@ -41,27 +40,22 @@ Examples:
      "classification": "option",
    }
 
-2. Message: "Can you remind me what sections I've already completed?"
-   Response: {
-     "classification": "history",
-   }
-
-3. Message: "How does my current summary look?"
+2. Message: "How does my current summary look?"
    Response: {
      "classification": "draft",
    }
 
-4. Message: "What's a good way to highlight my leadership skills?"
+3. Message: "What's a good way to highlight my leadership skills?"
    Response: {
      "classification": "advice",
    }
 
-5. Message: "Thanks, that's really helpful!"
+4. Message: "Thanks, that's really helpful!"
    Response: {
      "classification": "compliment",
    }
 
-6. Message: "How do I add a skills section to my resume?"
+5. Message: "How do I add a skills section to my resume?"
    Response: {
      "classification": "documentation"
    }

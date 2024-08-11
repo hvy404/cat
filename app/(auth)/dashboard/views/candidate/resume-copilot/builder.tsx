@@ -269,12 +269,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       if (!selectedRole) throw new Error("Selected role is not defined");
 
       const [editReviewResult, nextStepsResult] = await Promise.all([
-        buildEditReview(
-          items,
-          talentProfile,
-          selectedRole,
-          cardContent
-        ),
+        buildEditReview(items, talentProfile, selectedRole, cardContent),
         suggestNextSteps(
           items,
           talentProfile,
@@ -301,6 +296,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       if (!("error" in nextStepsResult)) {
         setNextSteps((prevNextSteps) => {
           setIsChatButtonExpanded(true);
+          // Add to feedbank memory
+          handleCraniumFeedback(nextSteps);
           return [...prevNextSteps, nextStepsResult];
         });
       }
@@ -508,6 +505,22 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       }
     } catch (error) {
       console.error("Error storing items:", error);
+    }
+  };
+
+  // Suggestions and feedback
+  const handleCraniumFeedback = async (nextSteps: NextStep[]) => {
+    try {
+      const result = await cranium(builderSession.sessionId, userId, {
+        cacheKeyType: "feedback",
+        items: nextSteps,
+      });
+
+      if (result.success) {
+        console.log("Successfully stored feedback:", result.message);
+      }
+    } catch (error) {
+      console.error("Error storing feedback:", error);
     }
   };
 

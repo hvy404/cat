@@ -13,7 +13,7 @@ const openai = createOpenAI({
   compatibility: "compatible",
 });
 
-type CacheKeyType = "choice" | "history" | "feedback" | "chat";
+type CacheKeyType = "choice" | "feedback" | "chat";
 
 // Define the structure of a chat message
 interface ChatMessage {
@@ -25,10 +25,9 @@ interface ChatMessage {
 
 // Define a mapping of intents to cache key types
 const intentToCacheKeyTypes: Record<string, CacheKeyType[]> = {
-  general: ["choice"],
-  history: ["feedback"],
+  general: ["chat"],
   option: ["choice"],
-  advice: ["feedback"],
+  advice: ["feedback", "choice"],
   compliment: [],
   draft: ["choice"],
   documentation: ["choice"],
@@ -43,7 +42,7 @@ async function fetchDataBasedOnIntent(
   const cacheKeyTypes = intentToCacheKeyTypes[intent] || [];
   let results: Record<CacheKeyType, any> = {
     choice: null,
-    history: null,
+    //history: null,
     feedback: null,
     chat: null,
   };
@@ -106,6 +105,7 @@ export async function POST(req: Request) {
 
   const intent = await intentClassifier(lastMessage);
 
+  // Fetch enrichment data
   const craniumData = await fetchDataBasedOnIntent(
     intent.classification,
     sessionId,
@@ -115,6 +115,7 @@ export async function POST(req: Request) {
   // Chat data always retreive for conversational memory
   const chatDataResult = await fetchCranium(sessionId, userId, "chat");
 
+  // Add new message to chat history
   let chatData: ChatMessage[] = [];
   if (chatDataResult.success && typeof chatDataResult.data === "string") {
     try {
@@ -124,24 +125,28 @@ export async function POST(req: Request) {
     }
   }
 
-  // Function to get the header based on intent
+  const contextInstructions = `\n\nUse the following context to help with your answer.`;
+  const humanReadableRule = `In your response: You must never refer to an object by their ID (e.g. "experience-, experience-, skills-, education-, personal-"), instead use a human-readable name or reference from that object.`;
+
+  // Function to generate section head for the enrichment part
   function getHeaderForIntent(intent: string): string {
     switch (intent) {
-      case "history":
-        return "\n\nPrevious Feedback:";
       case "option":
+        return "\n\nAvailable Choices (Inactive & Active):";
       case "draft":
         return "\n\nAvailable Choices:";
       case "advice":
-        return "\n\nRelevant Feedback:";
+        return "\n\nRelevant Coach Feedback:";
       case "documentation":
       //return "\n\nDocumentation:";
+      // For the rest of intents on the list, we return default one
       default:
         return "\n\nAdditional Context:";
     }
   }
 
   // Append the retrieved context to the last user message
+  // This append the cranium data to the last message the user sent
   let enhancedMessage = lastMessage;
   const header = getHeaderForIntent(intent.classification);
   const relevantDataKey = intentToCacheKeyTypes[intent.classification][0];
@@ -151,7 +156,14 @@ export async function POST(req: Request) {
     try {
       const cleanJsonString = JSON.stringify(JSON.parse(relevantDataString));
 
-      enhancedMessage += `${header}\n${cleanJsonString}`;
+      enhancedMessage += `${contextInstructions}
+
+<RelevantContext>
+${header}
+${cleanJsonString}
+</RelevantContext>
+
+${humanReadableRule}`;
     } catch (error) {
       console.error("Error parsing relevantData:", error);
       enhancedMessage += `${header}\n${relevantDataString}`;
