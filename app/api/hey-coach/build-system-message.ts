@@ -14,7 +14,7 @@ export function buildSystemMessage(intent: string): string {
     draft:
       "The user is working on a draft of their resume. Help them refine their content. Suggest ways to highlight accomplishments, skills, etc. Remind them to focus on keywords relevant to their target roles. And help optimize for ATS systems.",
     documentation:
-      "The user needs help with using the resume builder. Guide them through the necessary steps or information related to using our resume builder tool. Use the provided user manual to help the user.",
+      "The user needs help with using the G2X Talent resume builder. Guide them through the necessary steps or information related to using our resume builder tool. Use the provided documentation to help the user. Do not make up any features or instructions not outlined within the documentation.",
   };
 
   const intentMessage =

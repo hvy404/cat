@@ -4,6 +4,7 @@ import intentClassifier from "./intent";
 import fetchCranium from "@/app/(auth)/dashboard/views/candidate/resume-copilot/cranium-read";
 import llama3Tokenizer from "llama3-tokenizer-js";
 import { buildSystemMessage } from "@/app/api/hey-coach/build-system-message";
+import { ResumeBuilderGuide } from "@/app/(auth)/dashboard/views/candidate/resume-copilot/documentation/docs";
 
 export const runtime = "edge";
 
@@ -15,7 +16,6 @@ const openai = createOpenAI({
 
 type CacheKeyType = "choice" | "feedback" | "chat";
 
-// Define the structure of a chat message
 interface ChatMessage {
   id: string;
   createdAt: string;
@@ -23,26 +23,27 @@ interface ChatMessage {
   content: string;
 }
 
-// Define a mapping of intents to cache key types
 const intentToCacheKeyTypes: Record<string, CacheKeyType[]> = {
   general: ["chat"],
   option: ["choice"],
   advice: ["feedback", "choice"],
   compliment: [],
   draft: ["choice"],
-  documentation: ["choice"],
+  documentation: [],
 };
 
-// Function to fetch data from Cranium based on intent
 async function fetchDataBasedOnIntent(
   intent: string,
   sessionId: string,
   userId: string
 ): Promise<Record<CacheKeyType, any>> {
+  if (intent === "documentation") {
+    return { choice: null, feedback: null, chat: null };
+  }
+
   const cacheKeyTypes = intentToCacheKeyTypes[intent] || [];
   let results: Record<CacheKeyType, any> = {
     choice: null,
-    //history: null,
     feedback: null,
     chat: null,
   };
@@ -54,35 +55,56 @@ async function fetchDataBasedOnIntent(
         results[cacheKeyType] = result.data;
       } catch (error) {
         console.error(`Failed to parse ${cacheKeyType} data:`, error);
-        results[cacheKeyType] = result.data; // Store as string if parsing fails
+        results[cacheKeyType] = result.data;
       }
     } else {
       console.error(`Failed to fetch ${cacheKeyType} data:`, result.message);
-      results[cacheKeyType] = null; // Indicates fetching this data failed
+      results[cacheKeyType] = null;
     }
   }
 
   return results;
 }
 
-// Helper function Count tokens
-function tokenizeAndCountMessages(messages: CoreMessage[]): {
-  tokenizedMessages: number[][];
-  totalTokens: number;
-} {
-  const tokenizedMessages = messages.map((msg) =>
-    llama3Tokenizer.encode(msg.content.toString())
-  );
-  const totalTokens = tokenizedMessages.reduce(
-    (sum, tokens) => sum + tokens.length,
-    0
-  );
-  return { tokenizedMessages, totalTokens };
+function generateRelevantContext(intent: string, craniumData: Record<CacheKeyType, any>) {
+  if (intent === "documentation") {
+    return JSON.stringify(ResumeBuilderGuide);
+  }
+
+  const keys = intentToCacheKeyTypes[intent] || [];
+  return keys.map(key => {
+    const header = getHeaderForIntent(intent);
+    const dataString = craniumData[key];
+    if (dataString) {
+      try {
+        const cleanJsonString = JSON.stringify(JSON.parse(dataString));
+        return `${header}\n${cleanJsonString}`;
+      } catch (error) {
+        console.error(`Error parsing ${key} data:`, error);
+        return `${header}\n${dataString}`;
+      }
+    }
+    return '';
+  }).join('\n\n');
 }
 
-// Helper function to generate a unique ID
 function generateUniqueId(): string {
   return "uniqueId" + Date.now();
+}
+
+function getHeaderForIntent(intent: string): string {
+  switch (intent) {
+    case "option":
+      return "\n\nChoices (Inactive & Active):";
+    case "draft":
+      return "\n\Choices:";
+    case "advice":
+      return "\n\nCoach Feedback:";
+    case "documentation":
+      return "\n\nDocumentation:";
+    default:
+      return "";
+  }
 }
 
 export async function POST(req: Request) {
@@ -105,69 +127,26 @@ export async function POST(req: Request) {
 
   const intent = await intentClassifier(lastMessage);
 
-  // Fetch enrichment data
   const craniumData = await fetchDataBasedOnIntent(
     intent.classification,
     sessionId,
     userId
   );
 
-  // Chat data always retreive for conversational memory
-  const chatDataResult = await fetchCranium(sessionId, userId, "chat");
-
-  // Add new message to chat history
-  let chatData: ChatMessage[] = [];
-  if (chatDataResult.success && typeof chatDataResult.data === "string") {
-    try {
-      chatData = JSON.parse(chatDataResult.data) as ChatMessage[];
-    } catch (error) {
-      console.error("Failed to parse chat data:", error);
-    }
-  }
-
   const contextInstructions = `\n\nUse the following context to help with your answer.`;
   const humanReadableRule = `In your response: You must never refer to an object by their ID (e.g. "experience-, experience-, skills-, education-, personal-"), instead use a human-readable name or reference from that object.`;
 
-  // Function to generate section head for the enrichment part
-  function getHeaderForIntent(intent: string): string {
-    switch (intent) {
-      case "option":
-        return "\n\nAvailable Choices (Inactive & Active):";
-      case "draft":
-        return "\n\nAvailable Choices:";
-      case "advice":
-        return "\n\nRelevant Coach Feedback:";
-      case "documentation":
-      //return "\n\nDocumentation:";
-      // For the rest of intents on the list, we return default one
-      default:
-        return "\n\nAdditional Context:";
-    }
-  }
-
-  // Append the retrieved context to the last user message
-  // This append the cranium data to the last message the user sent
   let enhancedMessage = lastMessage;
-  const header = getHeaderForIntent(intent.classification);
-  const relevantDataKey = intentToCacheKeyTypes[intent.classification][0];
-  const relevantDataString = craniumData[relevantDataKey];
+  const relevantContext = generateRelevantContext(intent.classification, craniumData);
 
-  if (relevantDataString) {
-    try {
-      const cleanJsonString = JSON.stringify(JSON.parse(relevantDataString));
-
-      enhancedMessage += `${contextInstructions}
+  if (relevantContext) {
+    enhancedMessage += `${contextInstructions}
 
 <RelevantContext>
-${header}
-${cleanJsonString}
+${relevantContext}
 </RelevantContext>
 
 ${humanReadableRule}`;
-    } catch (error) {
-      console.error("Error parsing relevantData:", error);
-      enhancedMessage += `${header}\n${relevantDataString}`;
-    }
   }
 
   const enrichedUserLastMessage: ChatMessage = {
@@ -177,15 +156,35 @@ ${humanReadableRule}`;
     content: enhancedMessage,
   };
 
-  // Append new user message to chat history
-  chatData.push(enrichedUserLastMessage);
+  let messages: CoreMessage[];
 
-  const messages: CoreMessage[] = chatData.map((msg) => ({
-    role: msg.role as "user" | "assistant",
-    content: msg.content,
-  }));
+  if (intent.classification === 'documentation') {
+    // For documentation intent, only use the enriched user message
+    messages = [
+      {
+        role: "user",
+        content: enrichedUserLastMessage.content,
+      },
+    ];
+  } else {
+    // For other intents, include chat history
+    const chatDataResult = await fetchCranium(sessionId, userId, "chat");
+    let chatData: ChatMessage[] = [];
+    if (chatDataResult.success && typeof chatDataResult.data === "string") {
+      try {
+        chatData = JSON.parse(chatDataResult.data) as ChatMessage[];
+      } catch (error) {
+        console.error("Failed to parse chat data:", error);
+      }
+    }
+    chatData.push(enrichedUserLastMessage);
 
-  // Retreive correct system message based on intent
+    messages = chatData.map((msg) => ({
+      role: msg.role as "user" | "assistant",
+      content: msg.content,
+    }));
+  }
+
   const systemMessage = buildSystemMessage(intent.classification);
 
   console.log("Intent: ", intent);

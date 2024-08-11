@@ -26,7 +26,6 @@ export default async function intentClassifier(message: string) {
 
 Intent Definitions:
 - General: A general comment or question not related to a specific resume topic.
-- History: A question or comment that requires knowledge of the user's past interactions or edits in the resume builder tool.
 - Option: Asking for recommendations, options to consider, or suggestions that require knowing the available choices in the resume builder.
 - Advice: Seeking guidance or recommendations on a specific aspect of resume writing or job search.
 - Compliment: Expressing appreciation, praise, or positive feedback.
