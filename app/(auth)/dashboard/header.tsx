@@ -23,40 +23,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useUser } from "@clerk/nextjs";
 
 export default function EmployerDashboardHeader() {
-  // Get 'user' and 'setUser' from the store
-  // TODO: Remove this. Only used for development purposes
-  const { user, setUser } = useStore();
-
   // Clerk
   const { user: clerkUser } = useUser();
 
   const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
   const role = clerkUser?.publicMetadata?.aiq_role as string | undefined;
 
-  // const employerIdentity = "f5246ce0-da92-4916-b1c8-dedf415a8dd2";
-  // TODO: Login user
-  const employerIdentity = "f5246ce0-da92-4916-b1c8-dedf415a8dd2";
-  const employerCompany = "te0zfs2klzx61uxmb3rrcdi5";
-  const userIdentity = "4f5e180c-dd25-4c9d-8e42-cb50d9e374be";
-  const roleEmployer = "employer";
-  const roleCandidate = "candidate";
-
-  // Inside your component
-  let isLoaded = false;
-
-/*   // TODO: Remove this. Only used for development purposes
-  useEffect(() => {
-    if (!isLoaded) {
-      setUser({
-        email: "",
-        uuid: employerIdentity,
-        session: "",
-        role: roleEmployer,
-        company: employerCompany, // these field should be provied by authentification // UPDATE: We're probably not going to store this in the user object
-      });
-      isLoaded = true; // Set the flag to true after setting the user
-    }
-  }, []); // Dependency array remains empty to ensure this effect runs only once after the initial render */
 
   return (
     <header className="sticky top-0 z-10 flex h-[57px] items-center gap-1 border-b bg-background px-4">

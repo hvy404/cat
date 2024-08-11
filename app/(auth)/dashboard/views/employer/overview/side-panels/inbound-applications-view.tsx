@@ -23,6 +23,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { useUser } from "@clerk/nextjs";
+
 
 type AppStatus =
   | "submitted"
@@ -71,7 +73,11 @@ const isValidAppStatus = (status: string): status is AppStatus => {
 const ITEMS_PER_PAGE = 10;
 
 const InboundApplicantsSidePanel = () => {
-  const { user, employerRightPanelView, setEmployerRightPanelView } =
+    // Clerk
+    const { user: clerkUser } = useUser();
+    const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+
+  const { employerRightPanelView, setEmployerRightPanelView } =
     useStore();
   const [applicants, setApplicants] = useState<Applicant[]>([]);
   const [filteredApplicants, setFilteredApplicants] = useState<Applicant[]>([]);
@@ -85,10 +91,10 @@ const InboundApplicantsSidePanel = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const fetchApplicants = useCallback(async () => {
-    if (user && user.uuid) {
+    if (cuid) {
       setLoading(true);
       try {
-        const data = await getApplicantsDetails(user.uuid);
+        const data = await getApplicantsDetails(cuid);
         if (data && Array.isArray(data)) {
           const applicantsWithUpdatedStatus = await Promise.all(
             data.map(async (applicant) => {
@@ -120,7 +126,7 @@ const InboundApplicantsSidePanel = () => {
         setLoading(false);
       }
     }
-  }, [user]);
+  }, [cuid]);
 
   useEffect(() => {
     fetchApplicants();

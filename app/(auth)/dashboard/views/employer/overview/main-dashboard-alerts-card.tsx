@@ -34,9 +34,15 @@ import {
   getApplicationAlertDetails,
   ApplicationDetails,
 } from "@/lib/alerts/employer-application-alert-details";
+import { useUser } from "@clerk/nextjs";
+
 
 const AlertsCard: React.FC = () => {
-  const { user, setEmployerRightPanelView } = useStore();
+    // Clerk
+    const { user: clerkUser } = useUser();
+    const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+
+  const { setEmployerRightPanelView } = useStore();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [showOnlyUnread, setShowOnlyUnread] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
@@ -46,13 +52,13 @@ const AlertsCard: React.FC = () => {
 
   useEffect(() => {
     fetchAlerts();
-  }, [user]);
+  }, [cuid]);
 
   const fetchAlerts = async () => {
     setIsLoading(true);
     try {
-      if (user && user.uuid) {
-        const fetchedAlerts = await getAlerts(user.uuid);
+      if (cuid) {
+        const fetchedAlerts = await getAlerts(cuid);
         if (fetchedAlerts) {
           setAlerts(fetchedAlerts as Alert[]);
         }

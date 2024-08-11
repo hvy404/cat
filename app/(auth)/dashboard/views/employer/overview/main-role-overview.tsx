@@ -10,8 +10,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -22,8 +20,6 @@ import {
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -47,6 +43,7 @@ import {
 import AIMatchCandidateOverview from "@/app/(auth)/dashboard/views/employer/overview/mods/match-candidate-grid";
 import { deleteJobPost } from "@/lib/gui/delete-job";
 import { toast } from "sonner";
+import { useUser } from "@clerk/nextjs";
 
 interface JobDetails {
   description: string;
@@ -66,10 +63,14 @@ interface JobDetails {
 }
 
 export default function EmployerDashboardOverviewRoles() {
+    // Clerk
+    const { user: clerkUser } = useUser();
+    const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+
+    
   const {
     setDashboardRoleOverview,
     dashboard_role_overview,
-    user,
     setEmployerRightPanelView,
   } = useStore();
   const [jobDetails, setJobDetails] = useState<JobDetails | null>(null);
@@ -89,10 +90,10 @@ export default function EmployerDashboardOverviewRoles() {
     let isMounted = true;
 
     const fetchData = async () => {
-      if (user && user.uuid && dashboard_role_overview.active_role_id) {
+      if (cuid && dashboard_role_overview.active_role_id) {
         try {
           const { data, error } = await fetchJobPostSpecifics(
-            user.uuid,
+            cuid,
             dashboard_role_overview.active_role_id
           );
 
@@ -121,7 +122,7 @@ export default function EmployerDashboardOverviewRoles() {
     return () => {
       isMounted = false;
     };
-  }, [user, dashboard_role_overview.active_role_id]);
+  }, [cuid, dashboard_role_overview.active_role_id]);
 
   if (error) return <p>{error}</p>; // Display error message if there's an error
   if (!jobDetails)
@@ -133,10 +134,10 @@ export default function EmployerDashboardOverviewRoles() {
 
   // Update the job status
   const handleJobStatusUpdate = async (status: boolean) => {
-    if (user && user.uuid && dashboard_role_overview.active_role_id) {
+    if (cuid && dashboard_role_overview.active_role_id) {
       try {
         const { message, error } = await jobPostStatus(
-          user.uuid,
+          cuid,
           dashboard_role_overview.active_role_id,
           status
         );
@@ -162,11 +163,11 @@ export default function EmployerDashboardOverviewRoles() {
 
   // Onclick handler for deleting the job post
   const handleDeleteJobPost = async () => {
-    if (user && user.uuid && dashboard_role_overview.active_role_id) {
+    if (cuid && dashboard_role_overview.active_role_id) {
       try {
         const { success } = await deleteJobPost(
           dashboard_role_overview.active_role_id,
-          user.uuid
+          cuid
         );
         if (success) {
           toast.success("Job post deleted successfully");

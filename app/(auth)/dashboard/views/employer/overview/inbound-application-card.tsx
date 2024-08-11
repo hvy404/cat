@@ -10,21 +10,26 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useUser } from "@clerk/nextjs";
 
 const InboundApplicantsCard: React.FC = () => {
+    // Clerk
+    const { user: clerkUser } = useUser();
+    const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+
   const [applicantCount, setApplicantCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [trend, setTrend] = useState<number | null>(null);
-  const { user, setEmployerRightPanelView } = useStore();
+  const { setEmployerRightPanelView } = useStore();
 
   useEffect(() => {
     const fetchApplications = async () => {
-      if (!user?.uuid) return;
+      if (!cuid) return;
 
       setIsLoading(true);
       try {
-        const applications = await getEmployerJobApplications(user.uuid);
+        const applications = await getEmployerJobApplications(cuid);
         if (applications) {
           const oneWeekAgo = new Date();
           oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
@@ -65,7 +70,7 @@ const InboundApplicantsCard: React.FC = () => {
     };
 
     fetchApplications();
-  }, [user]);
+  }, [cuid]);
 
   const handleCardClick = () => {
     setEmployerRightPanelView('inboundApplications');

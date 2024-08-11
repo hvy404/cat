@@ -17,6 +17,7 @@ import {
   checkExistingInvite,
 } from "@/lib/employer/create-invite";
 import { toast } from "sonner";
+import { useUser } from "@clerk/nextjs";
 
 interface InviteActionWithListProps {
   applicantId: string;
@@ -27,7 +28,11 @@ const ITEMS_PER_PAGE = 5;
 export default function InviteActionWithList({
   applicantId,
 }: InviteActionWithListProps) {
-  const { user, isExpanded } = useStore();
+    // Clerk
+    const { user: clerkUser } = useUser();
+    const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+
+  const { isExpanded } = useStore();
 
   const [jobToInvite, setJobToInvite] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -45,9 +50,9 @@ export default function InviteActionWithList({
   const [searchTerm, setSearchTerm] = useState("");
 
   const inviteToApply = async (applicantId: string) => {
-    if (jobToInvite && user) {
+    if (jobToInvite && cuid) {
       try {
-        const result = await createInvite(user.uuid, applicantId, jobToInvite);
+        const result = await createInvite(cuid, applicantId, jobToInvite);
         setInviteStatus(result);
         if (result.success) {
           setInvitedJobs((prev) => new Set(prev).add(jobToInvite));
@@ -71,21 +76,21 @@ export default function InviteActionWithList({
   };
 
   const fetchJobList = async () => {
-    if (!user) {
+    if (!cuid) {
       console.error("User not found");
       return;
     }
 
     try {
       setIsLoading(true);
-      const simplifiedJobs = await getSimplifiedJobPosts(user.uuid, "active");
+      const simplifiedJobs = await getSimplifiedJobPosts(cuid, "active");
 
       if (simplifiedJobs && simplifiedJobs.length > 0) {
         const invitedJobsSet = new Set<string>();
         await Promise.all(
           simplifiedJobs.map(async (job) => {
             const inviteExists = await checkExistingInvite(
-              user.uuid,
+              cuid,
               applicantId,
               job.job_uuid
             );

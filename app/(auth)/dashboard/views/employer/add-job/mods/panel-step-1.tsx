@@ -8,13 +8,17 @@ import { JDAddDatabaseEntry } from "@/lib/dashboard/jd-add-new-entry";
 import { jobDescriptionStartOnboard } from "@/lib/dashboard/start-onboard";
 import { QueryEventStatus } from "@/lib/dashboard/query-runner-status";
 import { Button } from "@/components/ui/button";
+import { useUser } from "@clerk/nextjs";
+
 
 export default function AddNewJobStart() {
-  const { user, addJD, setAddJD } = useStore((state) => ({
-    user: state.user,
+  const { addJD, setAddJD } = useStore((state) => ({
     addJD: state.addJD,
     setAddJD: state.setAddJD,
   }));
+
+  const { user: clerkUser } = useUser();
+  const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
 
   const [fileResponse, setFileResponse] = useState<string | null>(null);
 
@@ -71,7 +75,7 @@ export default function AddNewJobStart() {
   };
 
   const handleFileUpload = async (acceptedFiles: File[]) => {
-    if (user?.uuid && acceptedFiles.length > 0) {
+    if (cuid && acceptedFiles.length > 0) {
       const formData = new FormData();
       formData.append("file", acceptedFiles[0]);
       setAddJD({ isProcessing: true });
@@ -81,7 +85,7 @@ export default function AddNewJobStart() {
         if (uploadResponse && uploadResponse.success && uploadResponse.filename) {
           setAddJD({ filename: uploadResponse.filename });
 
-          const jdEntryId = await JDAddDatabaseEntry(user.uuid, uploadResponse.filename);
+          const jdEntryId = await JDAddDatabaseEntry(cuid, uploadResponse.filename);
           if (jdEntryId.success && jdEntryId.id) {
             setAddJD({ jdEntryID: jdEntryId.id, filename: uploadResponse.filename });
             setFileResponse("File uploaded successfully.");
@@ -103,11 +107,11 @@ export default function AddNewJobStart() {
     let isMounted = true;
 
     const startOnboardProcess = async () => {
-      if (user && addJD.step === 1) {
-        if (addJD.jdEntryID && addJD.filename && user.uuid && addJD.session) {
+      if (cuid && addJD.step === 1) {
+        if (addJD.jdEntryID && addJD.filename && cuid && addJD.session) {
           const startOnboard = await jobDescriptionStartOnboard(
             addJD.jdEntryID,
-            user.uuid,
+            cuid,
             addJD.filename,
             addJD.session
           );
@@ -125,7 +129,7 @@ export default function AddNewJobStart() {
     return () => {
       isMounted = false;
     };
-  }, [addJD.filename, user?.uuid, addJD.jdEntryID, addJD.session, addJD.step]);
+  }, [addJD.filename, cuid, addJD.jdEntryID, addJD.session, addJD.step]);
 
   useEffect(() => {
     let isMounted = true;

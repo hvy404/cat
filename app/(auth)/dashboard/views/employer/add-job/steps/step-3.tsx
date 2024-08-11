@@ -6,8 +6,13 @@ import { Button } from "@/components/ui/button";
 import { jobDescriptionFinishOnboard } from "@/lib/dashboard/finish-onboard";
 import { QueryEventStatus } from "@/lib/dashboard/query-runner-status";
 import { fetchUserCompanyId } from "@/lib/dashboard/get-company-membership";
+import { useUser } from "@clerk/nextjs";
 
 export default function AddJDStepThree() {
+  // Clerk
+  const { user: clerkUser } = useUser();
+  const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+
   // Get AddJD state from the store
   const { addJD, setAddJD, user, setSelectedMenuItem } = useStore((state) => ({
     addJD: state.addJD,
@@ -22,9 +27,9 @@ export default function AddJDStepThree() {
   // Fetch the user's company ID
   useEffect(() => {
     const getCompanyId = async () => {
-      if (user && user.uuid && !companyId) {
+      if (cuid && !companyId) {
         try {
-          const result = await fetchUserCompanyId(user.uuid);
+          const result = await fetchUserCompanyId(cuid);
           if (result.success) {
             setCompanyId(result.companyId);
           } else {
@@ -41,7 +46,7 @@ export default function AddJDStepThree() {
     };
 
     getCompanyId();
-  }, [user, companyId]);
+  }, [cuid, companyId]);
 
   // Start the publishing runner (final step of onboarding process)
   useEffect(() => {
@@ -49,6 +54,7 @@ export default function AddJDStepThree() {
       if (
         addJD.jdEntryID &&
         user &&
+        cuid &&
         companyId &&
         !addJD.publishingRunnerID &&
         !hasRun.current &&
@@ -60,7 +66,7 @@ export default function AddJDStepThree() {
         try {
           const result = await jobDescriptionFinishOnboard(
             addJD.jdEntryID,
-            user.uuid,
+            cuid,
             user.session,
             companyId
           );
@@ -84,7 +90,7 @@ export default function AddJDStepThree() {
     };
 
     finishOnboard();
-  }, [addJD.jdEntryID, user, companyId, addJD.step, isCompanyIdFetched]);
+  }, [addJD.jdEntryID, user, cuid, companyId, addJD.step, isCompanyIdFetched]);
 
   // Poll status of publishing runner
   useEffect(() => {
