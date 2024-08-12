@@ -132,7 +132,7 @@ export default function CollectRightPanelEditor({
       setEditingID(null);
       onUpdate();
     } else {
-      console.error("Failed to create entry");
+      console.error("");
     }
   };
 

@@ -78,7 +78,7 @@ const TooltipButton: React.FC<TooltipButtonProps> = ({
   );
 };
 
-export default function EmployerDashboardNavigation() {
+export default function DashboardNavigation() {
   // Clerk
   // TODO: Move to the server side action for better security
   const { isLoaded, isSignedIn, user: clerkUser } = useUser();
@@ -89,7 +89,6 @@ export default function EmployerDashboardNavigation() {
     return null; // TOOD: Or we could return a loading indicator or sign-in prompt
   }
 
-  //const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
   const role = clerkUser?.publicMetadata?.aiq_role as string | undefined;
 
   const renderNavItems = () => {
@@ -100,7 +99,7 @@ export default function EmployerDashboardNavigation() {
           <>
             <TooltipButton item="dashboard" label="Dashboard" icon={Home} />
             <TooltipButton
-              item="adda-job"
+              item="add-job"
               label="Post New Job"
               icon={UserRoundPlus}
             />

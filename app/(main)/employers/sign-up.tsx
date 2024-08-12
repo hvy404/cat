@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import { createId } from "@paralleldrive/cuid2";
 import { setEmployerMetadata } from "@/app/(main)/employers/set-metadata";
+import { triggerEmployerSignup } from "@/app/(main)/employers/trigger-signup";
 
 const EmployerSignUpBox: React.FC = () => {
   const [showSignUp, setShowSignUp] = useState(true);
@@ -79,6 +80,11 @@ const EmployerSignUpBox: React.FC = () => {
             completeSignUp.createdUserId,
             employerId
           );
+          const resultSignup = await triggerEmployerSignup(employerId, email);
+          if (!resultSignup.success) {
+            throw new Error(resultSignup.error || "Failed to onboard employer");
+          }
+
           if (!result.success) {
             throw new Error(
               result.error || "Failed to update employer metadata"

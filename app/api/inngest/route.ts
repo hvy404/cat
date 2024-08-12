@@ -26,6 +26,7 @@ import { jdWizardGetKeyPersonnel } from "@/inngest/jd-wizard-get-key-personnel";
 import { jdWizardGetPersonnel } from "@/inngest/jd-wizard-get-personnel";
 import { jdGenerateDescription } from "@/inngest/jd-wizard-generate-jd";
 import { jdWizardWriteDraft } from "@/inngest/jd-wizard-write-draft"; // JD Wizard - Write draft function starter
+import { employerSignupHandler } from "@/inngest/signup-employer-flow"; // Handle flow after employer signs up
 
 /**
  * Represents the serve function for handling HTTP requests.
@@ -64,5 +65,6 @@ export const { GET, POST, PUT } = serve({
     jdWizardGetPersonnel,
     jdGenerateDescription,
     jdWizardWriteDraft,
+    employerSignupHandler,
   ],
 });
