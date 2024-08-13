@@ -33,16 +33,16 @@ export async function getPersonnel(owner: string, sowId: string) {
   const summaries: { [key: string]: string } = {};
 
   // Questions for Part 1
-const embeddingInputs = [
-  {
-    key: "oppDeliverables",
-    question: "What are the key deliverables and performance standards?",
-  },
-  {
-    key: "oppRequirements",
-    question: "What are the specific requirements outlined in the SOW/PWS?",
-  },
-];
+  const embeddingInputs = [
+    {
+      key: "oppDeliverables",
+      question: "What are the key deliverables and performance standards?",
+    },
+    {
+      key: "oppRequirements",
+      question: "What are the specific requirements outlined in the SOW/PWS?",
+    },
+  ];
 
   // Loop through each question, generate embeddings, and query the database
   for (const input of embeddingInputs) {
@@ -73,7 +73,7 @@ const embeddingInputs = [
       ({ id, content }) => ({ id, content })
     );
 
-    console.log("Optimized Results:", optimizedResults);
+    //console.log("Optimized Results:", optimizedResults);
 
     // Define system prompts for each question
     let sysPrompt = "";

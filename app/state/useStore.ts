@@ -96,6 +96,8 @@ interface JDBuilderWizard {
   setRoleToGenerate: (role: string) => void;
   jdGenerationRunnerID: string | null;
   setJDGenerationRunnerID: (jdGenerationRunnerID: string) => void;
+  generationProcessId: string | null; // JD Generation process identifier
+  setGenerationProcessId: (generationProcessId: string) => void;
 }
 
 interface CandidateDashboard {
@@ -357,7 +359,7 @@ const useStore = create<StoreState>((set) => ({
       set((state) => ({
         jdBuilderWizard: { ...state.jdBuilderWizard, fileParsing: value },
       })),
-    pollingStatus: true, // Set to false after development
+    pollingStatus: false,
     setPollingStatus: (value: boolean) =>
       set((state) => ({
         jdBuilderWizard: { ...state.jdBuilderWizard, pollingStatus: value },
@@ -381,6 +383,14 @@ const useStore = create<StoreState>((set) => ({
         jdBuilderWizard: {
           ...state.jdBuilderWizard,
           jdGenerationRunnerID: runnerID,
+        },
+      })),
+    generationProcessId: null,
+    setGenerationProcessId: (processId: string) =>
+      set((state) => ({
+        jdBuilderWizard: {
+          ...state.jdBuilderWizard,
+          generationProcessId: processId,
         },
       })),
   },

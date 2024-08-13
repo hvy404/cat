@@ -1,14 +1,6 @@
 "use server";
 import { unstable_noStore as noStore } from "next/cache";
 
-/**
- * Retrieves the status of a query event run.
- * Returns the status of the event run: "Running", "Completed", "Failed", "Cancelled".
- * @param runId - The ID of the query event run.
- * @returns A Promise that resolves to a string representing the status of the event run.
- */
-
-
 interface EventData {
   run_id: string;
   run_started_at: string;
@@ -34,37 +26,47 @@ interface EventResponse {
 }
 
 export async function QueryEventStatus(runId: string): Promise<string> {
-  noStore(); // Ensure the API is not cached under any circumstances
+  noStore();
 
-  const api_base = process.env.NODE_ENV === "production"
-    ? "https://api.inngest.com"
-    : "http://127.0.0.1:8288";
+  console.log("Checking status in API...");
+
+  const api_base =
+    process.env.NODE_ENV === "production"
+      ? "https://api.inngest.com"
+      : "http://127.0.0.1:8288";
   const api_url = `${api_base}/v1/events/${runId}/runs`;
 
   const options = {
     method: "GET",
     headers: {
       Accept: "application/json",
-      Authorization: `Bearer ${process.env.INNGEST_API_KEY}`, // Ensure space after 'Bearer'
+      Authorization: `Bearer ${process.env.INNGEST_API_KEY}`,
     },
   };
 
   try {
+    console.log(`Fetching status for runId: ${runId}`);
     const response = await fetch(api_url, options);
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`); // Throw if response is not OK
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-    const data: EventResponse = await response.json(); // Parse and assert to EventResponse
-    //console.log("Querying Status", data);
+    const data: EventResponse = await response.json();
+    console.log("API Response:", JSON.stringify(data, null, 2));
 
-    // Check if data has entries and return the status of the event
     if (data.data && data.data.length > 0) {
-      return data.data[0].status; // Return only the status
+      const status = data.data[0].status;
+      if (["Running", "Completed", "Failed", "Cancelled"].includes(status)) {
+        return status;
+      } else {
+        console.error("Unexpected status value:", status);
+        return `Unexpected error`;
+      }
     } else {
-      return "No data"; // Return no data string if data array is empty
+      console.error("No data in API response");
+      return "No data";
     }
   } catch (error) {
     console.error("Failed to fetch event status:", error);
-    return "Error fetching data"; // Return error string directly
+    return `Error`;
   }
 }

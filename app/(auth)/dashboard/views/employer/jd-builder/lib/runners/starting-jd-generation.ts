@@ -1,11 +1,12 @@
 "use server";
 import { inngest } from "@/lib/inngest/client";
+import { createId } from "@paralleldrive/cuid2";
 
 /**
  * This function triggers the job description generation process.
  * Proivde the role name to generate the JD.
  * It returns a runner ID which can be used to query the status of the JD generation process in function: queryJDGeneratorStatus
- * 
+ *
  * @param {object} options - The options for starting the JD generation process.
  * @param {string} options.sowID - The ID of the SOW.
  * @param {string} options.employerID - The ID of the employer.
@@ -26,6 +27,9 @@ export async function StartJDGeneration({
 }: JDDraftGeneration) {
   let runnerId = "";
 
+  // generate unique ccuid
+  const processId = createId();
+
   try {
     const { ids } = await inngest.send({
       name: "app/jd-wizard-start-draft",
@@ -34,6 +38,7 @@ export async function StartJDGeneration({
           uuid: sowID,
           employerID: employerID,
           roleName: roleName,
+          processId: processId,
         },
       },
     });
@@ -49,5 +54,6 @@ export async function StartJDGeneration({
     success: true,
     message: "Successfully initialized",
     id: runnerId, // This is the event ID
+    process: processId,
   };
 }

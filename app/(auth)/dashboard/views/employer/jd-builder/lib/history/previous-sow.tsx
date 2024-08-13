@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
 import { LoadPreviousJDSessions } from "@/lib/jd-builder/fetcher/fetch-previous-sow";
 import useStore from "@/app/state/useStore";
 import {
@@ -9,11 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 
 interface PreviousSOWDropdownProps {
-  sow_id: string; // Changed to match your updated property name
+  sow_id: string;
   created_at: string;
-  name: string; // Ensuring name is part of the interface and no default value is set here
+  name: string;
 }
 
 export default function PreviousSOWDropdown() {
@@ -22,10 +24,10 @@ export default function PreviousSOWDropdown() {
     jdBuilderWizard,
     setJDBuilderWizard,
     updateJDBuilderWizardStep,
-    user,
   } = useStore();
 
-  const userId = user?.uuid ?? "";
+  const { user: clerkUser } = useUser();
+  const userId = clerkUser?.publicMetadata?.aiq_cuid as string;
 
   // Store previous sessions state
   const [previousSessions, setPreviousSessions] = useState<
@@ -66,22 +68,27 @@ export default function PreviousSOWDropdown() {
   return (
     <div className="flex flex-col w-full justify-center">
       {previousSessions && previousSessions.length > 0 && (
-        <div className="flex justify-center">
-          <Select
-            onValueChange={handleSelect} // Added onValueChange to handle dropdown selection
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select Previous Session" />
-            </SelectTrigger>
-            <SelectContent>
-              {previousSessions.map((session, index) => (
-                <SelectItem key={index} value={session.sow_id}>
-                  {session.name}
-                </SelectItem> // Using `name` for display and `sow_id` for value
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <>
+          {" "}
+          <Separator orientation="horizontal" className="md:w-1/2" />
+          <p className="text-sm text-gray-500">or</p>
+          <div className="flex justify-center">
+            <Select
+              onValueChange={handleSelect} // Added onValueChange to handle dropdown selection
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select Previous Session" />
+              </SelectTrigger>
+              <SelectContent>
+                {previousSessions.map((session, index) => (
+                  <SelectItem key={index} value={session.sow_id}>
+                    {session.name}
+                  </SelectItem> // Using `name` for display and `sow_id` for value
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </>
       )}
     </div>
   );

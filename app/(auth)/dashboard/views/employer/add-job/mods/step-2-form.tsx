@@ -109,7 +109,7 @@ export default function AddJDStep2Form() {
   useEffect(() => {
     let isMounted = true;
 
-    if (!employerId || !addJD.jdEntryID) {
+    if (!cuid || !addJD.jdEntryID) {
       console.log("User not logged in.");
       return;
     }
@@ -120,7 +120,7 @@ export default function AddJDStep2Form() {
         return;
       }
 
-      const result = await AddJDGetDataPoints(addJD.jdEntryID, employerId);
+      const result = await AddJDGetDataPoints(addJD.jdEntryID, cuid!);
 
       console.log("Data fetched:", result);
 
@@ -168,7 +168,7 @@ export default function AddJDStep2Form() {
       isMounted = false;
       console.log("Component unmounting");
     };
-  }, [employerId, addJD.jdEntryID]);
+  }, [cuid, addJD.jdEntryID]);
 
   const handleSubmit = async () => {
     try {
