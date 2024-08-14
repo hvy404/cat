@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Upload, FileText, Trash, Loader } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Upload, FileText, Trash, Loader } from "lucide-react";
 import useStore from "@/app/state/useStore";
 import Dropzone from "react-dropzone";
 import { jobDescriptionUpload } from "@/lib/dashboard/jd-upload";
@@ -9,7 +9,6 @@ import { jobDescriptionStartOnboard } from "@/lib/dashboard/start-onboard";
 import { QueryEventStatus } from "@/lib/dashboard/query-runner-status";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@clerk/nextjs";
-
 
 export default function AddNewJobStart() {
   const { addJD, setAddJD } = useStore((state) => ({
@@ -82,12 +81,22 @@ export default function AddNewJobStart() {
 
       try {
         const uploadResponse = await jobDescriptionUpload(formData);
-        if (uploadResponse && uploadResponse.success && uploadResponse.filename) {
+        if (
+          uploadResponse &&
+          uploadResponse.success &&
+          uploadResponse.filename
+        ) {
           setAddJD({ filename: uploadResponse.filename });
 
-          const jdEntryId = await JDAddDatabaseEntry(cuid, uploadResponse.filename);
+          const jdEntryId = await JDAddDatabaseEntry(
+            cuid,
+            uploadResponse.filename
+          );
           if (jdEntryId.success && jdEntryId.id) {
-            setAddJD({ jdEntryID: jdEntryId.id, filename: uploadResponse.filename });
+            setAddJD({
+              jdEntryID: jdEntryId.id,
+              filename: uploadResponse.filename,
+            });
             setFileResponse("File uploaded successfully.");
           } else {
             throw new Error("Job description upload to database failed.");
@@ -170,7 +179,10 @@ export default function AddNewJobStart() {
         className="w-full bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 p-6 space-y-4"
         variants={itemVariants}
       >
-        <motion.div className="flex flex-col items-center space-y-3" variants={iconVariants}>
+        <motion.div
+          className="flex flex-col items-center space-y-3"
+          variants={iconVariants}
+        >
           <div className="p-2 bg-gray-100 rounded-full">
             <Upload className="w-4 h-4 text-gray-600" />
           </div>
@@ -184,17 +196,25 @@ export default function AddNewJobStart() {
             disabled={addJD.isProcessing}
             accept={{
               "application/pdf": [".pdf"],
-              "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+                [".docx"],
             }}
           >
             {({ getRootProps, getInputProps }) => (
-              <div {...getRootProps()} className="flex flex-col items-center gap-2 text-center mt-4">
+              <div
+                {...getRootProps()}
+                className="flex flex-col items-center gap-2 text-center mt-4"
+              >
                 <input {...getInputProps()} />
                 {!addJD.file?.name ? (
                   <>
-                    <p className="text-sm text-muted-foreground">Upload a job description to get started</p>
+                    <p className="text-sm text-muted-foreground">
+                      Upload a job description to get started
+                    </p>
                     <Button>Select JD</Button>
-                    <p className="text-xs text-muted-foreground">.pdf or .docx only</p>
+                    <p className="text-xs text-muted-foreground">
+                      .pdf or .docx only
+                    </p>
                   </>
                 ) : (
                   <div className="flex flex-col items-center gap-2">
@@ -230,7 +250,9 @@ export default function AddNewJobStart() {
         )}
 
         {fileResponse && (
-          <p className="text-sm text-center text-gray-600 mt-4">{fileResponse}</p>
+          <p className="text-sm text-center text-gray-600 mt-4">
+            {fileResponse}
+          </p>
         )}
       </motion.div>
     </motion.div>
