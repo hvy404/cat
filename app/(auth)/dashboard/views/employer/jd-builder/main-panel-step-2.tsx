@@ -14,10 +14,6 @@ export default function JDBuilderStartProcessing() {
   const pollingStatus = jdBuilderWizard.pollingStatus;
   const runnerID = jdBuilderWizard.sowParseRunnerID;
 
-  console.log("sowID:", sowID);
-  console.log("pollingStatus:", pollingStatus);
-  console.log("runnerID:", runnerID);
-
   useEffect(() => {
     console.log("Polling useEffect triggered");
     if (!sowID || !runnerID || pollingStatus === true) {

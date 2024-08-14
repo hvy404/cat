@@ -8,7 +8,7 @@
 import { inngest } from "@/lib/inngest/client";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
-import { jdSetProcessStatus } from "@/lib/dashboard/ingest-jd/jd-process-status";
+//import { jdSetProcessStatus } from "@/lib/dashboard/ingest-jd/jd-process-status";
 
 export const jobDescriptionGenerateCompleted = inngest.createFunction(
   { id: "job-description-onboard-complete" },
@@ -36,7 +36,7 @@ export const jobDescriptionGenerateCompleted = inngest.createFunction(
       };
     }
 
-    // Set the processing status to false
+ /*    // Set the processing status to false
     const updateStatus = await jdSetProcessStatus(user, sessionID, false);
 
     if (!updateStatus) {
@@ -45,7 +45,7 @@ export const jobDescriptionGenerateCompleted = inngest.createFunction(
         message: "Failed to update job description processing status.",
         error: "Failed to update job description processing status.",
       };
-    }
+    } */
 
     return {
       message: "Job description processing completed.",

@@ -6,15 +6,22 @@ import { Button } from "@/components/ui/button";
 import { Wand, Loader, KeyRound } from "lucide-react";
 import { StartJDGeneration } from "@/app/(auth)/dashboard/views/employer/jd-builder/lib/runners/starting-jd-generation";
 import { QueryJDGenerationStatus } from "@/lib/dashboard/query-role-jd-generation";
+import { useUser } from "@clerk/nextjs";
 
 export default function JDBuilderDetectedRoles() {
   // Get state from the store
   const { jdBuilderWizard, setJDBuilderWizard, user, toggleExpansion } =
     useStore();
 
+  const { user: clerkUser } = useUser();
+  const employerID = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+
+  if (!employerID) {
+    return <div>Please login</div>
+  }
+
   // Get the sowID from the store
   const sowID = jdBuilderWizard.sowID ?? "";
-  const employerID = user?.uuid ?? "";
   const step = jdBuilderWizard.step;
   const roleToGenerate = jdBuilderWizard.roleToGenerate;
   const jdGenerationRunnerID = jdBuilderWizard.jdGenerationRunnerID;

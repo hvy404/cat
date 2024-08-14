@@ -27,9 +27,6 @@ interface EventResponse {
 
 export async function QueryEventStatus(runId: string): Promise<string> {
   noStore();
-
-  console.log("Checking status in API...");
-
   const api_base =
     process.env.NODE_ENV === "production"
       ? "https://api.inngest.com"
@@ -45,13 +42,11 @@ export async function QueryEventStatus(runId: string): Promise<string> {
   };
 
   try {
-    console.log(`Fetching status for runId: ${runId}`);
     const response = await fetch(api_url, options);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data: EventResponse = await response.json();
-    console.log("API Response:", JSON.stringify(data, null, 2));
 
     if (data.data && data.data.length > 0) {
       const status = data.data[0].status;

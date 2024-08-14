@@ -98,13 +98,14 @@ export default function AddJDStep2Form() {
     compensation: "",
     commission_percent: "",
   });
-  const [employerId, setEmployerId] = useState("");
+
+/*   const [employerId, setEmployerId] = useState("");
 
   useEffect(() => {
     if (cuid) {
       setEmployerId(cuid);
     }
-  }, [cuid]);
+  }, [cuid]); */
 
   useEffect(() => {
     let isMounted = true;
@@ -166,13 +167,13 @@ export default function AddJDStep2Form() {
 
     return () => {
       isMounted = false;
-      console.log("Component unmounting");
     };
   }, [cuid, addJD.jdEntryID]);
 
   const handleSubmit = async () => {
     try {
       schema.parse(addJD.jobDetails[0]);
+
       const result = await SaveJobDetails(
         addJD.jobDetails[0],
         addJD.jdEntryID!
@@ -191,6 +192,7 @@ export default function AddJDStep2Form() {
           step: 3,
           publishingRunnerID: null,
         });
+        console.log("Updated to step 3");
       }
     } catch (error) {
       if (error instanceof z.ZodError) {

@@ -27,7 +27,7 @@ export async function StartJDGeneration({
 }: JDDraftGeneration) {
   let runnerId = "";
 
-  // generate unique ccuid
+  // generate unique cuid
   const processId = createId();
 
   try {

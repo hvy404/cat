@@ -29,31 +29,44 @@ export default function AddJDStepThree() {
     const getCompanyId = async () => {
       if (cuid && !companyId) {
         try {
+          console.log("Fetching company ID for cuid:", cuid);
           const result = await fetchUserCompanyId(cuid);
           if (result.success) {
+            console.log("Company ID fetched successfully:", result.companyId);
             setCompanyId(result.companyId);
           } else {
-            //console.error("Failed to fetch company ID:", result.error);
+            console.error("Failed to fetch company ID:", result.error);
           }
         } catch (error) {
-          //console.error("Error fetching company ID:", error);
+          console.error("Error fetching company ID:", error);
         } finally {
+          console.log("Setting isCompanyIdFetched to true");
           setIsCompanyIdFetched(true);
         }
       } else {
+        console.log("No need to fetch company ID, setting isCompanyIdFetched to true");
         setIsCompanyIdFetched(true);
       }
     };
-
+  
     getCompanyId();
   }, [cuid, companyId]);
 
   // Start the publishing runner (final step of onboarding process)
   useEffect(() => {
+    console.log("Debug values:", {
+      jdEntryID: addJD.jdEntryID,
+      cuid,
+      companyId,
+      publishingRunnerID: addJD.publishingRunnerID,
+      hasRun: hasRun.current,
+      step: addJD.step,
+      isCompanyIdFetched
+    });
+    
     const finishOnboard = async () => {
       if (
         addJD.jdEntryID &&
-        user &&
         cuid &&
         companyId &&
         !addJD.publishingRunnerID &&
@@ -67,7 +80,6 @@ export default function AddJDStepThree() {
           const result = await jobDescriptionFinishOnboard(
             addJD.jdEntryID,
             cuid,
-            user.session,
             companyId
           );
 
@@ -113,6 +125,7 @@ export default function AddJDStepThree() {
           });
           isPollingActive = false; // Stop polling
 
+          console.log("Comlpetion of onboarding process");
           goToDashboard();
         } else if (
           status === "Running" ||
@@ -123,11 +136,11 @@ export default function AddJDStepThree() {
             setTimeout(pollEventStatus, 1000); // Continue polling every 1 second
           }
         } else {
-          //console.error(`Unexpected status received: ${status}`);
+          console.error(`Unexpected status received: ${status}`);
           isPollingActive = false; // Stop polling on unexpected status
         }
       } else {
-        //console.error("publishingRunnerID is null, cannot query event status");
+        console.error("publishingRunnerID is null, cannot query event status");
         isPollingActive = false; // Stop polling since we don't have a valid ID
       }
     };

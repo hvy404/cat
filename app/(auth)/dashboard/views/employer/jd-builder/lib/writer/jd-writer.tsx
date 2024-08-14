@@ -16,6 +16,7 @@ import { Loader } from "lucide-react";
 import { publishDraftJD } from "@/lib/jd-builder/connector/publish"; // Send draft job description to upload process
 import { v4 as uuidv4 } from "uuid";
 import { QueryEventStatus } from "@/lib/dashboard/query-runner-status";
+import { useUser } from "@clerk/nextjs";
 
 /* Extensions */
 import StarterKit from "@tiptap/starter-kit";
@@ -40,6 +41,13 @@ import {
 } from "@/components/ui/dialog";
 
 const JDWriter = () => {
+  const { user: clerkUser } = useUser();
+  const employerID = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+
+  if (!employerID) {
+    return <div>Please login</div>;
+  }
+
   // Get state from the store
   const {
     user,
@@ -366,10 +374,10 @@ const JDWriter = () => {
   // Function to handle publish. Grab text from the editor and send it to publishDraftJD
   const handlePublishJD = async () => {
     const sessionID = uuidv4();
-    if (editor && sessionID && jdBuilderWizard.jobDescriptionId && user?.uuid) {
+    if (editor && sessionID && jdBuilderWizard.jobDescriptionId && employerID) {
       setIsPublishing(true);
       const currentEditorContent = JSON.stringify(editor.getText());
-      const result = await publishDraftJD(user?.uuid, currentEditorContent);
+      const result = await publishDraftJD(employerID, currentEditorContent);
 
       if (!result.success) {
         console.error("Failed to publish JD", result.message);
@@ -434,7 +442,7 @@ const JDWriter = () => {
           step: 1,
         });
 
-        setSelectedMenuItem("add-job") // Move to the next step (add job)
+        setSelectedMenuItem("add-job"); // Move to the next step (add job)
       } else if (
         status === "Running" ||
         status === "Failed" ||
@@ -483,7 +491,9 @@ const JDWriter = () => {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Almost there! Your job post is being processed.</DialogTitle>
+              <DialogTitle>
+                Almost there! Your job post is being processed.
+              </DialogTitle>
               <DialogDescription className="py-4">
                 {isPublishing
                   ? "We're finalizing your job description. This typically takes 2-3 minutes. Once complete, you'll review and confirm all details before publishing."
