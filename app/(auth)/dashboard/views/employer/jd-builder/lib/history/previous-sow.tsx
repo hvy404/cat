@@ -66,30 +66,30 @@ export default function PreviousSOWDropdown() {
   };
 
   return (
-    <div className="flex flex-col w-full justify-center">
-      {previousSessions && previousSessions.length > 0 && (
-        <>
-          {" "}
-          <Separator orientation="horizontal" className="md:w-1/2" />
-          <p className="text-sm text-gray-500">or</p>
-          <div className="flex justify-center">
-            <Select
-              onValueChange={handleSelect} // Added onValueChange to handle dropdown selection
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select Previous Session" />
-              </SelectTrigger>
-              <SelectContent>
-                {previousSessions.map((session, index) => (
-                  <SelectItem key={index} value={session.sow_id}>
-                    {session.name}
-                  </SelectItem> // Using `name` for display and `sow_id` for value
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </>
-      )}
-    </div>
+<div className="flex flex-col w-full justify-center items-center space-y-4">
+  {previousSessions && previousSessions.length > 0 && (
+    <>
+      <Separator orientation="horizontal" className="md:w-1/2 mx-auto" />
+      <p className="text-sm text-gray-500 text-center">or</p>
+      <div className="flex justify-center">
+        <Select
+          onValueChange={handleSelect}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select Previous Session" />
+          </SelectTrigger>
+          <SelectContent>
+            {previousSessions.map((session, index) => (
+              <SelectItem key={index} value={session.sow_id}>
+                {session.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </>
+  )}
+</div>
+
   );
 }

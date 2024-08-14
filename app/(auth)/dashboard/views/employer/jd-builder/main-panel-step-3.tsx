@@ -16,13 +16,9 @@ export default function JDBuilderDetectedRoles() {
   const { user: clerkUser } = useUser();
   const employerID = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
 
-  if (!employerID) {
-    return <div>Please login</div>
-  }
-
   // Get the sowID from the store
   const sowID = jdBuilderWizard.sowID ?? "";
-  const step = jdBuilderWizard.step;
+  //const step = jdBuilderWizard.step;
   const roleToGenerate = jdBuilderWizard.roleToGenerate;
   const jdGenerationRunnerID = jdBuilderWizard.jdGenerationRunnerID;
 
@@ -39,18 +35,15 @@ export default function JDBuilderDetectedRoles() {
     fetchRolesAndKeyPersonnel();
   }, []);
 
-  // onclick handler to set the role to generate
-  // Handler to set the role to generate
   const handleClick = (item: string) => {
     if (!jdGenerationRunnerID) {
-      // Allow changing selection if no generation is running
       setJDBuilderWizard({ roleToGenerate: item });
     }
   };
 
   // Start JD generation
   const startGeneration = async (item: string) => {
-    if (roleToGenerate === item) {
+    if (roleToGenerate === item && employerID) {
       try {
         const runnerID = await StartJDGeneration({
           sowID,
@@ -134,6 +127,10 @@ export default function JDBuilderDetectedRoles() {
       isPollingActive = false;
     };
   }, [jdBuilderWizard.jdGenerationRunnerID]);
+
+  if (!employerID) {
+    return <div>Please login</div>
+  }
 
   return (
     <div className="w-full">

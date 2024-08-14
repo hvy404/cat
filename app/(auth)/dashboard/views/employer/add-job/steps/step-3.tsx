@@ -44,26 +44,18 @@ export default function AddJDStepThree() {
           setIsCompanyIdFetched(true);
         }
       } else {
-        console.log("No need to fetch company ID, setting isCompanyIdFetched to true");
+        console.log(
+          "No need to fetch company ID, setting isCompanyIdFetched to true"
+        );
         setIsCompanyIdFetched(true);
       }
     };
-  
+
     getCompanyId();
   }, [cuid, companyId]);
 
   // Start the publishing runner (final step of onboarding process)
   useEffect(() => {
-    console.log("Debug values:", {
-      jdEntryID: addJD.jdEntryID,
-      cuid,
-      companyId,
-      publishingRunnerID: addJD.publishingRunnerID,
-      hasRun: hasRun.current,
-      step: addJD.step,
-      isCompanyIdFetched
-    });
-    
     const finishOnboard = async () => {
       if (
         addJD.jdEntryID &&
@@ -85,11 +77,13 @@ export default function AddJDStepThree() {
 
           if (result.success) {
             console.log("Finish onboard result: ", result.event[0]);
+            setAddJD({
+              isFinalizing: true,
+            });
 
             setTimeout(() => {
               setAddJD({
                 publishingRunnerID: result.event[0],
-                isFinalizing: true,
               });
             }, 2000);
           } else {
@@ -148,7 +142,7 @@ export default function AddJDStepThree() {
     // Start the polling
     pollEventStatus();
 
-    // Cleanup function to stop polling when component unmounts or addJD.isFinalizing changes
+    // Cleanup function
     return () => {
       isPollingActive = false; // This will stop any scheduled polling operations
       isStep3Mounted = false;
@@ -190,14 +184,8 @@ export default function AddJDStepThree() {
   return (
     <>
       <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="text-semibold text-base leading-7 text-gray-900">
-            Adding to Catalyst {addJD.jdEntryID} | Runner:{" "}
-            {addJD.publishingRunnerID}
-          </CardTitle>
-        </CardHeader>
         <CardContent className="text-sm text-gray-700 leading-7">
-          <div className="flex flex-row justify-center">
+          <div className="flex flex-col gap-4 justify-center">
             {addJD.isFinalizing ? (
               <div className="flex flex-col justify-center text-center">
                 <div className="flex flex-row justify-center">
@@ -209,7 +197,7 @@ export default function AddJDStepThree() {
                 </p>
               </div>
             ) : (
-              <div className="flex flex-col gap-4">
+              <>
                 <p className="text-center">
                   Your job opportunity has been successfully added and will
                   appear on the platform soon. <br />
@@ -218,7 +206,7 @@ export default function AddJDStepThree() {
                 <div className="flex flex-row justify-center">
                   <Button onClick={goToDashboard}>Go to dashboard</Button>
                 </div>
-              </div>
+              </>
             )}
           </div>
         </CardContent>

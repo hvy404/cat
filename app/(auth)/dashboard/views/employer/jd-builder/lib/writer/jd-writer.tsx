@@ -44,10 +44,6 @@ const JDWriter = () => {
   const { user: clerkUser } = useUser();
   const employerID = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
 
-  if (!employerID) {
-    return <div>Please login</div>;
-  }
-
   // Get state from the store
   const {
     user,
@@ -63,11 +59,6 @@ const JDWriter = () => {
   const [isPublishing, setIsPublishing] = useState<boolean>(false);
   const [generatedJobDescriptionID, setGeneratedJobDescriptionID] =
     useState("");
-
-  //const [expandDetail, setExpandDetail] = useState(""); // State for expanded detail
-  //const [commandOpen, setCommandOpen] = useState(false); // State for command center
-  //const [commandContext, setCommandContext] = useState(""); // State for command context
-  //const [editChoice, setEditChoice] = useState(""); // State for edit choice
 
   const [selectionRange, setSelectionRange] = useState<{
     from: number;
@@ -310,66 +301,6 @@ const JDWriter = () => {
       window.removeEventListener("mousedown", mousedownHandler);
     };
   }, [stop, isLoading, editor, complete, completion.length]);
-
-  /*   // Function to handle replace text with command center choice
-  function replaceTextInRange(
-    editor: Editor,
-    range: { from: number; to: number },
-    newText: string
-  ) {
-    const { from, to } = range;
-
-    // Split the newText at each occurrence of '\n\n'
-    const segments = newText.split("\n\n");
-    const nodes: Node[] = [];
-
-    segments.forEach((segment, index) => {
-      // Add a text node for each segment
-      nodes.push(editor.schema.text(segment));
-
-      // Insert two hardBreak nodes between segments, except after the last segment
-      if (index < segments.length - 1) {
-        nodes.push(editor.schema.nodes.hardBreak.create());
-        nodes.push(editor.schema.nodes.hardBreak.create()); // Extra hardBreak for more space
-      }
-    });
-
-    // Create a document fragment from the nodes
-    const fragment = Fragment.fromArray(nodes);
-
-    // Begin a transaction to replace text with the new fragment
-    editor.view.dispatch(editor.state.tr.replaceWith(from, to, fragment));
-
-    // Calculate the new end position for the selection
-    const newTo = from + fragment.size;
-    editor.commands.setTextSelection({ from, to: newTo });
-  } */
-
-  /*   // Handle edit choice and close CommandCenter
-  useEffect(() => {
-    if (editChoice && selectionRange && editor) {
-      replaceTextInRange(editor, selectionRange, editChoice);
-
-      // Close the CommandCenter once the text is replaced
-      setCommandOpen(false); // Set commandOpen to false to close the CommandCenter
-
-      // Clear the selection and context
-      //setSelectionRange(null); // Clear the selection after replacing
-      setCommandContext("");
-      setEditChoice("");
-    }
-  }, [
-    editChoice,
-    selectionRange,
-    editor,
-    setCommandOpen,
-    setCommandContext,
-    setEditChoice,
-  ]); */
-
-  /*   if (content === null) {
-    return <div>Loading...</div>;
-  } */
 
   // Function to handle publish. Grab text from the editor and send it to publishDraftJD
   const handlePublishJD = async () => {
