@@ -24,7 +24,7 @@ export const jdGenerateDescription = inngest.createFunction(
     const employerID = event.data.sow.employerID;
     const roleName = event.data.sow.roleName;
 
-    console.log(sowUUID, employerID, roleName);
+    //console.log(sowUUID, employerID, roleName);
 
     if (!sowUUID || !employerID || !roleName) {
       throw new Error("Missing required data to generate job description");

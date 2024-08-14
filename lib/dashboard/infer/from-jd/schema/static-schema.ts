@@ -2,74 +2,43 @@ import { z } from "zod";
 
 export const jobDescriptionStaticSchema = z
   .object({
-    jobTitle: z.string().describe("The title or name of the job opportunity."),
-    company: z
-      .string()
-      .describe("Name of company posting the job and doing the hiring."),
+    jobTitle: z.string().describe("Job title"),
+    company: z.string().optional().describe("Hiring company name"),
     locationType: z
       .enum(["remote", "onsite", "hybrid"])
       .optional()
-      .describe(
-        "The type of location for the job, e.g., Remote, Onsite, Hybrid."
-      ),
+      .describe("Work location type"),
     location: z
       .array(
         z.object({
-          city: z.string().optional().describe("The city of the job location."),
-          state: z
-            .string()
-            .optional()
-            .describe("The state of the job location, e.g., CA."),
-          zipcode: z
-            .string()
-            .optional()
-            .describe("The zip code of the job location."),
+          city: z.string().optional().describe("Job location city"),
+          state: z.string().optional().describe("Job location state"),
+          zipcode: z.string().optional().describe("Job location zip code"),
         })
       )
       .optional()
-      .describe(
-        "The city, state and zip code of the job location if applicable and an onsite job."
-      ),
+      .describe("Specific job location details"),
     jobType: z
       .enum(["full-time", "part-time", "contract", "temporary"])
-      .describe(
-        "Type of employment, e.g., Full-time, Part-time, Contract, Temporary."
-      ),
+      .optional()
+      .describe("Employment type"),
     salaryRange: z
       .object({
-        startingSalary: z
-          .number()
-          .describe("The starting salary for the position."),
-        maximumSalary: z
-          .number()
-          .describe("The maximum salary offered for the position."),
+        startingSalary: z.number().describe("Starting salary"),
+        maximumSalary: z.number().describe("Maximum salary"),
       })
       .optional()
-      .describe("The salary range for the job."),
+      .describe("Salary range"),
     commissionPay: z
       .boolean()
       .optional()
-      .describe(
-        "Whether the job offers commission pay such as OTE (On Target Earnings)."
-      ),
-    commissionPercent: z
-      .number()
-      .optional()
-      .describe(
-        "If commission pay is offered, specify the commission percentage for the job."
-      ),
+      .describe("Commission pay availability"),
+    commissionPercent: z.number().optional().describe("Commission percentage"),
     oteSalary: z
       .number()
       .optional()
-      .describe(
-        "If commission pay is offered, specify the OTE (On Target Earnings) salary for the job."
-      ),
-    benefits: z
-      .array(z.string())
-      .optional()
-      .describe(
-        "List of benefits offered with the job, like health insurance, retirement plans, etc."
-      ),
+      .describe("On Target Earnings (OTE) salary"),
+    benefits: z.array(z.string()).optional().describe("Job benefits"),
     clearanceLevel: z
       .enum([
         "none",
@@ -81,52 +50,30 @@ export const jobDescriptionStaticSchema = z
         "l_clearance",
       ])
       .optional()
-      .describe("The required clearance level."),
+      .describe("Required clearance level"),
   })
   .describe("Job Description");
 
 export const jobDescriptionStaticSecondarySchema = z
   .object({
-    responsibilities: z
-      .array(z.string())
-      .describe("List of responsibilities and tasks associated with the job."),
-    qualifications: z
-      .array(z.string())
-      .describe(
-        "List of required qualifications such specific knowledge areas."
-      ),
-    education: z
-      .array(z.string())
-      .optional()
-      .describe("List of required education levels or degrees for the job."),
+    responsibilities: z.array(z.string()).describe("Job responsibilities"),
+    qualifications: z.array(z.string()).describe("Required qualifications"),
+    education: z.array(z.string()).optional().describe("Required education"),
     certifications: z
       .array(z.string())
       .optional()
-      .describe("List of required certifications or licenses for the job."),
+      .describe("Required certifications"),
     skills: z
       .array(z.string())
-      .describe(
-        "List of required hard skills, such as software proficiency, languages, or technical skills."
-      ),
-    experience: z
-      .string()
       .optional()
-      .describe(
-        "Experience required for the job, typically specified in years or range."
-      ),
-    preferredSkills: z
-      .array(z.string())
-      .describe(
-        "List of preferred skills and experience that are not required but beneficial for the job."
-      ),
+      .describe("Required technical skills"),
+    experience: z.string().optional().describe("Required experience"),
+    preferredSkills: z.array(z.string()).describe("Preferred skills"),
   })
   .describe("Job Description");
 
 export const jobDescriptionStaticThirdSchema = z
   .object({
-    summary: z
-      .string()
-      .optional()
-      .describe("A concise summary of the job role and main responsibilities."),
+    summary: z.string().optional().describe("Job role summary"),
   })
   .describe("Job Description");

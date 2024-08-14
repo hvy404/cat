@@ -9,16 +9,21 @@ import { type jobDescriptionGenerateInferred } from "@/inngest/job-description-i
 import { jobDescriptionAddStructured } from "@/inngest/job-description-sql";
 
 export const jobDescriptionOnboard = inngest.createFunction(
-  { id: "job-description-start-onboard" },
+  { id: "job-description-start-onboard",
+    cancelOn: [
+      {
+        event: "app/job-description-parser-cancel",
+        if: "async.data.processId == event.data.job_description.processId",
+      },
+    ],
+   },
   { event: "app/job-description-start-onboard" },
   async ({ event, step }) => {
     const cookieStore = cookies();
     const supabase = createClient(cookieStore);
 
     // Data from the event
-    //const employerID = event.data.job_description.employer;
     const jobDescriptionID = event.data.job_description.id;
-    //const session = event.data.job_description.session;
     const rawExtract = event.data.job_description.rawExtract;
 
     // Insert the extracted job posting into the database, s table, rawExtract in the raw column, where the row .eq is the jobDescriptionID

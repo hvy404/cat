@@ -36,7 +36,7 @@ export default function EmployerDashboardAddJob() {
   const renderCurrentSidePanel = () => {
     switch (addJD.step) {
       case 1:
-        return <AddNewJobStart />;
+        /* return <AddNewJobStart />; */
       case 2:
         return <SidePanelStep2 />;
       default:
