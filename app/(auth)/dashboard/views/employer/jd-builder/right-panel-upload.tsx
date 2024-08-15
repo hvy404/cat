@@ -69,7 +69,7 @@ export default function JDBuilderRightUpload() {
         } 
       />
       
-      {jdBuilderWizard.sowFile.length === 0 && (
+      {/* {jdBuilderWizard.sowFile.length === 0 && (
         <motion.div
           className="w-full bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300"
           variants={itemVariants}
@@ -84,7 +84,7 @@ export default function JDBuilderRightUpload() {
             <SOWUploader />
           </div>
         </motion.div>
-      )}
+      )} */}
     </motion.div>
   );
 }

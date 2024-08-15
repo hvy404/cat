@@ -6,10 +6,11 @@ import {
 } from "@/lib/collection/fetchPresets";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Info, Pencil, InfoIcon } from "lucide-react";
+import { Pencil, InfoIcon } from "lucide-react";
 import CollectRightPanelEditor from "@/app/(auth)/dashboard/views/employer/collection/right-panel-editor";
 import { CollectRightPanelStart } from "@/app/(auth)/dashboard/views/employer/collection/right-panel-help";
 import { CollectionLoading } from "@/app/(auth)/dashboard/views/employer/collection/loading";
+import { useUser } from "@clerk/nextjs";
 
 interface Preset {
   title: string;
@@ -23,7 +24,11 @@ enum PanelType {
 }
 
 export default function EmployerDashboardDocuments() {
-  const { isExpanded, setExpanded, toggleExpansion, user } = useStore();
+  // Clerk
+  const { user: clerkUser } = useUser();
+  const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+
+  const { isExpanded, setExpanded, toggleExpansion } = useStore();
 
   const [fetching, setFetching] = useState(true);
   const [editingID, setEditingID] = useState<string | null>(null);
@@ -35,7 +40,7 @@ export default function EmployerDashboardDocuments() {
   // Load preset from store
   const getPresets = async () => {
     try {
-      const owner = user?.uuid;
+      const owner = cuid;
       if (!owner) {
         console.error("User UUID is null");
         return;
@@ -62,7 +67,7 @@ export default function EmployerDashboardDocuments() {
     snippet_id: string
   ) => {
     try {
-      const owner = user?.uuid;
+      const owner = cuid;
       await updatePrimaryPreset(owner!, type, snippet_id);
 
       // Update the state directly
@@ -107,7 +112,7 @@ export default function EmployerDashboardDocuments() {
   const RightPanelContent = editingID ? (
     <CollectRightPanelEditor
       editingID={editingID}
-      userID={user?.uuid}
+      userID={cuid}
       setEditingID={setEditingID}
       type={addNew && panelType ? panelType : undefined} // If addNew is true, pass the panelType
       addNew={addNew}
@@ -291,7 +296,9 @@ export default function EmployerDashboardDocuments() {
         </div>
         <div className="flex items-center gap-4 rounded-lg border px-4 py-2 text-xs">
           <InfoIcon className="h-4 w-4" />{" "}
-          <p>Collections are not shared with other users of your organization</p>
+          <p>
+            Collections are not shared with other users of your organization
+          </p>
         </div>
       </div>
 

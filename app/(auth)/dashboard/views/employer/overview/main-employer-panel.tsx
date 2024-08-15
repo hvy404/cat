@@ -24,6 +24,7 @@ import { fetchDetailedJobPosts } from "@/lib/overview/fetchRoles";
 import InboundApplicantsCard from "./inbound-application-card";
 import AIRecommendationsCard from "./ai-recommendations-card";
 import AlertsCard from "./main-dashboard-alerts-card";
+import { useUser } from "@clerk/nextjs";
 
 interface Job {
   jd_id: string;
@@ -117,7 +118,11 @@ const ChartCard: React.FC<ChartCardProps> = ({ data }) => (
 );
 
 const JobList = ({ filter }: { filter: string }) => {
-  const { setEmployerRightPanelView, setDashboardRoleOverview, user } =
+    // Clerk
+    const { user: clerkUser } = useUser();
+    const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+
+  const { setEmployerRightPanelView, setDashboardRoleOverview } =
     useStore();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loadingJobs, setLoadingJobs] = useState<boolean>(true);
@@ -126,8 +131,8 @@ const JobList = ({ filter }: { filter: string }) => {
   useEffect(() => {
     let isMounted = true;
     const fetchJobs = async () => {
-      if (user) {
-        const result = await fetchDetailedJobPosts(user.uuid, filter);
+      if (cuid) {
+        const result = await fetchDetailedJobPosts(cuid, filter);
         if (isMounted) {
           setLoadingJobs(false);
           if (result && Array.isArray(result.data) && result.data.length > 0) {
@@ -143,7 +148,7 @@ const JobList = ({ filter }: { filter: string }) => {
     return () => {
       isMounted = false;
     };
-  }, [user, filter]);
+  }, [cuid, filter]);
 
   const handleClick = (job_id: string, title: string) => {
     setDashboardRoleOverview({

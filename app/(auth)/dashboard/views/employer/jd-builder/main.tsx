@@ -11,17 +11,10 @@ import { ChevronsRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import JDBuilderStartProcessing from "@/app/(auth)/dashboard/views/employer/jd-builder/main-panel-step-2"; // Step 2
 
-
 export default function EmployerDashboardJDBuilder() {
-  const { jdBuilderWizard, setJDBuilderWizard, updateJDBuilderWizardStep } =
-    useStore();
+  const { jdBuilderWizard, setJDBuilderWizard } = useStore();
 
   const { isExpanded, setExpanded, toggleExpansion } = useStore();
-
-  // TODO: Remove this done with development
-/*   useEffect(() => {
-    setJDBuilderWizard({ sowID: "4c61fbe8-1808-4f6c-806a-948abe8c1a46" });
-  }, [setJDBuilderWizard]); */
 
   // Reset expanded state when component unmounts
   useEffect(() => {
@@ -40,6 +33,7 @@ export default function EmployerDashboardJDBuilder() {
       jdGenerationRunnerID: "",
       roleToGenerate: "",
       step: 1,
+      pollingStatus: false,
     });
   };
 
@@ -86,7 +80,9 @@ export default function EmployerDashboardJDBuilder() {
           </h2>
           <div className="flex flex-row items-center">
             {jdBuilderWizard.step !== 1 && (
-            <Button onClick={startOver} variant={"ghost"}>Start Over</Button>
+              <Button onClick={startOver} variant={"ghost"}>
+                Start Over
+              </Button>
             )}
             <Button
               size="icon"
@@ -108,7 +104,7 @@ export default function EmployerDashboardJDBuilder() {
           <p>Step: {jdBuilderWizard.step}</p>
           <p>JD ID: {jdBuilderWizard.jobDescriptionId}</p>
           <p>Runner: {jdBuilderWizard.sowParseRunnerID}</p>
-          <p>Step Completion: {jdBuilderWizard.pollingStatus ? "True" : "False"}</p>
+          <p>Polling: {jdBuilderWizard.pollingStatus ? "True" : "False"}</p>
         </div>
         <div className="flex flex-col gap-6">
           <div className="rounded-lg border p-4">

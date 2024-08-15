@@ -1,6 +1,7 @@
 import { useUser } from "@clerk/nextjs";
 import useStore from "@/app/state/useStore";
 import { PaperclipIcon, Trash, Loader } from "lucide-react";
+import { v4 as uuidv4 } from "uuid";
 import Dropzone from "react-dropzone";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -9,13 +10,16 @@ import { StartSOWParse } from "@/app/(auth)/dashboard/views/employer/jd-builder/
 
 export default function SOWUploader() {
   const { user: clerkUser } = useUser();
-  const {
-    jdBuilderWizard,
-    setJDBuilderWizard,
-    updateJDBuilderWizardStep,
-  } = useStore();
+  const { jdBuilderWizard, setJDBuilderWizard, updateJDBuilderWizardStep } =
+    useStore();
 
-  const candidateId = clerkUser?.publicMetadata?.cuid as string;
+  const cuid = clerkUser?.publicMetadata?.aiq_cuid as string;
+
+  // Generate sowID if it doesn't exist
+  if (!jdBuilderWizard.sowID) {
+    const newSowID = uuidv4();
+    setJDBuilderWizard({ sowID: newSowID });
+  }
 
   // Handler to set the user selected files in state
   const onFileAdded = (acceptedFiles: File[]) => {
@@ -49,7 +53,7 @@ export default function SOWUploader() {
   };
 
   const uploadFile = async (fileData: FormData) => {
-    const employerID = candidateId
+    const employerID = cuid;
     const sowUUID = jdBuilderWizard.sowID;
 
     // set the fileUploading state to true
@@ -58,11 +62,12 @@ export default function SOWUploader() {
     });
 
     if (!employerID || !sowUUID) {
-      throw new Error("Employer ID or SOW UUID is missing.");
+      throw new Error("Not authorized");
     }
 
     try {
       const uploadJD = await sowUpload(fileData, sowUUID, employerID);
+
       if (uploadJD && uploadJD.success && Array.isArray(uploadJD.files)) {
         const filenames = uploadJD.files.map(
           (file: { filename: string }) => file.filename
@@ -88,7 +93,7 @@ export default function SOWUploader() {
         } else {
           const startIngest = await StartSOWParse({
             sowID: jdBuilderWizard.sowID,
-            employerID: candidateId,
+            employerID: cuid,
             filename: uploadSowFile,
           });
 
@@ -156,8 +161,7 @@ export default function SOWUploader() {
         <div className="flex flex-col w-full justify-between gap-4 items-center align-middle">
           <p className="text-gray-700 leading-7 text-sm">
             {jdBuilderWizard.files.map((file: File) => (
-              <div key={file.name}
-              className="flex flex-row items-center gap-2">
+              <div key={file.name} className="flex flex-row items-center gap-2">
                 <div
                   onClick={removeSelectedFile}
                   className="p-1 bg-gray-200 rounded-full hover:bg-gray-200/50 text-gray-500 hover:text-red-600"
@@ -176,7 +180,7 @@ export default function SOWUploader() {
             {jdBuilderWizard.fileUploading ? (
               <Loader size={16} className="animate-spin" />
             ) : (
-              "Upload"
+              "Detect Roles"
             )}
           </Button>
         </div>

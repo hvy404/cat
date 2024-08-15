@@ -106,7 +106,7 @@ export default function TalentPropertiesEditor() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  const candidateId = clerkUser?.publicMetadata?.cuid as string;
+  const candidateId = clerkUser?.publicMetadata?.aiq_cuid as string;
   const dialogDismissed =
     (clerkUser?.publicMetadata?.["2"] as string) === "true";
   const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(!dialogDismissed);

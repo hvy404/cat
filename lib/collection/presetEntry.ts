@@ -91,6 +91,7 @@ export async function createPresetEntry(
     .insert([{ owner, title, content, type }]);
 
   if (saveError) {
+    console.log(saveError);
     return {
       success: false,
     };

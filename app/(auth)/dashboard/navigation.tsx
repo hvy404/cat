@@ -78,23 +78,23 @@ const TooltipButton: React.FC<TooltipButtonProps> = ({
   );
 };
 
-export default function EmployerDashboardNavigation() {
+export default function DashboardNavigation() {
   // Clerk
   // TODO: Move to the server side action for better security
   const { isLoaded, isSignedIn, user: clerkUser } = useUser();
-  const onboarded = useStore((state) => state.candidateDashboard.onboarded); // Better to store in clerk?
+  const onboarded = useStore((state) => state.candidateDashboard.onboarded); // TODO: Better to store in clerk?
 
   // Return early if not loaded or not signed in
   if (!isLoaded || !isSignedIn) {
     return null; // TOOD: Or we could return a loading indicator or sign-in prompt
   }
 
-  const cuid = clerkUser?.publicMetadata?.cuid as string | undefined;
-  const role = clerkUser?.publicMetadata?.role as string | undefined;
+  const role = clerkUser?.publicMetadata?.aiq_role as string | undefined;
 
   const renderNavItems = () => {
     switch (role) {
       case "employer":
+      case "employer-trial":
         return (
           <>
             <TooltipButton item="dashboard" label="Dashboard" icon={Home} />

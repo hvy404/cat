@@ -6,8 +6,14 @@ import { Button } from "@/components/ui/button";
 import { jobDescriptionFinishOnboard } from "@/lib/dashboard/finish-onboard";
 import { QueryEventStatus } from "@/lib/dashboard/query-runner-status";
 import { fetchUserCompanyId } from "@/lib/dashboard/get-company-membership";
+import { useUser } from "@clerk/nextjs";
+import WaitingState from "@/app/(auth)/dashboard/views/employer/add-job/mods/step-3-loading"
 
 export default function AddJDStepThree() {
+  // Clerk
+  const { user: clerkUser } = useUser();
+  const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+
   // Get AddJD state from the store
   const { addJD, setAddJD, user, setSelectedMenuItem } = useStore((state) => ({
     addJD: state.addJD,
@@ -22,33 +28,39 @@ export default function AddJDStepThree() {
   // Fetch the user's company ID
   useEffect(() => {
     const getCompanyId = async () => {
-      if (user && user.uuid && !companyId) {
+      if (cuid && !companyId) {
         try {
-          const result = await fetchUserCompanyId(user.uuid);
+          console.log("Fetching company ID for cuid:", cuid);
+          const result = await fetchUserCompanyId(cuid);
           if (result.success) {
+            console.log("Company ID fetched successfully:", result.companyId);
             setCompanyId(result.companyId);
           } else {
-            //console.error("Failed to fetch company ID:", result.error);
+            console.error("Failed to fetch company ID:", result.error);
           }
         } catch (error) {
-          //console.error("Error fetching company ID:", error);
+          console.error("Error fetching company ID:", error);
         } finally {
+          console.log("Setting isCompanyIdFetched to true");
           setIsCompanyIdFetched(true);
         }
       } else {
+        console.log(
+          "No need to fetch company ID, setting isCompanyIdFetched to true"
+        );
         setIsCompanyIdFetched(true);
       }
     };
 
     getCompanyId();
-  }, [user, companyId]);
+  }, [cuid, companyId]);
 
   // Start the publishing runner (final step of onboarding process)
   useEffect(() => {
     const finishOnboard = async () => {
       if (
         addJD.jdEntryID &&
-        user &&
+        cuid &&
         companyId &&
         !addJD.publishingRunnerID &&
         !hasRun.current &&
@@ -60,18 +72,19 @@ export default function AddJDStepThree() {
         try {
           const result = await jobDescriptionFinishOnboard(
             addJD.jdEntryID,
-            user.uuid,
-            user.session,
+            cuid,
             companyId
           );
 
           if (result.success) {
             console.log("Finish onboard result: ", result.event[0]);
+            setAddJD({
+              isFinalizing: true,
+            });
 
             setTimeout(() => {
               setAddJD({
                 publishingRunnerID: result.event[0],
-                isFinalizing: true,
               });
             }, 2000);
           } else {
@@ -84,7 +97,7 @@ export default function AddJDStepThree() {
     };
 
     finishOnboard();
-  }, [addJD.jdEntryID, user, companyId, addJD.step, isCompanyIdFetched]);
+  }, [addJD.jdEntryID, user, cuid, companyId, addJD.step, isCompanyIdFetched]);
 
   // Poll status of publishing runner
   useEffect(() => {
@@ -106,7 +119,6 @@ export default function AddJDStepThree() {
             isFinalizing: false,
           });
           isPollingActive = false; // Stop polling
-
           goToDashboard();
         } else if (
           status === "Running" ||
@@ -117,11 +129,11 @@ export default function AddJDStepThree() {
             setTimeout(pollEventStatus, 1000); // Continue polling every 1 second
           }
         } else {
-          //console.error(`Unexpected status received: ${status}`);
+          console.error(`Unexpected status received: ${status}`);
           isPollingActive = false; // Stop polling on unexpected status
         }
       } else {
-        //console.error("publishingRunnerID is null, cannot query event status");
+        console.error("publishingRunnerID is null, cannot query event status");
         isPollingActive = false; // Stop polling since we don't have a valid ID
       }
     };
@@ -129,7 +141,7 @@ export default function AddJDStepThree() {
     // Start the polling
     pollEventStatus();
 
-    // Cleanup function to stop polling when component unmounts or addJD.isFinalizing changes
+    // Cleanup function
     return () => {
       isPollingActive = false; // This will stop any scheduled polling operations
       isStep3Mounted = false;
@@ -169,41 +181,9 @@ export default function AddJDStepThree() {
   };
 
   return (
-    <>
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="text-semibold text-base leading-7 text-gray-900">
-            Adding to Catalyst {addJD.jdEntryID} | Runner:{" "}
-            {addJD.publishingRunnerID}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-gray-700 leading-7">
-          <div className="flex flex-row justify-center">
-            {addJD.isFinalizing ? (
-              <div className="flex flex-col justify-center text-center">
-                <div className="flex flex-row justify-center">
-                  <Loader className="w-12 h-12 animate-spin" />
-                </div>
-                <p>
-                  Your job opportunity is currently being processed. Please hold
-                  on for a moment...
-                </p>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-4">
-                <p className="text-center">
-                  Your job opportunity has been successfully added and will
-                  appear on the platform soon. <br />
-                  You will be alerted as matches are identified.
-                </p>
-                <div className="flex flex-row justify-center">
-                  <Button onClick={goToDashboard}>Go to dashboard</Button>
-                </div>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </>
+    <WaitingState 
+    isFinalizing={addJD.isFinalizing} 
+    goToDashboard={goToDashboard} 
+  />
   );
 }

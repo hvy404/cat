@@ -57,7 +57,7 @@ export default function RightPanel(props: RightPanelProps) {
   const [error, setError] = useState<string | null>(null);
   const [activeExperience, setActiveExperience] = useState<string | null>(null);
 
-  const candidateId = clerkUser?.publicMetadata?.cuid as string;
+  const candidateId = clerkUser?.publicMetadata?.aiq_cuid as string;
 
   const handleAnalysis = async () => {
     if (!candidateId || !props.workExperienceAnalysisSession) {

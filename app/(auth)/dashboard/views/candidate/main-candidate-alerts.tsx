@@ -52,7 +52,7 @@ const AlertsCard: React.FC<AlertsCardProps> = ({ onAlertAction }) => {
   );
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
-  const candidateId = clerkUser?.publicMetadata?.cuid as string;
+  const candidateId = clerkUser?.publicMetadata?.aiq_cuid as string;
 
   useEffect(() => {
     fetchAlerts();

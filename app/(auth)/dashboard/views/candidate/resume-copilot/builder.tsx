@@ -20,6 +20,11 @@ import {
   CustomItem,
   ResumeBuilderProps,
   QueueItem,
+  Alert,
+  NextStep,
+  CustomSection,
+  BuilderSession,
+  HistoryItems,
 } from "./types";
 import { buildEditReview } from "./prompt-builder"; // AI Call
 import { suggestNextSteps } from "./next-steps"; // AI Call #2
@@ -53,37 +58,7 @@ import {
   handleSaveVersionSubmit,
 } from "./handler-resume-save";
 import { handleSelectTemplate } from "./handler-download-doc";
-
-interface BuilderSession {
-  sessionId: string;
-}
-
-// Add new interfaces for custom sections and items
-interface CustomSection {
-  id: string;
-  title: string;
-  items: CustomItem[];
-}
-
-interface Alert {
-  itemId: string;
-  message: {
-    recommendation: {
-      action: "add" | "remove" | "modify" | "none";
-      priority: "High" | "Medium" | "Low";
-      targetItem: string;
-      rationale: string;
-      implementation: string;
-    };
-  };
-  isMinimized: boolean;
-}
-
-interface NextStep {
-  message: string;
-  suggestion: string;
-  reasoning: string;
-}
+import cranium from "./cranium";
 
 const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   talentProfile,
@@ -109,16 +84,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     null
   );
   const [draggedItem, setDraggedItem] = useState<Item | null>(null);
-  const [actionHistory, setActionHistory] = useState<
-    Array<{
-      action: "add" | "remove";
-      itemId: string;
-      itemType: string;
-      fromContainer: string | null;
-      toContainer: string | null;
-      newIndex: number;
-    }>
-  >([]);
+  const [actionHistory, setActionHistory] = useState<HistoryItems[]>([]);
 
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [lastModifiedItemId, setLastModifiedItemId] = useState<string | null>(
@@ -153,8 +119,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   // New state for next steps
   const [nextSteps, setNextSteps] = useState<NextStep[]>([]);
 
-  const [alertMinimizedState, setAlertMinimizedState] = useState<Record<string, boolean>>({});
-
+  const [alertMinimizedState, setAlertMinimizedState] = useState<
+    Record<string, boolean>
+  >({});
 
   const memoizedAlerts = useMemo(() => alerts, [alerts]);
 
@@ -302,13 +269,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       if (!selectedRole) throw new Error("Selected role is not defined");
 
       const [editReviewResult, nextStepsResult] = await Promise.all([
-        buildEditReview(
-          items,
-          talentProfile,
-          selectedRole,
-          itemId,
-          cardContent
-        ),
+        buildEditReview(items, talentProfile, selectedRole, cardContent),
         suggestNextSteps(
           items,
           talentProfile,
@@ -335,6 +296,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       if (!("error" in nextStepsResult)) {
         setNextSteps((prevNextSteps) => {
           setIsChatButtonExpanded(true);
+          // Add to feedbank memory
+          handleCraniumFeedback(nextSteps);
           return [...prevNextSteps, nextStepsResult];
         });
       }
@@ -416,11 +379,10 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     excludedPersonalItems,
   ]);
 
-
   const toggleAlertMinimize = useCallback((id: string) => {
-    setAlertMinimizedState(prev => ({
+    setAlertMinimizedState((prev) => ({
       ...prev,
-      [id]: !prev[id]
+      [id]: !prev[id],
     }));
   }, []);
 
@@ -508,7 +470,9 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
         setActionHistory,
         setProcessingQueue,
         setProcessingItems,
-        handleAddCustomItem
+        handleAddCustomItem,
+        handleCraniumItems,
+        handleCraniumHistory
       );
     },
     [
@@ -528,6 +492,54 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       handleAddCustomItem,
     ]
   );
+
+  // Selection Choices
+  const handleCraniumItems = async () => {
+    try {
+      const result = await cranium(builderSession.sessionId, userId, {
+        cacheKeyType: "choice",
+        items: items,
+      });
+      if (result.success) {
+        console.log(result.message);
+      }
+    } catch (error) {
+      console.error("Error storing items:", error);
+    }
+  };
+
+  // Set choices to cache on load
+  useEffect(() => {
+    handleCraniumItems();
+  }, []); // Run only once
+
+  // Suggestions and feedback
+  const handleCraniumFeedback = async (nextSteps: NextStep[]) => {
+    try {
+      const result = await cranium(builderSession.sessionId, userId, {
+        cacheKeyType: "feedback",
+        items: nextSteps,
+      });
+
+      if (result.success) {
+        console.log("Successfully stored feedback:", result.message);
+      }
+    } catch (error) {
+      console.error("Error storing feedback:", error);
+    }
+  };
+
+  // Edit History
+  const handleCraniumHistory = useCallback(async () => {
+    try {
+      await cranium(builderSession.sessionId, userId, {
+        cacheKeyType: "history",
+        items: actionHistory,
+      });
+    } catch (error) {
+      console.error("Error storing history:", error);
+    }
+  }, [actionHistory, builderSession.sessionId, cranium, userId]);
 
   /* Editor */
   const handleEdit = useCallback((item: Item) => {
@@ -583,16 +595,24 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   );
 
   const renderItemContent = useMemo(
-    () => createRenderItemContent(
+    () =>
+      createRenderItemContent(
+        editedItems,
+        memoizedAlerts,
+        alertMinimizedState, // Add this line
+        processingItems,
+        handleEdit,
+        toggleAlertMinimize,
+        (itemId) => <ProcessingIndicator message="Analyzing edit..." />
+      ),
+    [
       editedItems,
       memoizedAlerts,
-      alertMinimizedState,  // Add this line
+      alertMinimizedState,
       processingItems,
       handleEdit,
       toggleAlertMinimize,
-      (itemId) => <ProcessingIndicator message="Analyzing edit..." />
-    ),
-    [editedItems, memoizedAlerts, alertMinimizedState, processingItems, handleEdit, toggleAlertMinimize]  // Add alertMinimizedState to the dependency array
+    ] // Add alertMinimizedState to the dependency array
   );
 
   const handleDeleteCustomSection = (sectionId: string) => {

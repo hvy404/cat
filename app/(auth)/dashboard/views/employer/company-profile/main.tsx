@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { getCompanyNode } from "@/lib/company/mutation";
 import createId from "@/lib/global/cuid-generate";
+import { useUser } from "@clerk/nextjs";
 
 // Enum for company states
 enum CompanyState {
@@ -21,7 +22,11 @@ enum CompanyState {
 }
 
 export default function EmployerDashboardCompanyProfile() {
-  const { isExpanded, setExpanded, user } = useStore();
+    // Clerk
+    const { user: clerkUser } = useUser();
+    const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+
+  const { isExpanded, setExpanded } = useStore();
 
   const defaultFormData: CompanyProfileData = {
     id: createId(),
@@ -54,9 +59,9 @@ export default function EmployerDashboardCompanyProfile() {
 
   useEffect(() => {
     const checkCompany = async () => {
-      if (user?.uuid) {
+      if (cuid) {
         try {
-          const result = await checkUserCompany({ employerId: user.uuid });
+          const result = await checkUserCompany({ employerId: cuid });
           if (result.hasCompany && result.companyId) {
             setCompanyState(CompanyState.HAS_COMPANY);
             try {
@@ -88,10 +93,10 @@ export default function EmployerDashboardCompanyProfile() {
     return () => {
       setExpanded(false);
     };
-  }, [user?.uuid, setExpanded]);
+  }, [cuid, setExpanded]);
 
   // Early return if user is not logged in
-  if (!user?.uuid) {
+  if (!cuid) {
     return null;
   }
 
@@ -120,7 +125,7 @@ export default function EmployerDashboardCompanyProfile() {
             setFormData={setFormData}
             createNew={false}
             isInitialOwner={false}
-            employerId={user.uuid}
+            employerId={cuid}
           />
         );
       case CompanyState.CREATING_COMPANY:
@@ -132,7 +137,7 @@ export default function EmployerDashboardCompanyProfile() {
               setFormData={setFormData}
               createNew={true}
               isInitialOwner={true}
-              employerId={user.uuid}
+              employerId={cuid}
             />
           </>
         );

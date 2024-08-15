@@ -1,12 +1,13 @@
 "use server";
 import { inngest } from "@/lib/inngest/client";
 import { jdParserUpload } from "@/lib/dashboard/ingest-jd/retreiveJD";
+//import createId from "@/lib/global/cuid-generate";
 
 /**
  * Starts the onboarding process for a job description.
  * This is used in the job description upload process (not the JD wizard).
  * Returns ID of the event that was sent to Inngest.
- * 
+ *
  * @param jdUUID - The UUID of the job description.
  * @param employerId - The ID of the employer.
  * @param filename - The name of the file containing the job description.
@@ -20,7 +21,6 @@ export async function jobDescriptionStartOnboard(
   filename: string,
   sessionID: string
 ) {
-
   let rawExtract;
 
   try {
@@ -33,7 +33,7 @@ export async function jobDescriptionStartOnboard(
       message: "Failed to process the job description",
     };
   }
-  
+
   // Send an event to Inngest
   const { ids } = await inngest.send({
     name: "app/job-description-start-onboard",
@@ -47,8 +47,6 @@ export async function jobDescriptionStartOnboard(
     },
   });
 
-  console.log("Event sent to Inngest:", ids);
-
   // Check if the event was sent successfully by checking for ids
   if (!ids) {
     return {
@@ -60,5 +58,6 @@ export async function jobDescriptionStartOnboard(
     message: "Success",
     success: true,
     event: ids,
+    session: sessionID,
   };
 }

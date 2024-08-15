@@ -1,234 +1,107 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Upload, FileText, Trash, Loader } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { FileText, CheckCircle, AlertCircle, HelpCircle } from "lucide-react";
 import useStore from "@/app/state/useStore";
-import Dropzone from "react-dropzone";
-import { jobDescriptionUpload } from "@/lib/dashboard/jd-upload";
-import { JDAddDatabaseEntry } from "@/lib/dashboard/jd-add-new-entry";
-import { jobDescriptionStartOnboard } from "@/lib/dashboard/start-onboard";
-import { QueryEventStatus } from "@/lib/dashboard/query-runner-status";
-import { Button } from "@/components/ui/button";
+import { useUser } from "@clerk/nextjs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function AddNewJobStart() {
-  const { user, addJD, setAddJD } = useStore((state) => ({
-    user: state.user,
+  const { addJD } = useStore((state) => ({
     addJD: state.addJD,
-    setAddJD: state.setAddJD,
   }));
 
-  const [fileResponse, setFileResponse] = useState<string | null>(null);
+  const { user: clerkUser } = useUser();
+  const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        when: "beforeChildren",
-        staggerChildren: 0.3,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 70,
-        damping: 20,
-      },
-    },
-  };
-
-  const iconVariants = {
-    hidden: { scale: 0 },
-    visible: {
-      scale: 1,
-      transition: {
-        type: "spring",
-        stiffness: 260,
-        damping: 20,
-      },
-    },
-  };
-
-  const onFileAdded = (acceptedFiles: File[]) => {
-    if (acceptedFiles.length === 0) {
-      setFileResponse("No file selected.");
-      return;
-    }
-    setAddJD({
-      file: acceptedFiles[0],
-    });
-  };
-
-  const clearSelectedFile = () => {
-    setAddJD({
-      file: null,
-    });
-  };
-
-  const handleFileUpload = async (acceptedFiles: File[]) => {
-    if (user?.uuid && acceptedFiles.length > 0) {
-      const formData = new FormData();
-      formData.append("file", acceptedFiles[0]);
-      setAddJD({ isProcessing: true });
-
-      try {
-        const uploadResponse = await jobDescriptionUpload(formData);
-        if (uploadResponse && uploadResponse.success && uploadResponse.filename) {
-          setAddJD({ filename: uploadResponse.filename });
-
-          const jdEntryId = await JDAddDatabaseEntry(user.uuid, uploadResponse.filename);
-          if (jdEntryId.success && jdEntryId.id) {
-            setAddJD({ jdEntryID: jdEntryId.id, filename: uploadResponse.filename });
-            setFileResponse("File uploaded successfully.");
-          } else {
-            throw new Error("Job description upload to database failed.");
-          }
-        } else {
-          throw new Error("File upload failed.");
-        }
-      } catch (error) {
-        setFileResponse("Error uploading file.");
-      }
-    } else {
-      console.log("User is null or no file selected. File upload aborted.");
-    }
-  };
+  const [currentTip, setCurrentTip] = useState(0);
+  const tips = [
+    "Ensure your job description is clear and concise for best results.",
+    "Include specific skills and qualifications to attract the right candidates.",
+    "Highlight your company culture to appeal to suitable applicants.",
+    "Be transparent about salary range and benefits to save time in the hiring process.",
+  ];
 
   useEffect(() => {
-    let isMounted = true;
-
-    const startOnboardProcess = async () => {
-      if (user && addJD.step === 1) {
-        if (addJD.jdEntryID && addJD.filename && user.uuid && addJD.session) {
-          const startOnboard = await jobDescriptionStartOnboard(
-            addJD.jdEntryID,
-            user.uuid,
-            addJD.filename,
-            addJD.session
-          );
-
-          if (startOnboard.success && startOnboard.event) {
-            const eventID = startOnboard.event[0];
-            setAddJD({ publishingRunnerID: eventID });
-          }
-        }
-      }
-    };
-
-    startOnboardProcess();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [addJD.filename, user?.uuid, addJD.jdEntryID, addJD.session, addJD.step]);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const pollEventStatus = async () => {
-      if (addJD.publishingRunnerID) {
-        const status = await QueryEventStatus(addJD.publishingRunnerID);
-        console.log("Status:", status);
-
-        if (status === "Completed") {
-          setAddJD({
-            step: 2,
-            isProcessing: false,
-            publishingRunnerID: null,
-          });
-        }
-      }
-    };
-
     const interval = setInterval(() => {
-      pollEventStatus();
-    }, 5000);
-
-    return () => {
-      clearInterval(interval);
-      isMounted = false;
-    };
-  }, [addJD.publishingRunnerID]);
+      setCurrentTip((prev) => (prev + 1) % tips.length);
+    }, 8000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <motion.div
-      className="flex flex-col items-center h-full justify-center p-6 md:p-8 lg:p-12 space-y-6"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      <motion.div
-        className="w-full bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 p-6 space-y-4"
-        variants={itemVariants}
-      >
-        <motion.div className="flex flex-col items-center space-y-3" variants={iconVariants}>
-          <div className="p-2 bg-gray-100 rounded-full">
-            <Upload className="w-4 h-4 text-gray-600" />
-          </div>
-          <h2 className="text-md font-semibold text-gray-800">Add a new job</h2>
-        </motion.div>
-
-        {!addJD.isProcessing ? (
-          <Dropzone
-            onDrop={onFileAdded}
-            multiple={false}
-            disabled={addJD.isProcessing}
-            accept={{
-              "application/pdf": [".pdf"],
-              "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
-            }}
-          >
-            {({ getRootProps, getInputProps }) => (
-              <div {...getRootProps()} className="flex flex-col items-center gap-2 text-center mt-4">
-                <input {...getInputProps()} />
-                {!addJD.file?.name ? (
-                  <>
-                    <p className="text-sm text-muted-foreground">Upload a job description to get started</p>
-                    <Button>Select JD</Button>
-                    <p className="text-xs text-muted-foreground">.pdf or .docx only</p>
-                  </>
+    <div className="space-y-6">
+      <Card className="bg-white shadow-md rounded-lg overflow-hidden">
+        <CardHeader className="bg-gray-50 border-b p-4">
+          <CardTitle className="text-md font-medium flex items-center space-x-2">
+            <FileText className="w-5 h-5" />
+            <span>Job Posting Guide</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4">
+          <ul className="space-y-3 text-sm">
+            {[
+              { text: "Upload your job description file", done: !!addJD.file },
+              { text: "AI analysis of your job description", done: addJD.isProcessing },
+              { text: "Review and edit extracted information", done: false },
+              { text: "Publish your job posting", done: false },
+            ].map((step, index) => (
+              <motion.li
+                key={index}
+                className="flex items-center space-x-2"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                {step.done ? (
+                  <CheckCircle className="w-5 h-5 text-green-500" />
                 ) : (
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-gray-600" />
-                      <p className="text-sm text-gray-900">{addJD.file.name}</p>
-                      <Trash
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          clearSelectedFile();
-                        }}
-                        className="w-4 h-4 text-red-700 hover:text-red-500 cursor-pointer"
-                      />
-                    </div>
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        addJD.file && handleFileUpload([addJD.file]);
-                      }}
-                    >
-                      Upload JD
-                    </Button>
-                  </div>
+                  <div className="w-5 h-5 rounded-full border-2 border-gray-300" />
                 )}
-              </div>
-            )}
-          </Dropzone>
-        ) : (
-          <div className="flex flex-col items-center gap-4 mt-4">
-            <Loader className="w-6 h-6 text-gray-600 animate-spin" />
-            <p className="text-sm text-gray-900">Processing...</p>
-          </div>
-        )}
+                <span className={step.done ? "text-gray-700" : "text-gray-500"}>
+                  {step.text}
+                </span>
+              </motion.li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
 
-        {fileResponse && (
-          <p className="text-sm text-center text-gray-600 mt-4">{fileResponse}</p>
-        )}
-      </motion.div>
-    </motion.div>
+      <Card className="bg-white shadow-md rounded-lg overflow-hidden">
+        <CardHeader className="bg-gray-50 border-b p-4">
+          <CardTitle className="text-md font-medium flex items-center space-x-2">
+            <HelpCircle className="w-5 h-5" />
+            <span>Tips for Success</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4">
+          <motion.div
+            key={currentTip}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5 }}
+            className="text-sm text-gray-600"
+          >
+            {tips[currentTip]}
+          </motion.div>
+        </CardContent>
+      </Card>
+
+      {!cuid && (
+        <Card className="bg-yellow-50 shadow-md rounded-lg overflow-hidden">
+          <CardHeader className="bg-yellow-100 border-b">
+            <CardTitle className="text-md font-medium flex items-center space-x-2 text-yellow-800">
+              <AlertCircle className="w-5 h-5" />
+              <span>Account Notice</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4">
+            <p className="text-sm text-yellow-700">
+              Please complete your account setup to access all features of the job posting process.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }

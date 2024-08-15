@@ -5,21 +5,20 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Wand, Loader, KeyRound } from "lucide-react";
 import { StartJDGeneration } from "@/app/(auth)/dashboard/views/employer/jd-builder/lib/runners/starting-jd-generation";
-import { QueryJDGenerationStatus } from "@/lib/dashboard/query-role-jd-generation"; // Get the SOW ID from the generated JD
+import { QueryJDGenerationStatus } from "@/lib/dashboard/query-role-jd-generation";
+import { useUser } from "@clerk/nextjs";
 
 export default function JDBuilderDetectedRoles() {
   // Get state from the store
-  const {
-    jdBuilderWizard,
-    setJDBuilderWizard,
-    user,
-    toggleExpansion,
-  } = useStore();
+  const { jdBuilderWizard, setJDBuilderWizard, user, toggleExpansion } =
+    useStore();
+
+  const { user: clerkUser } = useUser();
+  const employerID = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
 
   // Get the sowID from the store
   const sowID = jdBuilderWizard.sowID ?? "";
-  const employerID = user?.uuid ?? "";
-  const step = jdBuilderWizard.step;
+  //const step = jdBuilderWizard.step;
   const roleToGenerate = jdBuilderWizard.roleToGenerate;
   const jdGenerationRunnerID = jdBuilderWizard.jdGenerationRunnerID;
 
@@ -32,22 +31,19 @@ export default function JDBuilderDetectedRoles() {
         setJDBuilderWizard({ personnelRoles: { roles, keyPersonnel } });
       }
     };
-  
-    fetchRolesAndKeyPersonnel();
-  }, []); 
 
-  // onclick handler to set the role to generate
-  // Handler to set the role to generate
+    fetchRolesAndKeyPersonnel();
+  }, []);
+
   const handleClick = (item: string) => {
     if (!jdGenerationRunnerID) {
-      // Allow changing selection if no generation is running
       setJDBuilderWizard({ roleToGenerate: item });
     }
   };
 
   // Start JD generation
   const startGeneration = async (item: string) => {
-    if (roleToGenerate === item) {
+    if (roleToGenerate === item && employerID) {
       try {
         const runnerID = await StartJDGeneration({
           sowID,
@@ -58,6 +54,7 @@ export default function JDBuilderDetectedRoles() {
         toggleExpansion();
         setJDBuilderWizard({
           jdGenerationRunnerID: runnerID.id,
+          generationProcessId: runnerID.process,
         });
         setIsGenerationInProgress(true); // Set generation progress to true
       } catch (error) {
@@ -69,52 +66,57 @@ export default function JDBuilderDetectedRoles() {
   // useffect to poll checkJDGenerationStatus
   useEffect(() => {
     if (!jdBuilderWizard.jdGenerationRunnerID) {
-        return; // Exit if there is no runner ID
+      return; // Exit if there is no runner ID
     }
 
     let isPollingActive = true; // Flag to control the active state of polling
 
     const polling = async () => {
-        if (!jdBuilderWizard.jdGenerationRunnerID || !isPollingActive) {
-            return; // Exit if polling should be inactive or if runner ID is absent
-        }
+      if (!jdBuilderWizard.jdGenerationRunnerID || !isPollingActive) {
+        return; // Exit if polling should be inactive or if runner ID is absent
+      }
 
-        console.log("Polling JD Generation status....", jdBuilderWizard.jdGenerationRunnerID);
-        const { status, jdID } = await QueryJDGenerationStatus(jdBuilderWizard.jdGenerationRunnerID);
+      console.log(
+        "Polling JD Generation status....",
+        jdBuilderWizard.jdGenerationRunnerID
+      );
+      const { status, jdID } = await QueryJDGenerationStatus(
+        jdBuilderWizard.jdGenerationRunnerID
+      );
 
-        if (status === "Completed" && jdID) {
-            //console.log("JD Generation completed with draft ID", jdID);
-            isPollingActive = false;
-            setJDBuilderWizard({ jobDescriptionId: jdID, step: 4 });
-            setIsGenerationInProgress(false);
-            // Handle the completion, e.g., update state or perform other actions
-        } else if (status === "Running") {
-            setTimeout(polling, 2500); // Continue polling if still running
-        } else if (status === "Failed") {
-            //console.log("JD Generation failed");
-            isPollingActive = false;
-            // TODO: Handle the failure, e.g., show error message
-            setIsGenerationInProgress(false);
-        } else if (status === "Cancelled") {
-            //console.log("JD Generation cancelled");
-            isPollingActive = false;
-            // Handle the cancellation, e.g., show notification
-            setIsGenerationInProgress(false);
-        } else if (status === "No data") {
-            //console.log("No data available for the JD Generation status");
-            isPollingActive = false;
-            // Handle the no data case, e.g., show warning
-            setIsGenerationInProgress(false);
-        } else if (status === "Error fetching data") {
-            //console.log("Error fetching JD Generation status");
-            isPollingActive = false;
-            // Handle the error, e.g., show error message
-            setIsGenerationInProgress(false);
-        } else {
-            //console.log(`Unknown status: ${status}`);
-            isPollingActive = false;
-            // Handle unknown status, e.g., show warning or error
-        }
+      if (status === "Completed" && jdID) {
+        //console.log("JD Generation completed with draft ID", jdID);
+        isPollingActive = false;
+        setJDBuilderWizard({ jobDescriptionId: jdID, step: 4 });
+        setIsGenerationInProgress(false);
+        // Handle the completion, e.g., update state or perform other actions
+      } else if (status === "Running") {
+        setTimeout(polling, 2500); // Continue polling if still running
+      } else if (status === "Failed") {
+        //console.log("JD Generation failed");
+        isPollingActive = false;
+        // TODO: Handle the failure, e.g., show error message
+        setIsGenerationInProgress(false);
+      } else if (status === "Cancelled") {
+        //console.log("JD Generation cancelled");
+        isPollingActive = false;
+        // Handle the cancellation, e.g., show notification
+        setIsGenerationInProgress(false);
+      } else if (status === "No data") {
+        //console.log("No data available for the JD Generation status");
+        isPollingActive = false;
+        // Handle the no data case, e.g., show warning
+        setIsGenerationInProgress(false);
+      } else if (status === "Error fetching data") {
+        //console.log("Error fetching JD Generation status");
+        isPollingActive = false;
+        // Handle the error, e.g., show error message
+        setIsGenerationInProgress(false);
+      } else {
+        //console.log(`Unknown status: ${status}`);
+        isPollingActive = false;
+        // Handle unknown status, e.g., show warning or error
+      }
     };
 
     // Start polling after 2.5 seconds
@@ -122,11 +124,13 @@ export default function JDBuilderDetectedRoles() {
 
     // Cleanup function to stop polling when component unmounts
     return () => {
-        isPollingActive = false;
+      isPollingActive = false;
     };
-}, [jdBuilderWizard.jdGenerationRunnerID]);
+  }, [jdBuilderWizard.jdGenerationRunnerID]);
 
-
+  if (!employerID) {
+    return <div>Please login</div>
+  }
 
   return (
     <div className="w-full">
@@ -135,7 +139,7 @@ export default function JDBuilderDetectedRoles() {
           <AnimatePresence>
             {jdBuilderWizard.personnelRoles.roles.map((role, index) => (
               <motion.div
-                key={`role-${role}-${index}`} // Updated key to include the array name
+                key={`role-${role}-${index}`}
                 onClick={() => handleClick(role)}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -143,7 +147,11 @@ export default function JDBuilderDetectedRoles() {
                 transition={{ delay: index * 0.1 }}
                 className={`
                   ${roleToGenerate === role ? "border-2 border-slate-700" : ""}
-                  ${isGenerationInProgress && roleToGenerate !== role ? "opacity-50 pointer-events-none" : ""}
+                  ${
+                    isGenerationInProgress && roleToGenerate !== role
+                      ? "opacity-50 pointer-events-none"
+                      : ""
+                  }
                   ${!jdGenerationRunnerID ? "cursor-pointer" : ""}
                   flex justify-between flex-row bg-gray-100/60 rounded-md p-4 text-gray-900 items-center text-sm hover:bg-gray-200/50 transition-all duration-200 ease-linear
                 `}
@@ -170,7 +178,7 @@ export default function JDBuilderDetectedRoles() {
             {jdBuilderWizard.personnelRoles.keyPersonnel.map(
               (person, index) => (
                 <motion.div
-                  key={`keyPersonnel-${person}-${index}`} // Updated key to include the array name
+                  key={`keyPersonnel-${person}-${index}`}
                   onClick={() => handleClick(person)}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -181,8 +189,16 @@ export default function JDBuilderDetectedRoles() {
                       0.1,
                   }}
                   className={`
-                    ${roleToGenerate === person ? "border-2 border-slate-700" : "opacity-50"}
-                    ${isGenerationInProgress && roleToGenerate !== person ? "opacity-50 pointer-events-none" : ""}
+                    ${
+                      roleToGenerate === person
+                        ? "border-2 border-slate-700"
+                        : "opacity-50"
+                    }
+                    ${
+                      isGenerationInProgress && roleToGenerate !== person
+                        ? "opacity-50 pointer-events-none"
+                        : ""
+                    }
                     ${!jdGenerationRunnerID ? "cursor-pointer" : ""}
                     flex justify-between flex-row bg-gray-100/60 rounded-md p-4 text-gray-900 items-center text-sm hover:bg-gray-200/50 transition-all duration-200 ease-linear
                   `}
@@ -213,8 +229,7 @@ export default function JDBuilderDetectedRoles() {
           </AnimatePresence>
         </div>
       </div>
-      <div className="flex flex-row gap-2 text-sm">
-      </div>
+      <div className="flex flex-row gap-2 text-sm"></div>
     </div>
   );
 }

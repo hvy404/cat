@@ -33,6 +33,7 @@ import { AddJDGetDataPoints } from "@/lib/dashboard/ingest-jd/get-data-points";
 import { SaveJobDetails } from "@/lib/dashboard/ingest-jd/save-data-points";
 import { states } from "@/lib/data/form-value-states";
 import { z } from "zod";
+import { useUser } from "@clerk/nextjs";
 
 interface ValidationErrors {
   [key: string]: string;
@@ -79,11 +80,14 @@ const schema = z
   );
 
 export default function AddJDStep2Form() {
-  const { addJD, setAddJD, user } = useStore((state) => ({
+  const { addJD, setAddJD } = useStore((state) => ({
     addJD: state.addJD,
     setAddJD: state.setAddJD,
-    user: state.user,
   }));
+
+  // Clerk
+  const { user: clerkUser } = useUser();
+  const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
 
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
@@ -94,19 +98,12 @@ export default function AddJDStep2Form() {
     compensation: "",
     commission_percent: "",
   });
-  const [employerId, setEmployerId] = useState("");
-
-  useEffect(() => {
-    if (user && user.uuid) {
-      setEmployerId(user.uuid);
-    }
-  }, [user]);
 
   useEffect(() => {
     let isMounted = true;
 
-    if (!employerId || !addJD.jdEntryID) {
-      console.log("User or user UUID not set yet.");
+    if (!cuid || !addJD.jdEntryID) {
+      console.log("User not logged in.");
       return;
     }
 
@@ -116,9 +113,7 @@ export default function AddJDStep2Form() {
         return;
       }
 
-      const result = await AddJDGetDataPoints(addJD.jdEntryID, employerId);
-
-      console.log("Data fetched:", result);
+      const result = await AddJDGetDataPoints(addJD.jdEntryID, cuid!);
 
       if (result && isMounted) {
         const jdTopLevelDetails = result.jd_data[0];
@@ -162,13 +157,13 @@ export default function AddJDStep2Form() {
 
     return () => {
       isMounted = false;
-      console.log("Component unmounting");
     };
-  }, [employerId, addJD.jdEntryID]);
+  }, [cuid, addJD.jdEntryID]);
 
   const handleSubmit = async () => {
     try {
       schema.parse(addJD.jobDetails[0]);
+
       const result = await SaveJobDetails(
         addJD.jobDetails[0],
         addJD.jdEntryID!
@@ -187,6 +182,7 @@ export default function AddJDStep2Form() {
           step: 3,
           publishingRunnerID: null,
         });
+        console.log("Updated to step 3");
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -206,7 +202,7 @@ export default function AddJDStep2Form() {
     setAddJD({ activeField: fieldName });
   };
 
-  if (!user || !user.uuid) {
+  if (!cuid) {
     return null;
   }
 

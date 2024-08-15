@@ -14,7 +14,6 @@ const togetherai = new OpenAI({
 export async function TitleOptions(
   jobID: string
 ) {
-  console.log("TitleOptions function called");
   const cookiesStore = cookies();
   const client = createClient(cookiesStore);
 

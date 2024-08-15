@@ -38,7 +38,7 @@ export const JobInvited: React.FC<JobInvitedProps> = ({
   const [error, setError] = useState<string | null>(null);
   const { user } = useStore((state) => ({ user: state.user }));
 
-  const candidateId = clerkUser?.publicMetadata?.cuid as string;
+  const candidateId = clerkUser?.publicMetadata?.aiq_cuid as string;
 
   useEffect(() => {
     const loadInvites = async () => {

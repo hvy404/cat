@@ -15,7 +15,7 @@ export const jobDescriptionOnboardStage2 = inngest.createFunction(
     // Data from the event
     const employerID = event.data.job_description.employer;
     const jobDescriptionID = event.data.job_description.id;
-    const session = event.data.job_description.session;
+    //const session = event.data.job_description.session;
     const company = event.data.job_description.company;
 
     // Generate keywords for job description
@@ -91,7 +91,6 @@ export const jobDescriptionOnboardStage2 = inngest.createFunction(
             job_description: {
               id: jobDescriptionID,
               employer: employerID,
-              session: session,
             },
           },
         }

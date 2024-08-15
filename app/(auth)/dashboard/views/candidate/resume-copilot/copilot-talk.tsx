@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Edit2, Send, X, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,12 +11,9 @@ import {
 import { useChat, Message as AIMessage } from "ai/react";
 import ReactMarkdown from "react-markdown";
 import EnhancedViewMorePanel from "./enhanced-view-more-panel";
-
-interface NextStep {
-  message: string;
-  suggestion: string;
-  reasoning: string;
-}
+import { NextStep } from "@/app/(auth)/dashboard/views/candidate/resume-copilot/types";
+import cranium from "./cranium";
+import { useUser } from "@clerk/nextjs";
 
 interface ExtendedAIMessage extends AIMessage {
   nextStep?: NextStep;
@@ -26,7 +23,6 @@ interface CopilotTalkProps {
   isOpen: boolean;
   onClose: () => void;
   nextSteps: NextStep[];
-  //setNextSteps: React.Dispatch<React.SetStateAction<NextStep[]>>;
   builderSession: string;
 }
 
@@ -34,9 +30,20 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
   isOpen,
   onClose,
   nextSteps,
-  //setNextSteps,
   builderSession,
 }) => {
+  const { user: clerkUser } = useUser();
+  const userId = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editText, setEditText] = useState<string>("");
+  const chatRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [lineCount, setLineCount] = useState(1);
+  const [viewMoreOpen, setViewMoreOpen] = useState<string | null>(null);
+  const [isMessageComplete, setIsMessageComplete] = useState(false);
+  const [localMessages, setLocalMessages] = useState<ExtendedAIMessage[]>([]);
+
   const {
     messages,
     input,
@@ -45,21 +52,17 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
     setMessages,
     isLoading,
   } = useChat({
-    body: {
+    experimental_prepareRequestBody: ({ messages }) => {
+      return messages[messages.length - 1].content;
     },
     api: "/api/hey-coach",
     headers: {
       "Content-Type": "application/json",
       "Magic-Rail": builderSession,
+      "Magic-Gate": userId!,
     },
+    onFinish: () => setIsMessageComplete(true),
   });
-
-  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
-  const [editText, setEditText] = useState<string>("");
-  const chatRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [lineCount, setLineCount] = useState(1);
-  const [viewMoreOpen, setViewMoreOpen] = useState<string | null>(null);
 
   const addNextStepMessages = useCallback(() => {
     const newNextStepMessages = nextSteps
@@ -81,6 +84,25 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
   useEffect(() => {
     addNextStepMessages();
   }, [nextSteps, addNextStepMessages]);
+
+  const handleStoreToLocal = () => {
+    setLocalMessages(messages);
+    setIsMessageComplete(false);
+  }
+
+  const handleCraniumChatHistory = () => {
+    cranium(builderSession, userId!, {
+      cacheKeyType: "chat",
+      items: localMessages,
+    });
+  };
+  
+  useEffect(() => {
+    if (isMessageComplete)
+      handleStoreToLocal();
+    handleCraniumChatHistory();
+  }, [isMessageComplete]);
+
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     handleInputChange(e);
@@ -150,6 +172,22 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
     setViewMoreOpen(viewMoreOpen === id ? null : id);
   };
 
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const scrollToBottom = () => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
+    }
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  if (!userId) {
+    return <div>You must be logged in.</div>;
+  }
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -199,7 +237,10 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
                   <X size={24} />
                 </Button>
               </div>
-              <div className="flex-grow overflow-y-auto mb-4 p-4 rounded">
+              <div
+                ref={chatContainerRef}
+                className="flex-grow overflow-y-auto p-4 rounded"
+              >
                 {messages.map((msg) => (
                   <div
                     key={msg.id}
@@ -208,7 +249,7 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
                     } mb-4`}
                   >
                     <div
-                      className={`max-w-[70%] p-3 rounded-lg ${
+                      className={`max-w-[88%] p-3 rounded-lg ${
                         msg.role === "assistant"
                           ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white"
                           : "bg-gradient-to-br from-gray-200 to-gray-300 text-gray-800"
@@ -247,30 +288,25 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
                           <ReactMarkdown
                             className="text-sm break-words whitespace-pre-wrap markdown-content"
                             components={{
-                              p: ({ node, ...props }) => (
-                                <p className="mb-2" {...props} />
-                              ),
+                              p: ({ node, ...props }) => <p {...props} />,
                               h1: ({ node, ...props }) => (
-                                <h1
-                                  className="text-xl font-bold mb-2"
-                                  {...props}
-                                />
+                                <h1 className="text-xl font-bold" {...props} />
                               ),
                               h2: ({ node, ...props }) => (
                                 <h2
-                                  className="text-lg font-semibold mb-2"
+                                  className="text-lg font-semibold"
                                   {...props}
                                 />
                               ),
                               ul: ({ node, ...props }) => (
                                 <ul
-                                  className="list-disc list-inside mb-2"
+                                  className="list-disc list-inside"
                                   {...props}
                                 />
                               ),
                               ol: ({ node, ...props }) => (
                                 <ol
-                                  className="list-decimal list-inside mb-2"
+                                  className="list-decimal list-inside"
                                   {...props}
                                 />
                               ),

@@ -13,10 +13,8 @@ import { inngest } from "@/lib/inngest/client";
 export async function jobDescriptionFinishOnboard(
   jdUUID: string,
   employerId: string,
-  sessionID: string,
   company?: string
 ) {
-
   // Send an event to Inngest
   const { ids } = await inngest.send({
     name: "app/job-description-onboard-stage-2",
@@ -24,7 +22,6 @@ export async function jobDescriptionFinishOnboard(
       job_description: {
         employer: employerId,
         id: jdUUID,
-        session: sessionID,
         company: company,
       },
     },

@@ -5,60 +5,79 @@ import { Loader } from "lucide-react";
 
 export default function JDBuilderStartProcessing() {
   // Get state from the store
-  const {
-    jdBuilderWizard,
-    setJDBuilderWizard,
-    updateJDBuilderWizardStep,
-    user,
-  } = useStore();
+  const { jdBuilderWizard, setJDBuilderWizard, updateJDBuilderWizardStep } =
+    useStore();
 
   // Get the sowID from the store
   const sowID = jdBuilderWizard.sowID ?? "";
-  const employerID = user?.uuid ?? "";
-  const filename = jdBuilderWizard.sowFile[0] ?? "";
   const step = jdBuilderWizard.step;
   const pollingStatus = jdBuilderWizard.pollingStatus;
   const runnerID = jdBuilderWizard.sowParseRunnerID;
 
-  // polling for the status by call getSOWIngestionStep function every 7.5 seconds until it returns 'true'
   useEffect(() => {
-    if (!sowID || pollingStatus || !runnerID) {
+    console.log("Polling useEffect triggered");
+    if (!sowID || !runnerID || pollingStatus === true) {
+      console.log("Returning early");
       return;
     }
 
-    let isPollingActive = true; // This flag will control the active state of polling
+    let isPollingActive = true;
 
     const polling = async () => {
-      const status = await QueryEventStatus(runnerID);
+      // Initial delay
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
-      if (status === "Completed") {
-        setJDBuilderWizard({ pollingStatus: true });
-        isPollingActive = false;
-      } else if (
-        status === "Running" ||
-        status === "Failed" ||
-        status === "Cancelled"
-      ) {
-        // Check status again after 7.5 seconds if it's not completed yet
-        setTimeout(polling, 7500);
-      } else {
-        // Log any unexpected status or errors
-        console.error(`Unexpected status received: ${status}`);
-        isPollingActive = false;
-      }
+      const pollFunction = async () => {
+        try {
+          const status = await QueryEventStatus(runnerID);
+          console.log("status: ", status);
+
+          if (status === "Completed") {
+            setJDBuilderWizard({ pollingStatus: true });
+            isPollingActive = false;
+            updateJDBuilderWizardStep(step + 1);
+          } else if (
+            status === "Running" ||
+            status === "Failed" ||
+            status === "Cancelled"
+          ) {
+            console.log(status);
+            if (isPollingActive) {
+              setTimeout(pollFunction, 7500);
+            }
+          } else if (status === "No data") {
+            // If "No data" is returned, continue polling
+            if (isPollingActive) {
+              setTimeout(pollFunction, 7500);
+            }
+          } else {
+            console.log("Unexpected status:", status);
+            isPollingActive = false;
+          }
+        } catch (error) {
+          console.error("Error fetching status:", error);
+          isPollingActive = false;
+        }
+      };
+
+      pollFunction();
     };
 
     polling();
 
-    // Cleanup function to stop polling when component unmounts or pollingStatus becomes true
     return () => {
       isPollingActive = false;
     };
-  }, [sowID, pollingStatus]);
+  }, [
+    sowID,
+    pollingStatus,
+    runnerID,
+    step,
+    setJDBuilderWizard,
+    updateJDBuilderWizardStep,
+  ]);
 
-  // TODO: Delete after development
-  // onclick handler to move to step 3
-  const onClick = () => {
+  const nextStep = () => {
     updateJDBuilderWizardStep(step + 1);
   };
 
@@ -82,7 +101,6 @@ export default function JDBuilderStartProcessing() {
             Replace with nicer illustation from lottle...
           </p>
         </div>
-        <button onClick={onClick}>Next Step</button>
       </div>
     </div>
   );

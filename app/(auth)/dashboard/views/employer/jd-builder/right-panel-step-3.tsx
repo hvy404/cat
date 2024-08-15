@@ -2,10 +2,10 @@ import useStore from "@/app/state/useStore";
 import { motion } from "framer-motion";
 import { BotIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CancelJDGeneration } from "@/app/(auth)/dashboard/views/employer/jd-builder/lib/runners/cancel-jd-generation";
 
 export default function JDBuilderRightStep3() {
   const {
-    user,
     jdBuilderWizard,
     setJDBuilderWizard,
     updateJDBuilderWizardStep,
@@ -13,8 +13,7 @@ export default function JDBuilderRightStep3() {
     setExpanded,
   } = useStore();
 
-  const sowID = jdBuilderWizard.sowID ?? "";
-  const employerID = user?.uuid ?? "";
+  const jdGenerationId = jdBuilderWizard.generationProcessId;
 
   // Define the animation variants
   const messageVariants = {
@@ -43,9 +42,10 @@ export default function JDBuilderRightStep3() {
     jdBuilderWizard.personnelRoles.keyPersonnel.length > 0;
 
   // handler to cancel JD generation
-  const handleCancelJDGeneration = () => {
+  const handleCancelJDGeneration = async () => {
     setExpanded(true);
-    setJDBuilderWizard({ roleToGenerate: null, jdGenerationRunnerID: null }); // Add Inngest call to cancel the background job
+    const result = await CancelJDGeneration({ processId: jdGenerationId! }); // TODO: make this check more elegant than !
+    setJDBuilderWizard({ roleToGenerate: null, jdGenerationRunnerID: null });
   };
 
   return (
@@ -96,17 +96,24 @@ export default function JDBuilderRightStep3() {
           >
             <div className="flex flex-row items-center bg-gray-100 m-1.5 rounded-md p-4 gap-4">
               <BotIcon className="w-8 h-8 text-gray-500 flex-shrink-0" />
-              <p className="text-gray-700 leading-7 text-sm">Loading roles... </p>
+              <p className="text-gray-700 leading-7 text-sm">
+                Loading roles...{" "}
+              </p>
             </div>
           </motion.div>
         )}
       </div>
       {jdBuilderWizard.jdGenerationRunnerID && (
-      <div className="flex flex-row justify-center">
-        <Button variant={"outline"} onClick={handleCancelJDGeneration} className="btn btn-primary">
-          Cancel Generation
-        </Button>
-      </div>
-      )}    </div>
+        <div className="flex flex-row justify-center">
+          <Button
+            variant={"outline"}
+            onClick={handleCancelJDGeneration}
+            className="btn btn-primary"
+          >
+            Cancel Generation
+          </Button>
+        </div>
+      )}{" "}
+    </div>
   );
 }

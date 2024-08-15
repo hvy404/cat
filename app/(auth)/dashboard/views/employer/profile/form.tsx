@@ -8,7 +8,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
-import useStore from "@/app/state/useStore";
+import { useUser } from "@clerk/nextjs";
 
 interface ActivePanelProps {
   onMouseEnter: (panel: string) => void;
@@ -28,18 +28,20 @@ export function MyProfileForm({
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  const { user } = useStore();
+  // Clerk
+  const { user: clerkUser } = useUser();
+  const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
 
   useEffect(() => {
     async function fetchProfile() {
-      if (!user || !user.uuid) {
+      if (!cuid) {
         setIsLoading(false);
         toast.error("Please log in to view your profile.");
         return;
       }
 
       try {
-        const data = await retrievePersonalProfile(user.uuid);
+        const data = await retrievePersonalProfile(cuid);
         setProfile(data);
       } catch (error) {
         console.error("Error fetching profile:", error);
@@ -49,9 +51,9 @@ export function MyProfileForm({
       }
     }
     fetchProfile();
-  }, [user]);
+  }, [cuid]);
 
-  if (!user || !user.uuid) {
+  if (!cuid) {
     return <div>Please log in to view your profile.</div>;
   }
 
@@ -70,7 +72,7 @@ export function MyProfileForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await updatePersonalProfile(user.uuid, profile);
+      await updatePersonalProfile(cuid, profile);
       toast.success("Profile updated successfully!");
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -162,7 +164,9 @@ export function MyProfileForm({
           </div>
         </div>
       </div>
-      <div className="flex flex-row justify-end"><Button type="submit">Save Changes</Button></div>
+      <div className="flex flex-row justify-end">
+        <Button type="submit">Save Changes</Button>
+      </div>
     </form>
   );
 }

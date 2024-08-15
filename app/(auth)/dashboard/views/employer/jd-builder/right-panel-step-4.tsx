@@ -13,9 +13,6 @@ export default function JDBuilderRightStep4() {
     setExpanded,
   } = useStore();
 
-  const sowID = jdBuilderWizard.sowID ?? "";
-  const employerID = user?.uuid ?? "";
-
   // Define the animation variants
   const messageVariants = {
     hidden: { opacity: 0, y: 50 },

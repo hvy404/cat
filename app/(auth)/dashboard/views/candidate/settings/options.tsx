@@ -49,7 +49,7 @@ export default function CandidateSettingOptions({
     interview_invite_opt_in: false,
   });
 
-  const candidateId = clerkUser?.publicMetadata?.cuid as string;
+  const candidateId = clerkUser?.publicMetadata?.aiq_cuid as string;
 
   useEffect(() => {
     async function fetchData() {

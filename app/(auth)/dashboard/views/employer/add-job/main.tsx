@@ -4,7 +4,6 @@ import AddJobBreadcrumb from "@/app/(auth)/dashboard/views/employer/add-job/brea
 import AddNewJobStart from "@/app/(auth)/dashboard/views/employer/add-job/mods/panel-step-1";
 import { Separator } from "@/components/ui/separator";
 import { v4 as uuidv4 } from "uuid";
-import { jdGetProcessStatus } from "@/lib/dashboard/ingest-jd/jd-process-status";
 import AddJDStepOne from "@/app/(auth)/dashboard/views/employer/add-job/steps/step-1";
 import AddJDStepTwo from "@/app/(auth)/dashboard/views/employer/add-job/steps/step-2";
 import AddJDStepThree from "@/app/(auth)/dashboard/views/employer/add-job/steps/step-3";
@@ -13,27 +12,6 @@ import SidePanelStep2 from "@/app/(auth)/dashboard/views/employer/add-job/mods/p
 export default function EmployerDashboardAddJob() {
   // Get AddJD state from the store
   const { user, addJD, setAddJD } = useStore();
-
-  // TOOD: Remove after development
-  /*    useEffect(() => {
-    setAddJD({ step: 2, 
-      jdEntryID: "86bf93cc-8c45-4f7c-9d66-bea577a6cf7e",
-     });
-  }, []);  */
-
-  // Check the session on load and set it if it doesn't exist
-  /*   useEffect(() => {
-    const checkSession = async () => {
-      const session = await checkUploadSession();
-      if (session.status) {
-        setAddJD({ session: session.session });
-      } else {
-        setAddJD({ session: uuidv4() });
-      }
-    };
-
-    checkSession();
-  }, []); */
 
   // Check the session on load and set it if it doesn't exist
   useEffect(() => {

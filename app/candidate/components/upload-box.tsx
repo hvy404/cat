@@ -95,8 +95,8 @@ const ResumeUploadBox: React.FC = () => {
 
           if (completeSignUp.createdUserId) {
             await updatePublicMetadata(completeSignUp.createdUserId, {
-              role: "talent",
-              cuid: candidateId,
+              aiq_role: "talent",
+              aiq_cuid: candidateId,
             });
           }
 
