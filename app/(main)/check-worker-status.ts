@@ -36,6 +36,10 @@ export async function QueryWorkerStatus(
       : "http://127.0.0.1:8288";
   const api_url = `${api_base}/v1/events/${runId}/runs`;
 
+  console.log("API Base URL:", api_base);
+  console.log("RunId:", runId);
+  console.log("Authorization Header:", `Bearer ${process.env.INNGEST_EVENT_KEY?.substring(0, 5)}...`);
+
   const options = {
     method: "GET",
     headers: {
@@ -47,9 +51,15 @@ export async function QueryWorkerStatus(
   try {
     const response = await fetch(api_url, options);
     console.log("URL Called: ", api_url);
+    
     if (!response.ok) {
+      console.error(`HTTP API error! status: ${response.status}`);
+      console.error("Response headers:", Object.fromEntries(response.headers.entries()));
+      const errorBody = await response.text();
+      console.error("Error body:", errorBody);
       throw new Error(`HTTP API error! status: ${response.status}`);
     }
+
     const data: EventResponse = await response.json();
 
     if (data.data && data.data.length > 0) {
@@ -73,6 +83,9 @@ export async function QueryWorkerStatus(
     }
   } catch (error) {
     console.error("Failed to fetch event status:", error);
-    return { status: "error" };
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+    }
+    return { status: "error", message: error instanceof Error ? error.message : "Unknown error occurred" };
   }
 }
