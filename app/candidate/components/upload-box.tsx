@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Dropzone, { FileWithPath } from "react-dropzone";
 import { PlusIcon } from "@heroicons/react/24/solid";
 import { uploadResumeToStorage } from "@/lib/candidate/resume-upload";
@@ -113,26 +113,57 @@ const ResumeUploadBox: React.FC = () => {
     }
   };
 
-  const pollWorkerStatus = async (eventId: string) => {
-    const pollInterval = setInterval(async () => {
-      const result = await QueryWorkerStatus(eventId);
-      setWorkerStatus(result.status);
-  
-      if (result.status === "completed") {
-        clearInterval(pollInterval);
-        console.log("Worker completed successfully");
-        toast.success("Resume processing completed!");
-        setIsLoading(false);
-        router.push('/dashboard');
-      } else if (result.status === "failed" || result.status === "cancelled") {
-        clearInterval(pollInterval);
-        console.error("Worker failed or was cancelled");
-        toast.error(
-          "There was an error processing your resume. Please try again."
-        );
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isFetchingRef = useRef(false);
+
+  const pollWorkerStatus = useCallback(async (eventId: string) => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
+    const fetchStatus = async () => {
+      if (isFetchingRef.current) return;
+      isFetchingRef.current = true;
+
+      try {
+        const result = await QueryWorkerStatus(eventId);
+        setWorkerStatus(result.status);
+
+        if (result.status === "completed" || result.status === "failed" || result.status === "cancelled") {
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+          }
+
+          if (result.status === "completed") {
+            console.log("Worker completed successfully");
+            toast.success("Resume processing completed!");
+            setIsLoading(false);
+            router.push('/dashboard');
+          } else {
+            console.error("Worker failed or was cancelled");
+            toast.error(
+              "There was an error processing your resume. Please try again."
+            );
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching worker status:", error);
+      } finally {
+        isFetchingRef.current = false;
       }
-    }, 10000); // Poll every 10 seconds
-  };
+    };
+
+    await fetchStatus(); // Immediate first call
+    intervalRef.current = setInterval(fetchStatus, 10000);
+  }, [router]);
+
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
 
   const handleFileUpload = async (userId: string | null) => {
     if (!file) {

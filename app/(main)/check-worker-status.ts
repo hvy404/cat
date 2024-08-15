@@ -40,14 +40,15 @@ export async function QueryWorkerStatus(
     method: "GET",
     headers: {
       Accept: "application/json",
-      Authorization: `Bearer ${process.env.INNGEST_API_KEY}`,
+      Authorization: `Bearer ${process.env.INNGEST_EVENT_KEY}`,
     },
   };
 
   try {
     const response = await fetch(api_url, options);
+    console.log("URL Called: ", api_url);
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP API error! status: ${response.status}`);
     }
     const data: EventResponse = await response.json();
 
