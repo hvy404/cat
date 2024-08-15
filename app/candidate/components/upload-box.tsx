@@ -3,6 +3,7 @@ import Dropzone, { FileWithPath } from "react-dropzone";
 import { PlusIcon } from "@heroicons/react/24/solid";
 import { uploadResumeToStorage } from "@/lib/candidate/resume-upload";
 import { resumeUnconfirmedAddToDatabase } from "@/lib/candidate/resume-upload-entry";
+import { useRouter } from 'next/navigation';
 import { useSignUp } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +37,8 @@ const ResumeUploadBox: React.FC = () => {
   const [workerStatus, setWorkerStatus] = useState<string | undefined>(
     undefined
   );
+
+  const router = useRouter();
 
   useEffect(() => {
     const newCuid = createId();
@@ -101,7 +104,7 @@ const ResumeUploadBox: React.FC = () => {
           }
 
           toast.success("Email verified successfully!");
-          handleFileUpload(candidateId);
+          await handleFileUpload(completeSignUp.createdUserId || null);
         }
       }
     } catch (err) {
@@ -113,21 +116,20 @@ const ResumeUploadBox: React.FC = () => {
   const pollWorkerStatus = async (eventId: string) => {
     const pollInterval = setInterval(async () => {
       const result = await QueryWorkerStatus(eventId);
-      console.log("Worker status:", result);
       setWorkerStatus(result.status);
-
+  
       if (result.status === "completed") {
         clearInterval(pollInterval);
         console.log("Worker completed successfully");
         toast.success("Resume processing completed!");
         setIsLoading(false);
+        router.push('/dashboard');
       } else if (result.status === "failed" || result.status === "cancelled") {
         clearInterval(pollInterval);
         console.error("Worker failed or was cancelled");
         toast.error(
           "There was an error processing your resume. Please try again."
         );
-        setIsLoading(false);
       }
     }, 10000); // Poll every 10 seconds
   };
@@ -139,48 +141,63 @@ const ResumeUploadBox: React.FC = () => {
       return;
     }
 
+    if (!userId) {
+      toast.error("User ID is missing. Cannot start onboarding.");
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
     const formData = new FormData();
     formData.append("file", file);
 
     try {
+      // Upload resume
       const uploadResult = await uploadResumeToStorage(formData);
-      if (uploadResult && uploadResult.success && uploadResult.id) {
-        const addResult = await resumeUnconfirmedAddToDatabase(
-          candidateId,
-          uploadResult.id,
-          email
-        );
+      console.log("Upload result:", uploadResult);
 
-        if (addResult && addResult.success) {
-          toast.success("Resume uploaded and confirmed successfully.");
-
-          if (userId) {
-            const onboardResult = await candidateStartOnboard(userId);
-            console.log("Onboarding Run", onboardResult);
-            if (
-              onboardResult.message === "Success" &&
-              onboardResult.event &&
-              onboardResult.event.length > 0
-            ) {
-              toast.success("Onboarding process started successfully.");
-              setRunId(onboardResult.event[0]);
-              pollWorkerStatus(onboardResult.event[0]);
-            } else {
-              toast.error("Failed to start onboarding process.");
-              setIsLoading(false);
-            }
-          }
-        } else {
-          toast.error("Failed to confirm resume upload.");
-          setIsLoading(false);
-        }
-      } else {
-        toast.error("Failed to upload resume.");
-        setIsLoading(false);
+      if (!uploadResult || !uploadResult.success || !uploadResult.id) {
+        throw new Error("Failed to upload resume.");
       }
+
+      // Add to database
+      const addResult = await resumeUnconfirmedAddToDatabase(
+        candidateId,
+        uploadResult.id,
+        email
+      );
+      console.log("Add to database result:", addResult);
+
+      if (!addResult || !addResult.success) {
+        throw new Error("Failed to confirm resume upload.");
+      }
+
+      toast.success("Resume uploaded and confirmed successfully.");
+
+      // Start onboarding
+      const onboardResult = await candidateStartOnboard(candidateId);
+      console.log("Onboarding Run", onboardResult);
+
+      if (
+        onboardResult.message !== "Success" ||
+        !onboardResult.event ||
+        onboardResult.event.length === 0
+      ) {
+        throw new Error(
+          onboardResult.error || "Failed to start onboarding process."
+        );
+      }
+
+      toast.success("Onboarding process started successfully.");
+      setRunId(onboardResult.event[0]);
+      pollWorkerStatus(onboardResult.event[0]);
     } catch (error) {
-      toast.error("Error during file upload.");
-      setIsLoading(false);
+      console.error("Error during file upload or processing:", error);
+      toast.error(
+        error instanceof Error ? error.message : "An unexpected error occurred."
+      );
+    } finally {
+      //setIsLoading(false);
     }
   };
 

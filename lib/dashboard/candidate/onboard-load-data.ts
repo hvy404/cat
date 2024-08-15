@@ -62,7 +62,6 @@ function remapClearanceLevel(level: string) {
 
 export async function fetchCandidatePreliminaryData(candidateId: string) {
   if (!candidateId) {
-    console.error("Invalid candidateId provided");
     return { success: false, error: "Invalid candidateId" };
   }
 

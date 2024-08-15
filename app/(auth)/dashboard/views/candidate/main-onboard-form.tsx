@@ -108,7 +108,7 @@ export function CandidateOnboardingForm() {
   //const user = useStore((state) => state.user?.uuid);
   //const dashboardStep = useStore((state) => state.candidateDashboard.step);
   const { user: clerkUser } = useUser();
-  const user = clerkUser?.publicMetadata?.cuid as string | undefined;
+  const user = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -228,27 +228,29 @@ export function CandidateOnboardingForm() {
   };
 
   const handlePopulate = async () => {
-    if (!user) return;
-    const result = await fetchCandidatePreliminaryData(user);
-    console.log("Result from fetchCandidatePreliminaryData:", result);
-    if (result.success && result.data && result.data.length > 0) {
-      const data = result.data[0] as CandidateData;
-      setOriginalData(data); // Save original data
-      setFormData({
-        name: data.name || "",
-        phone: data.phone || "",
-        email: data.email || "",
-        clearance_level: data.clearance_level || "",
-        city: data.location?.city || "",
-        state: data.location?.state || "",
-        zipcode: data.location?.zipcode || "",
-        education: data.education || [],
-        work_experience: data.work_experience || [],
-        certifications: data.professional_certifications || [],
-      });
-      setFormLoaded(true);
+    if (user) {
+      const result = await fetchCandidatePreliminaryData(user as string);
+      
+      if (result.success && result.data && result.data.length > 0) {
+        const data = result.data[0] as CandidateData;
+        setOriginalData(data);
+        setFormData({
+          name: data.name || "",
+          phone: data.phone || "",
+          email: data.email || "",
+          clearance_level: data.clearance_level || "",
+          city: data.location?.city || "",
+          state: data.location?.state || "",
+          zipcode: data.location?.zipcode || "",
+          education: data.education || [],
+          work_experience: data.work_experience || [],
+          certifications: data.professional_certifications || [],
+        });
+        setFormLoaded(true);
+      }
     }
   };
+  
 
   const pollWorkerStatus = useCallback(async (eventId: string) => {
     const pollInterval = setInterval(async () => {
