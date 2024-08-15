@@ -11,7 +11,15 @@ import { cookies } from "next/headers";
 import { generateJDStatic } from "@/lib/dashboard/infer/from-jd/static";
 
 export const jobDescriptionGenerateStatic = inngest.createFunction(
-  { id: "job-description-generate-static-info" },
+  {
+    id: "job-description-generate-static-info",
+    cancelOn: [
+      {
+        event: "app/job-description-parser-cancel",
+        if: "async.data.session == event.data.job_description.session",
+      },
+    ],
+  },
   { event: "app/job-description-onboard-generate-static" },
   async ({ event, step }) => {
     const cookieStore = cookies();

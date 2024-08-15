@@ -7,6 +7,7 @@ import { jobDescriptionFinishOnboard } from "@/lib/dashboard/finish-onboard";
 import { QueryEventStatus } from "@/lib/dashboard/query-runner-status";
 import { fetchUserCompanyId } from "@/lib/dashboard/get-company-membership";
 import { useUser } from "@clerk/nextjs";
+import WaitingState from "@/app/(auth)/dashboard/views/employer/add-job/mods/step-3-loading"
 
 export default function AddJDStepThree() {
   // Clerk
@@ -118,8 +119,6 @@ export default function AddJDStepThree() {
             isFinalizing: false,
           });
           isPollingActive = false; // Stop polling
-
-          console.log("Comlpetion of onboarding process");
           goToDashboard();
         } else if (
           status === "Running" ||
@@ -182,35 +181,9 @@ export default function AddJDStepThree() {
   };
 
   return (
-    <>
-      <Card className="w-full">
-        <CardContent className="text-sm text-gray-700 leading-7">
-          <div className="flex flex-col gap-4 justify-center">
-            {addJD.isFinalizing ? (
-              <div className="flex flex-col justify-center text-center">
-                <div className="flex flex-row justify-center">
-                  <Loader className="w-12 h-12 animate-spin" />
-                </div>
-                <p>
-                  Your job opportunity is currently being processed. Please hold
-                  on for a moment...
-                </p>
-              </div>
-            ) : (
-              <>
-                <p className="text-center">
-                  Your job opportunity has been successfully added and will
-                  appear on the platform soon. <br />
-                  You will be alerted as matches are identified.
-                </p>
-                <div className="flex flex-row justify-center">
-                  <Button onClick={goToDashboard}>Go to dashboard</Button>
-                </div>
-              </>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </>
+    <WaitingState 
+    isFinalizing={addJD.isFinalizing} 
+    goToDashboard={goToDashboard} 
+  />
   );
 }

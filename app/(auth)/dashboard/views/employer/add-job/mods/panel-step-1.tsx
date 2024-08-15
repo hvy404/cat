@@ -127,7 +127,8 @@ export default function AddNewJobStart() {
 
           if (startOnboard.success && startOnboard.event) {
             const eventID = startOnboard.event[0];
-            setAddJD({ publishingRunnerID: eventID });
+            const sessionId = startOnboard.session;
+            setAddJD({ publishingRunnerID: eventID, session: sessionId });
           }
         }
       }
@@ -146,7 +147,7 @@ export default function AddNewJobStart() {
     const pollEventStatus = async () => {
       if (addJD.publishingRunnerID) {
         const status = await QueryEventStatus(addJD.publishingRunnerID);
-        console.log("Status:", status);
+        //console.log("Status:", status);
 
         if (status === "Completed") {
           setAddJD({

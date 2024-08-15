@@ -9,8 +9,7 @@ import {
   Search,
   UserCheck,
   Zap,
-  Target,
-  ChevronRight,
+  LightbulbIcon,
   Upload,
   Trash,
 } from "lucide-react";
@@ -22,6 +21,19 @@ import { jobDescriptionUpload } from "@/lib/dashboard/jd-upload";
 import { JDAddDatabaseEntry } from "@/lib/dashboard/jd-add-new-entry";
 import { jobDescriptionStartOnboard } from "@/lib/dashboard/start-onboard";
 import { QueryEventStatus } from "@/lib/dashboard/query-runner-status";
+import { CancelJDParser } from "@/lib/dashboard/infer/from-jd/cancel-jd-parser";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { CleanUpOnCancel } from "@/lib/dashboard/ingest-jd/cleanup-on-cancel";
 
 interface ProcessingStepProps {
   icon: LucideIcon;
@@ -38,12 +50,13 @@ const funFacts = [
 ];
 
 export default function AddJDStepOne() {
-  const { addJD, setAddJD } = useStore();
+  const { addJD, setAddJD, setSelectedMenuItem } = useStore();
   const [funFact, setFunFact] = useState("");
   const { user: clerkUser } = useUser();
   const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
   const [fileResponse, setFileResponse] = useState<string | null>(null);
   const [currentFact, setCurrentFact] = useState(funFacts[0]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     const factInterval = setInterval(() => {
@@ -123,6 +136,64 @@ export default function AddJDStepOne() {
     }
   };
 
+  // Return to dashboard after completed
+  const goToDashboard = () => {
+    // Clean up the state
+    setAddJD({
+      filename: null,
+      jdEntryID: null,
+      session: null,
+      isProcessing: false,
+      isFinalizing: false,
+      file: null,
+      step: 1,
+      jobDetails: [
+        {
+          jobTitle: "",
+          location_type: "",
+          min_salary: 0,
+          max_salary: 0,
+          salary_ote: 0,
+          commission_percent: 0,
+          security_clearance: "",
+          salary_disclose: false,
+          commission_pay: false,
+        },
+      ],
+      jobDescriptionTitles: [],
+      activeField: null,
+      publishingRunnerID: null,
+    });
+
+    setSelectedMenuItem("dashboard");
+  };
+
+  const activeSession = addJD.session;
+  const handleCancelPosting = async () => {
+    if (!activeSession) {
+      console.error("No active session found");
+      return;
+    }
+
+    try {
+      await CancelJDParser({ sessionID: activeSession });
+
+      const cleanupResult = await CleanUpOnCancel({
+        jdId: addJD.jdEntryID ?? "",
+        employerId: cuid ?? "",
+        filename: addJD.filename,
+      });
+
+      if (cleanupResult.success) {
+        goToDashboard();
+      } else {
+        console.error("There was an error cleaning up session");
+      }
+    } catch (error) {
+      console.error("Error cancelling job posting");
+    }
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -132,7 +203,8 @@ export default function AddJDStepOne() {
           const startOnboard = await jobDescriptionStartOnboard(
             addJD.jdEntryID,
             cuid,
-            addJD.filename
+            addJD.filename,
+            addJD.session
           );
 
           if (startOnboard.success && startOnboard.event) {
@@ -213,7 +285,7 @@ export default function AddJDStepOne() {
             </CardHeader>
             <CardContent className="p-4 space-y-8">
               <motion.div
-                className="text-gray-600 space-y-4"
+                className="text-gray-600 space-y-8 m-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
@@ -224,7 +296,7 @@ export default function AddJDStepOne() {
                   will automatically extract key information, populate your
                   forms, and start matching ideal candidates.
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {[
                     { icon: Clock, text: "Save hours on manual data entry" },
                     { icon: Search, text: "Intelligent candidate matching" },
@@ -235,7 +307,7 @@ export default function AddJDStepOne() {
                   ].map((item, index) => (
                     <div
                       key={index}
-                      className="flex flex-col items-center text-center p-3 bg-gray-50 rounded-lg"
+                      className="flex flex-col items-center text-center p-4 bg-gray-50 rounded-lg"
                     >
                       <item.icon className="w-8 h-8 text-gray-600 mb-2" />
                       <span className="text-sm">{item.text}</span>
@@ -260,7 +332,7 @@ export default function AddJDStepOne() {
                 <span>Upload Job Description</span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-4 space-y-4">
+            <CardContent className="p-6 space-y-6">
               <Dropzone
                 onDrop={onFileAdded}
                 multiple={false}
@@ -271,44 +343,68 @@ export default function AddJDStepOne() {
                     [".docx"],
                 }}
               >
-                {({ getRootProps, getInputProps }) => (
+                {({ getRootProps, getInputProps, isDragActive }) => (
                   <div
                     {...getRootProps()}
-                    className="flex flex-col items-center gap-2 text-center mt-4"
+                    className={`flex flex-col items-center justify-center gap-4 p-8 border-2 border-dashed rounded-lg transition-all duration-300 ${
+                      isDragActive
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-300 hover:border-gray-400"
+                    }`}
                   >
                     <input {...getInputProps()} />
                     {!addJD.file?.name ? (
                       <>
-                        <p className="text-sm text-muted-foreground">
-                          Upload a job description to get started
-                        </p>
-                        <Button>Select JD</Button>
-                        <p className="text-xs text-muted-foreground">
-                          .pdf or .docx only
+                        <Upload className="w-12 h-12 text-gray-400" />
+                        <div className="text-center">
+                          <p className="text-lg font-semibold text-gray-700">
+                            Upload Job Description
+                          </p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            Drag & drop your file here or click to browse
+                          </p>
+                        </div>
+                        <Button variant="outline" className="mt-2">
+                          Select File
+                        </Button>
+                        <p className="text-xs text-gray-400 mt-2">
+                          Accepted formats: PDF, DOCX
                         </p>
                       </>
                     ) : (
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-gray-600" />
-                          <p className="text-sm text-gray-900">
-                            {addJD.file.name}
-                          </p>
-                          <Trash
+                      <div className="flex flex-col items-center gap-4 w-full">
+                        <div className="flex items-center justify-between w-full max-w-md p-3 bg-gray-100 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <FileText className="w-8 h-8 text-blue-500" />
+                            <div>
+                              <p className="text-sm font-medium text-gray-700">
+                                {addJD.file.name}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {(addJD.file.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={(e) => {
                               e.stopPropagation();
                               clearSelectedFile();
                             }}
-                            className="w-4 h-4 text-red-700 hover:text-red-500 cursor-pointer"
-                          />
+                          >
+                            <Trash className="w-5 h-5 text-red-500 hover:text-red-600" />
+                          </Button>
                         </div>
                         <Button
                           onClick={(e) => {
                             e.stopPropagation();
                             addJD.file && handleFileUpload([addJD.file]);
                           }}
+                          className="w-full max-w-md"
                         >
-                          Upload JD
+                          <Upload className="w-4 h-4 mr-2" />
+                          Upload Job Description
                         </Button>
                       </div>
                     )}
@@ -316,9 +412,9 @@ export default function AddJDStepOne() {
                 )}
               </Dropzone>
               {fileResponse && (
-                <p className="text-sm text-center text-gray-600 mt-4">
+                <div className="text-sm text-center p-3 bg-gray-50 rounded-md border border-gray-200">
                   {fileResponse}
-                </p>
+                </div>
               )}
             </CardContent>
           </MotionCard>
@@ -331,7 +427,7 @@ export default function AddJDStepOne() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 border-b border-gray-200">
+          <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 border-b border-gray-200 bg-opacity-50 backdrop-filter backdrop-blur-sm">
             <CardTitle className="text-base font-medium flex items-center space-x-2 text-gray-700">
               <Zap className="w-5 h-5" />
               <span>Analyzing Your Job Description</span>
@@ -339,7 +435,12 @@ export default function AddJDStepOne() {
           </CardHeader>
           <CardContent className="p-4 space-y-6">
             <div className="flex justify-center">
-              <LoadingAnimation />
+              <motion.div
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              >
+                <LoadingAnimation />
+              </motion.div>
             </div>
 
             <motion.p
@@ -348,21 +449,54 @@ export default function AddJDStepOne() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              "Our AI is analyzing your job description to identify optimal
+              Our AI is analyzing your job description to identify optimal
               matching criteria. This process typically takes 2-3 minutes.
             </motion.p>
 
             <motion.div
-              className="bg-gray-50 p-3 rounded-lg shadow-inner"
+              className="bg-gray-50 p-4 rounded-lg shadow-sm mb-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
+              transition={{ delay: 0.3 }}
             >
-              <h4 className="text-xs font-semibold mb-1 flex items-center text-gray-700">
-                <ChevronRight className="w-4 h-4 mr-1" />
+              <h4 className="text-sm font-semibold mb-2 flex items-center text-gray-700">
+                <LightbulbIcon className="w-5 h-5 mr-2" />
                 Did You Know?
               </h4>
-              <p className="text-xs text-gray-600">{currentFact}</p>
+              <p className="text-sm text-gray-600">{currentFact}</p>
+            </motion.div>
+
+            <motion.div
+              className="flex justify-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+            >
+              <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="secondary"
+                    className="mt-4 hover:bg-gray-200 transition-colors duration-300"
+                  >
+                    Cancel
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be reversed. Are you sure you want to
+                      cancel the job posting process?
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>No, continue posting</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleCancelPosting}>
+                      Yes, cancel posting
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </motion.div>
           </CardContent>
         </MotionCard>

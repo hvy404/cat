@@ -11,7 +11,15 @@ import { cookies } from "next/headers";
 import { generateJDInferred } from "@/lib/dashboard/infer/from-jd/inferred";
 
 export const jobDescriptionGenerateInferred = inngest.createFunction(
-  { id: "job-description-generate-inferred-info" },
+  {
+    id: "job-description-generate-inferred-info",
+    cancelOn: [
+      {
+        event: "app/job-description-parser-cancel",
+        if: "async.data.session == event.data.job_description.session",
+      },
+    ],
+  },
   { event: "app/job-description-onboard-generate-inferred" },
   async ({ event, step }) => {
     const cookieStore = cookies();

@@ -99,14 +99,6 @@ export default function AddJDStep2Form() {
     commission_percent: "",
   });
 
-/*   const [employerId, setEmployerId] = useState("");
-
-  useEffect(() => {
-    if (cuid) {
-      setEmployerId(cuid);
-    }
-  }, [cuid]); */
-
   useEffect(() => {
     let isMounted = true;
 
@@ -122,8 +114,6 @@ export default function AddJDStep2Form() {
       }
 
       const result = await AddJDGetDataPoints(addJD.jdEntryID, cuid!);
-
-      console.log("Data fetched:", result);
 
       if (result && isMounted) {
         const jdTopLevelDetails = result.jd_data[0];

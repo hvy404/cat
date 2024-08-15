@@ -1,7 +1,7 @@
 "use server";
 import { inngest } from "@/lib/inngest/client";
 import { jdParserUpload } from "@/lib/dashboard/ingest-jd/retreiveJD";
-import createId from "@/lib/global/cuid-generate";
+//import createId from "@/lib/global/cuid-generate";
 
 /**
  * Starts the onboarding process for a job description.
@@ -19,10 +19,9 @@ export async function jobDescriptionStartOnboard(
   jdUUID: string,
   employerId: string,
   filename: string,
-  //sessionID: string
+  sessionID: string
 ) {
   let rawExtract;
-  const sessionId = createId();
 
   try {
     rawExtract = await jdParserUpload(filename);
@@ -43,12 +42,10 @@ export async function jobDescriptionStartOnboard(
         employer: employerId,
         id: jdUUID,
         rawExtract: rawExtract,
-        session: sessionId,
+        session: sessionID,
       },
     },
   });
-
-  console.log("Event sent to Inngest:", ids);
 
   // Check if the event was sent successfully by checking for ids
   if (!ids) {
@@ -61,6 +58,6 @@ export async function jobDescriptionStartOnboard(
     message: "Success",
     success: true,
     event: ids,
-    session: sessionId
+    session: sessionID,
   };
 }

@@ -10,7 +10,15 @@ import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 
 export const jobDescriptionAddStructured = inngest.createFunction(
-  { id: "job-description-add-structured-datapoints" },
+  {
+    id: "job-description-add-structured-datapoints",
+    cancelOn: [
+      {
+        event: "app/job-description-parser-cancel",
+        if: "async.data.session == event.data.job_description.session",
+      },
+    ],
+  },
   { event: "app/job-description-add-structured-datapoints" },
   async ({ event, step }) => {
     const cookieStore = cookies();
@@ -48,7 +56,6 @@ export const jobDescriptionAddStructured = inngest.createFunction(
     const commissionPay = structuredData.commissionPay;
     const commissionPercent = structuredData.commissionPercent;
     const oteSalary = structuredData.ote_salary;
-
 
     // Update the supabase row with the corresponding structured data points in the row that .eq is the jobDescriptionID
     const { error: updateError } = await supabase
