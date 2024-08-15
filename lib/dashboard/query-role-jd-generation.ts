@@ -52,7 +52,7 @@ export async function QueryJDGenerationStatus(
     method: "GET",
     headers: {
       Accept: "application/json",
-      Authorization: `Bearer ${process.env.INNGEST_API_KEY}`,
+      Authorization: `Bearer ${process.env.INNGEST_SIGNING_KEY}`,
     },
   };
 

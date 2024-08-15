@@ -36,10 +36,6 @@ export async function QueryWorkerStatus(
       : "http://127.0.0.1:8288";
   const api_url = `${api_base}/v1/events/${runId}/runs`;
 
-  console.log("API Base URL:", api_base);
-  console.log("RunId:", runId);
-  console.log("Authorization Header:", `Bearer ${process.env.INNGEST_SIGNING_KEY?.substring(0, 5)}...`);
-
   const options = {
     method: "GET",
     headers: {
