@@ -1,6 +1,8 @@
 "use client";
+
+import React, { useState } from 'react';
 import useStore from "@/app/state/useStore";
-import { useUser } from "@clerk/nextjs";
+import { useUser, useClerk } from "@clerk/nextjs";
 import {
   Tooltip,
   TooltipContent,
@@ -24,9 +26,18 @@ import {
   Award,
   Compass,
   Building,
+  LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { clearDashboardWidgetPanel } from "@/lib/dashboard/janitor";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 // Define the props type for TooltipButton
 interface TooltipButtonProps {
@@ -79,14 +90,13 @@ const TooltipButton: React.FC<TooltipButtonProps> = ({
 };
 
 export default function DashboardNavigation() {
-  // Clerk
-  // TODO: Move to the server side action for better security
+  const [isAccountDialogOpen, setIsAccountDialogOpen] = useState(false);
   const { isLoaded, isSignedIn, user: clerkUser } = useUser();
-  const onboarded = useStore((state) => state.candidateDashboard.onboarded); // TODO: Better to store in clerk?
+  const { signOut } = useClerk();
+  const onboarded = useStore((state) => state.candidateDashboard.onboarded);
 
-  // Return early if not loaded or not signed in
   if (!isLoaded || !isSignedIn) {
-    return null; // TOOD: Or we could return a loading indicator or sign-in prompt
+    return null;
   }
 
   const role = clerkUser?.publicMetadata?.aiq_role as string | undefined;
@@ -181,10 +191,9 @@ export default function DashboardNavigation() {
     return role === "candidate" ? "candidate-help" : "employer-help";
   };
 
-  const getUserSettingsItem = () => {
-    return role === "talent"
-      ? "candidate-user-settings"
-      : "employer-user-settings";
+  const handleLogout = async () => {
+    await signOut();
+    setIsAccountDialogOpen(false);
   };
 
   return (
@@ -194,8 +203,6 @@ export default function DashboardNavigation() {
           variant="outline"
           size="icon"
           aria-label="Home"
-          //onClick={() => setSelectedMenuItem("home")}
-          // TODO: select home item based on role
         >
           <Compass className="size-5" />
         </Button>
@@ -203,11 +210,34 @@ export default function DashboardNavigation() {
       <nav className="grid gap-1 p-2">{renderNavItems()}</nav>
       <nav className="mt-auto grid gap-1 p-2">
         <TooltipButton item={getHelpItem()} label="Help" icon={LifeBuoy} />
-        <TooltipButton
-          item={getUserSettingsItem()}
-          label="Account"
-          icon={SquareUser}
-        />
+        <Dialog open={isAccountDialogOpen} onOpenChange={setIsAccountDialogOpen}>
+          <DialogTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-lg"
+              aria-label="Account"
+            >
+              <SquareUser className="size-5" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Account Options</DialogTitle>
+              <DialogDescription>
+                Manage your account settings or sign out.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col space-y-4 mt-4">
+              <Button variant="outline" onClick={() => setIsAccountDialogOpen(false)}>
+                Account Settings
+              </Button>
+              <Button variant="destructive" onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" /> Sign Out
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </nav>
     </aside>
   );
