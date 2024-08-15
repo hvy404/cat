@@ -82,7 +82,7 @@ const categories: Category[] = [
         name: "Alpha...Details",
         description:
           "Alpha",
-        href: "/services-health",
+        href: "/",
         icon: HeartIcon,
       },
     ],
@@ -101,32 +101,6 @@ const categories: Category[] = [
         icon: BellAlertIcon,
       },
       // Add other platform items...
-    ],
-  },
-  {
-    id: 3,
-    type: "link",
-    category: "Pricing",
-    href: "/pricing", // Direct link for 'About Us' category
-  },
-  {
-    id: 4,
-    type: "menu",
-    category: "Help",
-    callsToAction: [],
-    items: [
-      {
-        name: "Knowledge Base",
-        description: "Find answers and solutions to common questions.",
-        href: "https://support.g2xchange.com/",
-        icon: QuestionMarkCircleIcon,
-      },
-      {
-        name: "Contact Support",
-        description: "Contact our support team for help.",
-        href: "https://support.g2xchange.com/kb-tickets/new",
-        icon: LifebuoyIcon,
-      },
     ],
   },
 ];
@@ -264,7 +238,7 @@ export function MainHeader() {
         </div>
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
           <a
-            href="https://app.g2xchange.com/access/login"
+            href="/dashboard"
             className="text-sm font-semibold leading-6 text-gray-900"
           >
             Log in <span aria-hidden="true">&rarr;</span>
@@ -337,7 +311,7 @@ export function MainHeader() {
                   Pricing
                 </a>
                 <a
-                  href="https://app.g2xchange.com/access/login"
+                  href="/dashboard"
                   className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
                 >
                   Log in
