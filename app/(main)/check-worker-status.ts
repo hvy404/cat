@@ -38,13 +38,13 @@ export async function QueryWorkerStatus(
 
   console.log("API Base URL:", api_base);
   console.log("RunId:", runId);
-  console.log("Authorization Header:", `Bearer ${process.env.INNGEST_EVENT_KEY?.substring(0, 5)}...`);
+  console.log("Authorization Header:", `Bearer ${process.env.INNGEST_SIGNING_KEY?.substring(0, 5)}...`);
 
   const options = {
     method: "GET",
     headers: {
       Accept: "application/json",
-      Authorization: `Bearer ${process.env.INNGEST_EVENT_KEY}`,
+      Authorization: `Bearer ${process.env.INNGEST_SIGNING_KEY}`,
     },
   };
 

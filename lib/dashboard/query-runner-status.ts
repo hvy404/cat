@@ -37,7 +37,7 @@ export async function QueryEventStatus(runId: string): Promise<string> {
     method: "GET",
     headers: {
       Accept: "application/json",
-      Authorization: `Bearer ${process.env.INNGEST_API_KEY}`,
+      Authorization: `Bearer ${process.env.INNGEST_SIGNING_KEY}`,
     },
   };
 
