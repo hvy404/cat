@@ -123,7 +123,7 @@ export default function SOWUploader() {
   }, []);
 
   return (
-    <div className="flex flex-row items-center bg-gray-100 m-1.5 rounded-md p-4 gap-4">
+    <div className="flex flex-row items-center bg-gray-50 m-1.5 rounded-md p-4 gap-4">
       {jdBuilderWizard.files.length === 0 && (
         <>
           <PaperclipIcon

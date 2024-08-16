@@ -34,6 +34,16 @@ import { SaveJobDetails } from "@/lib/dashboard/ingest-jd/save-data-points";
 import { states } from "@/lib/data/form-value-states";
 import { z } from "zod";
 import { useUser } from "@clerk/nextjs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { CleanUpOnCancel } from "@/lib/dashboard/ingest-jd/cleanup-on-cancel";
 
 interface ValidationErrors {
   [key: string]: string;
@@ -80,15 +90,17 @@ const schema = z
   );
 
 export default function AddJDStep2Form() {
-  const { addJD, setAddJD } = useStore((state) => ({
+  const { addJD, setAddJD, setJDBuilderWizard } = useStore((state) => ({
     addJD: state.addJD,
     setAddJD: state.setAddJD,
+    setJDBuilderWizard: state.setJDBuilderWizard,
   }));
 
   // Clerk
   const { user: clerkUser } = useUser();
   const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
 
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({
@@ -195,6 +207,46 @@ export default function AddJDStep2Form() {
       } else {
         console.log(error);
       }
+    }
+  };
+
+  const handleCancelSession = async () => {
+    if (!cuid || !addJD.jdEntryID) {
+      console.error("User not logged in or JD Entry ID not found");
+      return;
+    }
+
+    // console log the current session
+    console.log("Current session:", addJD.jdEntryID);
+
+    try {
+      const cleanupResult = await CleanUpOnCancel({
+        jdId: addJD.jdEntryID ?? "",
+        employerId: cuid ?? "",
+        filename: addJD.filename,
+      });
+
+      setJDBuilderWizard({
+        files: [],
+        setFiles: () => {},
+        sowID: null,
+      });
+
+      // Reset the application state
+      setAddJD({
+        step: 1,
+        jdEntryID: null,
+        jobDetails: [],
+        activeField: null,
+        publishingRunnerID: null,
+        session: null,
+        filename: null, // Reset the filename
+      });
+
+      console.log("Session cancelled successfully");
+    } catch (error) {
+      console.error("Error cancelling session");
+      // You might want to show an error message to the user here
     }
   };
 
@@ -684,7 +736,32 @@ export default function AddJDStep2Form() {
           </div>
         </div>
         {/* Submit button */}
-        <div className="flex flex-row justify-end">
+        <div className="flex flex-row justify-end space-x-4">
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Are you sure you want to cancel?</DialogTitle>
+                <DialogDescription>
+                  This action will delete the current post session. All unsaved
+                  changes will be lost.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                >
+                  No, keep editing
+                </Button>
+                <Button variant="destructive" onClick={handleCancelSession}>
+                  Yes, cancel posting
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           <Button onClick={handleSubmit}>Post</Button>
         </div>
       </div>{" "}

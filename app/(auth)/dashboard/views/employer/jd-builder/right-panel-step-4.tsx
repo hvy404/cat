@@ -1,83 +1,108 @@
-import useStore from "@/app/state/useStore";
+import React from "react";
 import { motion } from "framer-motion";
-import { BotIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { CheckCircle, Command, Slash } from "lucide-react";
 
-export default function JDBuilderRightStep4() {
-  const {
-    user,
-    jdBuilderWizard,
-    setJDBuilderWizard,
-    updateJDBuilderWizardStep,
-    isExpanded,
-    setExpanded,
-  } = useStore();
-
-  // Define the animation variants
-  const messageVariants = {
-    hidden: { opacity: 0, y: 50 },
-    visible: (i: number) => ({
+const JDBuilderRightStep4 = () => {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
       opacity: 1,
-      y: 0,
       transition: {
-        delay: i * 0.5,
-        duration: 0.5,
+        when: "beforeChildren",
+        staggerChildren: 0.2,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
         type: "spring",
         stiffness: 100,
+        damping: 10,
       },
-    }),
+    },
   };
 
   return (
-    <div className="flex flex-col w-full gap-4">
-      <div className="w-full">
-        <motion.div
-          className="flex flex-col w-3/4 border border-1 border-dashed border-gray-200 hover:border-gray-300/50 rounded-md mx-auto"
-          variants={messageVariants}
-          initial="hidden"
-          custom={0} // No delay for the first message
-          animate="visible"
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="min-h-[90vh] p-6 overflow-auto flex flex-col justify-between bg-gradient-to-br from-gray-50 to-white"
+    >
+      <div>
+        <motion.h2
+          variants={itemVariants}
+          className="text-xl font-bold text-gray-900 mb-6 tracking-tight"
         >
-          <div className="flex flex-row items-center bg-gray-100 m-1.5 rounded-md p-4 gap-4">
-            <BotIcon className="w-8 h-8 text-gray-500 flex-shrink-0" />
-            <p className="text-gray-700 leading-7 text-sm">
-              Your job description draft is ready for review. Feel free to make
-              any edits. When you're satisfied, press 'Publish' to proceed to the
-              final steps and get your job posted.
+          Your Job Description is Ready
+        </motion.h2>
+
+        <motion.div
+          variants={itemVariants}
+          className="mb-8 bg-gray-50 rounded-xl p-6 border border-gray-200"
+        >
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="bg-blue-500 rounded-full p-1.5">
+              <CheckCircle className="w-4 h-4 text-white" />
+            </div>
+            <p className="text-blue-700 font-semibold text-base">
+              Draft Complete
             </p>
           </div>
+          <p className="text-gray-700 mb-4 text-sm leading-relaxed">
+            Your job description draft is now ready for your review. Take a
+            moment to refine and perfect it to attract the best candidates.
+          </p>
         </motion.div>
-      </div>
-      <div className="w-full">
+
         <motion.div
-          className="flex flex-col w-3/4 border border-1 border-dashed border-gray-200 hover:border-gray-300/50 rounded-md mx-auto"
-          variants={messageVariants}
-          initial="hidden"
-          custom={2} // No delay for the first message
-          animate="visible"
+          variants={itemVariants}
+          className="bg-gray-50 rounded-xl p-6 border border-gray-200"
         >
-          <div className="flex flex-row items-center bg-gray-100 m-1.5 rounded-md p-4 gap-4">
-            <BotIcon className="w-8 h-8 text-gray-500 flex-shrink-0" />
-            <div className="flex flex-col text-gray-700 leading-7 text-sm">
-              <span className="font-bold">Quick tips:</span>{" "}
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Pro Editing Tips
+          </h3>
+          <div className="space-y-4">
+            <div className="flex items-start bg-white p-4 rounded-lg shadow-sm">
+              <Command className="w-6 h-6 text-gray-500 mr-3 flex-shrink-0" />
               <div>
-                Press
-                <span className="text-xs font-bold border border-1 bg-gray-50 p-1 rounded-md mx-2">
-                  + +
-                </span>
-                at any time and I'll autocomplete your sentence.
+                <p className="font-semibold text-gray-800 mb-1 text-sm">
+                  Smart Auto-complete
+                </p>
+                <p className="text-gray-600 text-xs">
+                  Press{" "}
+                  <kbd className="px-1.5 py-0.5 bg-gray-100 text-gray-800 rounded text-xs font-mono shadow-sm">
+                    ++
+                  </kbd>{" "}
+                  for AI-powered sentence completion
+                </p>
               </div>
+            </div>
+            <div className="flex items-start bg-white p-4 rounded-lg shadow-sm">
+              <Slash className="w-6 h-6 text-gray-500 mr-3 flex-shrink-0" />
               <div>
-                Press
-                <span className="text-xs font-bold border border-1 bg-gray-50 p-1 rounded-md mx-2">
-                  /
-                </span>
-                on a new line to see additional formatting options.
+                <p className="font-semibold text-gray-800 mb-1 text-sm">
+                  Advanced Formatting
+                </p>
+                <p className="text-gray-600 text-xs">
+                  Type{" "}
+                  <kbd className="px-1.5 py-0.5 bg-gray-100 text-gray-800 rounded text-xs font-mono shadow-sm">
+                    /
+                  </kbd>{" "}
+                  to access a wide range of formatting options
+                </p>
               </div>
             </div>
           </div>
         </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
-}
+};
+
+export default JDBuilderRightStep4;

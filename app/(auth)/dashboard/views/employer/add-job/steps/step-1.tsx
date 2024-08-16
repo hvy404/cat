@@ -34,12 +34,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { CleanUpOnCancel } from "@/lib/dashboard/ingest-jd/cleanup-on-cancel";
-
-interface ProcessingStepProps {
-  icon: LucideIcon;
-  title: string;
-  description: string;
-}
+import { v4 as uuidv4 } from "uuid";
 
 const MotionCard = motion(Card);
 
@@ -57,6 +52,12 @@ export default function AddJDStepOne() {
   const [fileResponse, setFileResponse] = useState<string | null>(null);
   const [currentFact, setCurrentFact] = useState(funFacts[0]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (addJD.session === null) {
+      setAddJD({ session: uuidv4() });
+    }
+  }, []);
 
   useEffect(() => {
     const factInterval = setInterval(() => {
