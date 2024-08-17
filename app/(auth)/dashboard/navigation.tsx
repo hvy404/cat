@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import useStore from "@/app/state/useStore";
 import { useUser, useClerk } from "@clerk/nextjs";
 import {
@@ -199,18 +199,17 @@ export default function DashboardNavigation() {
   return (
     <aside className="inset-y fixed left-0 z-20 flex h-full flex-col border-r">
       <div className="border-b p-2">
-        <Button
-          variant="outline"
-          size="icon"
-          aria-label="Home"
-        >
+        <Button variant="outline" size="icon" aria-label="Home">
           <Compass className="size-5" />
         </Button>
       </div>
       <nav className="grid gap-1 p-2">{renderNavItems()}</nav>
       <nav className="mt-auto grid gap-1 p-2">
         <TooltipButton item={getHelpItem()} label="Help" icon={LifeBuoy} />
-        <Dialog open={isAccountDialogOpen} onOpenChange={setIsAccountDialogOpen}>
+        <Dialog
+          open={isAccountDialogOpen}
+          onOpenChange={setIsAccountDialogOpen}
+        >
           <DialogTrigger asChild>
             <Button
               variant="ghost"
@@ -229,7 +228,10 @@ export default function DashboardNavigation() {
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col space-y-4 mt-4">
-              <Button variant="outline" onClick={() => setIsAccountDialogOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setIsAccountDialogOpen(false)}
+              >
                 Account Settings
               </Button>
               <Button variant="destructive" onClick={handleLogout}>

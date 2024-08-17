@@ -24,8 +24,8 @@ export const jobDescriptionStaticSchema = z
       .describe("Employment type"),
     salaryRange: z
       .object({
-        startingSalary: z.number().describe("Starting salary"),
-        maximumSalary: z.number().describe("Maximum salary"),
+        startingSalary: z.number().optional().describe("Starting salary"),
+        maximumSalary: z.number().optional().describe("Maximum salary"),
       })
       .optional()
       .describe("Salary range"),

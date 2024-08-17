@@ -60,12 +60,15 @@ export async function generateJDStatic(
       ],
       model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
       temperature: 0.4,
-      max_tokens: 3000,
+      max_tokens: 400,
       // @ts-ignore – Together.ai supports schema while OpenAI does not
       response_format: { type: "json_object", schema: jsonSchemaPrimary },
     });
 
+    console.log("Primary details extracted:", extract);
+
     primaryOutput = JSON.parse(extract.choices[0].message.content!);
+    console.log("Primary details:", primaryOutput);
   } catch (error) {
     console.error("Error in primary extraction:", error);
     return {
@@ -88,12 +91,15 @@ export async function generateJDStatic(
       ],
       model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
       temperature: 0.4,
-      max_tokens: 2500,
+      max_tokens: 400,
       // @ts-ignore – Together.ai supports schema while OpenAI does not
       response_format: { type: "json_object", schema: jsonSchemaSecondary },
     });
 
+    console.log("Secondary details extracted:", extractSecondary);
+
     secondaryOutput = JSON.parse(extractSecondary.choices[0].message.content!);
+    console.log("Secondary details:", secondaryOutput);
   } catch (error) {
     console.error("Error in secondary extraction:", error);
     return {
@@ -116,12 +122,15 @@ export async function generateJDStatic(
       ],
       model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
       temperature: 0.4,
-      max_tokens: 2500,
+      max_tokens: 400,
       // @ts-ignore – Together.ai supports schema while OpenAI does not
       response_format: { type: "json_object", schema: jsonSchemaThird },
     });
 
+    console.log("Third details extracted:", extractThird);
+
     thirdOutput = JSON.parse(extractThird.choices[0].message.content!);
+    console.log("Third details:", thirdOutput);
   } catch (error) {
     console.error("Error in third extraction:", error);
     return {

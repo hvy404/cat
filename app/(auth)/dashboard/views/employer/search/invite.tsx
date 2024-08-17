@@ -28,9 +28,9 @@ const ITEMS_PER_PAGE = 5;
 export default function InviteActionWithList({
   applicantId,
 }: InviteActionWithListProps) {
-    // Clerk
-    const { user: clerkUser } = useUser();
-    const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+  // Clerk
+  const { user: clerkUser } = useUser();
+  const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
 
   const { isExpanded } = useStore();
 
@@ -210,18 +210,19 @@ export default function InviteActionWithList({
                       {jobPosting.security_clearance}
                     </div>
                   )}
-                  {(jobPosting.location[0].city ||
-                    jobPosting.location[0].state) && (
-                    <div className="inline-flex border rounded-lg border-gray-300 px-2 py-1 whitespace-nowrap">
-                      {jobPosting.location[0].city &&
-                        jobPosting.location[0].city}
-                      {jobPosting.location[0].city &&
-                        jobPosting.location[0].state &&
-                        ", "}
-                      {jobPosting.location[0].state &&
-                        jobPosting.location[0].state}
-                    </div>
-                  )}
+                  {jobPosting.location &&
+                    jobPosting.location.length > 0 &&
+                    (jobPosting.location[0].city ||
+                      jobPosting.location[0].state) && (
+                      <div className="inline-flex border rounded-lg border-gray-300 px-2 py-1 whitespace-nowrap">
+                        {jobPosting.location[0].city || ""}
+                        {jobPosting.location[0].city &&
+                          jobPosting.location[0].state &&
+                          ", "}
+                        {jobPosting.location[0].state || ""}
+                      </div>
+                    )}
+
                   {jobPosting.location_type && (
                     <div className="inline-flex border rounded-lg border-gray-300 px-2 py-1 whitespace-nowrap">
                       {jobPosting.location_type}

@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import useStore from "@/app/state/useStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  LucideIcon,
   FileText,
   Clock,
   Search,
@@ -35,6 +34,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { CleanUpOnCancel } from "@/lib/dashboard/ingest-jd/cleanup-on-cancel";
 import { v4 as uuidv4 } from "uuid";
+import { grabUserCompanyId } from "@/lib/dashboard/get-company-membership";
+import { CompanyProfileAlert } from "@/app/(auth)/dashboard/views/employer/global/company-profile-alert";
 
 const MotionCard = motion(Card);
 
@@ -52,12 +53,32 @@ export default function AddJDStepOne() {
   const [fileResponse, setFileResponse] = useState<string | null>(null);
   const [currentFact, setCurrentFact] = useState(funFacts[0]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [showCompanyProfileAlert, setShowCompanyProfileAlert] = useState(false);
+  const [hasCompanyId, setHasCompanyId] = useState(false);
 
   useEffect(() => {
     if (addJD.session === null) {
       setAddJD({ session: uuidv4() });
     }
   }, []);
+
+  useEffect(() => {
+    const getCompanyId = async () => {
+      if (cuid) {
+        const result = await grabUserCompanyId(cuid);
+        if (result.success && result.companyId !== null) {
+          setHasCompanyId(true);
+        } else if (result.success && result.companyId === null) {
+          setShowCompanyProfileAlert(true);
+          setHasCompanyId(false);
+        } else {
+          console.error("Error fetching user company");
+        }
+      }
+    };
+
+    getCompanyId();
+  }, [cuid]);
 
   useEffect(() => {
     const factInterval = setInterval(() => {
@@ -337,7 +358,7 @@ export default function AddJDStepOne() {
               <Dropzone
                 onDrop={onFileAdded}
                 multiple={false}
-                disabled={addJD.isProcessing}
+                disabled={addJD.isProcessing || !hasCompanyId}
                 accept={{
                   "application/pdf": [".pdf"],
                   "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
@@ -347,7 +368,7 @@ export default function AddJDStepOne() {
                 {({ getRootProps, getInputProps, isDragActive }) => (
                   <div
                     {...getRootProps()}
-                    className={`flex flex-col items-center justify-center gap-4 p-8 border-2 border-dashed rounded-lg transition-all duration-300 ${
+                    className={`flex flex-col items-center justify-center gap-4 p-8 border border-dashed rounded-lg transition-all duration-300 ${
                       isDragActive
                         ? "border-blue-500 bg-blue-50"
                         : "border-gray-300 hover:border-gray-400"
@@ -365,8 +386,14 @@ export default function AddJDStepOne() {
                             Drag & drop your file here or click to browse
                           </p>
                         </div>
-                        <Button variant="outline" className="mt-2">
-                          Select File
+                        <Button
+                          variant="outline"
+                          className="mt-2"
+                          disabled={!hasCompanyId}
+                        >
+                          {hasCompanyId
+                            ? "Select File"
+                            : "Company Profile Required"}
                         </Button>
                         <p className="text-xs text-gray-400 mt-2">
                           Accepted formats: PDF, DOCX
@@ -501,6 +528,14 @@ export default function AddJDStepOne() {
             </motion.div>
           </CardContent>
         </MotionCard>
+      )}
+
+      {showCompanyProfileAlert && (
+        <CompanyProfileAlert
+          showCompanyProfileAlert={showCompanyProfileAlert}
+          setShowCompanyProfileAlert={setShowCompanyProfileAlert}
+          setSelectedMenuItem={setSelectedMenuItem}
+        />
       )}
     </AnimatePresence>
   );

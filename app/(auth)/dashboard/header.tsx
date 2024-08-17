@@ -29,7 +29,6 @@ export default function EmployerDashboardHeader() {
   const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
   const role = clerkUser?.publicMetadata?.aiq_role as string | undefined;
 
-
   return (
     <header className="sticky top-0 z-10 flex h-[57px] items-center gap-1 border-b bg-background px-4">
       <h1 className="text-xl font-semibold">Catalyst</h1>
