@@ -22,6 +22,7 @@ export default function AddJDStepThree() {
   const [isCompanyIdFetched, setIsCompanyIdFetched] = useState(false);
   const [isProcessingComplete, setIsProcessingComplete] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [countdown, setCountdown] = useState(10);
 
   const hasRun = useRef(false);
 
@@ -99,6 +100,22 @@ export default function AddJDStepThree() {
     finishOnboard();
   }, [addJD.jdEntryID, user, cuid, companyId, addJD.step, isCompanyIdFetched]);
 
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (showSuccess) {
+      timer = setInterval(() => {
+        setCountdown((prevCount) => {
+          if (prevCount <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prevCount - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [showSuccess]);
+
   // Poll status of publishing runner
   useEffect(() => {
     let isStep3Mounted = true;
@@ -122,9 +139,10 @@ export default function AddJDStepThree() {
           setShowSuccess(true);
           isPollingActive = false;
           // Set a timeout to call goToDashboard after a delay
+          setCountdown(10);
           setTimeout(() => {
             goToDashboard();
-          }, 10000); // 10 seconds delay, adjust as needed
+          }, 10000); // 10 seconds delay
         } else if (
           status === "Running" ||
           status === "Failed" ||
@@ -191,6 +209,7 @@ export default function AddJDStepThree() {
       isProcessingComplete={isProcessingComplete}
       showSuccess={showSuccess}
       goToDashboard={goToDashboard}
+      countdown={countdown}
     />
   );
 }

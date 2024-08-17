@@ -1,26 +1,13 @@
-import React, { useState } from "react";
-import useStore from "@/app/state/useStore";
+import React from "react";
 import { Loader } from "lucide-react";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { CancelJDParser } from "@/lib/dashboard/infer/from-jd/cancel-jd-parser";
 
 interface WaitingStateProps {
   isFinalizing: boolean;
   isProcessingComplete: boolean;
   showSuccess: boolean;
   goToDashboard: () => void;
+  countdown: number;
 }
 
 const WaitingState: React.FC<WaitingStateProps> = ({
@@ -28,9 +15,8 @@ const WaitingState: React.FC<WaitingStateProps> = ({
   isProcessingComplete,
   showSuccess,
   goToDashboard,
+  countdown,
 }) => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-
   return (
     <div className="p-8 rounded-lg border border-1 border-gray-200 w-full">
       <motion.div
@@ -92,6 +78,9 @@ const WaitingState: React.FC<WaitingStateProps> = ({
               Your job opportunity has been successfully added to our platform.
               It's now primed to attract top talent. We'll notify you promptly
               when we identify potential matches.
+            </p>
+            <p className="text-center text-gray-600 leading-relaxed text-sm">
+              Redirecting to dashboard in {countdown} seconds...
             </p>
             <motion.button
               whileHover={{ scale: 1.05 }}
