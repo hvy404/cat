@@ -1,13 +1,10 @@
 import useStore from "@/app/state/useStore";
 import { useEffect, useRef, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { jobDescriptionFinishOnboard } from "@/lib/dashboard/finish-onboard";
 import { QueryEventStatus } from "@/lib/dashboard/query-runner-status";
 import { fetchUserCompanyId } from "@/lib/dashboard/get-company-membership";
 import { useUser } from "@clerk/nextjs";
-import WaitingState from "@/app/(auth)/dashboard/views/employer/add-job/mods/step-3-loading"
+import WaitingState from "@/app/(auth)/dashboard/views/employer/add-job/mods/step-3-loading";
 
 export default function AddJDStepThree() {
   // Clerk
@@ -23,6 +20,9 @@ export default function AddJDStepThree() {
   }));
   const [companyId, setCompanyId] = useState(null);
   const [isCompanyIdFetched, setIsCompanyIdFetched] = useState(false);
+  const [isProcessingComplete, setIsProcessingComplete] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+
   const hasRun = useRef(false);
 
   // Fetch the user's company ID
@@ -118,8 +118,13 @@ export default function AddJDStepThree() {
           setAddJD({
             isFinalizing: false,
           });
-          isPollingActive = false; // Stop polling
-          goToDashboard();
+          setIsProcessingComplete(true);
+          setShowSuccess(true);
+          isPollingActive = false;
+          // Set a timeout to call goToDashboard after a delay
+          setTimeout(() => {
+            goToDashboard();
+          }, 10000); // 10 seconds delay, adjust as needed
         } else if (
           status === "Running" ||
           status === "Failed" ||
@@ -181,9 +186,11 @@ export default function AddJDStepThree() {
   };
 
   return (
-    <WaitingState 
-    isFinalizing={addJD.isFinalizing} 
-    goToDashboard={goToDashboard} 
-  />
+    <WaitingState
+      isFinalizing={addJD.isFinalizing}
+      isProcessingComplete={isProcessingComplete}
+      showSuccess={showSuccess}
+      goToDashboard={goToDashboard}
+    />
   );
 }

@@ -18,16 +18,17 @@ import { CancelJDParser } from "@/lib/dashboard/infer/from-jd/cancel-jd-parser";
 
 interface WaitingStateProps {
   isFinalizing: boolean;
+  isProcessingComplete: boolean;
+  showSuccess: boolean;
   goToDashboard: () => void;
 }
 
 const WaitingState: React.FC<WaitingStateProps> = ({
   isFinalizing,
+  isProcessingComplete,
+  showSuccess,
   goToDashboard,
 }) => {
-  // Get state from the store
-  // const { addJD } = useStore();
-
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   return (
@@ -60,30 +61,8 @@ const WaitingState: React.FC<WaitingStateProps> = ({
               go live on the platform, optimized for maximum impact and
               visibility in our talent ecosystem.
             </p>
-            {/*   <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <AlertDialogTrigger asChild>
-                <Button variant="secondary" className="mt-4">
-                  Cancel
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be reversed. Are you sure you want to
-                    cancel the job posting process?
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>No, continue posting</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleCancelPosting}>
-                    Yes, cancel posting
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog> */}
           </div>
-        ) : (
+        ) : showSuccess ? (
           <div className="flex flex-col items-center space-y-8">
             <motion.div
               initial={{ scale: 0 }}
@@ -123,7 +102,7 @@ const WaitingState: React.FC<WaitingStateProps> = ({
               View Dashboard
             </motion.button>
           </div>
-        )}
+        ) : null}
       </motion.div>
     </div>
   );
