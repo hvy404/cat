@@ -39,7 +39,7 @@ import {
   addCandidateJobBookmark,
   removeCandidateJobBookmark,
   checkCandidateJobBookmarkExists,
-} from "./bookmark";
+} from "@/lib/candidate/search/bookmark";
 import { WildWest } from "./flag/wildwest";
 import { BuildSearchRoles } from "@/app/(auth)/dashboard/views/candidate/search/get-search-suggestions";
 import {

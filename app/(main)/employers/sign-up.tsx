@@ -13,8 +13,8 @@ import {
 } from "@/components/ui/card";
 import { toast } from "sonner";
 import { createId } from "@paralleldrive/cuid2";
-import { setEmployerMetadata } from "@/app/(main)/employers/set-metadata";
-import { triggerEmployerSignup } from "@/app/(main)/employers/trigger-signup";
+import { setEmployerMetadata } from "@/lib/auth/set-metadata";
+import { triggerEmployerSignup } from "@/lib/auth/trigger-signup";
 
 const EmployerSignUpBox: React.FC = () => {
   const [showSignUp, setShowSignUp] = useState(true);

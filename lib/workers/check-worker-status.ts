@@ -55,15 +55,15 @@ export async function QueryWorkerStatus(
     if (data.data && data.data.length > 0) {
       const firstEvent = data.data[0];
       const status = firstEvent.status.toLowerCase();
-      
+
       switch (status) {
         case "completed":
         case "running":
         case "failed":
         case "cancelled":
-          return { 
-            status, 
-            message: firstEvent.output?.message 
+          return {
+            status,
+            message: firstEvent.output?.message,
           };
         default:
           return { status: "unknown" };

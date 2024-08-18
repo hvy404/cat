@@ -17,7 +17,7 @@ import CandidateResumeCopilot from "@/app/(auth)/dashboard/views/candidate/resum
 import useStore from "@/app/state/useStore";
 import { useUser } from "@clerk/nextjs";
 
-export default function EmployerDashboardBody() {
+export default function DashboardBody() {
   const selectedMenuItem = useStore((state) => state.selectedMenuItem);
   const { user: clerkUser, isLoaded, isSignedIn } = useUser();
 

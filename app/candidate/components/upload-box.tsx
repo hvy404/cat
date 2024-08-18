@@ -18,9 +18,9 @@ import {
 } from "@/components/ui/card";
 import { toast } from "sonner";
 import { createId } from "@paralleldrive/cuid2";
-import { updatePublicMetadata } from "@/app/(main)/actions";
+import { updatePublicMetadata } from "@/lib/auth/actions";
 import { candidateStartOnboard } from "@/lib/candidate/onboard/onboardResume";
-import { QueryWorkerStatus } from "@/app/(main)/check-worker-status";
+import { QueryWorkerStatus } from "@/lib/workers/check-worker-status";
 import EnhancedLoadingComponent from "@/app/candidate/components/loading-status-bar";
 
 const ResumeUploadBox: React.FC = () => {

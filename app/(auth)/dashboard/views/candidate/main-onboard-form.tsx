@@ -41,7 +41,7 @@ import CandidateOnboardingDialog from "@/app/(auth)/dashboard/views/candidate/on
 import { handleUpload } from "@/lib/dashboard/candidate/onboard-confirm-profile";
 import { MonthYearPicker } from "@/app/(auth)/dashboard/views/candidate/assets/date-picker-my";
 import { candidateFinalizeOnboard } from "@/lib/candidate/onboard/onboardResume";
-import { QueryWorkerStatus } from "@/app/(main)/check-worker-status";
+import { QueryWorkerStatus } from "@/lib/workers/check-worker-status";
 
 interface Education {
   institution: string;

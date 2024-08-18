@@ -1,6 +1,6 @@
 'use server'
 
-import { updatePublicMetadata } from "@/app/(main)/actions";
+import { updatePublicMetadata } from "@/lib/auth/actions";
 
 export async function setEmployerMetadata(
   userId: string,

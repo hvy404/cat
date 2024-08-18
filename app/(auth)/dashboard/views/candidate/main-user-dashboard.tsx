@@ -14,7 +14,7 @@ import JobInvited from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets
 import {
   getAllBookmarkedJobsForCandidate,
   CandidateJobBookmark,
-} from "@/app/(auth)/dashboard/views/candidate/search/bookmark";
+} from "@/lib/candidate/search/bookmark";
 import { JobBookmarked } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-bookmarked";
 import TalentId from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/talent-id";
 import CandidateAlertsCard from "@/app/(auth)/dashboard/views/candidate/main-candidate-alerts";

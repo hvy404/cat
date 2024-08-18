@@ -8,8 +8,8 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CandidateJobBookmark } from "@/app/(auth)/dashboard/views/candidate/search/bookmark";
-import { removeCandidateJobBookmark } from "@/app/(auth)/dashboard/views/candidate/search/bookmark";
+import { CandidateJobBookmark } from "@/lib/candidate/search/bookmark";
+import { removeCandidateJobBookmark } from "@/lib/candidate/search/bookmark";
 import { toast } from "sonner";
 
 interface JobBookmarkedProps {
