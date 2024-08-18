@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Briefcase, Users, Zap, ChevronRight, LucideIcon } from "lucide-react";
+import { Briefcase, Users, Zap, ChevronRight, LucideIcon, FileText, BarChart, MessageSquare, Settings } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -35,36 +36,30 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <motion.div
-      className="w-full bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300"
-      variants={itemVariants}
+    <Card
+      className="w-full transition-all duration-300 hover:shadow-lg"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-gray-100 rounded-full">
-              <Icon className="w-5 h-5 text-gray-600" />
-            </div>
-            <h3 className="text-md font-semibold text-gray-800">{title}</h3>
-          </div>
-          <ChevronRight className="w-5 h-5 text-gray-400" />
-        </div>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <Icon className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
         <AnimatePresence>
           {isHovered && (
             <motion.p
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="text-sm text-gray-600 leading-relaxed"
+              className="text-xs text-muted-foreground"
             >
               {description}
             </motion.p>
           )}
         </AnimatePresence>
-      </div>
-    </motion.div>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -72,44 +67,71 @@ const EmployerDashboardMainSidePanel = () => {
   const features = [
     {
       icon: Briefcase,
-      title: "Smart Job Posting",
-      description:
-        "AI-optimized job descriptions to attract top talent. Our system analyzes market trends and candidate preferences to help you craft compelling job posts.",
+      title: "Job Postings",
+      description: "Create and manage your job listings with AI-optimized descriptions.",
     },
     {
       icon: Users,
       title: "Candidate Matching",
-      description:
-        "Precision AI matching for your ideal candidates. Our advanced algorithms consider skills, experience, and cultural fit to present you with the most suitable applicants.",
+      description: "Find ideal candidates with our advanced AI matching algorithms.",
     },
     {
       icon: Zap,
-      title: "Accelerated Analysis",
+      title: "Quick Hire",
+      description: "Streamline your hiring process and reduce time-to-hire.",
+    },
+    {
+      icon: FileText,
+      title: "Resume Analysis",
+      description: "Get AI-powered insights from candidate resumes.",
+    },
+    {
+      icon: BarChart,
+      title: "Analytics",
+      description: "Track your hiring performance and recruitment metrics.",
+    },
+    {
+      icon: MessageSquare,
+      title: "Autonomous Recruitment Pipeline",
       description:
-        "Streamlined processes to reduce time-to-hire. Automate repetitive tasks and focus on what matters most - finding the perfect fit for your team.",
+        "Build a fully automated candidate sourcing and screening process.",
     },
   ];
 
   return (
-    <motion.div
-      className="flex flex-col items-start h-full justify-start md:p-6 space-y-6 bg-gray-50"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      <h2 className="text-lg font-bold text-gray-800">
+    <>
+      <h2 className="text-xl font-bold text-gray-800">
         Welcome to Your AI-Powered Recruiting Hub
       </h2>
+      <p className="text-sm text-gray-600">
+        Explore our features to revolutionize your hiring process:
+      </p>
 
-      {features.map((feature, index) => (
-        <FeatureCard
-          key={index}
-          icon={feature.icon}
-          title={feature.title}
-          description={feature.description}
-        />
-      ))}
-    </motion.div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {features.map((feature, index) => (
+          <motion.div key={index} variants={itemVariants}>
+            <FeatureCard
+              icon={feature.icon}
+              title={feature.title}
+              description={feature.description}
+            />
+          </motion.div>
+        ))}
+      </div>
+
+{/*       <div className="mt-auto">
+        <Card className="bg-primary text-primary-foreground">
+          <CardHeader>
+            <CardTitle className="text-lg">Need Help?</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm">
+              Our AI assistant is here to guide you through any feature. Just ask!
+            </p>
+          </CardContent>
+        </Card>
+      </div> */}
+    </>
   );
 };
 

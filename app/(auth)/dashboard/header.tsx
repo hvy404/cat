@@ -1,5 +1,3 @@
-"use client"; // TODO: This can be removed when we no longer need to pull the user from the store
-import useStore from "@/app/state/useStore";
 import { Bird, Rabbit, Settings, Share, Turtle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,12 +21,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useUser } from "@clerk/nextjs";
 
 export default function EmployerDashboardHeader() {
-  // Clerk
-  const { user: clerkUser } = useUser();
-
-  const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
-  const role = clerkUser?.publicMetadata?.aiq_role as string | undefined;
-
   return (
     <header className="sticky top-0 z-10 flex h-[57px] items-center gap-1 border-b bg-background px-4">
       <h1 className="text-xl font-semibold">Catalyst</h1>
@@ -151,20 +143,10 @@ export default function EmployerDashboardHeader() {
         </DrawerContent>
       </Drawer>
 
-      <Button variant="outline" size="sm" className="ml-auto gap-1.5 text-sm">
+      {/* <Button variant="outline" size="sm" className="ml-auto gap-1.5 text-sm">
         <Share className="size-3.5" />
         Placeholder
-      </Button>
-      <div className="flex flex-col text-xs text-gray-400">
-        <p>
-          <span>CUID: </span> {cuid || "Not available"}
-        </p>
-        {role && (
-          <p>
-            <span>Role: </span> {role}
-          </p>
-        )}
-      </div>
+      </Button> */}
     </header>
   );
 }
