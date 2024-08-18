@@ -40,6 +40,18 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 const JDWriter = () => {
   const { user: clerkUser } = useUser();
   const employerID = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
@@ -416,22 +428,22 @@ const JDWriter = () => {
             </>
           )}
         </div>
-        <Dialog>
-          <DialogTrigger>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
             <Button variant="outline">Publish</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
                 Almost there! Your job post is being processed.
-              </DialogTitle>
-              <DialogDescription className="py-4">
+              </AlertDialogTitle>
+              <AlertDialogDescription className="py-4">
                 {isPublishing
                   ? "We're finalizing your job description. This typically takes 2-3 minutes. Once complete, you'll review and confirm all details before publishing."
                   : "Your job description will be processed. You will soon be redirected to a final step to confirm details before publishing."}
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
               {isPublishing ? (
                 <Button variant="outline" disabled>
                   <div className="flex flex-row gap-2 items-center">
@@ -440,13 +452,17 @@ const JDWriter = () => {
                   </div>
                 </Button>
               ) : (
-                <Button onClick={handlePublishJD} variant="outline">
-                  Start
-                </Button>
+                <>
+                  {" "}
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <Button onClick={handlePublishJD} variant="default">
+                    Start
+                  </Button>
+                </>
               )}
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
       {editor && (
         <EditorBubbleMenu
