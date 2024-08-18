@@ -156,12 +156,16 @@ const JobList = ({ filter }: { filter: string }) => {
     setEmployerRightPanelView("roleOverview");
   };
 
+  const handleViewAll = () => {
+    setEmployerRightPanelView("allJobsPosted");
+  };
+
   if (loadingJobs) return <JobListSkeleton />;
   if (noJobs) return <NoJobsFound />;
 
   return (
     <div className="space-y-4">
-      {jobs.map((job) => (
+      {jobs.slice(0, 2).map((job) => (
         <motion.div
           key={job.jd_id}
           className="rounded-md transition-all duration-300 cursor-pointer"
@@ -186,9 +190,19 @@ const JobList = ({ filter }: { filter: string }) => {
           </div>
         </motion.div>
       ))}
+      {jobs.length > 2 && (
+        <Button
+          variant="outline"
+          className="w-full mt-4"
+          onClick={handleViewAll}
+        >
+          View All
+        </Button>
+      )}
     </div>
   );
 };
+
 
 const JobListSkeleton = () => (
   <div className="space-y-4">

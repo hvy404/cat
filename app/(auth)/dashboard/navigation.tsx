@@ -205,7 +205,7 @@ export default function DashboardNavigation() {
       </div>
       <nav className="grid gap-1 p-2">{renderNavItems()}</nav>
       <nav className="mt-auto grid gap-1 p-2">
-        <TooltipButton item={getHelpItem()} label="Help" icon={LifeBuoy} />
+        {/* <TooltipButton item={getHelpItem()} label="Help" icon={LifeBuoy} /> */}
         <Dialog
           open={isAccountDialogOpen}
           onOpenChange={setIsAccountDialogOpen}

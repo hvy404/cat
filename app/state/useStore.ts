@@ -168,7 +168,8 @@ interface EmployerRightPanelViewState {
     | "default"
     | "roleOverview"
     | "inboundApplications"
-    | "aiRecommendations";
+    | "aiRecommendations"
+    | "allJobsPosted";
   payload?: {
     [key: string]: string | undefined;
   };

@@ -17,12 +17,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Accordion,
   AccordionContent,
@@ -63,11 +58,10 @@ interface JobDetails {
 }
 
 export default function EmployerDashboardOverviewRoles() {
-    // Clerk
-    const { user: clerkUser } = useUser();
-    const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+  // Clerk
+  const { user: clerkUser } = useUser();
+  const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
 
-    
   const {
     setDashboardRoleOverview,
     dashboard_role_overview,
