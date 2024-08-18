@@ -13,9 +13,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@clerk/nextjs";
 
 const InboundApplicantsCard: React.FC = () => {
-    // Clerk
-    const { user: clerkUser } = useUser();
-    const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+  const { user: clerkUser } = useUser();
+  const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
 
   const [applicantCount, setApplicantCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -62,8 +61,8 @@ const InboundApplicantsCard: React.FC = () => {
           }
         }
       } catch (err) {
-        setError("Failed to fetch applicant data");
-        console.error(err);
+        //setError("Failed to fetch applicant data");
+        //console.error(err);
       } finally {
         setIsLoading(false);
       }
@@ -73,7 +72,7 @@ const InboundApplicantsCard: React.FC = () => {
   }, [cuid]);
 
   const handleCardClick = () => {
-    setEmployerRightPanelView('inboundApplications');
+    setEmployerRightPanelView("inboundApplications");
   };
 
   const renderContent = () => {
@@ -106,7 +105,7 @@ const InboundApplicantsCard: React.FC = () => {
   };
 
   return (
-    <Card 
+    <Card
       className="w-full h-full bg-white shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
       onClick={handleCardClick}
     >
@@ -116,9 +115,7 @@ const InboundApplicantsCard: React.FC = () => {
           <span className="line-clamp-2">Inbound Applicants</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
-        {renderContent()}
-      </CardContent>
+      <CardContent className="space-y-2">{renderContent()}</CardContent>
       <CardFooter className="pt-2">
         {!isLoading && !error && trend !== null && (
           <span
@@ -130,8 +127,8 @@ const InboundApplicantsCard: React.FC = () => {
                 : "text-gray-400"
             }`}
           >
-            {trend > 0 ? "↑" : trend < 0 ? "↓" : "→"} {Math.abs(trend)}% from last
-            week
+            {trend > 0 ? "↑" : trend < 0 ? "↓" : "→"} {Math.abs(trend)}% from
+            last week
           </span>
         )}
         {isLoading && <Skeleton className="h-4 w-24" />}

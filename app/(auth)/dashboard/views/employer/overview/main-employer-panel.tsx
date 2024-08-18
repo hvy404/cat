@@ -117,7 +117,6 @@ const ChartCard: React.FC<ChartCardProps> = ({ data }) => (
 );
 
 const JobList = ({ filter }: { filter: string }) => {
-  // Clerk
   const { user: clerkUser } = useUser();
   const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
 

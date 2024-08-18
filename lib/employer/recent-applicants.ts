@@ -31,10 +31,13 @@ function obfuscateApplication(app: DatabaseApplication): ObfuscatedApplication {
   };
 }
 
-async function getEmployerJobApplications(employerId: string): Promise<ObfuscatedApplication[] | null> {
+async function getEmployerJobApplications(
+  employerId: string
+): Promise<ObfuscatedApplication[] | null> {
   const { data, error } = await supabase
-    .from('applications')
-    .select(`
+    .from("applications")
+    .select(
+      `
       id,
       job_id,
       candidate_id,
@@ -42,12 +45,13 @@ async function getEmployerJobApplications(employerId: string): Promise<Obfuscate
       job_postings!inner (
         employer_id
       )
-    `)
-    .eq('job_postings.employer_id', employerId)
-    .order('created_at', { ascending: false });
+    `
+    )
+    .eq("job_postings.employer_id", employerId)
+    .order("created_at", { ascending: false });
 
   if (error) {
-    console.error('Error fetching employer job applications:', error);
+    //console.error('Error fetching employer job applications:', error);
     return null;
   }
 
@@ -56,7 +60,6 @@ async function getEmployerJobApplications(employerId: string): Promise<Obfuscate
 
   // Log the obfuscated data
   const obfuscatedData = typedData.map(obfuscateApplication);
-  console.log('Obfuscated data:', obfuscatedData);
 
   return obfuscatedData;
 }

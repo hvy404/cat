@@ -2,27 +2,40 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
+import { auth } from "@clerk/nextjs/server";
 
 export interface Alert {
-    id: string;
-    user_id: string;
-    type: 'match' | 'invite' | 'application';
-    reference_id: string;
-    status: 'unread' | 'read';
-    created_at: string;
-    description: string;
-    action_required: boolean;
-  }
+  id: string;
+  user_id: string;
+  type: "match" | "invite" | "application";
+  reference_id: string;
+  status: "unread" | "read";
+  created_at: string;
+  description: string;
+  action_required: boolean;
+}
 
 export async function getAlerts(userId: string) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
+  /* // Use the auth() function directly
+  const { getToken } = auth();
+  const token = await getToken(
+    { template: "supabase-talent" }
+  );
 
-  console.log("Fetching alerts for user:", userId);
+  if (!token) {
+    console.log("No token found");
+    return null;
+  }
+
+  console.log("Decoded JWT:", token); */
+  
 
   const { data, error } = await supabase
     .from("alerts")
-    .select(`
+    .select(
+      `
       id,
       type,
       reference_id,
@@ -30,14 +43,13 @@ export async function getAlerts(userId: string) {
       created_at,
       description,
       action_required
-    `)
+    `
+    )
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
-    console.log("Fetched alerts:", data);
-
   if (error) {
-    console.error("Error fetching alerts:", error);
+    //console.error("Error fetching alerts:", error);
     return null;
   }
 
@@ -83,10 +95,7 @@ export async function deleteAlert(id: string) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  const { error } = await supabase
-    .from("alerts")
-    .delete()
-    .eq("id", id);
+  const { error } = await supabase.from("alerts").delete().eq("id", id);
 
   if (error) {
     console.error("Error deleting alert:", error);
