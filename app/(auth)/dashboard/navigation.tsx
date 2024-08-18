@@ -123,7 +123,7 @@ export default function DashboardNavigation() {
               label="Collection"
               icon={BookOpen}
             />
-            <TooltipButton item="browse" label="Browse" icon={Search} />
+            <TooltipButton item="browse" label="Manual Search" icon={Search} />
             <TooltipButton
               item="company-profile"
               label="Company Profile"
