@@ -69,10 +69,12 @@ export default function AddJDStepThree() {
         !addJD.publishingRunnerID &&
         !hasRun.current &&
         addJD.step === 3 &&
-        isCompanyIdFetched
+        isCompanyIdFetched &&
+        !addJD.finishingStarted
       ) {
         hasRun.current = true;
-
+        setAddJD({ finishingStarted: true });
+    
         try {
           const result = await jobDescriptionFinishOnboard(
             addJD.jdEntryID,
@@ -80,13 +82,13 @@ export default function AddJDStepThree() {
             companyId,
             addJD.session || ""
           );
-
+    
           if (result.success) {
             console.log("Finish onboard result: ", result.event[0]);
             setAddJD({
               isFinalizing: true,
             });
-
+    
             setTimeout(() => {
               setAddJD({
                 publishingRunnerID: result.event[0],
@@ -94,9 +96,11 @@ export default function AddJDStepThree() {
             }, 2000);
           } else {
             console.error("Failed to finish onboard");
+            setAddJD({ finishingStarted: false }); // Reset if failed
           }
         } catch (error) {
           console.error("Error in finishOnboard:", error);
+          setAddJD({ finishingStarted: false }); // Reset if error
         }
       }
     };
@@ -146,6 +150,7 @@ export default function AddJDStepThree() {
         if (status === "Completed") {
           setAddJD({
             isFinalizing: false,
+            finishingStarted: false,
           });
           setIsProcessingComplete(true);
           setShowSuccess(true);
@@ -207,6 +212,8 @@ export default function AddJDStepThree() {
         publishingRunnerID: null,
         session: uuidv4(),
         filename: null, // Reset the filename
+        onboardingStarted: false,
+        finishingStarted: false,
       });
       setSelectedMenuItem("dashboard");
     } catch (error) {
@@ -219,6 +226,8 @@ export default function AddJDStepThree() {
   const goToDashboard = () => {
     // Clean up the state
     setAddJD({
+      onboardingStarted: false,
+      finishingStarted: false,
       filename: null,
       jdEntryID: null,
       session: null,

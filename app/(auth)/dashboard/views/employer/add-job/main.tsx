@@ -15,8 +15,10 @@ export default function EmployerDashboardAddJob() {
 
   // Check the session on load and set it if it doesn't exist
   useEffect(() => {
-    setAddJD({ session: uuidv4() });
-  }, []);
+    if (!addJD.session) {
+      setAddJD({ session: uuidv4() });
+    }
+  }, [addJD.session, setAddJD]);
 
   // Render the appropriate step based on the current step in state
   const renderCurrentStep = () => {

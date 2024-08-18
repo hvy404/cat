@@ -53,12 +53,6 @@ export default function AddJDStepOne() {
   const [showCompanyProfileAlert, setShowCompanyProfileAlert] = useState(false);
   const [hasCompanyId, setHasCompanyId] = useState(false);
 
-  /*   useEffect(() => {
-    if (addJD.session === null) {
-      setAddJD({ session: uuidv4() });
-    }
-  }, []); */
-
   useEffect(() => {
     const getCompanyId = async () => {
       if (cuid) {
@@ -174,6 +168,8 @@ export default function AddJDStepOne() {
       jobDescriptionTitles: [],
       activeField: null,
       publishingRunnerID: null,
+      onboardingStarted: false,
+      finishingStarted: false,
     });
 
     setSelectedMenuItem("dashboard");
@@ -195,6 +191,8 @@ export default function AddJDStepOne() {
         filename: addJD.filename,
       });
 
+      setAddJD({ onboardingStarted: false, finishingStarted: false });
+
       if (cleanupResult.success) {
         goToDashboard();
       } else {
@@ -209,8 +207,9 @@ export default function AddJDStepOne() {
     let isMounted = true;
 
     const startOnboardProcess = async () => {
-      if (cuid && addJD.step === 1) {
+      if (cuid && addJD.step === 1 && !addJD.onboardingStarted) {
         if (addJD.jdEntryID && addJD.filename && cuid && addJD.session) {
+          setAddJD({ onboardingStarted: true });
           const startOnboard = await jobDescriptionStartOnboard(
             addJD.jdEntryID,
             cuid,
