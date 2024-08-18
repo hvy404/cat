@@ -25,13 +25,14 @@ interface Job {
   new_match?: boolean;
 }
 
-const ITEMS_PER_PAGE = 2;
+const ITEMS_PER_PAGE = 10;
 
 const EmployerAllJobsPosted = () => {
   const { user: clerkUser } = useUser();
   const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
 
   const { setEmployerRightPanelView, setDashboardRoleOverview } = useStore();
+  
   const [jobs, setJobs] = useState<Job[]>([]);
   const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
   const [loadingJobs, setLoadingJobs] = useState<boolean>(true);
@@ -39,12 +40,14 @@ const EmployerAllJobsPosted = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const { employerRightPanelView } = useStore();
+  const jobFilter = employerRightPanelView.payload?.jobFilter as 'active' | 'archived' | undefined;
+
   useEffect(() => {
     let isMounted = true;
     const fetchJobs = async () => {
-      if (cuid) {
-        const result = await fetchDetailedJobPosts(cuid, "active");
-        console.log("Result:", result);
+      if (cuid && jobFilter) {
+        const result = await fetchDetailedJobPosts(cuid, jobFilter);
         if (isMounted) {
           setLoadingJobs(false);
           if (result && Array.isArray(result.data) && result.data.length > 0) {
@@ -56,12 +59,12 @@ const EmployerAllJobsPosted = () => {
         }
       }
     };
-
+  
     fetchJobs();
     return () => {
       isMounted = false;
     };
-  }, [cuid]);
+  }, [cuid, jobFilter]);
 
   useEffect(() => {
     const filtered = jobs.filter((job) =>

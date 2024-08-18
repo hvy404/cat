@@ -116,7 +116,13 @@ const ChartCard: React.FC<ChartCardProps> = ({ data }) => (
   </motion.div>
 );
 
-const JobList = ({ filter }: { filter: string }) => {
+const JobList = ({
+  filter,
+  onNoJobs,
+}: {
+  filter: string;
+  onNoJobs?: () => void;
+}) => {
   const { user: clerkUser } = useUser();
   const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
 
@@ -136,6 +142,7 @@ const JobList = ({ filter }: { filter: string }) => {
             setJobs(result.data);
           } else {
             setNoJobs(true);
+            if (onNoJobs) onNoJobs();
           }
         }
       }
@@ -145,7 +152,7 @@ const JobList = ({ filter }: { filter: string }) => {
     return () => {
       isMounted = false;
     };
-  }, [cuid, filter]);
+  }, [cuid, filter, onNoJobs]);
 
   const handleClick = (job_id: string, title: string) => {
     setDashboardRoleOverview({
@@ -156,8 +163,8 @@ const JobList = ({ filter }: { filter: string }) => {
     setEmployerRightPanelView("roleOverview");
   };
 
-  const handleViewAll = () => {
-    setEmployerRightPanelView("allJobsPosted");
+  const handleViewAll = (jobType: "active" | "archived") => {
+    setEmployerRightPanelView("allJobsPosted", { jobFilter: jobType });
   };
 
   if (loadingJobs) return <JobListSkeleton />;
@@ -194,7 +201,7 @@ const JobList = ({ filter }: { filter: string }) => {
         <Button
           variant="outline"
           className="w-full mt-4"
-          onClick={handleViewAll}
+          onClick={() => handleViewAll(filter as "active" | "archived")}
         >
           View All
         </Button>
@@ -202,7 +209,6 @@ const JobList = ({ filter }: { filter: string }) => {
     </div>
   );
 };
-
 
 const JobListSkeleton = () => (
   <div className="space-y-4">
@@ -228,6 +234,12 @@ const NoJobsFound = () => (
 );
 
 const EmployerDashboardView: React.FC = () => {
+  const [hasArchivedJobs, setHasArchivedJobs] = useState(true);
+
+  const handleNoArchivedJobs = () => {
+    setHasArchivedJobs(false);
+  };
+
   return (
     <div className="min-h-screen w-full">
       <main>
@@ -244,8 +256,12 @@ const EmployerDashboardView: React.FC = () => {
           </div>
           <ChartCard data={mockData} />
 
-          <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
-            <Card>
+          <div
+            className={`mt-8 grid gap-8 ${
+              hasArchivedJobs ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1"
+            }`}
+          >
+            <Card className={hasArchivedJobs ? "" : "col-span-full"}>
               <CardHeader>
                 <CardTitle className="text-md font-semibold text-gray-800 flex items-center">
                   <FilePlus className="w-5 h-5 mr-2" />
@@ -256,17 +272,19 @@ const EmployerDashboardView: React.FC = () => {
                 <JobList filter="active" />
               </CardContent>
             </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-md font-semibold text-gray-800 flex items-center">
-                  <Archive className="w-5 h-5 mr-2" />
-                  Archived Roles
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <JobList filter="archived" />
-              </CardContent>
-            </Card>
+            {hasArchivedJobs && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-md font-semibold text-gray-800 flex items-center">
+                    <Archive className="w-5 h-5 mr-2" />
+                    Archived Roles
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <JobList filter="archived" onNoJobs={handleNoArchivedJobs} />
+                </CardContent>
+              </Card>
+            )}
           </div>
         </motion.div>
       </main>
