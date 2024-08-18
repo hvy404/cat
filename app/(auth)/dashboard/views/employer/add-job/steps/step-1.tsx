@@ -32,7 +32,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { CleanUpOnCancel } from "@/lib/dashboard/ingest-jd/cleanup-on-cancel";
-import { v4 as uuidv4 } from "uuid";
 import { grabUserCompanyId } from "@/lib/dashboard/get-company-membership";
 import { CompanyProfileAlert } from "@/app/(auth)/dashboard/views/employer/global/company-profile-alert";
 
@@ -45,22 +44,20 @@ const funFacts = [
   "Quick tip: Detailed job descriptions in our system lead to 47% more accurately matched candidates, saving you time in the screening process.",
 ];
 
-
 export default function AddJDStepOne() {
   const { addJD, setAddJD, setSelectedMenuItem } = useStore();
   const { user: clerkUser } = useUser();
   const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
   const [fileResponse, setFileResponse] = useState<string | null>(null);
-  const [currentFact, setCurrentFact] = useState(funFacts[0]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [showCompanyProfileAlert, setShowCompanyProfileAlert] = useState(false);
   const [hasCompanyId, setHasCompanyId] = useState(false);
 
-  useEffect(() => {
+  /*   useEffect(() => {
     if (addJD.session === null) {
       setAddJD({ session: uuidv4() });
     }
-  }, []);
+  }, []); */
 
   useEffect(() => {
     const getCompanyId = async () => {

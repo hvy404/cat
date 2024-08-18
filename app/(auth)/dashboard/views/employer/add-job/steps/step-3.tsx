@@ -7,7 +7,7 @@ import { useUser } from "@clerk/nextjs";
 import WaitingState from "@/app/(auth)/dashboard/views/employer/add-job/mods/step-3-loading";
 import { CancelJDParser } from "@/lib/dashboard/infer/from-jd/cancel-jd-parser";
 import { CleanUpOnCancel } from "@/lib/dashboard/ingest-jd/cleanup-on-cancel";
-import { add } from "@dnd-kit/utilities";
+import { v4 as uuidv4 } from "uuid";
 
 export default function AddJDStepThree() {
   // Clerk
@@ -78,7 +78,7 @@ export default function AddJDStepThree() {
             addJD.jdEntryID,
             cuid,
             companyId,
-            addJD.session || '' 
+            addJD.session || ""
           );
 
           if (result.success) {
@@ -102,7 +102,15 @@ export default function AddJDStepThree() {
     };
 
     finishOnboard();
-  }, [addJD.jdEntryID, user, cuid, companyId, addJD.step, isCompanyIdFetched, addJD.session]);
+  }, [
+    addJD.jdEntryID,
+    user,
+    cuid,
+    companyId,
+    addJD.step,
+    isCompanyIdFetched,
+    addJD.session,
+  ]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -180,7 +188,7 @@ export default function AddJDStepThree() {
       console.error("User not logged in or JD Entry ID not found");
       return;
     }
-  
+
     try {
       await CancelJDParser({ sessionID: addJD.session! });
 
@@ -197,7 +205,7 @@ export default function AddJDStepThree() {
         jobDetails: [],
         activeField: null,
         publishingRunnerID: null,
-        session: null,
+        session: uuidv4(),
         filename: null, // Reset the filename
       });
       setSelectedMenuItem("dashboard");
@@ -206,7 +214,6 @@ export default function AddJDStepThree() {
       // Handle the error (e.g., show an error message to the user)
     }
   };
-  
 
   // Return to dashboard after completed
   const goToDashboard = () => {

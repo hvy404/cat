@@ -13,12 +13,11 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BotIcon, Archive, MapPin, Calendar, FilePlus } from "lucide-react";
+import { Archive, MapPin, Calendar, FilePlus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchDetailedJobPosts } from "@/lib/overview/fetchRoles";
 import InboundApplicantsCard from "./inbound-application-card";
@@ -118,12 +117,11 @@ const ChartCard: React.FC<ChartCardProps> = ({ data }) => (
 );
 
 const JobList = ({ filter }: { filter: string }) => {
-    // Clerk
-    const { user: clerkUser } = useUser();
-    const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+  // Clerk
+  const { user: clerkUser } = useUser();
+  const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
 
-  const { setEmployerRightPanelView, setDashboardRoleOverview } =
-    useStore();
+  const { setEmployerRightPanelView, setDashboardRoleOverview } = useStore();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loadingJobs, setLoadingJobs] = useState<boolean>(true);
   const [noJobs, setNoJobs] = useState<boolean>(false);
@@ -217,7 +215,6 @@ const NoJobsFound = () => (
 );
 
 const EmployerDashboardView: React.FC = () => {
-
   return (
     <div className="min-h-screen w-full">
       <main>
@@ -227,21 +224,6 @@ const EmployerDashboardView: React.FC = () => {
           initial="hidden"
           animate="visible"
         >
-          <motion.div variants={itemVariants}>
-            <Card className="w-full bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 mb-6">
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-gray-100 rounded-full">
-                    <BotIcon className="w-5 h-5 text-gray-600" />
-                  </div>
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    Welcome back!
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             <InboundApplicantsCard />
             <AIRecommendationsCard />

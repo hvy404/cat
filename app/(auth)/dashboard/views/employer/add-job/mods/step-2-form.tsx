@@ -44,6 +44,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { CleanUpOnCancel } from "@/lib/dashboard/ingest-jd/cleanup-on-cancel";
+import { v4 as uuidv4 } from "uuid";
 
 interface ValidationErrors {
   [key: string]: string;
@@ -236,7 +237,7 @@ export default function AddJDStep2Form() {
         jobDetails: [],
         activeField: null,
         publishingRunnerID: null,
-        session: null,
+        session: uuidv4(),
         filename: null, // Reset the filename
       });
 
