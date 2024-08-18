@@ -216,9 +216,6 @@ export default function AddJDStep2Form() {
       return;
     }
 
-    // console log the current session
-    console.log("Current session:", addJD.jdEntryID);
-
     try {
       const cleanupResult = await CleanUpOnCancel({
         jdId: addJD.jdEntryID ?? "",

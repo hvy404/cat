@@ -8,14 +8,21 @@ import { type jobDescriptionEmbeddings } from "@/inngest/job-generate-embeddings
 import { type jobDescriptionGenerateCompleted } from "@/inngest/job-description-completed";
 
 export const jobDescriptionOnboardStage2 = inngest.createFunction(
-  { id: "job-description-onboard-stage-2" },
+  {
+    id: "job-description-onboard-stage-2",
+    cancelOn: [
+      {
+        event: "app/job-description-parser-cancel",
+        if: "async.data.session == event.data.job_description.session",
+      },
+    ],
+  },
   { event: "app/job-description-onboard-stage-2" },
   async ({ event, step }) => {
-
     // Data from the event
     const employerID = event.data.job_description.employer;
     const jobDescriptionID = event.data.job_description.id;
-    //const session = event.data.job_description.session;
+    const session = event.data.job_description.session;
     const company = event.data.job_description.company;
 
     // Generate keywords for job description

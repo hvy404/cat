@@ -5,6 +5,9 @@ import { QueryEventStatus } from "@/lib/dashboard/query-runner-status";
 import { fetchUserCompanyId } from "@/lib/dashboard/get-company-membership";
 import { useUser } from "@clerk/nextjs";
 import WaitingState from "@/app/(auth)/dashboard/views/employer/add-job/mods/step-3-loading";
+import { CancelJDParser } from "@/lib/dashboard/infer/from-jd/cancel-jd-parser";
+import { CleanUpOnCancel } from "@/lib/dashboard/ingest-jd/cleanup-on-cancel";
+import { add } from "@dnd-kit/utilities";
 
 export default function AddJDStepThree() {
   // Clerk
@@ -74,7 +77,8 @@ export default function AddJDStepThree() {
           const result = await jobDescriptionFinishOnboard(
             addJD.jdEntryID,
             cuid,
-            companyId
+            companyId,
+            addJD.session || '' 
           );
 
           if (result.success) {
@@ -98,7 +102,7 @@ export default function AddJDStepThree() {
     };
 
     finishOnboard();
-  }, [addJD.jdEntryID, user, cuid, companyId, addJD.step, isCompanyIdFetched]);
+  }, [addJD.jdEntryID, user, cuid, companyId, addJD.step, isCompanyIdFetched, addJD.session]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -171,6 +175,39 @@ export default function AddJDStepThree() {
     };
   }, [addJD.publishingRunnerID]);
 
+  const cancelPost = async () => {
+    if (!cuid || !addJD.jdEntryID) {
+      console.error("User not logged in or JD Entry ID not found");
+      return;
+    }
+  
+    try {
+      await CancelJDParser({ sessionID: addJD.session! });
+
+      await CleanUpOnCancel({
+        jdId: addJD.jdEntryID,
+        employerId: cuid,
+        filename: addJD.filename,
+      });
+
+      // Reset the application state
+      setAddJD({
+        step: 1,
+        jdEntryID: null,
+        jobDetails: [],
+        activeField: null,
+        publishingRunnerID: null,
+        session: null,
+        filename: null, // Reset the filename
+      });
+      setSelectedMenuItem("dashboard");
+    } catch (error) {
+      console.error("Error cancelling post:", error);
+      // Handle the error (e.g., show an error message to the user)
+    }
+  };
+  
+
   // Return to dashboard after completed
   const goToDashboard = () => {
     // Clean up the state
@@ -210,6 +247,7 @@ export default function AddJDStepThree() {
       showSuccess={showSuccess}
       goToDashboard={goToDashboard}
       countdown={countdown}
+      onCancelPost={cancelPost}
     />
   );
 }

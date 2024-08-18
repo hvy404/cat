@@ -1,6 +1,7 @@
 import React from "react";
 import { Loader } from "lucide-react";
 import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
 
 interface WaitingStateProps {
   isFinalizing: boolean;
@@ -8,6 +9,7 @@ interface WaitingStateProps {
   showSuccess: boolean;
   goToDashboard: () => void;
   countdown: number;
+  onCancelPost: () => void;
 }
 
 const WaitingState: React.FC<WaitingStateProps> = ({
@@ -16,6 +18,7 @@ const WaitingState: React.FC<WaitingStateProps> = ({
   showSuccess,
   goToDashboard,
   countdown,
+  onCancelPost
 }) => {
   return (
     <div className="p-8 rounded-lg border border-1 border-gray-200 w-full">
@@ -47,6 +50,9 @@ const WaitingState: React.FC<WaitingStateProps> = ({
               go live on the platform, optimized for maximum impact and
               visibility in our talent ecosystem.
             </p>
+            <Button variant="outline" onClick={onCancelPost}>
+              Cancel Job Post
+            </Button>
           </div>
         ) : showSuccess ? (
           <div className="flex flex-col items-center space-y-8">

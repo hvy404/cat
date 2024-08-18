@@ -8,7 +8,6 @@ import {
   Search,
   UserCheck,
   Zap,
-  LightbulbIcon,
   Upload,
   Trash,
 } from "lucide-react";
@@ -47,7 +46,6 @@ const funFacts = [
 
 export default function AddJDStepOne() {
   const { addJD, setAddJD, setSelectedMenuItem } = useStore();
-  const [funFact, setFunFact] = useState("");
   const { user: clerkUser } = useUser();
   const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
   const [fileResponse, setFileResponse] = useState<string | null>(null);
@@ -79,14 +77,6 @@ export default function AddJDStepOne() {
 
     getCompanyId();
   }, [cuid]);
-
-  useEffect(() => {
-    const factInterval = setInterval(() => {
-      setCurrentFact(funFacts[Math.floor(Math.random() * funFacts.length)]);
-    }, 8000);
-
-    return () => clearInterval(factInterval);
-  }, []);
 
   const cardVariants = {
     initial: { opacity: 0, y: 20 },
@@ -272,14 +262,6 @@ export default function AddJDStepOne() {
       isMounted = false;
     };
   }, [addJD.publishingRunnerID]);
-
-  useEffect(() => {
-    const factInterval = setInterval(() => {
-      setFunFact(funFacts[Math.floor(Math.random() * funFacts.length)]);
-    }, 5000);
-
-    return () => clearInterval(factInterval);
-  }, []);
 
   return (
     <AnimatePresence mode="wait">
@@ -480,19 +462,6 @@ export default function AddJDStepOne() {
               Our AI is analyzing your job description to identify optimal
               matching criteria. This process typically takes 2-3 minutes.
             </motion.p>
-
-            <motion.div
-              className="bg-gray-50 p-4 rounded-lg shadow-sm mb-6"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <h4 className="text-sm font-semibold mb-2 flex items-center text-gray-700">
-                <LightbulbIcon className="w-5 h-5 mr-2" />
-                Did You Know?
-              </h4>
-              <p className="text-sm text-gray-600">{currentFact}</p>
-            </motion.div>
 
             <motion.div
               className="flex justify-center"
