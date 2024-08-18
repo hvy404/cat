@@ -33,7 +33,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import AIMatchCandidateOverview from "@/app/(auth)/dashboard/views/employer/overview/mods/match-candidate-grid";
 import { deleteJobPost } from "@/lib/gui/delete-job";
@@ -61,6 +60,8 @@ export default function EmployerDashboardOverviewRoles() {
   // Clerk
   const { user: clerkUser } = useUser();
   const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+
+  const { setJobStatusUpdated } = useStore();
 
   const {
     setDashboardRoleOverview,
@@ -137,15 +138,14 @@ export default function EmployerDashboardOverviewRoles() {
         );
         if (error) {
           console.error("Error updating job status:", error);
-          //setError("Failed to update job status.");
           return;
         }
         if (message === "Success") {
           console.log("Job status updated successfully:");
-          // Update the jobDetails.active state
           setJobDetails((prevDetails) =>
             prevDetails ? { ...prevDetails, active: status } : prevDetails
           );
+          setJobStatusUpdated(true); // This will trigger a refresh in JobList
         }
       } catch (error) {
         console.error("Unexpected error:", error);
@@ -154,6 +154,8 @@ export default function EmployerDashboardOverviewRoles() {
       console.log("User, UUID or active role ID is missing");
     }
   };
+  
+  
 
   // Onclick handler for deleting the job post
   const handleDeleteJobPost = async () => {

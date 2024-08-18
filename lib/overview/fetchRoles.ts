@@ -81,6 +81,7 @@ export async function fetchDetailedJobPosts(userID: string, filter: string) {
   return { data: remappedData };
 }
 
+
 const jobTypeMap: Record<string, string> = {
   "full-time": "Full-Time",
   "part-time": "Part-Time",

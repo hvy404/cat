@@ -126,7 +126,12 @@ const JobList = ({
   const { user: clerkUser } = useUser();
   const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
 
-  const { setEmployerRightPanelView, setDashboardRoleOverview } = useStore();
+  const {
+    setEmployerRightPanelView,
+    setDashboardRoleOverview,
+    jobStatusUpdated,
+    setJobStatusUpdated,
+  } = useStore();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loadingJobs, setLoadingJobs] = useState<boolean>(true);
   const [noJobs, setNoJobs] = useState<boolean>(false);
@@ -139,7 +144,13 @@ const JobList = ({
         if (isMounted) {
           setLoadingJobs(false);
           if (result && Array.isArray(result.data) && result.data.length > 0) {
-            setJobs(result.data);
+            const filteredJobs = result.data.filter((job) =>
+              filter === "active" ? job.active : !job.active
+            );
+            setJobs(filteredJobs);
+            if (filteredJobs.length === 0 && onNoJobs) {
+              onNoJobs();
+            }
           } else {
             setNoJobs(true);
             if (onNoJobs) onNoJobs();
@@ -149,10 +160,13 @@ const JobList = ({
     };
 
     fetchJobs();
+    if (jobStatusUpdated) {
+      setJobStatusUpdated(false);
+    }
     return () => {
       isMounted = false;
     };
-  }, [cuid, filter, onNoJobs]);
+  }, [cuid, filter, onNoJobs, jobStatusUpdated]);
 
   const handleClick = (job_id: string, title: string) => {
     setDashboardRoleOverview({

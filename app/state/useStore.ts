@@ -66,7 +66,7 @@ interface AddJobDescription {
   jobDescriptionTitles: JobDescriptionTitles[];
   activeField?: string | null; // Store which form field user is currently editing
   publishingRunnerID: string | null; // Ingest runner ID for publishing JD
-  onboardingStarted: boolean; // Flag for AddJD Step 1 to prevent duplicate run 
+  onboardingStarted: boolean; // Flag for AddJD Step 1 to prevent duplicate run
   finishingStarted: boolean; // Flag for AddJD Step 3 to prevent duplicate run
 }
 
@@ -184,6 +184,8 @@ interface StoreState {
   isExpanded: boolean;
   jdBuilderWizard: JDBuilderWizard;
   candidateDashboard: CandidateDashboard;
+  jobStatusUpdated: boolean;
+  setJobStatusUpdated: (value: boolean) => void;
 
   setSelectedMenuItem: (item: string) => void;
   setUser: (user: User) => void;
@@ -224,6 +226,9 @@ const useStore = create<StoreState>((set) => ({
     active_role_commission_percent: null,
     active_role_salary_ote: null,
   },
+  // Handle Archive - Resume to refresh job list
+  jobStatusUpdated: false,
+  setJobStatusUpdated: (value: boolean) => set({ jobStatusUpdated: value }),
   // Employer dashboard right panel view
   employerRightPanelView: { view: "default" },
   setEmployerRightPanelView: (
