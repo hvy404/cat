@@ -154,7 +154,6 @@ export async function getJobDescription(
 
     const output = jdLookupSummarizer.choices[0].message.content!;
 
-
     // Store the output based on the key
     if (item.key === "role_job_description") {
       role_job_description = output;
