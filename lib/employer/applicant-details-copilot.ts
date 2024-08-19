@@ -205,7 +205,7 @@ ${RESPONSE_FORMAT_INSTRUCTIONS}`;
       { role: "system", content: llmSystemPrompt },
       { role: "user", content: llmUserPrompt },
     ],
-    temperature: 0.7,
+    temperature: 0.6,
     max_tokens: 2000,
   });
 

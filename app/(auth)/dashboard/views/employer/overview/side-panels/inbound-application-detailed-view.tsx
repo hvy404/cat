@@ -8,10 +8,10 @@ import {
   MapPin,
   Mail,
   Phone,
-  ChevronRight,
   Loader2,
   Wand2,
   MessageCircle,
+  Dot,
 } from "lucide-react";
 import {
   Tooltip,
@@ -371,17 +371,17 @@ const JobDetails: React.FC<{ jobInfo: JobInfo | null }> = ({ jobInfo }) => {
         <ListSection
           title="Required Skills"
           items={jobInfo.relationships?.REQUIRES_SKILL || []}
-          icon={ChevronRight}
+          icon={Dot}
         />
         <ListSection
           title="Preferred Skills"
           items={jobInfo.relationships?.PREFERS_SKILL || []}
-          icon={ChevronRight}
+          icon={Dot}
         />
         <ListSection
           title="Required Certifications"
           items={jobInfo.relationships?.REQUIRED_CERTIFICATION || []}
-          icon={ChevronRight}
+          icon={Dot}
         />
       </div>
     </div>
