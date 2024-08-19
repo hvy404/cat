@@ -12,6 +12,8 @@ import {
   BellOff,
   ChevronUp,
   ChevronDown,
+  Search,
+  Filter,
 } from "lucide-react";
 import {
   Card,
@@ -53,11 +55,18 @@ import {
 } from "@/app/(auth)/dashboard/views/candidate/search/manage-search-alerts";
 import { toast } from "sonner";
 import SearchFeatureDialog from "@/app/(auth)/dashboard/views/candidate/search/info-alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import JobFilters from "@/app/(auth)/dashboard/views/candidate/search/job-filter";
 
 type ExtendedJobSearchResult = JobSearchResult & {
+  similarJobs: SerializableJobResult[];
   match: boolean;
   socket: boolean;
-  similarJobs: SerializableJobResult[];
   flag?: {
     threshold: number;
     mode: string;
@@ -84,6 +93,7 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
   const [searchResults, setSearchResults] =
     useState<ExtendedJobSearchResult | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
@@ -92,6 +102,7 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
   const [isSearchSuggestionsOpen, setIsSearchSuggestionsOpen] = useState(
     !hasSearched
   );
+  const [filteredJobs, setFilteredJobs] = useState<SerializableJobResult[]>([]);
 
   const candidateId = clerkUser?.publicMetadata?.aiq_cuid as string;
   const dialogDismissed =
@@ -107,7 +118,6 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
   };
 
   const handleSearch = async (query: string = searchQuery): Promise<void> => {
-    console.log("handleSearch called with query:", query);
     if (!candidateId) {
       setError("User ID is not available. Please ensure you're logged in.");
       return;
@@ -122,7 +132,7 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
     try {
       const results = await jobSearchHandler(query, candidateId);
       setSearchResults(results as ExtendedJobSearchResult);
-      console.log("Job search results:", results);
+      setFilteredJobs((results as ExtendedJobSearchResult).similarJobs);
     } catch (err) {
       setError("There was an error during the search, please try again.");
     } finally {
@@ -131,11 +141,11 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
   };
 
   const formatSalary = (salary: number | null): string => {
-    return salary ? `$${salary.toLocaleString()}` : "Not specified";
+    return salary ? `${salary.toLocaleString()}` : "Not specified";
   };
 
   const formatHourlyRate = (rate: number | null): string => {
-    return rate ? `$${rate.toFixed(2)}` : "Not specified";
+    return rate ? `${rate.toFixed(2)}` : "Not specified";
   };
 
   const handleBookmarkToggle = async (jobId: string) => {
@@ -245,107 +255,125 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
     }
   };
 
-  const renderJobDetails = (job: SerializableJobResult): JSX.Element => (
-    <Card
-      key={job.job_id}
-      className="mb-4 shadow-sm hover:shadow-md transition-all duration-300"
-    >
-      <CardHeader className="flex flex-row justify-between items-start">
-        <div>
-          <CardTitle className="text-lg font-semibold text-gray-800">
-            {job.job_title}
-          </CardTitle>
-          <CardDescription className="text-sm text-gray-600">
-            {job.company ? (
-              job.company
-            ) : (
-              <span className="inline-flex flex-grow-0 rounded-xl text-xs bg-gray-700 text-white px-2 py-1">
-                Private Employer
-              </span>
-            )}
-          </CardDescription>
-        </div>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleBookmarkToggle(job.job_id)}
-              >
-                <Bookmark
-                  className={`h-5 w-5 ${
-                    bookmarkedJobs[job.job_id]
-                      ? "fill-current text-gray-800"
-                      : "text-gray-500"
-                  }`}
-                />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="bg-black text-white border-0">
-              <p>
-                {bookmarkedJobs[job.job_id]
-                  ? "Remove bookmark"
-                  : "Bookmark this job"}
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </CardHeader>
-      <CardContent className="text-sm text-gray-700 space-y-2">
-        <div className="flex items-center">
-          <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-          <span>
-            {JSON.parse(job.location)[0]?.city},{" "}
-            {JSON.parse(job.location)[0]?.state}
-          </span>
-        </div>
-        <div className="flex items-center">
-          <ShieldCheck className="w-4 h-4 mr-2 text-gray-500" />
-          <span>Security Clearance: {job.security_clearance}</span>
-        </div>
-        <div className="flex items-center">
-          <Clock className="w-4 h-4 mr-2 text-gray-500" />
-          <span>Job Type: {job.job_type}</span>
-        </div>
-        {job.salary_disclose && (
-          <div className="flex items-center">
-            <DollarSign className="w-4 h-4 mr-2 text-gray-500" />
-            {job.compensation_type === "salary" && (
-              <span>
-                Salary Range: {formatSalary(job.starting_salary)} -{" "}
-                {formatSalary(job.maximum_salary)}
-              </span>
-            )}
-            {job.compensation_type === "hourly" && (
-              <span>
-                Hourly Rate: {formatHourlyRate(job.hourly_comp_min)} -{" "}
-                {formatHourlyRate(job.hourly_comp_max)}
-              </span>
-            )}
-            {job.compensation_type === "commission" && (
-              <span>
-                OTE: {formatSalary(job.ote_salary)} (Commission:{" "}
-                {job.commission_percent}%)
-              </span>
-            )}
-          </div>
-        )}
-      </CardContent>
-      <CardFooter>
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-          onClick={() => viewDetails(job.job_id)}
-        >
-          View Details
-        </Button>
-      </CardFooter>
-    </Card>
-  );
+  const renderJobDetails = (job: SerializableJobResult): JSX.Element => {
+    const location = JSON.parse(job.location)[0];
+    const hasLocation = location?.city || location?.state;
 
-  const totalJobs = searchResults?.similarJobs?.length ?? 0;
+    return (
+      <Card
+        key={job.job_id}
+        className="mb-4 shadow-sm hover:shadow-md transition-all duration-300"
+      >
+        <CardHeader className="flex flex-row justify-between items-start">
+          <div>
+            {job.job_title && (
+              <CardTitle className="text-lg font-semibold text-gray-800">
+                {job.job_title}
+              </CardTitle>
+            )}
+            <CardDescription className="text-sm text-gray-600">
+              {job.company ? (
+                job.company
+              ) : (
+                <span className="inline-flex flex-grow-0 rounded-xl text-xs bg-gray-700 text-white px-2 py-1">
+                  Private Employer
+                </span>
+              )}
+            </CardDescription>
+          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleBookmarkToggle(job.job_id)}
+                >
+                  <Bookmark
+                    className={`h-5 w-5 ${
+                      bookmarkedJobs[job.job_id]
+                        ? "fill-current text-gray-800"
+                        : "text-gray-500"
+                    }`}
+                  />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-black text-white border-0">
+                <p>
+                  {bookmarkedJobs[job.job_id]
+                    ? "Remove bookmark"
+                    : "Bookmark this job"}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </CardHeader>
+        <CardContent className="text-sm text-gray-700 space-y-2">
+          {hasLocation && (
+            <div className="flex items-center">
+              <MapPin className="w-4 h-4 mr-2 text-gray-500" />
+              <span>
+                {[location.city, location.state].filter(Boolean).join(", ")}
+              </span>
+            </div>
+          )}
+          {job.security_clearance && (
+            <div className="flex items-center">
+              <ShieldCheck className="w-4 h-4 mr-2 text-gray-500" />
+              <span>Security Clearance: {job.security_clearance}</span>
+            </div>
+          )}
+          {job.job_type && (
+            <div className="flex items-center">
+              <Clock className="w-4 h-4 mr-2 text-gray-500" />
+              <span>Job Type: {job.job_type}</span>
+            </div>
+          )}
+          {job.salary_disclose && (
+            <div className="flex items-center">
+              <DollarSign className="w-4 h-4 mr-2 text-gray-500" />
+              {job.compensation_type === "salary" &&
+                job.starting_salary &&
+                job.maximum_salary && (
+                  <span>
+                    Salary Range: {formatSalary(job.starting_salary)} -{" "}
+                    {formatSalary(job.maximum_salary)}
+                  </span>
+                )}
+              {job.compensation_type === "hourly" &&
+                job.hourly_comp_min &&
+                job.hourly_comp_max && (
+                  <span>
+                    Hourly Rate: {formatHourlyRate(job.hourly_comp_min)} -{" "}
+                    {formatHourlyRate(job.hourly_comp_max)}
+                  </span>
+                )}
+              {job.compensation_type === "commission" &&
+                job.ote_salary &&
+                job.commission_percent && (
+                  <span>
+                    OTE: {formatSalary(job.ote_salary)} (Commission:{" "}
+                    {job.commission_percent}%)
+                  </span>
+                )}
+            </div>
+          )}
+        </CardContent>
+        <CardFooter>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+            onClick={() => viewDetails(job.job_id)}
+          >
+            View Details
+          </Button>
+        </CardFooter>
+      </Card>
+    );
+  };
+
+  const totalJobs = filteredJobs.length;
   const totalPages = Math.ceil(totalJobs / card_per);
 
   const handlePrevPage = (): void => {
@@ -357,13 +385,40 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
   };
 
   const getCurrentPageJobs = (): SerializableJobResult[] => {
-    if (!searchResults?.similarJobs) return [];
     const startIndex = (currentPage - 1) * card_per;
     const endIndex = startIndex + card_per;
-    return searchResults.similarJobs.slice(startIndex, endIndex);
+    return filteredJobs.slice(startIndex, endIndex);
   };
 
   const shouldShowPagination = totalJobs > card_per;
+
+  const handleFilterChange = (newFilters: any) => {
+    if (!searchResults) return;
+
+    const filtered = searchResults.similarJobs.filter((job) => {
+      return (
+        (newFilters.jobType.length === 0 ||
+          newFilters.jobType.includes(job.job_type)) &&
+        (newFilters.securityClearance.length === 0 ||
+          newFilters.securityClearance.includes(job.security_clearance)) &&
+        (newFilters.locationType.length === 0 ||
+          newFilters.locationType.includes(job.location_type)) &&
+        (newFilters.compensationType.length === 0 ||
+          newFilters.compensationType.includes(job.compensation_type)) &&
+        (newFilters.remoteFlexibility === null ||
+          job.remote_flexibility === newFilters.remoteFlexibility) &&
+        (newFilters.salaryMin === "" ||
+          (job.starting_salary &&
+            job.starting_salary >= parseInt(newFilters.salaryMin))) &&
+        (newFilters.salaryMax === "" ||
+          (job.maximum_salary &&
+            job.maximum_salary <= parseInt(newFilters.salaryMax)))
+      );
+    });
+
+    setFilteredJobs(filtered);
+    setCurrentPage(1);
+  };
 
   return (
     <div className="p-2">
@@ -383,7 +438,7 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
         />
         <Button
           onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleSearch()}
-          disabled={isLoading}
+          disabled={isLoading || searchQuery.trim() === ""}
         >
           {isLoading ? "Searching..." : "Search"}
         </Button>
@@ -432,111 +487,104 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
       )}
 
       {hasSearched && searchResults && (
-        <>
-          {searchResults.flag && searchResults.flag.mode && <WildWest />}
-
-          <Tabs defaultValue="results" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="results" className="text-sm">
-                Search Results
-              </TabsTrigger>
-              <TabsTrigger value="filters" className="text-sm">
-                Filters
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="results">
-              {searchResults.match && searchResults.similarJobs.length > 0 ? (
-                <>
-                  {getCurrentPageJobs().map(renderJobDetails)}
-                  {shouldShowPagination && (
-                    <div className="flex justify-between items-center mt-4">
-                      <Button
-                        onClick={handlePrevPage}
-                        disabled={currentPage === 1}
-                        variant="outline"
-                        size="sm"
-                      >
-                        <ChevronLeft className="w-4 h-4 mr-2" />
-                        Previous
-                      </Button>
-                      <span className="text-sm text-gray-600">
-                        Page {currentPage} of {totalPages}
-                      </span>
-                      <Button
-                        onClick={handleNextPage}
-                        disabled={currentPage === totalPages}
-                        variant="outline"
-                        size="sm"
-                      >
-                        Next
-                        <ChevronRight className="w-4 h-4 ml-2" />
-                      </Button>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="flex items-center text-gray-600 text-sm gap-x-3">
-                  <p className="mr-2">
-                    No matching opportunities found currently. New positions
-                    open up frequently, so check back soon or enable alerts to
-                    stay updated.
-                  </p>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleThumbsUp}
-                          className="p-0 h-auto"
-                        >
-                          <Bell className="w-4 h-4 text-green-500" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-black text-white">
-                        <p>Yes, alert me when opportunities are available</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleThumbsDown}
-                          className="p-0 h-auto ml-1"
-                        >
-                          <BellOff className="w-4 h-4 text-red-500" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-black text-white">
-                        <p>No, don't alert me</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+        <div className="mt-4">
+          {searchResults.match && filteredJobs.length > 0 ? (
+            <>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-bold text-gray-800">
+                  Search Results
+                </h2>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsFilterDialogOpen(true)}
+                >
+                  <Filter className="w-4 h-4 mr-2" />
+                  Filters
+                </Button>
+              </div>
+              {getCurrentPageJobs().map(renderJobDetails)}
+              {shouldShowPagination && (
+                <div className="flex justify-between items-center mt-4">
+                  <Button
+                    onClick={handlePrevPage}
+                    disabled={currentPage === 1}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-2" />
+                    Previous
+                  </Button>
+                  <span className="text-sm text-gray-600">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4 ml-2" />
+                  </Button>
                 </div>
               )}
-            </TabsContent>
-
-            <TabsContent value="filters">
-              <Card className="bg-gray-50">
-                <CardHeader>
-                  <CardTitle className="text-md">Search Filters</CardTitle>
-                  <CardDescription>
-                    Refine your job search results
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {/* Add filter options here */}
-                  <p className="text-gray-600">Filter options coming soon...</p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </>
+            </>
+          ) : (
+            <div className="flex items-center text-gray-600 text-sm gap-x-3">
+              <p className="mr-2">
+                No matching opportunities found currently. New positions open up
+                frequently, so check back soon or enable alerts to stay updated.
+              </p>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleThumbsUp}
+                      className="p-0 h-auto"
+                    >
+                      <Bell className="w-4 h-4 text-green-500" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-black text-white">
+                    <p>Yes, alert me when opportunities are available</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleThumbsDown}
+                      className="p-0 h-auto ml-1"
+                    >
+                      <BellOff className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-black text-white">
+                    <p>No, don't alert me</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          )}
+        </div>
       )}
+      <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Search Filters</DialogTitle>
+          </DialogHeader>
+          <JobFilters
+            jobs={searchResults?.similarJobs || []}
+            onFilterChange={handleFilterChange}
+          />
+        </DialogContent>
+      </Dialog>
+
       <SearchFeatureDialog
         open={isSearchDialogOpen}
         onOpenChange={setIsSearchDialogOpen}
