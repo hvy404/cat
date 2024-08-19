@@ -205,7 +205,7 @@ const AlertsCard: React.FC<AlertsCardProps> = ({ onAlertAction }) => {
 
     return (
       <div className="flex flex-col items-center justify-center h-full">
-        <Inbox className="w-16 h-16 text-gray-300 mb-4" />
+        <Inbox className="w-10 h-10 text-gray-300 mb-4" />
         <p className="text-gray-500 text-center text-sm">
           No alerts at the moment.
           <br />

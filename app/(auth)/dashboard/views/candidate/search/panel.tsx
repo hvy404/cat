@@ -68,7 +68,7 @@ const TabContent: React.FC<TabContentProps> = ({ title, description, features })
 
 export default function EnhancedSearchInfo() {
   return (
-    <Card className="w-full max-w-4xl mx-auto overflow-hidden">
+    <Card className="w-full mx-auto overflow-hidden">
       <CardContent className="p-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Smart Search</h1>

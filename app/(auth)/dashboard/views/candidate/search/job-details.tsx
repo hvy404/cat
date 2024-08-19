@@ -1,5 +1,4 @@
 import { useUser } from "@clerk/nextjs";
-import useStore from "@/app/state/useStore";
 import { useState, useEffect } from "react";
 import {
   Briefcase,
@@ -9,6 +8,7 @@ import {
   DollarSign,
   ChevronLeft,
   Check,
+  AlertCircle,
 } from "lucide-react";
 import {
   Card,
@@ -289,36 +289,37 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
 
           <CardContent className="space-y-4">
             <div className="flex flex-wrap gap-2">
-              <Badge
-                variant="secondary"
-                className="text-sm font-normal py-0.5 px-2"
-              >
-                <MapPin className="w-4 h-4 mr-1" />
-                {jobDetails?.location && jobDetails.location.length > 0
-                  ? `${jobDetails.location[0].city}, ${jobDetails.location[0].state}`
-                  : "Location not specified"}
-              </Badge>
-              <Badge
-                variant="secondary"
-                className="text-sm font-normal py-0.5 px-2"
-              >
-                <ShieldCheck className="w-4 h-4 mr-1" />
-                {jobDetails.security_clearance}
-              </Badge>
-              <Badge
-                variant="secondary"
-                className="text-sm font-normal py-0.5 px-2"
-              >
-                <Briefcase className="w-4 h-4 mr-1" />
-                {jobDetails.experience}
-              </Badge>
-              <Badge
-                variant="secondary"
-                className="text-sm font-normal py-0.5 px-2"
-              >
-                <Clock className="w-4 h-4 mr-1" />
-                {jobDetails.job_type}
-              </Badge>
+              {jobDetails?.location && jobDetails.location.length > 0 && (
+                <Badge
+                  variant="secondary"
+                  className="text-sm font-normal py-0.5 px-2"
+                >
+                  <MapPin className="w-4 h-4 mr-1" />
+                  {jobDetails.location[0].city && jobDetails.location[0].state
+                    ? `${jobDetails.location[0].city}, ${jobDetails.location[0].state}`
+                    : jobDetails.location[0].state ||
+                      jobDetails.location[0].city ||
+                      "Location not specified"}
+                </Badge>
+              )}
+              {jobDetails.security_clearance && (
+                <Badge
+                  variant="secondary"
+                  className="text-sm font-normal py-0.5 px-2"
+                >
+                  <ShieldCheck className="w-4 h-4 mr-1" />
+                  {jobDetails.security_clearance}
+                </Badge>
+              )}
+              {jobDetails.job_type && (
+                <Badge
+                  variant="secondary"
+                  className="text-sm font-normal py-0.5 px-2"
+                >
+                  <Clock className="w-4 h-4 mr-1" />
+                  {jobDetails.job_type}
+                </Badge>
+              )}
             </div>
 
             {jobDetails?.salary_disclose && (
@@ -378,6 +379,16 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
                   )}
               </TabsContent>
               <TabsContent value="requirements" className="mt-4">
+                {jobDetails.experience && (
+                  <div className="mb-4">
+                    <h4 className="text-sm font-semibold mt-3 mb-1 text-gray-700">
+                      Experience
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      {jobDetails.experience}
+                    </p>
+                  </div>
+                )}
                 {jobRelationships.REQUIRES_SKILL && (
                   <>
                     <h4 className="text-sm font-semibold mt-3 mb-1 text-gray-700">
@@ -516,6 +527,16 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
           </DialogHeader>
           {resumeError ? (
             <p className="text-red-500">{resumeError}</p>
+          ) : resumes.length === 0 ? (
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 text-center">
+              <div className="flex items-center justify-center">
+                <AlertCircle className="h-5 w-5 text-yellow-400 mr-2" />
+                <p className="font-medium text-yellow-700">No resumes found</p>
+              </div>
+              <p className="text-sm text-yellow-600 mt-2">
+                Create a tailored resume quickly with Resume Copilot.
+              </p>
+            </div>
           ) : (
             <div className="grid gap-4 py-4">
               {resumes.map((resume, index) => (
@@ -528,6 +549,7 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
               ))}
             </div>
           )}
+
           <DialogFooter className="sm:justify-start">
             {selectedResume ? (
               <>
