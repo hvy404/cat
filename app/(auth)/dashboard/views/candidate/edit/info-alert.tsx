@@ -46,11 +46,11 @@ export default function InitialInfoDialog({
       <AlertDialogContent className="max-w-md bg-white dark:bg-gray-900">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-2xl font-semibold text-gray-900 dark:text-gray-100 text-center mb-4">
-            Welcome to Your Career Storyboard
+            Career Storyboard
           </AlertDialogTitle>
           <AlertDialogDescription className="text-center mb-6 text-gray-600 dark:text-gray-400">
-            Elevate your job search with intelligent, personalized career
-            management.
+            Add detailed information about your work history, skills, and
+            achievements to create a rich career narrative.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="space-y-6">
@@ -58,11 +58,11 @@ export default function InitialInfoDialog({
             <Zap className="w-5 h-5 text-gray-700 dark:text-gray-300 flex-shrink-0 mt-1" />
             <div>
               <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-1">
-                Intelligent Matching
+                Comprehensive Career Profile
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Our AI analyzes your experiences to identify optimal career
-                opportunities tailored to your profile.
+                Add detailed information about your work history, skills, and
+                achievements to create a rich career narrative.
               </p>
             </div>
           </div>
@@ -70,12 +70,13 @@ export default function InitialInfoDialog({
             <Briefcase className="w-5 h-5 text-gray-700 dark:text-gray-300 flex-shrink-0 mt-1" />
             <div>
               <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-1">
-                Resume Coach Copilot
+                AI-Powered Career Repository
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Don't worry about employers seeing every detail you add here.
-                Use our Resume Coach Copilot to build different resume versions,
-                sharing only what you want for each specific role.
+                This private vault stores your experiences, skills, and
+                education, powering our AI to match you with opportunities and
+                assist in crafting tailored resumes.
               </p>
             </div>
           </div>
