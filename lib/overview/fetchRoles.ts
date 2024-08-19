@@ -1,10 +1,8 @@
 "use server";
-import { createClient } from "@/lib/supabase/server";
-import { cookies } from "next/headers";
 import { format, parseISO } from 'date-fns';
+import { createClerkSupabaseClient } from "@/lib/supabase/supabaseClerkServer";
 
-const cookieStore = cookies();
-const supabase = createClient(cookieStore);
+const supabase = createClerkSupabaseClient();
 
 function remapClearanceLevel(level: string) {
   switch (level) {

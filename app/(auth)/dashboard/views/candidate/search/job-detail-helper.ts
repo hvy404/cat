@@ -10,7 +10,7 @@ import {
   addCandidateJobBookmark,
   removeCandidateJobBookmark,
   checkCandidateJobBookmarkExists,
-} from "../../../../../../lib/candidate/search/bookmark";
+} from "@/lib/candidate/search/bookmark";
 import { remapJobProperties } from "./job-utils";
 
 // Create a type that omits the 'embedding' property

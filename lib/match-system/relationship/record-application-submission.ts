@@ -5,6 +5,8 @@ import * as supabaseMutation from "@/lib/match-system/relationship/mutation-sql"
 import * as neo4jMutation from "@/lib/match-system/relationship/mutation-graph";
 import { cookies } from "next/headers";
 import { createClient } from '@/lib/supabase/server';
+import { createClerkSupabaseClient } from "@/lib/supabase/supabaseClerkServer";
+
 
 async function AtomicRecordApplicationSubmission(
   candidateId: string,

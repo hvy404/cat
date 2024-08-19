@@ -1,7 +1,6 @@
 import { useUser } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
 import {
-  Briefcase,
   MapPin,
   ShieldCheck,
   Clock,

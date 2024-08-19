@@ -15,7 +15,6 @@ import { useUser } from "@clerk/nextjs";
 const InboundApplicantsCard: React.FC = () => {
   const { user: clerkUser } = useUser();
   const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
-
   const [applicantCount, setApplicantCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

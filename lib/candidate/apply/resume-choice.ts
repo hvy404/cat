@@ -1,7 +1,5 @@
 "use server";
-
-import { createClient } from "@/lib/supabase/server";
-import { cookies } from "next/headers";
+import { createClerkSupabaseClient } from "@/lib/supabase/supabaseClerkServer";
 
 /**
  * Retrieves the resumes for a given user.
@@ -12,8 +10,7 @@ import { cookies } from "next/headers";
  */
 export async function getResumes(userId: string) {
   try {
-    const cookieStore = cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = createClerkSupabaseClient();
 
     const { data, error } = await supabase
       .from("candidate_resume")
