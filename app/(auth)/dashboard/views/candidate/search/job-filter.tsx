@@ -1,24 +1,25 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Briefcase, Shield, MapPin, DollarSign, Wifi } from "lucide-react";
 import { SerializableJobResult } from "./job-search";
 
-interface FilterOptions {
-    jobTypes: string[];
-    securityClearances: string[];
-    locationTypes: string[];
-    compensationTypes: string[];
-    remoteFlexibility: boolean[];
-  }
-
-const JobFilters: React.FC<{
-    jobs: SerializableJobResult[];
-    onFilterChange: (filters: any) => void;
-  }> = ({ jobs, onFilterChange }) => {
-    const [filters, setFilters] = useState<{
+interface JobFiltersProps {
+  jobs: SerializableJobResult[];
+  onFilterChange: (filters: any) => void;
+  filterChoices: {
+    jobType: string[];
+    securityClearance: string[];
+    locationType: string[];
+    compensationType: string[];
+    remoteFlexibility: boolean | null;
+    salaryMin: string;
+    salaryMax: string;
+  };
+  setFilterChoices: React.Dispatch<
+    React.SetStateAction<{
       jobType: string[];
       securityClearance: string[];
       locationType: string[];
@@ -26,190 +27,170 @@ const JobFilters: React.FC<{
       remoteFlexibility: boolean | null;
       salaryMin: string;
       salaryMax: string;
-    }>({
-      jobType: [],
-      securityClearance: [],
-      locationType: [],
-      compensationType: [],
-      remoteFlexibility: null,
-      salaryMin: "",
-      salaryMax: "",
-    });
-  
-    const [filterOptions, setFilterOptions] = useState<FilterOptions>({
-      jobTypes: [],
-      securityClearances: [],
-      locationTypes: [],
-      compensationTypes: [],
-      remoteFlexibility: [],
-    });
-  
-    const [currentFilters, setCurrentFilters] = useState(filters);
-  
-    useEffect(() => {
-      const options: FilterOptions = {
-        jobTypes: Array.from(
-          new Set(jobs.map((job) => job.job_type).filter(Boolean))
-        ),
-        securityClearances: Array.from(
-          new Set(jobs.map((job) => job.security_clearance).filter(Boolean))
-        ),
-        locationTypes: Array.from(
-          new Set(jobs.map((job) => job.location_type).filter(Boolean))
-        ),
-        compensationTypes: Array.from(
-          new Set(jobs.map((job) => job.compensation_type).filter(Boolean))
-        ),
-        remoteFlexibility: Array.from(
-          new Set(jobs.map((job) => job.remote_flexibility))
-        ),
-      };
-      setFilterOptions(options);
-    }, [jobs]);
-  
-    const handleFilterChange = (filterType: string, value: any) => {
-      setCurrentFilters((prevFilters) => ({
-        ...prevFilters,
-        [filterType]: value,
-      }));
-    };
-  
-    const applyFilters = () => {
-      setFilters(currentFilters);
-      onFilterChange(currentFilters);
-    };
-  
-    return (
-      <div className="space-y-4">
-        {filterOptions.jobTypes.length > 0 && (
-          <div>
-            <h3 className="font-semibold mb-2">Job Type</h3>
-            {filterOptions.jobTypes.map((type) => (
-              <div key={type} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`job-type-${type}`}
-                  checked={currentFilters.jobType.includes(type)}
-                  onCheckedChange={(checked) => {
-                    handleFilterChange(
-                      "jobType",
-                      checked
-                        ? [...currentFilters.jobType, type]
-                        : currentFilters.jobType.filter((t) => t !== type)
-                    );
-                  }}
-                />
-                <Label htmlFor={`job-type-${type}`}>{type}</Label>
-              </div>
-            ))}
-          </div>
-        )}
-  
-        {filterOptions.securityClearances.length > 0 && (
-          <div>
-            <h3 className="font-semibold mb-2">Security Clearance</h3>
-            <Select
-              value={currentFilters.securityClearance[0] || ""}
-              onValueChange={(value) =>
-                handleFilterChange("securityClearance", [value])
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select clearance" />
-              </SelectTrigger>
-              <SelectContent>
-                {filterOptions.securityClearances.map((clearance) => (
-                  <SelectItem key={clearance} value={clearance}>
-                    {clearance}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-  
-        {filterOptions.locationTypes.length > 0 && (
-          <div>
-            <h3 className="font-semibold mb-2">Location Type</h3>
-            {filterOptions.locationTypes.map((type) => (
-              <div key={type} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`location-type-${type}`}
-                  checked={currentFilters.locationType.includes(type)}
-                  onCheckedChange={(checked) => {
-                    handleFilterChange(
-                      "locationType",
-                      checked
-                        ? [...currentFilters.locationType, type]
-                        : currentFilters.locationType.filter((t) => t !== type)
-                    );
-                  }}
-                />
-                <Label htmlFor={`location-type-${type}`}>{type}</Label>
-              </div>
-            ))}
-          </div>
-        )}
-  
-        {filterOptions.remoteFlexibility.includes(true) && (
-          <div>
-            <h3 className="font-semibold mb-2">Remote Flexibility</h3>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="remote-flexibility"
-                checked={currentFilters.remoteFlexibility === true}
-                onCheckedChange={(checked) =>
-                  handleFilterChange("remoteFlexibility", checked ? true : null)
-                }
-              />
-              <Label htmlFor="remote-flexibility">Remote</Label>
-            </div>
-          </div>
-        )}
-  
-        {filterOptions.compensationTypes.length > 0 && (
-          <div>
-            <h3 className="font-semibold mb-2">Compensation Type</h3>
-            <Select
-              value={currentFilters.compensationType[0] || ""}
-              onValueChange={(value) =>
-                handleFilterChange("compensationType", [value])
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select type" />
-              </SelectTrigger>
-              <SelectContent>
-                {filterOptions.compensationTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-  
-        <div>
-          <h3 className="font-semibold mb-2">Salary Range</h3>
-          <div className="flex space-x-2">
-            <Input
-              type="number"
-              placeholder="Min"
-              value={currentFilters.salaryMin}
-              onChange={(e) => handleFilterChange("salaryMin", e.target.value)}
-            />
-            <Input
-              type="number"
-              placeholder="Max"
-              value={currentFilters.salaryMax}
-              onChange={(e) => handleFilterChange("salaryMax", e.target.value)}
-            />
-          </div>
-        </div>
-  
-        <Button onClick={applyFilters}>Apply Filters</Button>
+    }>
+  >;
+}
+
+const FilterSection: React.FC<{
+  title: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}> = ({ title, icon, children }) => (
+  <Card className="mb-4">
+    <CardHeader className="flex flex-row items-center space-x-2 pb-2">
+      {icon}
+      <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+    </CardHeader>
+    <CardContent>{children}</CardContent>
+  </Card>
+);
+
+const CheckboxGroup: React.FC<{
+  items: string[];
+  selectedItems: string[];
+  onChange: (items: string[]) => void;
+}> = ({ items, selectedItems, onChange }) => (
+  <div className="space-y-2">
+    {items.map((item) => (
+      <div key={item} className="flex items-center space-x-2">
+        <Checkbox
+          id={`checkbox-${item}`}
+          checked={selectedItems.includes(item)}
+          onCheckedChange={(checked) => {
+            const newItems = checked
+              ? [...selectedItems, item]
+              : selectedItems.filter((i) => i !== item);
+            onChange(newItems);
+          }}
+        />
+        <Label htmlFor={`checkbox-${item}`}>{item}</Label>
       </div>
-    );
+    ))}
+  </div>
+);
+
+const capitalizeFirstLetter = (string: string) => {
+  return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+};
+
+
+const JobFilters: React.FC<JobFiltersProps> = ({
+  jobs,
+  onFilterChange,
+  filterChoices,
+  setFilterChoices,
+}) => {
+  const handleFilterChange = (filterType: string, value: any) => {
+    const newFilterChoices = {
+      ...filterChoices,
+      [filterType]: value,
+    };
+    setFilterChoices(newFilterChoices);
+    onFilterChange(newFilterChoices);
   };
 
-  export default JobFilters;
+  const capitalizeFirstLetter = (string: string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+  };
+  
+  const jobTypes = [...Array.from(new Set(jobs.map((job) => job.job_type)))].map(capitalizeFirstLetter);
+  
+  const securityClearances = [
+    ...Array.from(new Set(jobs.map((job) => job.security_clearance))),
+  ].map(capitalizeFirstLetter);
+  
+  const locationTypes = [
+    ...Array.from(new Set(jobs.map((job) => job.location_type))),
+  ].map(capitalizeFirstLetter);
+  
+  const compensationTypes = [
+    ...Array.from(new Set(jobs.map((job) => job.compensation_type))),
+  ].map(capitalizeFirstLetter);
+  
+
+  return (
+    <div className="space-y-4">
+      <FilterSection title="Job Type" icon={<Briefcase className="w-5 h-5" />}>
+        <CheckboxGroup
+          items={jobTypes}
+          selectedItems={filterChoices.jobType}
+          onChange={(items) => handleFilterChange("jobType", items)}
+        />
+      </FilterSection>
+
+      <FilterSection
+        title="Security Clearance"
+        icon={<Shield className="w-5 h-5" />}
+      >
+        <CheckboxGroup
+          items={securityClearances}
+          selectedItems={filterChoices.securityClearance}
+          onChange={(items) => handleFilterChange("securityClearance", items)}
+        />
+      </FilterSection>
+
+      <FilterSection
+        title="Location Type"
+        icon={<MapPin className="w-5 h-5" />}
+      >
+        <CheckboxGroup
+          items={locationTypes}
+          selectedItems={filterChoices.locationType}
+          onChange={(items) => handleFilterChange("locationType", items)}
+        />
+      </FilterSection>
+
+      <FilterSection
+        title="Compensation Type"
+        icon={<DollarSign className="w-5 h-5" />}
+      >
+        <CheckboxGroup
+          items={compensationTypes}
+          selectedItems={filterChoices.compensationType}
+          onChange={(items) => handleFilterChange("compensationType", items)}
+        />
+      </FilterSection>
+
+      <FilterSection
+        title="Remote Flexibility"
+        icon={<Wifi className="w-5 h-5" />}
+      >
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="remote-flexibility"
+            checked={filterChoices.remoteFlexibility === true}
+            onCheckedChange={(checked) => {
+              handleFilterChange("remoteFlexibility", checked ? true : null);
+            }}
+          />
+          <Label htmlFor="remote-flexibility">Remote</Label>
+        </div>
+      </FilterSection>
+
+      <FilterSection
+        title="Salary Range"
+        icon={<DollarSign className="w-5 h-5" />}
+      >
+        <div className="flex items-center space-x-2">
+          <Input
+            type="number"
+            placeholder="Min"
+            value={filterChoices.salaryMin}
+            onChange={(e) => handleFilterChange("salaryMin", e.target.value)}
+            className="w-24"
+          />
+          <span>-</span>
+          <Input
+            type="number"
+            placeholder="Max"
+            value={filterChoices.salaryMax}
+            onChange={(e) => handleFilterChange("salaryMax", e.target.value)}
+            className="w-24"
+          />
+        </div>
+      </FilterSection>
+    </div>
+  );
+};
+
+export default JobFilters;

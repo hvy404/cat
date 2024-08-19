@@ -103,7 +103,16 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
     !hasSearched
   );
   const [filteredJobs, setFilteredJobs] = useState<SerializableJobResult[]>([]);
-
+  const [filterChoices, setFilterChoices] = useState({
+    jobType: [] as string[],
+    securityClearance: [] as string[],
+    locationType: [] as string[],
+    compensationType: [] as string[],
+    remoteFlexibility: null as boolean | null,
+    salaryMin: "",
+    salaryMax: ""
+  });
+  
   const candidateId = clerkUser?.publicMetadata?.aiq_cuid as string;
   const dialogDismissed =
     (clerkUser?.publicMetadata?.["3"] as string) === "true";
@@ -579,9 +588,11 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
             <DialogTitle>Search Filters</DialogTitle>
           </DialogHeader>
           <JobFilters
-            jobs={searchResults?.similarJobs || []}
-            onFilterChange={handleFilterChange}
-          />
+  jobs={searchResults?.similarJobs || []}
+  onFilterChange={handleFilterChange}
+  filterChoices={filterChoices}
+  setFilterChoices={setFilterChoices}
+/>
         </DialogContent>
       </Dialog>
 
