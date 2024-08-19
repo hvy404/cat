@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
-import { auth } from "@clerk/nextjs/server";
+//import { auth } from "@clerk/nextjs/server";
 
 export interface Alert {
   id: string;
