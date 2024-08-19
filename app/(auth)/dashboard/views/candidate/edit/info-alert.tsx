@@ -1,3 +1,4 @@
+import { useUser } from "@clerk/nextjs";
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,12 +24,16 @@ export default function InitialInfoDialog({
   open,
   onOpenChange,
 }: InitialInfoDialogProps) {
+  const { user } = useUser();
   const [dontShowAgain, setDontShowAgain] = useState(true);
 
   const handleDismiss = async () => {
     try {
       if (dontShowAgain) {
         await manageOnboardDialog2();
+        if (user) {
+          await user.reload();
+        }
       }
       onOpenChange(false);
     } catch (error) {
@@ -94,7 +99,10 @@ export default function InitialInfoDialog({
             checked={dontShowAgain}
             onCheckedChange={setDontShowAgain}
           />
-          <Label htmlFor="dont-show-again" className="text-sm text-gray-600 dark:text-gray-400">
+          <Label
+            htmlFor="dont-show-again"
+            className="text-sm text-gray-600 dark:text-gray-400"
+          >
             Don't show this again
           </Label>
         </div>

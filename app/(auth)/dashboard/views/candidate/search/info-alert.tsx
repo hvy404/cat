@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -23,12 +24,17 @@ export default function SearchFeatureDialog({
   open,
   onOpenChange,
 }: SearchFeatureDialogProps) {
+  const { user } = useUser();
+
   const [dontShowAgain, setDontShowAgain] = useState(true);
 
   const handleDismiss = async () => {
     try {
       if (dontShowAgain) {
         await manageSearchTipAlert();
+        if (user) {
+          await user.reload(); // Reload the user data to get the updated metadata
+        }
       }
       onOpenChange(false);
     } catch (error) {
