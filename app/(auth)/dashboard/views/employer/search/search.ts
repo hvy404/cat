@@ -130,13 +130,6 @@ export async function searchHandler(mainSearchQuery: string) {
       )
       .sort((a, b) => b.similarity - a.similarity);
 
-    console.log(
-      "Items that didn't meet the threshold:",
-      rerankedResults.filter(
-        (result) => result === null || result.similarity < 0.63
-      )
-    );
-
     const similarTalents = await findSimilarTalents(
       mainSearchEmbedding,
       threshold

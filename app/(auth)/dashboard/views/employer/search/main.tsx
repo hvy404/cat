@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Info } from "lucide-react";
 import { SearchingAnimation } from "@/app/(auth)/dashboard/views/employer/search/assets/loading-animation";
+import { isGenericRole } from "@/lib/search/generic-terms";
+import { GenericRoleDialog } from "@/app/(auth)/dashboard/views/employer/search/generic-role-dialog";
 
 interface SearchResultsProps {
   searchResults: searchResults[];
@@ -39,6 +41,7 @@ export default function EmployerDashboardCandidateSearch() {
     Array<{ similar: string; score: number }>
   >([]);
   const [availableLocations, setAvailableLocations] = useState<string[]>([]);
+  const [isGenericDialogOpen, setIsGenericDialogOpen] = useState(false);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -67,6 +70,15 @@ export default function EmployerDashboardCandidateSearch() {
     setHasSearched(true);
 
     const searchInput = searchInputRef.current?.value || "";
+
+    const isGeneric = await isGenericRole(searchInput);
+
+    if (isGeneric) {
+      setIsSearching(false);
+      setIsGenericDialogOpen(true);
+      return;
+    }
+
     const search: SearchResult | { socket: boolean } = await searchHandler(
       searchInput
     );
@@ -95,7 +107,6 @@ export default function EmployerDashboardCandidateSearch() {
         }));
 
         setSearchResults(processedResults);
-
         setResultFound(true);
         const newFilterIndex = createFilterIndex(processedResults);
         setFilterIndex(newFilterIndex);
@@ -322,6 +333,10 @@ export default function EmployerDashboardCandidateSearch() {
           hasSearched={hasSearched}
         />
       </div>
+      <GenericRoleDialog
+        isOpen={isGenericDialogOpen}
+        onClose={() => setIsGenericDialogOpen(false)}
+      />
     </main>
   );
 }
