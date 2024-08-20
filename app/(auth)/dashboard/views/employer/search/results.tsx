@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import useStore from "@/app/state/useStore";
 import InviteActionWithList from "@/app/(auth)/dashboard/views/employer/search/invite";
 import { Badge } from "@/components/ui/badge"; 
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, GraduationCap, Briefcase, Shield, Star } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { MapPin, GraduationCap, Briefcase, Shield, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export interface searchResults {
   applicant_id: string;
@@ -33,6 +34,8 @@ export function CandidateBrowseResults({
   selectedFilters: { [key: string]: string[] };
 }) {
   const { isExpanded, setExpanded, toggleExpansion } = useStore();
+  const [currentPage, setCurrentPage] = useState(1);
+  const resultsPerPage = 10;
 
   const expandPanel = () => {
     setExpanded(false);
@@ -87,10 +90,20 @@ export function CandidateBrowseResults({
   };
 
   const filteredResults = getFilteredResults();
+  const totalPages = Math.ceil(filteredResults.length / resultsPerPage);
+
+  const paginatedResults = filteredResults.slice(
+    (currentPage - 1) * resultsPerPage,
+    currentPage * resultsPerPage
+  );
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
 
   return (
     <div className="space-y-6">
-      {filteredResults.map((result, index) => (
+      {paginatedResults.map((result, index) => (
         <Card 
           key={index} 
           className="hover:shadow-lg transition-all duration-300 border-0 bg-white dark:bg-gray-800"
@@ -152,6 +165,39 @@ export function CandidateBrowseResults({
           </CardContent>
         </Card>
       ))}
+
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center space-x-2 mt-6">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Previous
+          </Button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <Button
+              key={page}
+              variant={currentPage === page ? "default" : "outline"}
+              size="sm"
+              onClick={() => handlePageChange(page)}
+            >
+              {page}
+            </Button>
+          ))}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            Next
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
