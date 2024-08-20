@@ -108,8 +108,34 @@ export async function searchHandler(mainSearchQuery: string) {
     const threshold = 0.75;
 
     // Re-rank full-text results based on semantic similarity
-    // Take applicant_id from fullTextSearchPotentialRoles and use function to retreive embeddings
-    // Then calculate those embeddings against mainSearchEmbedding. Drop anything update 0.70
+    const rerankedResults = await Promise.all(
+      fullTextCompleteResults.map(async (result) => {
+        const talentEmbedding = await getTalentEmbedding(result.applicant_id);
+        if (talentEmbedding) {
+          const similarity = await calculateSimilarity(
+            mainSearchEmbedding,
+            talentEmbedding
+          );
+          return { ...result, similarity };
+        }
+        return null;
+      })
+    );
+
+    // Filter out null results and those below the threshold
+    const thresholdedResults = rerankedResults
+      .filter(
+        (result): result is typeof result & { similarity: number } =>
+          result !== null && result.similarity >= 0.7
+      )
+      .sort((a, b) => b.similarity - a.similarity);
+
+    console.log(
+      "Items that didn't meet the threshold:",
+      rerankedResults.filter(
+        (result) => result === null || result.similarity < 0.63
+      )
+    );
 
     const similarTalents = await findSimilarTalents(
       mainSearchEmbedding,
@@ -169,7 +195,7 @@ export async function searchHandler(mainSearchQuery: string) {
 
     // Merge and deduplicate results
     const mergedSimilarTalents = [
-      ...fullTextCompleteResults,
+      ...thresholdedResults,
       ...similarTalents,
       ...similarTalentsForRoles.flatMap((result) => result.similarTalents),
     ];
