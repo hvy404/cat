@@ -44,6 +44,28 @@ export async function manageSearchTipAlert() {
     const user = await clerkClient().users.getUser(userId);
     const updatedMetadata = { ...user.publicMetadata, "3": "true" };
 
+
+    await clerkClient().users.updateUser(userId, {
+      publicMetadata: updatedMetadata,
+    });
+
+    return { success: true };
+  } catch (err) {
+    throw new Error("There was an error saving your preference.");
+  }
+}
+
+export async function manageDashboardRightPanelIntro() {
+  try {
+    const { userId } = auth();
+
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+
+    const user = await clerkClient().users.getUser(userId);
+    const updatedMetadata = { ...user.publicMetadata, "4": "true" };
+
     await clerkClient().users.updateUser(userId, {
       publicMetadata: updatedMetadata,
     });

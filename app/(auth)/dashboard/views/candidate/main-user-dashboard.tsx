@@ -229,10 +229,6 @@ export function CandidateDashboard() {
 
   return (
     <div className="max-w">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-xl font-bold text-gray-900">Welcome back!</h1>
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <ProfilePictureUpload userId={candidateId} />
 
