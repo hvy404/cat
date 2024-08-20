@@ -1,18 +1,23 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
 import useStore from "@/app/state/useStore";
 import PreviousSOWDropdown from "@/app/(auth)/dashboard/views/employer/jd-builder/lib/history/previous-sow";
 import SOWUploader from "./lib/sow-uploader/upload";
-import { Upload } from "lucide-react";
+import { Upload, AlertCircle, FileText } from "lucide-react";
 import { grabUserCompanyId } from "@/lib/dashboard/get-company-membership";
 import { CompanyProfileAlert } from "@/app/(auth)/dashboard/views/employer/global/company-profile-alert";
+import { motion } from "framer-motion";
+
+const cardVariants = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 },
+};
 
 export default function JDBuilderNewStart() {
-  // Get state from the store
   const { jdBuilderWizard, setSelectedMenuItem } = useStore();
   const { user: clerkUser } = useUser();
   const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
-
   const [showCompanyProfileAlert, setShowCompanyProfileAlert] = useState(false);
   const [hasCompanyId, setHasCompanyId] = useState(false);
 
@@ -30,40 +35,54 @@ export default function JDBuilderNewStart() {
         }
       }
     };
-
     getCompanyId();
   }, [cuid]);
 
   return (
-    <div className="w-full">
-      <div className="flex flex-col gap-4 items-center overflow-y-auto justify-center min-h-[60vh]">
-        {jdBuilderWizard.sowFile.length === 0 && (
-          <div className="w-full bg-white rounded-lg">
-            <div className="p-6 space-y-4">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-gray-100 rounded-full">
-                  <Upload className="w-4 h-4 text-gray-600" />
-                </div>
-                <h2 className="text-md font-semibold text-gray-800">
-                  Upload SOW File
-                </h2>
-              </div>
-              {!hasCompanyId && (
-              <div className="border border-1 border-gray-200 rounded-md p-4 text-gray-800 text-sm">
-                Complete your company profile to access the Job Description
-                wizard
-              </div>
-              )}
-              {hasCompanyId && <SOWUploader />}
-            </div>
+    <motion.div
+      className="w-full space-y-8 bg-white p-6"
+      variants={cardVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+    >
+      <div className="text-center space-y-2">
+        <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-50 rounded-full">
+          <FileText className="w-6 h-6 text-blue-600" />
+        </div>
+        <h2 className="text-2xl font-semibold text-gray-900">Upload SOW File</h2>
+        <p className="text-sm text-gray-500 max-w-md mx-auto">
+          Upload your Statement of Work (SOW) file to begin creating your job description.
+        </p>
+      </div>
+
+      {!hasCompanyId ? (
+        <div className="flex items-center space-x-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0" />
+          <p className="text-sm text-gray-700">
+            Complete your company profile to access the Job Description wizard
+          </p>
+        </div>
+      ) : (
+        <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+          <SOWUploader />
+        </div>
+      )}
+
+      {hasCompanyId && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-center space-x-4">
+            <div className="flex-grow h-px bg-gray-200"></div>
+            <span className="text-sm text-gray-400 px-2 uppercase tracking-wider">or</span>
+            <div className="flex-grow h-px bg-gray-200"></div>
           </div>
-        )}
-        {hasCompanyId && (
-          <div className="flex flex-row items-center gap-2">
+          <div className="text-center">
+            <p className="text-sm text-gray-500 mb-2">Select from your previous SOW files</p>
             <PreviousSOWDropdown />
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
       {showCompanyProfileAlert && (
         <CompanyProfileAlert
           showCompanyProfileAlert={showCompanyProfileAlert}
@@ -71,6 +90,6 @@ export default function JDBuilderNewStart() {
           setSelectedMenuItem={setSelectedMenuItem}
         />
       )}
-    </div>
+    </motion.div>
   );
 }

@@ -69,8 +69,6 @@ export default function PreviousSOWDropdown() {
 <div className="flex flex-col w-full justify-center items-center space-y-4">
   {previousSessions && previousSessions.length > 0 && (
     <>
-      <Separator orientation="horizontal" className="md:w-1/2 mx-auto" />
-      <p className="text-sm text-gray-500 text-center">or</p>
       <div className="flex justify-center">
         <Select
           onValueChange={handleSelect}
