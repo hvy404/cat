@@ -1,18 +1,19 @@
 "use server";
-import { write } from "@/lib/neo4j/utils";
+import { write, read } from "@/lib/neo4j/utils";
 import { findSimilarTalents } from "@/lib/engine/retreive-talent";
-
 
 interface potentialRole {
   applicant_id: string;
   potential_role: string;
 }
 
-export async function getTopSimilarTalentsAndPotentialRoles(similarTalents: any[]) {
+export async function getTopSimilarTalentsAndPotentialRoles(
+  similarTalents: any[]
+) {
   // sort the talents by score
   similarTalents.sort((a, b) => b.score - a.score);
 
-    // Get the top 3 similar talents
+  // Get the top 3 similar talents
   const topSimilarTalents = similarTalents.slice(0, 3);
 
   let potentialRoles: potentialRole[] = [];
@@ -40,8 +41,6 @@ export async function getTopSimilarTalentsAndPotentialRoles(similarTalents: any[
       // Merge the mapped roles into the potentialRoles array
       potentialRoles = potentialRoles.concat(mappedRoles);
 
-      console.log("Potential Roles:", potentialRoles);
-      
     } catch (error) {
       console.error(
         `Error retrieving potential roles for talent ${applicant_id}:`,
@@ -53,51 +52,123 @@ export async function getTopSimilarTalentsAndPotentialRoles(similarTalents: any[
   return { potentialRoles };
 }
 
-export async function getHighScoringRoles(potentialRolesWithScores: any[], scoreThreshold: number) {
+export async function getHighScoringRoles(
+  potentialRolesWithScores: any[],
+  scoreThreshold: number
+) {
   const highScoringRoles = potentialRolesWithScores.filter(
     (role) => role.score >= scoreThreshold
   );
 
   const filteredHighScoringRoles = highScoringRoles.map((role) => ({
     potential_role: role.potential_role,
-    embedding: role.embedding,
+    embedding: role.potentialRoleEmbedding,
     score: role.score,
   }));
 
   return filteredHighScoringRoles;
 }
-  
-  /**
-   * Retrieves similar talents for the given high scoring roles.
-   *
-   * @param highScoringRoles - An array of high scoring roles.
-   * @returns An array of objects containing the potential role and its similar talents.
-   */
-  export async function getSimilarTalentsForRoles(highScoringRoles: any[]) {
-    const similarTalentsForRoles = await Promise.all(
-      highScoringRoles.map(async (role) => {
-        try {
-          const similarTalents = await findSimilarTalents(role.embedding, 0.67);
-          return {
-            potential_role: role.potential_role,
-            similarTalents,
-          };
-        } catch (error) {
-          console.error(
-            `Error finding similar talents for potential role ${role.potential_role}:`,
-            error
-          );
-          return null;
-        }
-      })
-    );
-  
-    const filteredSimilarTalentsForRoles = similarTalentsForRoles.filter(
-      (result): result is { potential_role: string; similarTalents: any[] } =>
-        result !== null
-    );
-  
-    return filteredSimilarTalentsForRoles;
-  }
 
-  
+/**
+ * Retrieves similar talents for the given high scoring roles.
+ *
+ * @param highScoringRoles - An array of high scoring roles.
+ * @returns An array of objects containing the potential role and its similar talents.
+ */
+export async function getSimilarTalentsForRoles(highScoringRoles: any[]) {
+  const similarTalentsForRoles = await Promise.all(
+    highScoringRoles.map(async (role) => {
+      try {
+        const similarTalents = await findSimilarTalents(role.embedding, 0.70);
+        return {
+          potential_role: role.potential_role,
+          similarTalents,
+        };
+      } catch (error) {
+        console.error(
+          `Error finding similar talents for potential role ${role.potential_role}:`,
+          error
+        );
+        return null;
+      }
+    })
+  );
+
+  const filteredSimilarTalentsForRoles = similarTalentsForRoles.filter(
+    (result): result is { potential_role: string; similarTalents: any[] } =>
+      result !== null
+  );
+
+  return filteredSimilarTalentsForRoles;
+}
+
+
+/**
+ * Performs a full-text search on the "potentialRoleNameIndex" index to find potential roles that match the given search term.
+ *
+ * @param searchTerm - The search term to use for the full-text search.
+ * @returns An array of objects containing the applicant ID, potential role, and score for each matching potential role.
+ */
+export async function fullTextSearchPotentialRoles(searchTerm: string): Promise<any[]> {
+  const query = `
+    CALL db.index.fulltext.queryNodes("potentialRoleNameIndex", $searchTerm) YIELD node as potentialRole, score
+    MATCH (talent:Talent)-[:HAS_POTENTIAL_ROLE]->(potentialRole)
+    RETURN talent.applicant_id, potentialRole, score
+    ORDER BY score DESC
+  `;
+
+  const params = { searchTerm: `${searchTerm}~2` };
+
+  try {
+    const result = await read(query, params);
+    return result.map((record: any) => ({
+      applicant_id: record['talent.applicant_id'],
+      potentialRole: record.potentialRole.properties,
+      score: record.score,
+    }));
+  } catch (error) {
+    console.error("Error executing full-text search query:", error);
+    throw error;
+  }
+}
+
+
+/**
+ * Fetches the complete node information for the applicant with the given ID.
+ * Use in tandem with fullTextSearchPotentialRoles to fetch needed property
+ *
+ * @param applicantId - The ID of the applicant to fetch information for.
+ * @returns An object containing the applicant's ID, title, clearance level, previous role, education, city, state, and zipcode.
+ * @throws {Error} If no applicant is found with the given ID.
+ */
+export async function fetchCompleteNodeInfo(applicant_id: string) {
+  const query = `
+    MATCH (t:Talent {applicant_id: $applicant_id})
+    RETURN t {
+      .applicant_id,
+      .title,
+      .clearance_level,
+      .previous_role,
+      .education,
+      .city,
+      .state,
+      .zipcode
+    } as talent
+  `;
+
+  try {
+    const result = await read(query, { applicant_id });
+    if (result.length > 0) {
+      const talent = result[0].talent;
+      return {
+        ...talent,
+        previous_role: talent.previous_role || [],
+        education: talent.education || []
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error("Error fetching complete node info:", error);
+    throw error;
+  }
+}

@@ -64,8 +64,7 @@ const FormDataSchema = z.object({
   /**
    * The zip code of the candidate's location (5 digits).
    */
-  zipcode: z.string().regex(/^\d{5}$/, "Zip code must be 5 digits"),
-
+  zipcode: z.string().min(1, "Zip code is required").regex(/^\d{5}$/, "Zip code must be 5 digits"),
   /**
    * The education history of the candidate.
    */

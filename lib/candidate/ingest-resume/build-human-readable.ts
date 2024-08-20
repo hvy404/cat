@@ -102,7 +102,7 @@ export function convertResumeToText(resumeData: ResumeData): string {
 
   // Potential Roles
   if (resumeData.potential_roles && resumeData.potential_roles.length > 0) {
-    result += "Potential Roles: ";
+    result += "The candidate is suitable for the following roles: ";
     result += resumeData.potential_roles.join(", ") + "\n\n";
   }
 

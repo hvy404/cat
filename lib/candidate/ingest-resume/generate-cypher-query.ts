@@ -217,6 +217,17 @@ export function generateCandidateCypherQuery(data: Data, userId: string) {
     });
   }
 
+  // Add Potential Roles
+  if (data.potential_roles && data.potential_roles.length > 0) {
+    data.potential_roles.forEach((role, index) => {
+      cypher += `
+        MERGE (pr${index}:PotentialRole {name: "${escapeString(role)}"})
+        CREATE (t)-[:HAS_POTENTIAL_ROLE]->(pr${index})
+        WITH t
+        `;
+    });
+  }
+
   // Projects
   if (data.projects && data.projects.length > 0) {
     data.projects.forEach((project, index) => {

@@ -45,6 +45,8 @@ export async function generateCandidateEmbeddings(applicant_id: string) {
 
   const humanReadableText = convertResumeToText(resumeData);
 
+  console.log(humanReadableText);
+
   const embeddingsResponse = await togetherai.embeddings.create({
     model: "togethercomputer/m2-bert-80M-8k-retrieval",
     input: humanReadableText,
