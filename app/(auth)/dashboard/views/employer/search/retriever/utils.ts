@@ -167,7 +167,7 @@ export async function fetchCompleteNodeInfo(applicantId: string) {
         ...talentInfo,
         previous_role,
         education,
-        score: 1, // Set a default score for full-text search results
+        score: '*',
       };
     }
     return null;

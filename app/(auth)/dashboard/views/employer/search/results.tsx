@@ -1,10 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import useStore from "@/app/state/useStore";
 import InviteActionWithList from "@/app/(auth)/dashboard/views/employer/search/invite";
-import { Badge } from "@/components/ui/badge"; 
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, GraduationCap, Briefcase, Shield, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  MapPin,
+  GraduationCap,
+  Check,
+  Briefcase,
+  Shield,
+  Star,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
 export interface searchResults {
   applicant_id: string;
@@ -60,7 +69,9 @@ export function CandidateBrowseResults({
   };
 
   const getFilteredResults = () => {
-    if (Object.values(selectedFilters).every((filters) => filters.length === 0)) {
+    if (
+      Object.values(selectedFilters).every((filters) => filters.length === 0)
+    ) {
       return searchResults;
     }
 
@@ -81,7 +92,9 @@ export function CandidateBrowseResults({
         isFirstFilter = false;
       } else {
         filteredIndices = new Set(
-          Array.from(filteredIndices).filter((index) => indicesForThisFilter.has(index))
+          Array.from(filteredIndices).filter((index) =>
+            indicesForThisFilter.has(index)
+          )
         );
       }
     });
@@ -104,8 +117,8 @@ export function CandidateBrowseResults({
   return (
     <div className="space-y-6">
       {paginatedResults.map((result, index) => (
-        <Card 
-          key={index} 
+        <Card
+          key={index}
           className="hover:shadow-md transition-all duration-300 border-0 bg-white dark:bg-gray-800"
           onClick={expandPanel}
         >
@@ -113,21 +126,44 @@ export function CandidateBrowseResults({
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
               <div className="space-y-3 flex-grow">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{result.title}</h2>
-                  <Badge variant="secondary" className="bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
-                    {result.score.toFixed(1)}
-                    <Star size={12} className="ml-1 fill-current" />
-                  </Badge>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {result.clearance_level && result.clearance_level !== "Unclassified" && (
-                    <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 flex items-center gap-1 px-2 py-1 rounded-full">
-                      <Shield size={12} />
-                      {result.clearance_level}
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    {result.title}
+                  </h2>
+                  {typeof result.score === "number" ? (
+                    <Badge
+                      variant="secondary"
+                      className="bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200"
+                    >
+                      {result.score.toFixed(1)}
+                      <Star size={12} className="ml-1 fill-current" />
+                    </Badge>
+                  ) : (
+                    <Badge
+                      variant="secondary"
+                      className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                      title="Text match"
+                    >
+                      <p>Similar experience</p>
+                      <Check className="ml-1 h-4 w-4" />
                     </Badge>
                   )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {result.clearance_level &&
+                    result.clearance_level !== "Unclassified" && (
+                      <Badge
+                        variant="secondary"
+                        className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 flex items-center gap-1 px-2 py-1 rounded-full"
+                      >
+                        <Shield size={12} />
+                        {result.clearance_level}
+                      </Badge>
+                    )}
                   {getLocationString(result) && (
-                    <Badge variant="outline" className="text-gray-600 dark:text-gray-300 flex items-center gap-1 px-2 py-1 rounded-full">
+                    <Badge
+                      variant="outline"
+                      className="text-gray-600 dark:text-gray-300 flex items-center gap-1 px-2 py-1 rounded-full"
+                    >
                       <MapPin size={12} />
                       {getLocationString(result)}
                     </Badge>
@@ -139,7 +175,10 @@ export function CandidateBrowseResults({
             <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
               {result.education && result.education.length > 0 && (
                 <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
-                  <GraduationCap size={20} className="text-indigo-500 dark:text-indigo-400" />
+                  <GraduationCap
+                    size={20}
+                    className="text-indigo-500 dark:text-indigo-400"
+                  />
                   <div>
                     <p className="font-medium">{result.education[0].degree}</p>
                     <p>{result.education[0].institution}</p>
@@ -148,12 +187,19 @@ export function CandidateBrowseResults({
               )}
               {result.previous_role.length > 0 && (
                 <div className="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
-                  <Briefcase size={20} className="text-indigo-500 dark:text-indigo-400 flex-shrink-0 mt-1" />
+                  <Briefcase
+                    size={20}
+                    className="text-indigo-500 dark:text-indigo-400 flex-shrink-0 mt-1"
+                  />
                   <div>
                     <p className="font-medium mb-1">Previous Roles</p>
                     <div className="flex flex-wrap gap-1">
                       {result.previous_role.map((role, roleIndex) => (
-                        <Badge key={roleIndex} variant="secondary" className="bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-200">
+                        <Badge
+                          key={roleIndex}
+                          variant="secondary"
+                          className="bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-200"
+                        >
                           {role}
                         </Badge>
                       ))}

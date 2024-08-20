@@ -86,9 +86,18 @@ export default function EmployerDashboardCandidateSearch() {
         Array.isArray(search.similarTalents) &&
         search.similarTalents.length > 0
       ) {
-        setSearchResults(search.similarTalents);
+        const processedResults = search.similarTalents.map((talent) => ({
+          ...talent,
+          score:
+            typeof talent.score === "number"
+              ? Number(talent.score.toFixed(2))
+              : talent.score,
+        }));
+
+        setSearchResults(processedResults);
+
         setResultFound(true);
-        const newFilterIndex = createFilterIndex(search.similarTalents);
+        const newFilterIndex = createFilterIndex(processedResults);
         setFilterIndex(newFilterIndex);
         setAvailableLocations(Object.keys(newFilterIndex.location || {}));
 

@@ -52,6 +52,7 @@ function remapClearanceLevel(level: string) {
 export async function searchHandler(mainSearchQuery: string) {
   let eagleEyeDetected = false;
 
+  // Input validation
   const isValid =
     /^(?=.*[a-zA-Z0-9])(?:(?:!wildwildwest|!eagleeye|\s|[a-zA-Z0-9])+)$/.test(
       mainSearchQuery
@@ -60,6 +61,7 @@ export async function searchHandler(mainSearchQuery: string) {
     return { match: false, similarTalents: [], overlappingRoles: [] };
   }
 
+  // Easter egg detection
   if (mainSearchQuery.includes("!wildwildwest")) {
     console.log("Easter egg detected: Wild Wild West");
   }
@@ -68,31 +70,38 @@ export async function searchHandler(mainSearchQuery: string) {
     eagleEyeDetected = true;
   }
 
+  // Content moderation
   const explicitContent = await contentModerationWordFilter(mainSearchQuery);
   if (explicitContent) {
     return { match: false, socket: true };
   }
 
+  // Clean search query
   let cleanedSearchQuery = mainSearchQuery
     .replace(/!wildwildwest/g, "")
     .replace(/!eagleeye/g, "")
     .trim();
 
   try {
-    const fullTextResults = await fullTextSearchPotentialRoles(cleanedSearchQuery);
+    // Full-text search
+    const fullTextResults = await fullTextSearchPotentialRoles(
+      cleanedSearchQuery
+    );
 
     const fullTextCompleteResults = await Promise.all(
       fullTextResults.map(async (result) => {
         const completeInfo = await fetchCompleteNodeInfo(result.applicant_id);
-        return completeInfo || {
-          applicant_id: result.applicant_id,
-          previous_role: [],
-          education: [],
-          score: 1,
-        };
+        return (
+          completeInfo || {
+            applicant_id: result.applicant_id,
+            previous_role: [],
+            education: [],
+          }
+        );
       })
     );
 
+    // Semantic search preparation
     const buildQuery = `Candidate suitable for role as ${cleanedSearchQuery}.`;
     const mainSearchEmbedding = await generateEmbeddings(buildQuery);
     const threshold = 0.75;
@@ -101,10 +110,12 @@ export async function searchHandler(mainSearchQuery: string) {
       threshold
     );
 
+    // Get potential roles based on similar talents
     const { potentialRoles } = await getTopSimilarTalentsAndPotentialRoles(
       similarTalents
     );
 
+    // Calculate similarity scores for potential roles
     const potentialRolesWithScores = await Promise.all(
       potentialRoles.map(async (role) => {
         try {
@@ -141,6 +152,7 @@ export async function searchHandler(mainSearchQuery: string) {
       } => role !== null && role.potentialRoleEmbedding !== undefined
     );
 
+    // Get high-scoring roles and similar talents for those roles
     const highScoringRoles = await getHighScoringRoles(
       filteredPotentialRolesWithScores,
       0.7
@@ -149,6 +161,7 @@ export async function searchHandler(mainSearchQuery: string) {
       highScoringRoles
     );
 
+    // Merge and deduplicate results
     const mergedSimilarTalents = [
       ...fullTextCompleteResults,
       ...similarTalents,
@@ -159,6 +172,7 @@ export async function searchHandler(mainSearchQuery: string) {
         index === self.findIndex((t) => t.applicant_id === talent.applicant_id)
     );
 
+    // Prepare overlapping roles for eagle eye mode
     const overlappingSimilarRoles = { possible_query: highScoringRoles };
     const overlappingSimilarRolesCondensed =
       overlappingSimilarRoles.possible_query.map((item) => ({
@@ -166,13 +180,14 @@ export async function searchHandler(mainSearchQuery: string) {
         score: item.score,
       }));
 
+    // Return search results
     return {
       match: uniqueSimilarTalents.length > 0,
       similarTalents: uniqueSimilarTalents.map((talent) => ({
         applicant_id: talent.applicant_id,
         title: talent.title,
         clearance_level: remapClearanceLevel(talent.clearance_level),
-        score: talent.score != null ? Number(talent.score.toFixed(2)) : 1,
+        score: typeof talent.score === 'number' ? Number(talent.score.toFixed(2)) : talent.score,
         previous_role: talent.previous_role,
         education: talent.education,
         city: talent.city,
