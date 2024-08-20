@@ -50,7 +50,7 @@ export default function JDBuilderNewStart() {
         <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-50 rounded-full">
           <FileText className="w-6 h-6 text-blue-600" />
         </div>
-        <h2 className="text-2xl font-semibold text-gray-900">Upload SOW File</h2>
+        <h2 className="text-xl font-semibold text-gray-900">Upload SOW File</h2>
         <p className="text-sm text-gray-500 max-w-md mx-auto">
           Upload your Statement of Work (SOW) file to begin creating your job description.
         </p>

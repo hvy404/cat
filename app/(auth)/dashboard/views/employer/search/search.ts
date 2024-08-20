@@ -1,6 +1,6 @@
 "use server";
-import { findSimilarTalents } from "@/lib/engine/retreive-talent";
-import { generateEmbeddings } from "@/lib/llm/generate-embeddings";
+import { findSimilarTalents } from "@/lib/engine/retreive-talent"; // Vector graph search
+import { generateEmbeddings } from "@/lib/llm/generate-embeddings"; // Search query
 import { calculateSimilarity } from "@/lib/engine/calculate-distance";
 import {
   getTopSimilarTalentsAndPotentialRoles,
@@ -49,6 +49,7 @@ function remapClearanceLevel(level: string) {
 }
 
 /**
+ * Candidate search mechanism for employers.
  * The `searchHandler` function handles the search functionality based on the main search query.
  * It performs the following steps:
  * 1. Generates embeddings for the main search query using the `generateEmbeddings` function.
@@ -123,10 +124,10 @@ export async function searchHandler(mainSearchQuery: string) {
   try {
     const buildQuery = `I need candidate that has experience as a ${cleanedSearchQuery}`;
     const embeddings = await generateEmbeddings(buildQuery);
-    const threshold = 0.715;
+    const threshold = 0.73;
     const similarTalents = await findSimilarTalents(embeddings, threshold);
 
-    // Get the top similar talents and their potential roles
+    // Identify the top 3 potential roles to expand search beyond user's query
     const { potentialRoles } = await getTopSimilarTalentsAndPotentialRoles(
       similarTalents
     );

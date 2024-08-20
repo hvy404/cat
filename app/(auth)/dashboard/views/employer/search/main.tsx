@@ -218,24 +218,31 @@ export default function EmployerDashboardCandidateSearch() {
         <div className="mt-4 border border-gray-200 rounded-md p-4">
           <div className="flex justify-between items-center mb-2">
             <h3 className="text-sm font-semibold">Locations</h3>
-            {selectedFilters.location.length > 0 && hasSearched && resultFound && (
-              <button
-                onClick={clearAllFilters}
-                className="text-sm text-slate-500 hover:text-slate-600"
-              >
-                Clear All
-              </button>
-            )}
+            {selectedFilters.location.length > 0 &&
+              hasSearched &&
+              resultFound && (
+                <button
+                  onClick={clearAllFilters}
+                  className="text-sm text-slate-500 hover:text-slate-600"
+                >
+                  Clear All
+                </button>
+              )}
           </div>
           {!hasSearched || isSearching ? (
             <div className="flex flex-col items-center justify-center h-20 text-gray-400 text-center">
               <Info size={18} className="mb-2" />
-              <span className="text-sm">Enter a role and search to see available location filters</span>
+              <span className="text-sm">
+                Enter a role and search to see available location filters
+              </span>
             </div>
           ) : !resultFound ? (
             <div className="flex flex-col items-center justify-center h-20 text-gray-400 text-center">
               <Info size={18} className="mb-2" />
-              <span className="text-sm">No results found. Try a different search term to see location filters.</span>
+              <span className="text-sm">
+                No results found. Try a different search term to see location
+                filters.
+              </span>
             </div>
           ) : (
             <div className="flex flex-wrap gap-2">

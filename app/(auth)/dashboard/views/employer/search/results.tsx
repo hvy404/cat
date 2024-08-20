@@ -106,14 +106,14 @@ export function CandidateBrowseResults({
       {paginatedResults.map((result, index) => (
         <Card 
           key={index} 
-          className="hover:shadow-lg transition-all duration-300 border-0 bg-white dark:bg-gray-800"
+          className="hover:shadow-md transition-all duration-300 border-0 bg-white dark:bg-gray-800"
           onClick={expandPanel}
         >
           <CardContent className="p-6">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
               <div className="space-y-3 flex-grow">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{result.title}</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{result.title}</h2>
                   <Badge variant="secondary" className="bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
                     {result.score.toFixed(1)}
                     <Star size={12} className="ml-1 fill-current" />

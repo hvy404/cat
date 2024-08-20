@@ -39,6 +39,8 @@ export async function getTopSimilarTalentsAndPotentialRoles(similarTalents: any[
 
       // Merge the mapped roles into the potentialRoles array
       potentialRoles = potentialRoles.concat(mappedRoles);
+
+      console.log("Potential Roles:", potentialRoles);
       
     } catch (error) {
       console.error(
