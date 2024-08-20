@@ -10,6 +10,7 @@ import {
   fullTextSearchPotentialRoles,
   fetchCompleteNodeInfo,
 } from "./retriever/utils";
+import { getTalentEmbedding } from "@/lib/candidate/global/mutation";
 import { contentModerationWordFilter } from "@/lib/content-moderation/explicit_word_filter";
 
 export type SearchResult = {
@@ -105,6 +106,11 @@ export async function searchHandler(mainSearchQuery: string) {
     const buildQuery = `Candidate suitable for role as ${cleanedSearchQuery}.`;
     const mainSearchEmbedding = await generateEmbeddings(buildQuery);
     const threshold = 0.75;
+
+    // Re-rank full-text results based on semantic similarity
+    // Take applicant_id from fullTextSearchPotentialRoles and use function to retreive embeddings
+    // Then calculate those embeddings against mainSearchEmbedding. Drop anything update 0.70
+
     const similarTalents = await findSimilarTalents(
       mainSearchEmbedding,
       threshold
@@ -187,7 +193,10 @@ export async function searchHandler(mainSearchQuery: string) {
         applicant_id: talent.applicant_id,
         title: talent.title,
         clearance_level: remapClearanceLevel(talent.clearance_level),
-        score: typeof talent.score === 'number' ? Number(talent.score.toFixed(2)) : talent.score,
+        score:
+          typeof talent.score === "number"
+            ? Number(talent.score.toFixed(2))
+            : talent.score,
         previous_role: talent.previous_role,
         education: talent.education,
         city: talent.city,

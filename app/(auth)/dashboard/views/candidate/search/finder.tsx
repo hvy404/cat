@@ -500,7 +500,7 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
           {searchResults.match && filteredJobs.length > 0 ? (
             <>
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-bold text-gray-800">
+                <h2 className="text-sm font-bold text-gray-800">
                   Search Results
                 </h2>
                 <Button

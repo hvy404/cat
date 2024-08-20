@@ -312,6 +312,25 @@ export async function getTalentNode(
   }
 }
 
+export async function getTalentEmbedding(applicantId: string): Promise<number[] | null> {
+  const query = `
+    MATCH (t:Talent {applicant_id: $applicantId})
+    RETURN t.embedding AS embedding
+  `;
+
+  try {
+    const result = await read(query, { applicantId });
+    if (result && result.length > 0) {
+      return result[0].embedding;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error retrieving Talent embedding:", error);
+    throw error;
+  }
+}
+
+
 export async function getTalentNodeNoEmbedding(
   applicantId: string
 ): Promise<(Omit<TalentNode, "embedding"> & NodeWithId) | null> {
