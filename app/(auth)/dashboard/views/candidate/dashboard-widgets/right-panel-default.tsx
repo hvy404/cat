@@ -107,7 +107,8 @@ const WelcomeContent = () => (
     </CardHeader>
     <CardContent className="p-6">
       <p className="text-sm text-gray-600 mb-6 leading-relaxed">
-        Discover powerful tools and features to accelerate your job search and career growth.
+        Discover powerful tools and features to accelerate your job search and
+        career growth.
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {features.map((feature, index) => (
@@ -121,8 +122,12 @@ const WelcomeContent = () => (
                 <feature.icon className="w-5 h-5 text-gray-700" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-gray-800 mb-1">{feature.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{feature.description}</p>
+                <h3 className="text-sm font-semibold text-gray-800 mb-1">
+                  {feature.title}
+                </h3>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  {feature.description}
+                </p>
               </div>
             </div>
           </motion.div>
@@ -137,7 +142,6 @@ const WelcomeContent = () => (
     </CardFooter>
   </Card>
 );
-
 
 const ContinuousCareerPipelineCard = ({
   onDismiss,
