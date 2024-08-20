@@ -42,6 +42,10 @@ export default function EmployerDashboardCandidateSearch() {
   >([]);
   const [availableLocations, setAvailableLocations] = useState<string[]>([]);
   const [isGenericDialogOpen, setIsGenericDialogOpen] = useState(false);
+  const [genericRoleInfo, setGenericRoleInfo] = useState<{
+    role?: string;
+    qualifier?: string;
+  }>({});
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -73,9 +77,13 @@ export default function EmployerDashboardCandidateSearch() {
 
     const isGeneric = await isGenericRole(searchInput);
 
-    if (isGeneric) {
+    if (isGeneric.isGeneric) {
       setIsSearching(false);
       setIsGenericDialogOpen(true);
+      setGenericRoleInfo({
+        role: isGeneric.role,
+        qualifier: isGeneric.qualifier,
+      });
       return;
     }
 
@@ -336,6 +344,8 @@ export default function EmployerDashboardCandidateSearch() {
       <GenericRoleDialog
         isOpen={isGenericDialogOpen}
         onClose={() => setIsGenericDialogOpen(false)}
+        role={genericRoleInfo.role}
+        qualifier={genericRoleInfo.qualifier}
       />
     </main>
   );

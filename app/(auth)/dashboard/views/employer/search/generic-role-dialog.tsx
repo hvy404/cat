@@ -14,27 +14,30 @@ import { Search, Zap } from "lucide-react";
 interface GenericRoleDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  role?: string;
+  qualifier?: string;
 }
 
 export const GenericRoleDialog: React.FC<GenericRoleDialogProps> = ({
   isOpen,
   onClose,
+  role = "engineer",
+  qualifier = "network",
 }) => {
   const [typedText, setTypedText] = useState("");
-  const fullText = "network";
 
   useEffect(() => {
     if (isOpen) {
       setTypedText("");
       let i = 0;
       const typing = setInterval(() => {
-        setTypedText(fullText.slice(0, i));
+        setTypedText(qualifier.slice(0, i));
         i++;
-        if (i > fullText.length) clearInterval(typing);
+        if (i > qualifier.length) clearInterval(typing);
       }, 150);
       return () => clearInterval(typing);
     }
-  }, [isOpen]);
+  }, [isOpen, qualifier]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -45,12 +48,15 @@ export const GenericRoleDialog: React.FC<GenericRoleDialogProps> = ({
             Refine Your Search
           </DialogTitle>
           <DialogDescription className="text-base text-gray-700 mt-2">
-          Your search term is too broad. Let's narrow it down to find candidates who precisely match your job requirements.
+            Your search term "{role}" is too broad. Let's narrow it down to find
+            candidates who precisely match your job requirements.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-5">
           <div className="bg-white p-5 rounded-lg shadow-inner">
-            <p className="text-base font-semibold text-gray-800 mb-2">Example:</p>
+            <p className="text-base font-semibold text-gray-800 mb-2">
+              Example:
+            </p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -58,7 +64,7 @@ export const GenericRoleDialog: React.FC<GenericRoleDialogProps> = ({
               className="flex items-center space-x-2 text-xl font-bold"
             >
               <span className="text-indigo-600">{typedText}</span>
-              <span className="text-gray-800">engineer</span>
+              <span className="text-gray-800">{role}</span>
             </motion.div>
           </div>
           <AnimatePresence>
@@ -73,7 +79,8 @@ export const GenericRoleDialog: React.FC<GenericRoleDialogProps> = ({
                 Pro Tip
               </h3>
               <p className="text-sm text-gray-700">
-              Add specific qualifiers like 'network engineer' to find more relevant candidates for your role.
+                Add specific qualifiers like '{qualifier} {role}' to find more
+                relevant candidates for your role.
               </p>
             </motion.div>
           </AnimatePresence>
