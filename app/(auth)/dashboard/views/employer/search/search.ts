@@ -8,7 +8,7 @@ import {
   getHighScoringRoles,
   getSimilarTalentsForRoles,
   fullTextSearchPotentialRoles,
-  fetchCompleteNodeInfo
+  fetchCompleteNodeInfo,
 } from "./retriever/utils";
 import { contentModerationWordFilter } from "@/lib/content-moderation/explicit_word_filter";
 
@@ -52,7 +52,10 @@ function remapClearanceLevel(level: string) {
 export async function searchHandler(mainSearchQuery: string) {
   let eagleEyeDetected = false;
 
-  const isValid = /^(?=.*[a-zA-Z0-9])(?:(?:!wildwildwest|!eagleeye|\s|[a-zA-Z0-9])+)$/.test(mainSearchQuery);
+  const isValid =
+    /^(?=.*[a-zA-Z0-9])(?:(?:!wildwildwest|!eagleeye|\s|[a-zA-Z0-9])+)$/.test(
+      mainSearchQuery
+    );
   if (!isValid) {
     return { match: false, similarTalents: [], overlappingRoles: [] };
   }
@@ -70,62 +73,98 @@ export async function searchHandler(mainSearchQuery: string) {
     return { match: false, socket: true };
   }
 
-  let cleanedSearchQuery = mainSearchQuery.replace(/!wildwildwest/g, "").replace(/!eagleeye/g, "").trim();
+  let cleanedSearchQuery = mainSearchQuery
+    .replace(/!wildwildwest/g, "")
+    .replace(/!eagleeye/g, "")
+    .trim();
 
   try {
     const fullTextResults = await fullTextSearchPotentialRoles(cleanedSearchQuery);
+
     const fullTextCompleteResults = await Promise.all(
       fullTextResults.map(async (result) => {
         const completeInfo = await fetchCompleteNodeInfo(result.applicant_id);
-        return { 
-          ...completeInfo, 
-          previous_role: completeInfo.previous_role || [], // Provide a default empty array
-          score: 1 
+        return completeInfo || {
+          applicant_id: result.applicant_id,
+          previous_role: [],
+          education: [],
+          score: 1,
         };
       })
     );
-    
 
     const buildQuery = `Candidate suitable for role as ${cleanedSearchQuery}.`;
     const mainSearchEmbedding = await generateEmbeddings(buildQuery);
     const threshold = 0.75;
-    const similarTalents = await findSimilarTalents(mainSearchEmbedding, threshold);
-    
+    const similarTalents = await findSimilarTalents(
+      mainSearchEmbedding,
+      threshold
+    );
 
-    const { potentialRoles } = await getTopSimilarTalentsAndPotentialRoles(similarTalents);
+    const { potentialRoles } = await getTopSimilarTalentsAndPotentialRoles(
+      similarTalents
+    );
 
     const potentialRolesWithScores = await Promise.all(
       potentialRoles.map(async (role) => {
         try {
           const potentialRoleNameToEmbed = `Suited for role as ${role.potential_role}`;
-          const potentialRoleEmbedding = await generateEmbeddings(potentialRoleNameToEmbed);
-          const score = await calculateSimilarity(mainSearchEmbedding, potentialRoleEmbedding);
-          return { potential_role: role.potential_role, score, potentialRoleEmbedding };
+          const potentialRoleEmbedding = await generateEmbeddings(
+            potentialRoleNameToEmbed
+          );
+          const score = await calculateSimilarity(
+            mainSearchEmbedding,
+            potentialRoleEmbedding
+          );
+          return {
+            potential_role: role.potential_role,
+            score,
+            potentialRoleEmbedding,
+          };
         } catch (error) {
-          console.error(`Error calculating similarity for potential role ${role.potential_role}:`, error);
+          console.error(
+            `Error calculating similarity for potential role ${role.potential_role}:`,
+            error
+          );
           return null;
         }
       })
     );
 
     const filteredPotentialRolesWithScores = potentialRolesWithScores.filter(
-      (role): role is { potential_role: string; score: number; potentialRoleEmbedding: [] } =>
-        role !== null && role.potentialRoleEmbedding !== undefined
+      (
+        role
+      ): role is {
+        potential_role: string;
+        score: number;
+        potentialRoleEmbedding: [];
+      } => role !== null && role.potentialRoleEmbedding !== undefined
     );
 
-    const highScoringRoles = await getHighScoringRoles(filteredPotentialRolesWithScores, 0.7);
-    const similarTalentsForRoles = await getSimilarTalentsForRoles(highScoringRoles);
+    const highScoringRoles = await getHighScoringRoles(
+      filteredPotentialRolesWithScores,
+      0.7
+    );
+    const similarTalentsForRoles = await getSimilarTalentsForRoles(
+      highScoringRoles
+    );
 
-    const mergedSimilarTalents = [...fullTextCompleteResults, ...similarTalents, ...similarTalentsForRoles.flatMap(result => result.similarTalents)];
+    const mergedSimilarTalents = [
+      ...fullTextCompleteResults,
+      ...similarTalents,
+      ...similarTalentsForRoles.flatMap((result) => result.similarTalents),
+    ];
     const uniqueSimilarTalents = mergedSimilarTalents.filter(
-      (talent, index, self) => index === self.findIndex((t) => t.applicant_id === talent.applicant_id)
+      (talent, index, self) =>
+        index === self.findIndex((t) => t.applicant_id === talent.applicant_id)
     );
 
     const overlappingSimilarRoles = { possible_query: highScoringRoles };
-    const overlappingSimilarRolesCondensed = overlappingSimilarRoles.possible_query.map((item) => ({
-      similar: item.potential_role,
-      score: item.score,
-    }));
+    const overlappingSimilarRolesCondensed =
+      overlappingSimilarRoles.possible_query.map((item) => ({
+        similar: item.potential_role,
+        score: item.score,
+      }));
 
     return {
       match: uniqueSimilarTalents.length > 0,

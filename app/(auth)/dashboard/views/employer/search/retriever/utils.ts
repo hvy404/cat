@@ -40,7 +40,6 @@ export async function getTopSimilarTalentsAndPotentialRoles(
 
       // Merge the mapped roles into the potentialRoles array
       potentialRoles = potentialRoles.concat(mappedRoles);
-
     } catch (error) {
       console.error(
         `Error retrieving potential roles for talent ${applicant_id}:`,
@@ -79,7 +78,7 @@ export async function getSimilarTalentsForRoles(highScoringRoles: any[]) {
   const similarTalentsForRoles = await Promise.all(
     highScoringRoles.map(async (role) => {
       try {
-        const similarTalents = await findSimilarTalents(role.embedding, 0.70);
+        const similarTalents = await findSimilarTalents(role.embedding, 0.7);
         return {
           potential_role: role.potential_role,
           similarTalents,
@@ -102,14 +101,15 @@ export async function getSimilarTalentsForRoles(highScoringRoles: any[]) {
   return filteredSimilarTalentsForRoles;
 }
 
-
 /**
  * Performs a full-text search on the "potentialRoleNameIndex" index to find potential roles that match the given search term.
  *
  * @param searchTerm - The search term to use for the full-text search.
  * @returns An array of objects containing the applicant ID, potential role, and score for each matching potential role.
  */
-export async function fullTextSearchPotentialRoles(searchTerm: string): Promise<any[]> {
+export async function fullTextSearchPotentialRoles(
+  searchTerm: string
+): Promise<any[]> {
   const query = `
     CALL db.index.fulltext.queryNodes("potentialRoleNameIndex", $searchTerm) YIELD node as potentialRole, score
     MATCH (talent:Talent)-[:HAS_POTENTIAL_ROLE]->(potentialRole)
@@ -122,7 +122,7 @@ export async function fullTextSearchPotentialRoles(searchTerm: string): Promise<
   try {
     const result = await read(query, params);
     return result.map((record: any) => ({
-      applicant_id: record['talent.applicant_id'],
+      applicant_id: record["talent.applicant_id"],
       potentialRole: record.potentialRole.properties,
       score: record.score,
     }));
@@ -132,7 +132,6 @@ export async function fullTextSearchPotentialRoles(searchTerm: string): Promise<
   }
 }
 
-
 /**
  * Fetches the complete node information for the applicant with the given ID.
  * Use in tandem with fullTextSearchPotentialRoles to fetch needed property
@@ -141,29 +140,34 @@ export async function fullTextSearchPotentialRoles(searchTerm: string): Promise<
  * @returns An object containing the applicant's ID, title, clearance level, previous role, education, city, state, and zipcode.
  * @throws {Error} If no applicant is found with the given ID.
  */
-export async function fetchCompleteNodeInfo(applicant_id: string) {
+export async function fetchCompleteNodeInfo(applicantId: string) {
   const query = `
-    MATCH (t:Talent {applicant_id: $applicant_id})
-    RETURN t {
+    MATCH (talent:Talent {applicant_id: $applicantId})
+    OPTIONAL MATCH (talent)-[:WORKED_AT]->(company)
+    OPTIONAL MATCH (talent)-[:STUDIED_AT]->(education)
+    RETURN talent {
       .applicant_id,
       .title,
       .clearance_level,
-      .previous_role,
-      .education,
       .city,
       .state,
       .zipcode
-    } as talent
+    } AS talentInfo,
+    collect(DISTINCT company.job_title) AS previous_role,
+    collect(DISTINCT {degree: education.degree, institution: education.institution}) AS education
   `;
 
+  const params = { applicantId };
+
   try {
-    const result = await read(query, { applicant_id });
+    const result = await read(query, params);
     if (result.length > 0) {
-      const talent = result[0].talent;
+      const { talentInfo, previous_role, education } = result[0];
       return {
-        ...talent,
-        previous_role: talent.previous_role || [],
-        education: talent.education || []
+        ...talentInfo,
+        previous_role,
+        education,
+        score: 1, // Set a default score for full-text search results
       };
     }
     return null;
