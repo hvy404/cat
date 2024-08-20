@@ -1,5 +1,9 @@
+import React from 'react';
 import useStore from "@/app/state/useStore";
 import InviteActionWithList from "@/app/(auth)/dashboard/views/employer/search/invite";
+import { Badge } from "@/components/ui/badge"; 
+import { Card, CardContent } from "@/components/ui/card";
+import { MapPin, GraduationCap, Briefcase, Shield, Star } from 'lucide-react';
 
 export interface searchResults {
   applicant_id: string;
@@ -53,9 +57,7 @@ export function CandidateBrowseResults({
   };
 
   const getFilteredResults = () => {
-    if (
-      Object.values(selectedFilters).every((filters) => filters.length === 0)
-    ) {
+    if (Object.values(selectedFilters).every((filters) => filters.length === 0)) {
       return searchResults;
     }
 
@@ -75,11 +77,8 @@ export function CandidateBrowseResults({
         filteredIndices = indicesForThisFilter;
         isFirstFilter = false;
       } else {
-        // Intersection with previous filters
         filteredIndices = new Set(
-          Array.from(filteredIndices).filter((index) =>
-            indicesForThisFilter.has(index)
-          )
+          Array.from(filteredIndices).filter((index) => indicesForThisFilter.has(index))
         );
       }
     });
@@ -90,65 +89,68 @@ export function CandidateBrowseResults({
   const filteredResults = getFilteredResults();
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="space-y-6">
       {filteredResults.map((result, index) => (
-        <div
-          key={index}
+        <Card 
+          key={index} 
+          className="hover:shadow-lg transition-all duration-300 border-0 bg-white dark:bg-gray-800"
           onClick={expandPanel}
-          className="flex flex-row w-full items-center gap-2 justify-between rounded-md border border-gray-200/40 hover:bg-gray-100/50 hover:border-2 hover:border-slate-800 p-4"
         >
-          {/* Left */}
-          <div className="flex items-center">
-            <div>
-              <h2 className="font-medium text-sm">{result.title}</h2>
-              <div className="flex flex-row flex-wrap gap-2 text-xs py-2">
-                {result.clearance_level &&
-                  result.clearance_level !== "Unclassified" && (
-                    <div className="border rounded-lg border-gray-200/40 px-2 py-1">
-                      <span className="font-medium">Clearance:</span>{" "}
-                      <p className="text-gray-700">{result.clearance_level}</p>
-                    </div>
-                  )}
-                <div className="border rounded-lg border-gray-200/40 px-2 py-1">
-                  <span className="font-medium">Location:</span>{" "}
-                  <p className="text-gray-700">{getLocationString(result)}</p>
+          <CardContent className="p-6">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+              <div className="space-y-3 flex-grow">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{result.title}</h2>
+                  <Badge variant="secondary" className="bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
+                    {result.score.toFixed(1)}
+                    <Star size={12} className="ml-1 fill-current" />
+                  </Badge>
                 </div>
-                {result.education && result.education.length > 0 && (
-                  <div className="border rounded-lg border-gray-200/40 px-2 py-1">
-                    <span className="font-medium">Education:</span>{" "}
-                    <p className="text-gray-700">
-                      {" "}
-                      {result.education[0].degree} -{" "}
-                      {result.education[0].institution}{" "}
-                    </p>
-                  </div>
-                )}
-                {result.previous_role.length > 0 && (
-                  <div className="border rounded-lg border-gray-200/40 px-2 py-1 max-w-full">
-                    <span className="font-medium">Previous experience:</span>{" "}
-                    <p className="inline-flex items-center flex-wrap leading-5 py-1">
-                      {result.previous_role.map((role, roleIndex) => (
-                        <span
-                          key={roleIndex}
-                          className="flex items-center whitespace-nowrap text-gray-700"
-                        >
-                          {role}
-                          {roleIndex < result.previous_role.length - 1 && (
-                            <span className="mx-2 h-3 w-px bg-gray-300"></span>
-                          )}
-                        </span>
-                      ))}
-                    </p>
-                  </div>
-                )}
+                <div className="flex flex-wrap gap-2">
+                  {result.clearance_level && result.clearance_level !== "Unclassified" && (
+                    <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 flex items-center gap-1 px-2 py-1 rounded-full">
+                      <Shield size={12} />
+                      {result.clearance_level}
+                    </Badge>
+                  )}
+                  {getLocationString(result) && (
+                    <Badge variant="outline" className="text-gray-600 dark:text-gray-300 flex items-center gap-1 px-2 py-1 rounded-full">
+                      <MapPin size={12} />
+                      {getLocationString(result)}
+                    </Badge>
+                  )}
+                </div>
               </div>
+              <InviteActionWithList applicantId={result.applicant_id} />
             </div>
-          </div>
-          {/* Right */}
-          <div className="flex flex-col h-full items-start justify-start">
-          <InviteActionWithList applicantId={result.applicant_id} />
-          </div>
-        </div>
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {result.education && result.education.length > 0 && (
+                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                  <GraduationCap size={20} className="text-indigo-500 dark:text-indigo-400" />
+                  <div>
+                    <p className="font-medium">{result.education[0].degree}</p>
+                    <p>{result.education[0].institution}</p>
+                  </div>
+                </div>
+              )}
+              {result.previous_role.length > 0 && (
+                <div className="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                  <Briefcase size={20} className="text-indigo-500 dark:text-indigo-400 flex-shrink-0 mt-1" />
+                  <div>
+                    <p className="font-medium mb-1">Previous Roles</p>
+                    <div className="flex flex-wrap gap-1">
+                      {result.previous_role.map((role, roleIndex) => (
+                        <Badge key={roleIndex} variant="secondary" className="bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-200">
+                          {role}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       ))}
     </div>
   );
