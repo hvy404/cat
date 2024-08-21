@@ -268,31 +268,64 @@ export async function getJobNodesByIds(jobIds: string[]): Promise<DetailedJobRes
   const query = `
     MATCH (j:Job)
     WHERE j.job_id IN $jobIds
-    RETURN j
+    RETURN j {
+      .job_id, 
+      .job_title, 
+      .company,
+      .security_clearance,
+      .location,
+      .experience,
+      .client,
+      .job_type,
+      .remote_flexibility,
+      .company_overview,
+      .employer_id,
+      .location_type,
+      .summary,
+      .salary_disclose,
+      .private_employer,
+      .compensation_type,
+      .maximum_salary,
+      .starting_salary,
+      .commission_percent,
+      .commission_pay,
+      .ote_salary,
+      .hourly_comp_min,
+      .hourly_comp_max
+    } AS job
   `;
 
   const params = { jobIds };
 
   try {
     const result = await read(query, params);
-    const jobNodes = result.map(record => record.j.properties);
-
-    return Promise.all(jobNodes.map(async (job) => {
+    return Promise.all(result.map(async (record) => {
+      const job = record.job;
       const remappedProperties = await remapJobProperties(
         job.job_type,
         job.location_type,
         job.security_clearance
       );
 
-      return {
+      const jobResult: DetailedJobResult = {
         ...job,
         job_type: remappedProperties.jobType,
         location_type: remappedProperties.locationType,
         security_clearance: remappedProperties.securityClearance,
+        score: 0, // Add a default score if needed
       };
+
+      // Only include company if private_employer is false
+      if (!job.private_employer) {
+        jobResult.company = job.company;
+      }
+
+      return jobResult;
     }));
   } catch (error) {
     console.error("Error fetching Job nodes by IDs:", error);
     throw error;
   }
 }
+
+

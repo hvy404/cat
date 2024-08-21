@@ -47,6 +47,7 @@ import {
 } from "@/components/ui/dialog";
 import JobFilters from "@/app/(auth)/dashboard/views/candidate/search/job-filter";
 import { renderJobDetails } from "@/app/(auth)/dashboard/views/candidate/search/render-job-details";
+import SearchingAnimation from "@/app/(auth)/dashboard/views/candidate/search/searching-animation";
 
 type ExtendedJobSearchResult = JobSearchResult & {
   similarJobs: SerializableJobResult[];
@@ -204,13 +205,11 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
           if (result.status === "success") {
             setSearchSuggestions(result.roles);
           } else {
-            console.error(
-              "Failed to fetch search suggestions:",
-              result.message
-            );
+           /*  console.error(
+              "Failed to fetch search suggestions"
+            ); */
           }
         } catch (error) {
-          console.error("Error fetching search suggestions:", error);
         }
       };
 
@@ -319,6 +318,8 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
           {isLoading ? "Searching..." : "Search"}
         </Button>
       </div>
+
+      {isLoading && <SearchingAnimation />}
 
       {error && <p className="text-red-500 text-xs mb-4">{error}</p>}
 
