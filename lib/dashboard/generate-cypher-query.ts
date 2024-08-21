@@ -144,6 +144,8 @@ export function generateJobCypherQuery(
     "REQUIRED_CERTIFICATION",
     true
   );
+
+  // Additional keywords to search by
   cypher += appendArrayNodes(
     jd.similarJobTitle,
     "AlternativeTitle",

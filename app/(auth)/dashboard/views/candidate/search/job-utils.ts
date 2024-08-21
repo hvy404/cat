@@ -238,3 +238,28 @@ export async function getJobRelationships(jobId: string) {
     throw error;
   }
 }
+
+export async function fullTextSearchAlternativeTitles(
+  searchTerm: string
+): Promise<any[]> {
+  const query = `
+    CALL db.index.fulltext.queryNodes("alternativeTitleIndex", $searchTerm) YIELD node as alternativeTitle, score
+    MATCH (job:Job)-[:HAS_ALTERNATIVE_TITLE]->(alternativeTitle)
+    RETURN alternativeTitle.name, job.job_id, score
+    ORDER BY score DESC
+  `;
+
+  const params = { searchTerm: `${searchTerm}~2` };
+
+  try {
+    const result = await read(query, params);
+    return result.map((record: any) => ({
+      name: record["alternativeTitle.name"],
+      job_id: record["job.job_id"],
+      score: record.score,
+    }));
+  } catch (error) {
+    console.error("Error executing full-text search query for AlternativeTitles:", error);
+    throw error;
+  }
+}

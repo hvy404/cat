@@ -1,7 +1,7 @@
 "use server";
 import { generateEmbeddings } from "@/lib/llm/generate-embeddings";
 import { contentModerationWordFilter } from "@/lib/content-moderation/explicit_word_filter";
-import { findSimilarJobs } from "./job-utils";
+import { findSimilarJobs, fullTextSearchAlternativeTitles } from "./job-utils";
 import { Integer } from "neo4j-driver";
 import { jobSearchCache, getCache, setCache } from "./cache";
 
@@ -102,7 +102,7 @@ export async function jobSearchHandler(
   }
 
   try {
-    // Check cache first
+    /*     // Check cache first
     const cachedResults = await getCache({
       userId,
       searchQuery: cleanedSearchQuery,
@@ -112,15 +112,26 @@ export async function jobSearchHandler(
         match: cachedResults.length > 0,
         similarJobs: cachedResults,
       };
-    }
+    } */
+
+    // Take search query and call fullTextSearchAlternativeTitles then console log results
+    const textSearch = await fullTextSearchAlternativeTitles(
+      cleanedSearchQuery
+    );
+
+    //console.log("Text search: ", textSearch);
+
+    // In the textSearch, remove all duplicates using job_id as value
+
+    // Then use job_id value to get "Job" node who's job_id property matches
+
 
     // If not in cache, perform the search
-    const buildQuery = `I am seeking to apply for a job as a ${cleanedSearchQuery}. I have experience in this field. ${cleanedSearchQuery} may be the opportunity's title or its alternative role names.`;
+    const buildQuery = `I am looking for a job as a ${cleanedSearchQuery}`;
     const embeddings = await generateEmbeddings(buildQuery);
 
+    // Semantic vector search
     const similarJobs = await findSimilarJobs(embeddings, threshold);
-
-    console.log("job-search.ts", similarJobs);
 
     // Ensure all job data is serializable
     const serializableJobs = similarJobs.map((job) => ensureSerializable(job));

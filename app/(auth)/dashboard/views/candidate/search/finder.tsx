@@ -1,28 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
 import {
-  MapPin,
-  ShieldCheck,
-  Clock,
-  DollarSign,
   ChevronLeft,
   ChevronRight,
-  Bookmark,
   Bell,
   BellOff,
   ChevronUp,
   ChevronDown,
-  Search,
   Filter,
 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,7 +27,6 @@ import {
   removeCandidateJobBookmark,
   checkCandidateJobBookmarkExists,
 } from "@/lib/candidate/search/bookmark";
-import { WildWest } from "./flag/wildwest";
 import { BuildSearchRoles } from "@/app/(auth)/dashboard/views/candidate/search/get-search-suggestions";
 import {
   Collapsible,
