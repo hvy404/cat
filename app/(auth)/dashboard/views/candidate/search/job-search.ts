@@ -1,7 +1,8 @@
 "use server";
+
 import { generateEmbeddings } from "@/lib/llm/generate-embeddings";
 import { contentModerationWordFilter } from "@/lib/content-moderation/explicit_word_filter";
-import { findSimilarJobs, fullTextSearchAlternativeTitles } from "./job-utils";
+import { findSimilarJobs, fullTextSearchAlternativeTitles, getJobNodesByIds } from "./job-utils";
 import { Integer } from "neo4j-driver";
 import { jobSearchCache, getCache, setCache } from "./cache";
 
@@ -75,9 +76,7 @@ export async function jobSearchHandler(
       threshold = 0.55;
       cleanedSearchQuery = mainSearchQuery.replace("!space", "").trim();
       break;
-    // Add more easter eggs here as needed
     default:
-      // No easter egg found, use default threshold and don't modify the query
       break;
   }
 
@@ -102,39 +101,23 @@ export async function jobSearchHandler(
   }
 
   try {
-    /*     // Check cache first
-    const cachedResults = await getCache({
-      userId,
-      searchQuery: cleanedSearchQuery,
-    });
-    if (cachedResults) {
-      return {
-        match: cachedResults.length > 0,
-        similarJobs: cachedResults,
-      };
-    } */
+    // Perform text search
+    const textSearchResults = await fullTextSearchAlternativeTitles(cleanedSearchQuery);
+    const uniqueJobIds = new Set(textSearchResults.map(job => job.job_id));
 
-    // Take search query and call fullTextSearchAlternativeTitles then console log results
-    const textSearch = await fullTextSearchAlternativeTitles(
-      cleanedSearchQuery
-    );
-
-    //console.log("Text search: ", textSearch);
-
-    // In the textSearch, remove all duplicates using job_id as value
-
-    // Then use job_id value to get "Job" node who's job_id property matches
-
-
-    // If not in cache, perform the search
+    // Perform semantic search
     const buildQuery = `I am looking for a job as a ${cleanedSearchQuery}`;
     const embeddings = await generateEmbeddings(buildQuery);
+    const semanticSearchResults = await findSimilarJobs(embeddings, threshold);
 
-    // Semantic vector search
-    const similarJobs = await findSimilarJobs(embeddings, threshold);
+    // Merge job IDs from both searches
+    semanticSearchResults.forEach(job => uniqueJobIds.add(job.job_id));
+
+    // Fetch full job details for all unique job IDs
+    const allJobs = await getJobNodesByIds(Array.from(uniqueJobIds));
 
     // Ensure all job data is serializable
-    const serializableJobs = similarJobs.map((job) => ensureSerializable(job));
+    const serializableJobs = allJobs.map((job) => ensureSerializable(job));
 
     // Cache the results
     await setCache({
@@ -146,7 +129,6 @@ export async function jobSearchHandler(
     return {
       match: serializableJobs.length > 0,
       similarJobs: serializableJobs,
-      // if easteregg is found, return the threshold and cleaned query
       flag: {
         threshold,
         mode,

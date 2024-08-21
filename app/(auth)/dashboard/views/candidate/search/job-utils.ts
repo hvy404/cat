@@ -263,3 +263,36 @@ export async function fullTextSearchAlternativeTitles(
     throw error;
   }
 }
+
+export async function getJobNodesByIds(jobIds: string[]): Promise<DetailedJobResult[]> {
+  const query = `
+    MATCH (j:Job)
+    WHERE j.job_id IN $jobIds
+    RETURN j
+  `;
+
+  const params = { jobIds };
+
+  try {
+    const result = await read(query, params);
+    const jobNodes = result.map(record => record.j.properties);
+
+    return Promise.all(jobNodes.map(async (job) => {
+      const remappedProperties = await remapJobProperties(
+        job.job_type,
+        job.location_type,
+        job.security_clearance
+      );
+
+      return {
+        ...job,
+        job_type: remappedProperties.jobType,
+        location_type: remappedProperties.locationType,
+        security_clearance: remappedProperties.securityClearance,
+      };
+    }));
+  } catch (error) {
+    console.error("Error fetching Job nodes by IDs:", error);
+    throw error;
+  }
+}
