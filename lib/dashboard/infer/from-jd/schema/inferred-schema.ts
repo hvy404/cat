@@ -20,7 +20,7 @@ export const assumedDetailsSchema = z
       .max(5)
       .nullable()
       .describe(
-        "List of 1-5 past roles or job titles that may align well with the demands and responsibilities of this job. Null if cannot be confidently inferred."
+        "Past roles or job titles that may align well with the demands and responsibilities of this job. Max 10 roles."
       ),
   })
   .describe("Assumed Details from Job Description");

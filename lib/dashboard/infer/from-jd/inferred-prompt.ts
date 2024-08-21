@@ -19,7 +19,7 @@ Guidelines for each field:
    - Set to null if there's no clear information about work location flexibility.
 
 3. suitablePastRoles (string[] | null):
-   - Provide an array of 1-5 strings representing past roles or job titles that align well with this job.
+   - Provide an array of up to 10 strings representing past roles or job titles that align well with this job.
    - Include only roles that are clearly relevant based on the job description.
    - Set to null if there's not enough information to confidently infer suitable past roles.
 

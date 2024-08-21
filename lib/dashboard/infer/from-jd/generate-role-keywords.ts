@@ -1,7 +1,9 @@
 "use server";
 import { OpenAI } from "openai";
-import { createClient } from "@/lib/supabase/server";
-import { cookies } from "next/headers";
+import { zodToJsonSchema } from "zod-to-json-schema";
+import { jobRoleKeywordSchema } from "@/lib/dashboard/infer/from-jd/schema/keyworld-builder";
+
+const jsonSchema = zodToJsonSchema(jobRoleKeywordSchema, "KeywordSchema");
 
 interface JobDescription {
   skills: string[];
@@ -28,10 +30,7 @@ export async function generateJobRoleKeywords(
     baseURL: "https://api.together.xyz/v1",
   });
 
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
-
-  const systemPrompt = `Your task is to build a list of up to 25 additional role/job titles that fit the given Job Description.
+  const systemPrompt = `Your task is to build a list of up to 10 additional role/job titles that fit the given Job Description.
 
 - Use the responsibilities and qualifications in the job description to help narrow down the roles.
 - You don't need to be overly specific, such as listing specific technologies.
@@ -50,7 +49,6 @@ export async function generateJobRoleKeywords(
   const userPrompt = `<JobDescription>
     ${JSON.stringify(jobDesc)}
     </JobDescription>`;
-
   try {
     const extract = await togetherai.chat.completions.create({
       messages: [
@@ -63,38 +61,20 @@ export async function generateJobRoleKeywords(
           content: userPrompt,
         },
       ],
-      model: "meta-llama/Llama-3-70b-chat-hf",
-      temperature: 0.6,
-      max_tokens: 3900,
+      model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
+      temperature: 0.4,
+      max_tokens: 3000,
+      // @ts-ignore – Together.ai supports schema while OpenAI does not
+      response_format: { type: "json_object", schema: jsonSchema },
     });
 
     if (!extract.choices[0].message.content) {
       throw new Error("No content in the API response");
     }
 
-    const detectedRoles = JSON.parse(
-      extract.choices[0].message.content
-    ) as KeywordResponse;
-
-    if (!Array.isArray(detectedRoles.similarJobTitle)) {
-      throw new Error(
-        "Invalid response format: similarJobTitle is not an array"
-      );
-    }
-
-    return detectedRoles;
+    return JSON.parse(extract.choices[0].message.content) as KeywordResponse;
   } catch (error) {
-    if (error instanceof SyntaxError) {
-      console.error("Error parsing JSON response", error);
-      throw new Error(
-        "Failed to parse the generated keywords. The response was not valid JSON."
-      );
-    } else if (error instanceof Error) {
-      console.error("Error generating keywords", error);
-      throw new Error(`Failed to generate keywords: ${error.message}`);
-    } else {
-      console.error("Unknown error", error);
-      throw new Error("An unknown error occurred while generating keywords.");
-    }
+    console.error("Error generating or processing keywords:", error);
+    throw new Error("Failed to generate or process keywords");
   }
 }
