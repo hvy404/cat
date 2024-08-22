@@ -43,11 +43,11 @@ export const GenericRoleDialog: React.FC<GenericRoleDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] bg-gradient-to-br from-blue-50 to-indigo-50 border-0 shadow-xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-indigo-700 flex items-center">
-            <Search className="w-6 h-6 mr-2 text-indigo-500" />
+          <DialogTitle className="text-xl font-bold text-indigo-700 flex items-center">
+            <Search className="w-4 h-4 mr-2 text-indigo-500" />
             Refine Your Search
           </DialogTitle>
-          <DialogDescription className="text-base text-gray-700 mt-2">
+          <DialogDescription className="text-sm text-gray-700 mt-2">
             Your search term "{role}" is too broad. Let's narrow it down to find
             candidates who precisely match your job requirements.
           </DialogDescription>

@@ -44,13 +44,13 @@ export const systemPrompt2 = `You are a highly precise AI assistant tasked with 
 - Ensure all fields are present in the output, even if null.
 - For array fields, use an empty array [] if no items are present.
 - Each item in an array should be a complete, coherent statement or requirement.
-- For 'experience', provide a concise string describing the required experience, e.g., "3+ years in software development".
-- 'preferredSkills' should be an educated guess based on the job description, but don't invent skills not implied by the text.
+- For 'experience', provide a concise string describing the required job experience, e.g., "3+ years in software development".
+- 'preferredSkills' should be an derived based on the job description, but don't invent skills not implied by the text.
 
 Example output:
 {
   "responsibilities": ["Develop and maintain web applications", "Collaborate with cross-functional teams"],
-  "qualifications": ["Bachelor's degree in Computer Science or related field", "Proficiency in JavaScript and React"],
+  "qualifications": ["Proficiency in JavaScript and React", "Expereince with AWS"],
   "education": ["Bachelor's degree"],
   "certifications": null,
   "skills": ["JavaScript", "Node.js"],

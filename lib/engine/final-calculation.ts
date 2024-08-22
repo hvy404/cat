@@ -1,27 +1,23 @@
+"use server";
+
 type Scores = {
   original: number; // The original cosine similarity score
   A: number; // Score for REQUIRES_SKILL - HAS_SKILL match
-  B: number; // Score for REQUIRES_SKILL - HAS_SOFT_SKILL match
-  C: number; // Score for REQUIRES_QUALIFICATION - WORKED_AT match
-  D: number; // Score for REQUIRES_QUALIFICATION - STUDIED_AT match
-  E: number; // Score for REQUIRED_EDUCATION - STUDIED_AT match
-  F: number; // Score for REQUIRED_CERTIFICATION - HAS_CERTIFICATION match
-  G: number; // Score for PREFERS_SKILL - HAS_SOFT_SKILL match
-  H: number; // Score for REQUIRES_QUALIFICATION - HAS_INDUSTRY_EXPERIENCE match
-  I: number; // Score for SUITABLE_FOR_ROLE - HAS_POTENTIAL_ROLE match
+  B: number; // Score for experience - WORKED_AT match
+  C: number; // Score for education - STUDIED_AT match
+  D: number; // Score for REQUIRED_CERTIFICATION - HAS_CERTIFICATION match
+  E: number; // Score for PREFERS_SKILL - HAS_SKILL match
+  F: number; // Score for SUITABLE_FOR_ROLE - HAS_POTENTIAL_ROLE match
 };
 
 type Weights = {
   original: number; // Weight for the original cosine similarity score
   A: number; // Weight for REQUIRES_SKILL - HAS_SKILL match
-  B: number; // Weight for REQUIRES_SKILL - HAS_SOFT_SKILL match
-  C: number; // Weight for REQUIRES_QUALIFICATION - WORKED_AT match
-  D: number; // Weight for REQUIRES_QUALIFICATION - STUDIED_AT match
-  E: number; // Weight for REQUIRED_EDUCATION - STUDIED_AT match
-  F: number; // Weight for REQUIRED_CERTIFICATION - HAS_CERTIFICATION match
-  G: number; // Weight for PREFERS_SKILL - HAS_SOFT_SKILL match
-  H: number; // Weight for REQUIRES_QUALIFICATION - HAS_INDUSTRY_EXPERIENCE match
-  I: number; // Weight for SUITABLE_FOR_ROLE - HAS_POTENTIAL_ROLE match
+  B: number; // Weight for experience - WORKED_AT match
+  C: number; // Weight for education - STUDIED_AT match
+  D: number; // Weight for REQUIRED_CERTIFICATION - HAS_CERTIFICATION match
+  E: number; // Weight for PREFERS_SKILL - HAS_SKILL match
+  F: number; // Weight for SUITABLE_FOR_ROLE - HAS_POTENTIAL_ROLE match
 };
 
 type Config = {
@@ -32,14 +28,11 @@ type Config = {
 const defaultWeights: Weights = {
   original: 0.5, // Higher weight for original cosine similarity - this similarity of birdseye of the JD and resume
   A: 0.25, // Significant weight for REQUIRES_SKILL - HAS_SKILL match
-  B: 0.15, // Lower weight for REQUIRES_SKILL - HAS_SOFT_SKILL match
-  C: 0.2, // Significant weight for REQUIRES_QUALIFICATION - WORKED_AT match
-  D: 0.10, // Lower weight for REQUIRES_QUALIFICATION - STUDIED_AT match
-  E: 0.2, // Significant weight for REQUIRED_EDUCATION - STUDIED_AT match
-  F: 0.15, // Lower weight for REQUIRED_CERTIFICATION - HAS_CERTIFICATION match
-  G: 0.05, // Very low weight for PREFERS_SKILL - HAS_SOFT_SKILL match
-  H: 0.05, // Very low weight for REQUIRES_QUALIFICATION - HAS_INDUSTRY_EXPERIENCE match
-  I: 0.05, // Very low weight for SUITABLE_FOR_ROLE - HAS_POTENTIAL_ROLE match
+  B: 0.2, // Significant weight for experience - WORKED_AT match
+  C: 0.2, // Significant weight for education - STUDIED_AT match
+  D: 0.15, // Lower weight for REQUIRED_CERTIFICATION - HAS_CERTIFICATION match
+  E: 0.05, // Very low weight for PREFERS_SKILL - HAS_SKILL match
+  F: 0.05, // Very low weight for SUITABLE_FOR_ROLE - HAS_POTENTIAL_ROLE match
 };
 
 const defaultConfig: Config = {
@@ -88,11 +81,11 @@ function validateWeights(weights: Weights): void {
  * @param config - (Optional) Configuration object to control the calculation process. Defaults to preprogrammed config.
  * @returns The final match score as a weighted average.
  */
-export function calculateEnhancedScore(
+export async function calculateEnhancedScore(
   scores: Partial<Scores>,
   weights: Weights = defaultWeights,
   config: Config = defaultConfig
-): number {
+): Promise<number> {
   // Validate the weights
   validateWeights(weights);
 
@@ -105,9 +98,6 @@ export function calculateEnhancedScore(
     D: wD,
     E: wE,
     F: wF,
-    G: wG,
-    H: wH,
-    I: wI,
   } = weights;
 
   // Calculate the sum of the weights for non-empty scores
@@ -119,9 +109,6 @@ export function calculateEnhancedScore(
   if (scores.D !== undefined) weightSum += wD;
   if (scores.E !== undefined) weightSum += wE;
   if (scores.F !== undefined) weightSum += wF;
-  if (scores.G !== undefined) weightSum += wG;
-  if (scores.H !== undefined) weightSum += wH;
-  if (scores.I !== undefined) weightSum += wI;
 
   // Normalize weights if the sum is not 1 and normalization is enabled
   let normalizedWeights = weights;
@@ -135,43 +122,35 @@ export function calculateEnhancedScore(
       D: scores.D !== undefined ? wD / weightSum : 0,
       E: scores.E !== undefined ? wE / weightSum : 0,
       F: scores.F !== undefined ? wF / weightSum : 0,
-      G: scores.G !== undefined ? wG / weightSum : 0,
-      H: scores.H !== undefined ? wH / weightSum : 0,
-      I: scores.I !== undefined ? wI / weightSum : 0,
     };
   }
 
   // Calculate the weighted average for non-empty scores
   let finalScore = 0;
-  if (scores.original !== undefined) finalScore += normalizedWeights.original * scores.original;
+  if (scores.original !== undefined)
+    finalScore += normalizedWeights.original * scores.original;
   if (scores.A !== undefined) finalScore += normalizedWeights.A * scores.A;
   if (scores.B !== undefined) finalScore += normalizedWeights.B * scores.B;
   if (scores.C !== undefined) finalScore += normalizedWeights.C * scores.C;
   if (scores.D !== undefined) finalScore += normalizedWeights.D * scores.D;
   if (scores.E !== undefined) finalScore += normalizedWeights.E * scores.E;
   if (scores.F !== undefined) finalScore += normalizedWeights.F * scores.F;
-  if (scores.G !== undefined) finalScore += normalizedWeights.G * scores.G;
-  if (scores.H !== undefined) finalScore += normalizedWeights.H * scores.H;
-  if (scores.I !== undefined) finalScore += normalizedWeights.I * scores.I;
 
   return finalScore;
 }
 
 /*
  * Example usage
- * 
+ *
  * Scenario 1: All scores available
  * const scoresAllAvailable: Scores = {
  *   original: 0.8,       // Example original cosine similarity score
  *   A: 0.7,              // Example REQUIRES_SKILL - HAS_SKILL match score
- *   B: 0.6,              // Example REQUIRES_SKILL - HAS_SOFT_SKILL match score
- *   C: 0.9,              // Example REQUIRES_QUALIFICATION - WORKED_AT match score
- *   D: 0.8,              // Example REQUIRES_QUALIFICATION - STUDIED_AT match score
- *   E: 0.75,             // Example REQUIRED_EDUCATION - STUDIED_AT match score
- *   F: 0.85,             // Example REQUIRED_CERTIFICATION - HAS_CERTIFICATION match score
- *   G: 0.6,              // Example PREFERS_SKILL - HAS_SOFT_SKILL match score
- *   H: 0.7,              // Example REQUIRES_QUALIFICATION - HAS_INDUSTRY_EXPERIENCE match score
- *   I: 0.65              // Example SUITABLE_FOR_ROLE - HAS_POTENTIAL_ROLE match score
+ *   B: 0.9,              // Example experience - WORKED_AT match score
+ *   C: 0.75,             // Example education - STUDIED_AT match score
+ *   D: 0.85,             // Example REQUIRED_CERTIFICATION - HAS_CERTIFICATION match score
+ *   E: 0.6,              // Example PREFERS_SKILL - HAS_SKILL match score
+ *   F: 0.65              // Example SUITABLE_FOR_ROLE - HAS_POTENTIAL_ROLE match score
  * };
  *
  * // Call the function with default weights and configuration
@@ -181,14 +160,11 @@ export function calculateEnhancedScore(
  * const customWeights: Weights = {
  *   original: 0.6,
  *   A: 0.15,
- *   B: 0.1,
- *   C: 0.25,
+ *   B: 0.25,
+ *   C: 0.3,
  *   D: 0.2,
- *   E: 0.3,
- *   F: 0.2,
- *   G: 0.05,
- *   H: 0.1,
- *   I: 0.05
+ *   E: 0.05,
+ *   F: 0.05
  * };
  * const finalScoreAllAvailableCustomWeights = calculateEnhancedScore(scoresAllAvailable, customWeights);
  *
@@ -196,14 +172,11 @@ export function calculateEnhancedScore(
  * const scoresSomeMissing: Partial<Scores> = {
  *   original: 0.8,       // Example original cosine similarity score
  *   A: 0.7,              // Example REQUIRES_SKILL - HAS_SKILL match score
- *   // B score missing
- *   C: 0.9,              // Example REQUIRES_QUALIFICATION - WORKED_AT match score
- *   // D score missing
- *   E: 0.75,             // Example REQUIRED_EDUCATION - STUDIED_AT match score
- *   F: 0.85,             // Example REQUIRED_CERTIFICATION - HAS_CERTIFICATION match score
- *   G: 0.6,              // Example PREFERS_SKILL - HAS_SOFT_SKILL match score
- *   // H score missing
- *   I: 0.65              // Example SUITABLE_FOR_ROLE - HAS_POTENTIAL_ROLE match score
+ *   B: 0.9,              // Example experience - WORKED_AT match score
+ *   // C score missing
+ *   D: 0.85,             // Example REQUIRED_CERTIFICATION - HAS_CERTIFICATION match score
+ *   E: 0.6,              // Example PREFERS_SKILL - HAS_SKILL match score
+ *   // F score missing
  * };
  *
  * // Call the function with default weights and configuration

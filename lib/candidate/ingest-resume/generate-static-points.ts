@@ -35,7 +35,7 @@ export async function generateLiftedStatic(resume: string, id: string) {
     - end_date: (optional) The end date of the education in the format "YYYY-MM" (e.g., "2022-06"). Use "present" for ongoing education.
   - location: An object containing city (optional), state (two letter abbreviation) (optional), and zipcode (optional).
   - technical_skills: An array of strings listing hard skills, tools, and technologies from previous work experience.
-  - industry_experience: (optional) An array of strings listing specific knowledge areas in which the candidate has experience.
+  - industry_experience: (optional) An array of strings listing specific industry sectors, specialized domains, or knowledge areas in which the candidate has demonstrated expertise or significant experience.
   - clearance_level: (optional) If applicable, should be one of: "none", "basic", "confidential", "critical", "paramount", "q_clearance", or "l_clearance".
   - professional_certifications: (optional) An array of objects, each containing:
     - name: Name of the certification.

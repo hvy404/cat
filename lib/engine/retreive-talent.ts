@@ -211,7 +211,6 @@ export async function getTalentRelationshipDetails(
       case "HAS_SKILL":
       case "HAS_CERTIFICATION":
       case "HAS_INDUSTRY_EXPERIENCE":
-      case "HAS_SOFT_SKILL":
       case "HAS_POTENTIAL_ROLE":
       case "HAS_MENTOR":
       case "HAS_REFERENCE":

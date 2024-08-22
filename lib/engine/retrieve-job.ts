@@ -83,3 +83,27 @@ export async function getJobRelationshipDetails(
     throw error;
   }
 }
+
+export async function getJobProperties(
+  jobID: string,
+  properties: string[]
+): Promise<Record<string, any>> {
+  const query = `
+    MATCH (j:Job {job_id: $jobID})
+    RETURN ${properties.map(prop => `j.${prop} AS ${prop}`).join(', ')}
+  `;
+
+  const params = { jobID };
+
+  try {
+    const result = await read(query, params);
+    if (result.length === 0) {
+      throw new Error(`No job found with ID: ${jobID}`);
+    }
+    return result[0];
+  } catch (error) {
+    console.error("Error executing Neo4j query:", error);
+    throw error;
+  }
+}
+
