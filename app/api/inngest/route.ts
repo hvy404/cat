@@ -27,6 +27,9 @@ import { jdWizardGetPersonnel } from "@/inngest/jd-wizard-get-personnel";
 import { jdGenerateDescription } from "@/inngest/jd-wizard-generate-jd";
 import { jdWizardWriteDraft } from "@/inngest/jd-wizard-write-draft"; // JD Wizard - Write draft function starter
 import { employerSignupHandler } from "@/inngest/signup-employer-flow"; // Handle flow after employer signs up
+import { buildMatchingQueue } from "@/inngest/matching-system-build-queue"; // Rebuild matching queue
+import { processJobQueue } from "@/inngest/matching-system-process-job"; // Process matching queue
+import { matchingSystemOrchestrator } from "@/inngest/matching-system-orchestrator"; // Main matching system orchestrator
 
 /**
  * Represents the serve function for handling HTTP requests.
@@ -66,5 +69,8 @@ export const { GET, POST, PUT } = serve({
     jdGenerateDescription,
     jdWizardWriteDraft,
     employerSignupHandler,
+    buildMatchingQueue,
+    processJobQueue,
+    matchingSystemOrchestrator,
   ],
 });
