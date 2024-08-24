@@ -34,7 +34,7 @@ export const buildMatchingQueue = inngest.createFunction(
 
     // return here
     return {
-        success: true,
+      success: true,
       message: "Successfully retrieved active job IDs",
       activeJobData: activeJobData,
     };

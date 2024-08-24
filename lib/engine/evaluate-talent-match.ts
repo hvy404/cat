@@ -91,8 +91,8 @@ export async function evaluateTalentMatch(
   }`;
   const talentString = `${prefixPair.talent} ${talentRelationships.join(", ")}`;
 
-  console.log("Job Details:", jobString);
-  console.log("Talent Relationships:", talentString);
+  //console.log("Job Details:", jobString);
+  //console.log("Talent Relationships:", talentString);
 
   // Get embedding for job details
   const jobEmbedding = await generateEmbedding(jobString);
@@ -106,5 +106,5 @@ export async function evaluateTalentMatch(
     talentEmbedding
   );
 
-  return { evaluated: true, score: similarityScore };
+  return { evaluated: true, score: similarityScore, set: combo };
 }

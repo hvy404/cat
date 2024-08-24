@@ -47,7 +47,7 @@ export async function findSimilarTalents(
   threshold: number
 ) {
   const query = `
-    CALL db.index.vector.queryNodes('talent-embeddings', 100, $embedding)
+    CALL db.index.vector.queryNodes('talent-embeddings', 500, $embedding)
     YIELD node AS similarTalent, score
     WHERE score >= $threshold
     OPTIONAL MATCH (similarTalent)-[:WORKED_AT]->(company)

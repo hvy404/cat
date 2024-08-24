@@ -1,6 +1,7 @@
 "use server";
 import { initializeRedis } from "@/lib/redis/connect";
 import { Redis } from "@upstash/redis";
+import { findJobMatches } from "@/lib/engine/find-jobs-match";
 
 interface Job {
   jd_id: string;
@@ -30,7 +31,9 @@ export async function addJobsToQueue(
     }
 
     await pipeline.exec();
-    console.log(`Added ${activeJobs.length} jobs to the queue`);
+
+    //console.log(`Added ${activeJobs.length} jobs to the queue`);
+
     return {
       success: true,
       message: `Successfully added ${activeJobs.length} jobs to the queue`,
@@ -69,9 +72,17 @@ export async function processNextJob(): Promise<string | null> {
   }
 
   // Process the job here (e.g., retrieve embeddings and perform vector search)
-  console.log(`Processing job ${jobId} for employer ${jobData.employer_id}`);
+  //console.log(`Processing job ${jobId} for employer ${jobData.employer_id}`);
 
-  // Delete the job hash entry instead of updating its status
+  // Find matches and console log
+  const matches = await findJobMatches(jobId);
+  if (matches) {
+    console.log(`Found ${matches.length} matches for job ${jobId}`);
+  } else {
+    console.log(`No matches found for job ${jobId}`);
+  }
+
+  // Delete the job hash entry
   await redis.del(`job:${jobId}`);
 
   return jobId;

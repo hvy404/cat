@@ -1,5 +1,6 @@
 import { inngest } from "@/lib/inngest/client";
 import { processNextJob } from "@/lib/engine/match-queue-redis-jobs";
+import { initializeRedis } from "@/lib/redis/connect";
 
 export const processJobQueue = inngest.createFunction(
   { id: "process-job-queue" },

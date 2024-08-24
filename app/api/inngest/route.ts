@@ -30,6 +30,7 @@ import { employerSignupHandler } from "@/inngest/signup-employer-flow"; // Handl
 import { buildMatchingQueue } from "@/inngest/matching-system-build-queue"; // Rebuild matching queue
 import { processJobQueue } from "@/inngest/matching-system-process-job"; // Process matching queue
 import { matchingSystemOrchestrator } from "@/inngest/matching-system-orchestrator"; // Main matching system orchestrator
+import { evaluateMatchPair } from "@/inngest/matching-system-evaluate-pair"; // Evaluate match pair function
 
 /**
  * Represents the serve function for handling HTTP requests.
@@ -72,5 +73,6 @@ export const { GET, POST, PUT } = serve({
     buildMatchingQueue,
     processJobQueue,
     matchingSystemOrchestrator,
+    evaluateMatchPair,
   ],
 });
