@@ -1,7 +1,7 @@
 import { inngest } from "@/lib/inngest/client";
 import { referenceFunction } from "inngest";
-import { type buildMatchingQueue } from "@/inngest/matching-system-build-queue";
-import { type processJobQueue } from "@/inngest/matching-system-process-job";
+import { type buildMatchingQueue } from "@/inngest/matching-system-build-queue"; // Step 1
+import { type processJobQueue } from "@/inngest/matching-system-process-job"; // Step 2
 
 export const matchingSystemOrchestrator = inngest.createFunction(
   { id: "matching-system-orchestrator" },

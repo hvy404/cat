@@ -1,3 +1,12 @@
+/**
+ * Stores the evaluation result for a given applicant, job, and evaluation combination.
+ *
+ * @param applicantId - The ID of the applicant.
+ * @param jobId - The ID of the job.
+ * @param combo - The evaluation combination.
+ * @param score - The evaluation score.
+ * @returns An object with `success` and `data` or `error` properties, indicating whether the operation was successful and the result or error message.
+ */
 "use server";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";

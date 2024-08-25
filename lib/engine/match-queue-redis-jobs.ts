@@ -71,7 +71,6 @@ export async function processNextJob(): Promise<string | null> {
     return null;
   }
 
-  // Process the job here (e.g., retrieve embeddings and perform vector search)
   //console.log(`Processing job ${jobId} for employer ${jobData.employer_id}`);
 
   // Find matches and console log

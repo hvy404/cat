@@ -23,7 +23,7 @@ export async function findJobMatches(jobId: string) {
     const threshold = 0.72; // You can adjust this threshold as needed
     const similarTalents = await findSimilarTalents(jobEmbedding, threshold);
 
-    // Get pairing set: jobId, talentId, score
+    // Create pairing set
     const pairings = similarTalents.map((talent) => ({
       job_id: jobId,
       candidate_id: talent.applicant_id,
@@ -47,20 +47,30 @@ export async function findJobMatches(jobId: string) {
       if (!existingPair) {
         const combos = ["A", "B", "C", "D", "E", "F"];
 
-        Promise.all(
-          combos.map((combo) =>
-            inngest.send({
+        for (const combo of combos) {
+          try {
+            const result = await inngest.send({
               name: "app/evaluate-match-pair",
               data: {
                 applicantID: pairing.candidate_id,
                 jobID: pairing.job_id,
                 combo: combo,
               },
-            })
-          )
-        ).catch((error) => {
-          console.error("Error sending evaluation requests:", error);
-        });
+            });
+
+            if (result.ids) {
+              console.log(
+                `Evaluation for combo ${combo} completed successfully.`
+              );
+            } else {
+              console.log(`Evaluation for combo ${combo} failed.`);
+              break;
+            }
+          } catch (error) {
+            console.error(`Error evaluating combo ${combo}:`, error);
+            break;
+          }
+        }
       }
     }
 
@@ -73,6 +83,11 @@ export async function findJobMatches(jobId: string) {
       console.error("Error saving matching pairs:", error);
       // You might want to handle this error more gracefully
     }
+
+    await inngest.send({
+      name: "app/job-match-final-score",
+      data: { jobId, candidateId: similarTalents[0]?.applicant_id },
+    });
 
     return similarTalents;
   } catch (error) {
