@@ -1,3 +1,4 @@
+import { useUser } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,9 +21,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import AIRecommendationDetailPanel from './ai-recommendation-detailed-view';
+import { getAIMatches, AIMatch } from "@/lib/employer/get-match-details"; // Retreive the matches
+import AIRecommendationDetailPanel from "./ai-recommendation-detailed-view"; // View details of a match
 
-type RecommendationStatus = "new" | "reviewed" | "contacted" | "rejected" | "all";
+type RecommendationStatus =
+  | "new"
+  | "reviewed"
+  | "contacted"
+  | "rejected"
+  | "all";
 
 type Recommendation = {
   id: string;
@@ -44,34 +51,58 @@ const statusColors: Record<RecommendationStatus, string> = {
 const ITEMS_PER_PAGE = 10;
 
 const AIRecommendationsSidePanel = () => {
+  const { user: clerkUser } = useUser();
   const { setEmployerRightPanelView } = useStore();
+  const [aiMatches, setAIMatches] = useState<AIMatch[]>([]);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
-  const [filteredRecommendations, setFilteredRecommendations] = useState<Recommendation[]>([]);
+  const [filteredRecommendations, setFilteredRecommendations] = useState<
+    Recommendation[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<RecommendationStatus>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedRecommendationId, setSelectedRecommendationId] = useState<string | null>(null);
+  const [selectedRecommendationId, setSelectedRecommendationId] = useState<
+    string | null
+  >(null);
+
+  const employerId = clerkUser?.publicMetadata?.aiq_cuid as string;
 
   useEffect(() => {
-    // Simulating API call to fetch recommendations
-    setTimeout(() => {
-      const mockRecommendations: Recommendation[] = Array.from({ length: 50 }, (_, i) => ({
-        id: `rec-${i + 1}`,
-        candidateName: `Candidate ${i + 1}`,
-        jobTitle: `Job Title ${i + 1}`,
-        matchScore: Math.floor(Math.random() * 41) + 60, // Random score between 60-100
-        status: ["new", "reviewed", "contacted", "rejected"][Math.floor(Math.random() * 4)] as RecommendationStatus,
-        recommendedDate: new Date(Date.now() - Math.floor(Math.random() * 10) * 24 * 60 * 60 * 1000).toISOString(),
-      }));
-      setRecommendations(mockRecommendations);
-      setLoading(false);
-    }, 1000);
-  }, []);
+    const fetchAIMatches = async () => {
+      if (employerId) {
+        setLoading(true);
+        try {
+          const matches = await getAIMatches(employerId);
+          console.log("Client Results:", matches);
+          setAIMatches(matches);
+
+          const newRecommendations = matches.map((match) => ({
+            id: match.id,
+            candidateName: match.candidate_name,
+            jobTitle: match.job_title,
+            matchScore: match.match_score,
+            status: "new" as RecommendationStatus,
+            recommendedDate: match.created_at,
+          }));
+          setRecommendations(newRecommendations);
+        } catch (error) {
+          console.error("Error fetching AI matches:", error);
+          // Handle error (e.g., show error message to user)
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchAIMatches();
+  }, [employerId]);
 
   useEffect(() => {
     const filtered = recommendations.filter((rec) => {
-      const nameMatch = rec.candidateName.toLowerCase().includes(searchTerm.toLowerCase());
+      const nameMatch = rec.candidateName
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
       const statusMatch = statusFilter === "all" || rec.status === statusFilter;
       return nameMatch && statusMatch;
     });
@@ -141,7 +172,10 @@ const AIRecommendationsSidePanel = () => {
       <CardContent className="px-6 flex flex-col h-dvh">
         <div className="mb-4 space-y-2">
           <div className="flex space-x-2">
-            <Select onValueChange={handleStatusFilterChange} value={statusFilter}>
+            <Select
+              onValueChange={handleStatusFilterChange}
+              value={statusFilter}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
@@ -169,13 +203,13 @@ const AIRecommendationsSidePanel = () => {
               <div className="flex items-center space-x-2">
                 {statusFilter !== "all" && (
                   <Badge variant="secondary">
-                    Status: {statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}
+                    Status:{" "}
+                    {statusFilter.charAt(0).toUpperCase() +
+                      statusFilter.slice(1)}
                   </Badge>
                 )}
                 {searchTerm && (
-                  <Badge variant="secondary">
-                    Search: {searchTerm}
-                  </Badge>
+                  <Badge variant="secondary">Search: {searchTerm}</Badge>
                 )}
               </div>
               <Button
@@ -220,12 +254,15 @@ const AIRecommendationsSidePanel = () => {
                         statusColors[recommendation.status]
                       }`}
                     >
-                      {recommendation.status.charAt(0).toUpperCase() + recommendation.status.slice(1)}
+                      {recommendation.status.charAt(0).toUpperCase() +
+                        recommendation.status.slice(1)}
                     </span>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleRecommendationClick(recommendation.id)}
+                      onClick={() =>
+                        handleRecommendationClick(recommendation.id)
+                      }
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>

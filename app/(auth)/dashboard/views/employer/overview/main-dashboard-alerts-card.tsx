@@ -11,6 +11,8 @@ import {
   Inbox,
   Briefcase,
   Mail,
+  FileText,
+  Star,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -34,13 +36,16 @@ import {
   getApplicationAlertDetails,
   ApplicationDetails,
 } from "@/lib/alerts/employer-application-alert-details";
+import {
+  getMatchAlertDetails,
+  MatchDetails,
+} from "@/lib/alerts/employer-match-alert-details";
 import { useUser } from "@clerk/nextjs";
 
-
 const AlertsCard: React.FC = () => {
-    // Clerk
-    const { user: clerkUser } = useUser();
-    const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+  // Clerk
+  const { user: clerkUser } = useUser();
+  const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
 
   const { setEmployerRightPanelView } = useStore();
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -49,6 +54,7 @@ const AlertsCard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [applicationDetails, setApplicationDetails] =
     useState<ApplicationDetails | null>(null);
+  const [matchDetails, setMatchDetails] = useState<MatchDetails | null>(null);
 
   useEffect(() => {
     fetchAlerts();
@@ -144,10 +150,18 @@ const AlertsCard: React.FC = () => {
     if (alert.type === "application") {
       const details = await getApplicationAlertDetails(alert.reference_id);
       setApplicationDetails(details);
+      setMatchDetails(null);
+    } else if (alert.type === "match") {
+      const details = await getMatchAlertDetails(alert.reference_id);
+      setMatchDetails(details);
+      setApplicationDetails(null);
     } else {
       setApplicationDetails(null);
+      setMatchDetails(null);
     }
   };
+
+  // We need to create getMatchAlertDetails
 
   const closeAlertDialog = () => {
     setSelectedAlert(null);
@@ -294,26 +308,42 @@ const AlertsCard: React.FC = () => {
               <div className="space-y-3 text-sm">
                 <div className="flex items-center space-x-2">
                   <Briefcase className="w-5 h-5 text-gray-500" />
-                  <p className="font-semibold">
-                    {applicationDetails.b} {/* job_title */}
-                  </p>
+                  <p className="font-semibold">{applicationDetails.b}</p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <User className="w-5 h-5 text-gray-500" />
-                  <p>Candidate: {applicationDetails.c}</p>{" "}
-                  {/* candidate_name */}
+                  <p>Candidate: {applicationDetails.c}</p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Mail className="w-5 h-5 text-gray-500" />
-                  <p>Email: {applicationDetails.d}</p> {/* candidate_email */}
+                  <p>Email: {applicationDetails.d}</p>
                 </div>
-
+                <div className="flex items-center space-x-2">
+                  <FileText className="w-5 h-5 text-gray-500" />
+                  <p>Status: {applicationDetails.e}</p>
+                </div>
                 <div className="flex items-center space-x-2">
                   <Calendar className="w-5 h-5 text-gray-500" />
                   <p>
                     Applied on:{" "}
-                    {new Date(applicationDetails.f).toLocaleDateString()}{" "}
-                    {/* created_at */}
+                    {new Date(applicationDetails.f).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            ) : selectedAlert?.type === "match" && matchDetails ? (
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center space-x-2">
+                  <Briefcase className="w-5 h-5 text-gray-500" />
+                  <p className="font-semibold">{matchDetails.a}</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <User className="w-5 h-5 text-gray-500" />
+                  <p>Candidate: {matchDetails.b}</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Calendar className="w-5 h-5 text-gray-500" />
+                  <p>
+                    Matched on: {new Date(matchDetails.d).toLocaleDateString()}
                   </p>
                 </div>
               </div>
@@ -327,9 +357,7 @@ const AlertsCard: React.FC = () => {
           <div className="grid grid-cols-2 gap-4">
             {selectedAlert?.type !== "application" && (
               <div className="flex items-center space-x-2">
-                <User className="w-4 h-4 text-gray-500" />
-                <span className="text-sm font-medium">User ID:</span>
-                <span className="text-sm">{selectedAlert?.user_id}</span>
+                <p className="text-sm">Explore this data-driven match</p>
               </div>
             )}
           </div>

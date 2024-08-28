@@ -31,8 +31,6 @@ export async function getAIRecommendations(employerId: string) {
 
     const count = data.length;
 
-    console.log("AI Recs:", data);
-
     return {
       recommendations: data,
       count: count,

@@ -47,16 +47,6 @@ interface ChartCardProps {
   data: ChartDataPoint[];
 }
 
-const mockData: ChartDataPoint[] = [
-  { date: "Mon", inboundApplicants: 12, aiRecommended: 5 },
-  { date: "Tue", inboundApplicants: 19, aiRecommended: 7 },
-  { date: "Wed", inboundApplicants: 15, aiRecommended: 8 },
-  { date: "Thu", inboundApplicants: 22, aiRecommended: 10 },
-  { date: "Fri", inboundApplicants: 30, aiRecommended: 15 },
-  { date: "Sat", inboundApplicants: 18, aiRecommended: 9 },
-  { date: "Sun", inboundApplicants: 14, aiRecommended: 6 },
-];
-
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -103,12 +93,14 @@ const ChartCard: React.FC<ChartCardProps> = ({ data }) => (
               dataKey="inboundApplicants"
               stroke="#6b7280"
               strokeWidth={2}
+              name="Inbound Applicants"
             />
             <Line
               type="monotone"
               dataKey="aiRecommended"
               stroke="#d1d5db"
               strokeWidth={2}
+              name="AI Recommended"
             />
           </LineChart>
         </ResponsiveContainer>

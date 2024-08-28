@@ -65,8 +65,6 @@ async function getEmployerJobApplications(
   // Log the obfuscated data
   const obfuscatedData = typedData.map(obfuscateApplication);
 
-  console.log("Recent Applications (Last 7 Days):", obfuscatedData);
-
   return obfuscatedData;
 }
 

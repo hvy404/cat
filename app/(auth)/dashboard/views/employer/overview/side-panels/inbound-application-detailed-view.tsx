@@ -21,7 +21,10 @@ import {
 import { getApplicationDetailedView } from "@/lib/employer/get-application-details";
 import AlertMessage from "./manual-application-alert";
 import { applicantDetailCopilot } from "@/lib/employer/applicant-details-copilot";
-import { updateApplicationStatus, getApplicationStatus } from "@/lib/employer/update-application-status";
+import {
+  updateApplicationStatus,
+  getApplicationStatus,
+} from "@/lib/employer/update-application-status";
 import CopilotResponseSheet from "@/app/(auth)/dashboard/views/employer/overview/side-panels/inbound-application-copilot";
 import UpdateApplicationStatus from "@/app/(auth)/dashboard/views/employer/overview/side-panels/update-application-status";
 
@@ -30,7 +33,12 @@ type ApplicantDetailPanelProps = {
   onBack: () => void;
 };
 
-type ApplicationStatus = 'submitted' | 'reviewed' | 'interview' | 'rejected' | 'accepted';
+type ApplicationStatus =
+  | "submitted"
+  | "reviewed"
+  | "interview"
+  | "rejected"
+  | "accepted";
 
 interface ExperienceItemProps {
   item: {
@@ -423,7 +431,10 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
           if (statusResult.success) {
             setCurrentStatus(statusResult.status);
           } else {
-            console.error("Failed to fetch application status:", statusResult.message);
+            console.error(
+              "Failed to fetch application status:",
+              statusResult.message
+            );
           }
         }
       } catch (error) {
