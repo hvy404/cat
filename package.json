@@ -87,6 +87,7 @@
     "next-themes": "^0.3.0",
     "openai": "^4.38.2",
     "pdf-parse": "^1.1.1",
+    "postmark": "^4.0.5",
     "react": "^18",
     "react-code-blocks": "^0.1.6",
     "react-day-picker": "^8.10.1",

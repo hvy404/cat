@@ -175,6 +175,23 @@ interface EmployerRightPanelViewState {
   };
 }
 
+interface Application {
+  appId: string;
+  jobRef: string;
+  candidateRef: string;
+  submissionDate: string;
+}
+
+interface AIRecommendation {
+  id: string;
+  job_id: string;
+  candidate_id: string;
+  match_score: number;
+  created_at: string;
+  updated_at: string;
+  employer_id: string;
+}
+
 interface StoreState {
   selectedMenuItem: string | null;
   user: User | null;
@@ -186,7 +203,6 @@ interface StoreState {
   candidateDashboard: CandidateDashboard;
   jobStatusUpdated: boolean;
   setJobStatusUpdated: (value: boolean) => void;
-
   setSelectedMenuItem: (item: string) => void;
   setUser: (user: User) => void;
   setEmployerRightPanelView: (
@@ -201,6 +217,10 @@ interface StoreState {
   setJDBuilderWizard: (wizard: Partial<JDBuilderWizard>) => void;
   updateJDBuilderWizardStep: (newStep: number) => void;
   setCandidateDashboard: (dashboard: Partial<CandidateDashboard>) => void;
+  recentApplications: Application[];
+  aiRecommendations: AIRecommendation[];
+  setRecentApplications: (applications: Application[]) => void;
+  setAiRecommendations: (recommendations: AIRecommendation[]) => void;
 }
 
 const useStore = create<StoreState>((set) => ({
@@ -427,6 +447,14 @@ const useStore = create<StoreState>((set) => ({
 
       return updates;
     }),
+
+  // Store applicant and match count
+  recentApplications: [],
+  aiRecommendations: [],
+  setRecentApplications: (applications: Application[]) =>
+    set({ recentApplications: applications }),
+  setAiRecommendations: (recommendations: AIRecommendation[]) =>
+    set({ aiRecommendations: recommendations }),
 
   // End of store
 }));

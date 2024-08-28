@@ -24,6 +24,7 @@ import InboundApplicantsCard from "./inbound-application-card";
 import AIRecommendationsCard from "./ai-recommendations-card";
 import AlertsCard from "./main-dashboard-alerts-card";
 import { useUser } from "@clerk/nextjs";
+import { format, subDays, startOfDay, endOfDay } from "date-fns";
 
 interface Job {
   jd_id: string;
@@ -249,6 +250,41 @@ const NoJobsFound = () => (
 
 const EmployerDashboardView: React.FC = () => {
   const [hasArchivedJobs, setHasArchivedJobs] = useState(true);
+  const { recentApplications, aiRecommendations } = useStore();
+
+  const generateChartData = () => {
+    const chartData: ChartDataPoint[] = [];
+    const today = new Date();
+
+    for (let i = 6; i >= 0; i--) {
+      const date = subDays(today, i);
+      const dateString = format(date, "EEE");
+      const startOfDayDate = startOfDay(date);
+      const endOfDayDate = endOfDay(date);
+
+      const applicantsCount = recentApplications.filter(
+        (app) =>
+          new Date(app.submissionDate) >= startOfDayDate &&
+          new Date(app.submissionDate) <= endOfDayDate
+      ).length;
+
+      const aiRecsCount = aiRecommendations.filter(
+        (rec) =>
+          new Date(rec.created_at) >= startOfDayDate &&
+          new Date(rec.created_at) <= endOfDayDate
+      ).length;
+
+      chartData.push({
+        date: dateString,
+        inboundApplicants: applicantsCount,
+        aiRecommended: aiRecsCount,
+      });
+    }
+
+    return chartData;
+  };
+
+  const chartData = generateChartData();
 
   const handleNoArchivedJobs = () => {
     setHasArchivedJobs(false);
@@ -268,7 +304,7 @@ const EmployerDashboardView: React.FC = () => {
             <AIRecommendationsCard />
             <AlertsCard />
           </div>
-          <ChartCard data={mockData} />
+          <ChartCard data={chartData} />
 
           <div
             className={`mt-8 grid gap-8 ${

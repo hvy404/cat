@@ -331,7 +331,6 @@ export async function getJobNode(
         "private_employer",
         "benefits",
         "responsibilities",
-        "education"
       ];
 
       // Create an object with all required properties

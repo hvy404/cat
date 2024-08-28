@@ -1,6 +1,12 @@
+/**
+ * Processes the job queue in batches, sending an event to trigger the function again if there are more jobs to process.
+ *
+ * @param event - The event that triggered the function.
+ * @param step - The step object provided by Inngest.
+ * @returns An object with the number of jobs processed in the batch.
+ */
 import { inngest } from "@/lib/inngest/client";
 import { processNextJob } from "@/lib/engine/match-queue-redis-jobs";
-import { initializeRedis } from "@/lib/redis/connect";
 
 export const processJobQueue = inngest.createFunction(
   { id: "process-job-queue" },

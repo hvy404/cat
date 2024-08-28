@@ -32,6 +32,8 @@ import { processJobQueue } from "@/inngest/matching-system-process-job"; // Proc
 import { matchingSystemOrchestrator } from "@/inngest/matching-system-orchestrator"; // Main matching system orchestrator
 import { evaluateMatchPair } from "@/inngest/matching-system-evaluate-pair"; // Evaluate match pair function
 import { retrieveAndCalculateScores } from "@/inngest/matching-system-final-score";
+import { performLLMFinalEvaluation } from "@/inngest/matching-system-logic-eval";
+import { sendEmailFunction } from "@/inngest/alerts-employer-match-email";
 
 /**
  * Represents the serve function for handling HTTP requests.
@@ -76,5 +78,7 @@ export const { GET, POST, PUT } = serve({
     matchingSystemOrchestrator,
     evaluateMatchPair,
     retrieveAndCalculateScores,
+    performLLMFinalEvaluation,
+    sendEmailFunction,
   ],
 });

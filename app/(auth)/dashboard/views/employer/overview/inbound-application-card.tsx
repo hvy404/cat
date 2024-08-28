@@ -19,7 +19,7 @@ const InboundApplicantsCard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [trend, setTrend] = useState<number | null>(null);
-  const { setEmployerRightPanelView } = useStore();
+  const { setEmployerRightPanelView, setRecentApplications } = useStore();
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -29,6 +29,7 @@ const InboundApplicantsCard: React.FC = () => {
       try {
         const applications = await getEmployerJobApplications(cuid);
         if (applications) {
+          setRecentApplications(applications);
           const oneWeekAgo = new Date();
           oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
@@ -36,7 +37,7 @@ const InboundApplicantsCard: React.FC = () => {
             (app) => new Date(app.submissionDate) >= oneWeekAgo
           );
 
-          setApplicantCount(recentApplications.length);
+          setApplicantCount(recentApplications.length); // TODO: deprecate and use the Zustand
 
           const previousWeekCount = applications.filter(
             (app) =>

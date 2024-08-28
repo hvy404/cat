@@ -62,8 +62,18 @@ export const retrieveAndCalculateScores = inngest.createFunction(
       if (error)
         throw new Error(`Error updating enhanced score: ${error.message}`);
     });
-    
+
     // Create another inngest function to use LLM to evalute final
+    await step.run("trigger-llm-final-evaluation", async () => {
+      await inngest.send({
+        name: "app/llm-final-evaluation",
+        data: {
+          jobId: jobId,
+          candidateId: candidateId,
+          enhancedScore: enhancedScore,
+        },
+      });
+    });
 
     return { jobId, candidateId, enhancedScore };
   }

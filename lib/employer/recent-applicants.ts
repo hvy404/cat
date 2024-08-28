@@ -34,6 +34,9 @@ function obfuscateApplication(app: DatabaseApplication): ObfuscatedApplication {
 async function getEmployerJobApplications(
   employerId: string
 ): Promise<ObfuscatedApplication[] | null> {
+  const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
   const { data, error } = await supabase
     .from("applications")
     .select(
@@ -48,10 +51,11 @@ async function getEmployerJobApplications(
     `
     )
     .eq("job_postings.employer_id", employerId)
-    .order("created_at", { ascending: false });
+    .gte("created_at", sevenDaysAgo.toISOString())
+    .order("created_at", { ascending: false })
+    .limit(200);
 
   if (error) {
-    //console.error('Error fetching employer job applications:', error);
     return null;
   }
 
@@ -60,6 +64,8 @@ async function getEmployerJobApplications(
 
   // Log the obfuscated data
   const obfuscatedData = typedData.map(obfuscateApplication);
+
+  console.log("Recent Applications (Last 7 Days):", obfuscatedData);
 
   return obfuscatedData;
 }
