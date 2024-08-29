@@ -77,7 +77,7 @@ export async function getAIMatches(employerId: string): Promise<AIMatch[]> {
       candidate_name: match.candidates.name,
     }));
 
-    console.log(aiMatches);
+    //console.log(aiMatches);
 
     return aiMatches;
   } catch (error) {
