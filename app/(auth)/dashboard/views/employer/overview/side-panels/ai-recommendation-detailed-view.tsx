@@ -82,36 +82,15 @@ const AIRecommendationDetailPanel: React.FC<AIRecommendationDetailProps> = ({
     );
   };
 
-  const renderComparisonSection = (
+  const renderSection = (
     title: string,
-    candidateData: any[],
-    jobData: any[]
+    content: React.ReactNode,
+    isColored: boolean
   ) => (
-    <Card className="mt-4">
-      <CardHeader>
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <h3 className="text-sm font-semibold mb-2">Candidate</h3>
-            <ul className="list-disc pl-4 text-sm">
-              {candidateData.map((item, index) => (
-                <li key={index}>{item.name}</li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold mb-2">Job Requirements</h3>
-            <ul className="list-disc pl-4 text-sm">
-              {jobData.map((item, index) => (
-                <li key={index}>{item.name}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+    <div className={`p-4 rounded-lg ${isColored ? "bg-gray-50" : "bg-white"}`}>
+      <h3 className="text-lg font-semibold mb-3">{title}</h3>
+      {content}
+    </div>
   );
 
   if (loading) {
@@ -144,7 +123,7 @@ const AIRecommendationDetailPanel: React.FC<AIRecommendationDetailProps> = ({
 
   return (
     <Card className="h-full overflow-auto">
-      <CardHeader className="sticky top-0 bg-white border-b">
+      <CardHeader className="sticky top-0 bg-white border-b px-6 py-3">
         <div className="flex justify-between items-center">
           <CardTitle className="text-lg font-semibold">
             AI Recommendation
@@ -155,7 +134,7 @@ const AIRecommendationDetailPanel: React.FC<AIRecommendationDetailProps> = ({
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4 py-4">
+      <CardContent className="space-y-6 py-4">
         <div className="flex items-center justify-between space-x-4">
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
@@ -173,131 +152,161 @@ const AIRecommendationDetailPanel: React.FC<AIRecommendationDetailProps> = ({
           {renderMatchScore(recommendationData.matchScore)}
         </div>
 
-        {recommendationData.detailedEvaluation?.areasForDevelopment &&
-          recommendationData.detailedEvaluation.areasForDevelopment.length >
-            0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium">
-                  Areas for Development & Recommendation
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Lightbulb className="h-4 w-4 text-blue-500 flex-shrink-0" />
-                      <h3 className="text-sm font-medium">Recommendation</h3>
-                    </div>
-                    <p className="text-sm">
-                      {recommendationData.detailedEvaluation.recommendation}
-                    </p>
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <TrendingUp className="h-4 w-4 text-blue-500 flex-shrink-0" />
-                      <h3 className="text-sm font-medium">
-                        Areas for Development
-                      </h3>
-                    </div>
-                    <ul className="text-sm text-gray-700 list-disc pl-4">
-                      {recommendationData.detailedEvaluation.areasForDevelopment.map(
-                        (area: string, index: number) => (
-                          <li key={index}>{area}</li>
-                        )
-                      )}
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Job Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm">{graphData?.jobInfo.description}</p>
-          </CardContent>
-        </Card>
-
-        {renderComparisonSection(
-          "Skills",
-          graphData?.comparisonData.skills.candidate,
-          graphData?.comparisonData.skills.jobRequired
+        {renderSection(
+          "Analyst Notes",
+          <div className="flex space-x-6">
+            <div className="flex-1">
+              <div className="flex items-center space-x-2 mb-2">
+                <Lightbulb className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                <h3 className="text-sm font-medium">Recommendation</h3>
+              </div>
+              <p className="text-sm">
+                {recommendationData.detailedEvaluation.recommendation}
+              </p>
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center space-x-2 mb-2">
+                <TrendingUp className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                <h3 className="text-sm font-medium">Areas for Development</h3>
+              </div>
+              <ul className="text-sm text-gray-700 list-disc pl-4">
+                {recommendationData.detailedEvaluation.areasForDevelopment.map(
+                  (area: string, index: number) => (
+                    <li key={index}>{area}</li>
+                  )
+                )}
+              </ul>
+            </div>
+          </div>,
+          false
         )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Experience</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h3 className="text-sm font-semibold mb-2">
-                  Candidate Experience
-                </h3>
-                {graphData?.comparisonData.experience.candidate.map(
-                  (exp: any, index: number) => (
-                    <div key={index} className="mb-2">
-                      <p className="text-sm font-medium">
-                        {exp.job_title} at {exp.organization}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {exp.start_date} - {exp.end_date}
-                      </p>
-                    </div>
+        {renderSection(
+          "Job Details",
+          <p className="text-sm">{graphData?.jobInfo.description}</p>,
+          true
+        )}
+
+        {renderSection(
+          "Skills",
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <h4 className="text-sm font-medium mb-2">Candidate</h4>
+              <ul className="list-disc pl-5 space-y-2">
+                {graphData?.comparisonData.skills.candidate.map(
+                  (skill: any, index: number) => (
+                    <li key={index} className="text-sm ml-2 break-words">
+                      {skill.name}
+                    </li>
                   )
                 )}
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold mb-2">Job Requirement</h3>
-                <p className="text-sm">
-                  {graphData?.comparisonData.experience.jobRequired}
-                </p>
-              </div>
+              </ul>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Education</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h3 className="text-sm font-semibold mb-2">
-                  Candidate Education
-                </h3>
-                {graphData?.comparisonData.education.candidate.map(
-                  (edu: any, index: number) => (
-                    <div key={index} className="mb-2">
-                      <p className="text-sm font-medium">{edu.degree}</p>
-                      <p className="text-xs text-gray-500">{edu.institution}</p>
-                    </div>
+            <div>
+              <h4 className="text-sm font-medium mb-2">Job Requirements</h4>
+              <ul className="list-disc pl-5 space-y-2">
+                {graphData?.comparisonData.skills.jobRequired.map(
+                  (skill: any, index: number) => (
+                    <li key={index} className="text-sm ml-2 break-words">
+                      {skill.name}
+                    </li>
                   )
                 )}
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold mb-2">Job Requirement</h3>
-                <ul className="list-disc pl-4 text-sm">
-                  {graphData?.comparisonData.education.jobRequired.map(
-                    (req: string[], index: number) => (
-                      <li key={index}>{req.join(", ")}</li>
-                    )
-                  )}
-                </ul>
-              </div>
+              </ul>
             </div>
-          </CardContent>
-        </Card>
+          </div>,
+          false
+        )}
 
-        {renderComparisonSection(
+        {renderSection(
+          "Experience",
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <h3 className="text-sm font-semibold mb-2">
+                Candidate Experience
+              </h3>
+              {graphData?.comparisonData.experience.candidate.map(
+                (exp: any, index: number) => (
+                  <div key={index} className="mb-2">
+                    <p className="text-sm font-medium">
+                      {exp.job_title} at {exp.organization}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {exp.start_date} - {exp.end_date}
+                    </p>
+                  </div>
+                )
+              )}
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold mb-2">Job Requirement</h3>
+              <p className="text-sm">
+                {graphData?.comparisonData.experience.jobRequired}
+              </p>
+            </div>
+          </div>,
+          true
+        )}
+
+        {renderSection(
+          "Education",
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <h3 className="text-sm font-semibold mb-2">
+                Candidate Education
+              </h3>
+              {graphData?.comparisonData.education.candidate.map(
+                (edu: any, index: number) => (
+                  <div key={index} className="mb-2">
+                    <p className="text-sm font-medium">{edu.degree}</p>
+                    <p className="text-xs text-gray-500">{edu.institution}</p>
+                  </div>
+                )
+              )}
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold mb-2">Job Requirement</h3>
+              <ul className="list-disc pl-4 text-sm">
+                {graphData?.comparisonData.education.jobRequired.map(
+                  (req: string[], index: number) => (
+                    <li key={index}>{req.join(", ")}</li>
+                  )
+                )}
+              </ul>
+            </div>
+          </div>,
+          false
+        )}
+
+        {renderSection(
           "Certifications",
-          graphData?.comparisonData.certifications.candidate,
-          graphData?.comparisonData.certifications.jobRequired
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <h4 className="text-sm font-medium mb-2">Candidate</h4>
+              <ul className="list-disc pl-5 space-y-2">
+                {graphData?.comparisonData.certifications.candidate.map(
+                  (cert: any, index: number) => (
+                    <li key={index} className="text-sm ml-2 break-words">
+                      {cert.name}
+                    </li>
+                  )
+                )}
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-sm font-medium mb-2">Job Requirements</h4>
+              <ul className="list-disc pl-5 space-y-2">
+                {graphData?.comparisonData.certifications.jobRequired.map(
+                  (cert: any, index: number) => (
+                    <li key={index} className="text-sm ml-2 break-words">
+                      {cert.name}
+                    </li>
+                  )
+                )}
+              </ul>
+            </div>
+          </div>,
+          true
         )}
       </CardContent>
       <CardFooter className="sticky bottom-0 bg-white">
