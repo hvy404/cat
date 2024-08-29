@@ -8,12 +8,10 @@ import {
   getRelationshipNodes,
 } from "@/lib/candidate/global/mutation";
 
-export async function getAIRecommendationDetails(
+export async function getAIRecommendationGraphDetails(
   jobId: string,
   candidateId: string
 ) {
-  console.log("job", jobId);
-  console.log("candidate", candidateId);
   try {
     const jobNode = await getJobNode(jobId);
     const candidateNode = await getTalentNodeNoEmbedding(candidateId);
@@ -66,6 +64,9 @@ export async function getAIRecommendationDetails(
         : null,
       comparisonData,
     };
+
+    // Console log result stringified
+    console.log("Results", JSON.stringify(result));
 
     return { success: true, data: result };
   } catch (error) {

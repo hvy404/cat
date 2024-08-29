@@ -49,6 +49,7 @@ export async function getAIRecommendationDetails(recommendationId: string) {
     const recommendationData = {
       id: recommendationId,
       job_id: matchData.job_id,
+      candidate_id: matchData.candidate_id,
       candidateName: candidateData.name,
       candidateEmail: candidateData.email,
       jobTitle: jobData.title,
@@ -56,7 +57,7 @@ export async function getAIRecommendationDetails(recommendationId: string) {
       detailedEvaluation: expandedData.eval_detail || {},
     };
 
-    console.log("recommendationData", recommendationData);
+    //console.log("recommendationData", recommendationData);
     return { success: true, data: recommendationData };
   } catch (error) {
     console.error("Error fetching AI recommendation details:", error);

@@ -17,6 +17,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { getAIRecommendationDetails } from "@/lib/employer/get-match-detailed-info";
+import { getAIRecommendationGraphDetails } from "@/lib/employer/get-match-neo-details";
 
 interface AIRecommendationDetailProps {
   recommendationId: string;
@@ -28,6 +29,7 @@ const AIRecommendationDetailPanel: React.FC<AIRecommendationDetailProps> = ({
   onBack,
 }) => {
   const [recommendationData, setRecommendationData] = useState<any>(null);
+  const [graphData, setGraphData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,8 +38,19 @@ const AIRecommendationDetailPanel: React.FC<AIRecommendationDetailProps> = ({
       setLoading(true);
       try {
         const result = await getAIRecommendationDetails(recommendationId);
-        if (result.success) {
+        if (result.success && result.data) {
           setRecommendationData(result.data);
+          
+          // Call getAIRecommendationGraphDetails after setting recommendationData
+          const graphResult = await getAIRecommendationGraphDetails(
+            result.data.job_id,
+            result.data.candidate_id
+          );
+          if (graphResult.success) {
+            setGraphData(graphResult.data);
+          } else {
+            console.error("Error fetching graph details:", graphResult.error);
+          }
         } else {
           setError("There was an error fetching details");
         }
@@ -47,7 +60,7 @@ const AIRecommendationDetailPanel: React.FC<AIRecommendationDetailProps> = ({
       } finally {
         setLoading(false);
       }
-    };
+    };    
 
     fetchRecommendationDetails();
   }, [recommendationId]);
