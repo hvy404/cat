@@ -28,6 +28,7 @@ import {
 import CopilotResponseSheet from "@/app/(auth)/dashboard/views/employer/overview/side-panels/inbound-application-copilot";
 import UpdateApplicationStatus from "@/app/(auth)/dashboard/views/employer/overview/side-panels/update-application-status";
 
+
 type ApplicantDetailPanelProps = {
   applicationId: string;
   onBack: () => void;

@@ -9,7 +9,7 @@ import {
   getTalentNodeNoEmbedding,
   getRelationshipNodes,
 } from "@/lib/candidate/global/mutation";
-import { initializeRedis } from "@/lib/redis/connect"; // upstash/redis client
+import { initializeRedis } from "@/lib/redis/connect";
 
 const cookieStore = cookies();
 const supabase = createClient(cookieStore);

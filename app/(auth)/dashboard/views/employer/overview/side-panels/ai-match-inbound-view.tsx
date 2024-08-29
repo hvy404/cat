@@ -74,7 +74,6 @@ const AIRecommendationsSidePanel = () => {
         setLoading(true);
         try {
           const matches = await getAIMatches(employerId);
-          console.log("Client Results:", matches);
           setAIMatches(matches);
 
           const newRecommendations = matches.map((match) => ({
