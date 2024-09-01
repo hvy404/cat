@@ -32,11 +32,8 @@ const ResumeDownloadDialog: React.FC<ResumeDownloadDialogProps> = ({
             Download Resume
           </DialogTitle>
         </DialogHeader>
-        <div className="mt-6 space-y-6">
+        <div className="space-y-4">
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Enhance Your Hiring Process
-            </h3>
             <p className="text-sm text-gray-600 leading-relaxed">
               Notifying candidates when you view their resume can significantly
               improve your recruitment experience:

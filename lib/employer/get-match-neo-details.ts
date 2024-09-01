@@ -65,9 +65,6 @@ export async function getAIRecommendationGraphDetails(
       comparisonData,
     };
 
-    // Console log result stringified
-    console.log("Results", JSON.stringify(result));
-
     return { success: true, data: result };
   } catch (error) {
     console.error("Error in getAIRecommendationDetails:", error);

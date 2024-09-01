@@ -91,8 +91,6 @@ export default function EmployerDashboardCandidateSearch() {
       searchInput
     );
 
-    console.log("Results:", search);
-
     if ("socket" in search && search.socket) {
       setIsSearching(false);
       setResultFound(false);

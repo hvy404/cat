@@ -78,7 +78,7 @@ export const InviteUserDialog: React.FC<InviteUserDialogProps> = ({
           <DialogTitle className="text-xl font-semibold">
             Extend an Invitation
           </DialogTitle>
-          <DialogDescription className="text-base mt-2">
+          <DialogDescription className="text-sm text-gray-800 mt-2">
             You're about to connect with a promising candidate. This invitation
             could be the first step towards a great professional relationship.
           </DialogDescription>

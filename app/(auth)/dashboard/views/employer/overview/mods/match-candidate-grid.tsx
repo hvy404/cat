@@ -24,6 +24,13 @@ interface CandidateMatch {
   candidateName: string;
 }
 
+type RecommendationStatus =
+  | "new"
+  | "reviewed"
+  | "contacted"
+  | "rejected"
+  | "all";
+
 export const MatchStrengthIndicator = ({ value }: { value: number }) => {
   const getColor = (value: number) => {
     if (value <= 0.2) return "bg-red-200";
@@ -50,12 +57,14 @@ export default function AIMatchCandidateOverview({
 }: {
   activeJobId: string;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(
     null
   );
   const [candidates, setCandidates] = useState<CandidateMatch[]>([]);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [selectedCandidateStatus, setSelectedCandidateStatus] =
+    useState<RecommendationStatus | null>(null);
+
   const handleGetCandidateMatches = async () => {
     try {
       const matches = await getCandidateMatchesByJob(activeJobId);
@@ -71,6 +80,7 @@ export default function AIMatchCandidateOverview({
 
   const handleOpenResume = (candidate: CandidateMatch) => {
     setSelectedCandidate(candidate.match_id);
+    setSelectedCandidateStatus(candidate.status as RecommendationStatus);
     setSheetOpen(true);
   };
 
@@ -116,12 +126,12 @@ export default function AIMatchCandidateOverview({
       )}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent className="min-w-[800px] overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>Candidate Details</SheetTitle>
+          <SheetHeader className="mt-6">
+            {/*             <SheetTitle className="text-sm">Candidate Details</SheetTitle> */}
             <SheetDescription>
               <AIRecommendationDetailPanel
                 recommendationId={selectedCandidate || ""}
-                status={null}
+                status={selectedCandidateStatus}
                 onBack={() => setSheetOpen(false)}
               />
             </SheetDescription>
