@@ -63,7 +63,7 @@ export const retrieveAndCalculateScores = inngest.createFunction(
         throw new Error(`Error updating enhanced score: ${error.message}`);
     });
 
-    // Create another inngest function to use LLM to evalute final
+    // Use LLM to generate a final evaluation message
     await step.run("trigger-llm-final-evaluation", async () => {
       await inngest.send({
         name: "app/llm-final-evaluation",

@@ -166,19 +166,40 @@ export async function evaluateJobCandidateMatch(
     const matchDetails = await getMatchDetails(matchId, jobId, candidateId);
 
     if (matchDetails) {
-      // Send email match alert to employer
-      await inngest.send({
-        name: "app/send-email-employer-new-match",
-        data: {
-          to: matchDetails.to,
-          employerName: matchDetails.employerName,
-          jobTitle: matchDetails.jobTitle,
-          candidateName: matchDetails.candidateName,
-          matchReportUrl: `/match/matchId`,
-          unsubscribeUrl: `/unsubscribe`,
-          preferencesUrl: `/preferences`,
-        },
-      });
+      // Retrieve the employer's email preferences
+      const { data: employerData, error: employerError } = await supabase
+        .from("employers")
+        .select("email_match")
+        .eq("employer_id", jobData.employer_id)
+        .single();
+
+      if (employerError) {
+        console.error(
+          "Error fetching employer email preferences:",
+          employerError
+        );
+        return {
+          message: "Failed to fetch employer email preferences.",
+          success: false,
+        };
+      }
+
+      // Check if the employer wants to receive email alerts
+      if (employerData.email_match) {
+        // Send email match alert to employer
+        await inngest.send({
+          name: "app/send-email-employer-new-match",
+          data: {
+            to: matchDetails.to,
+            employerName: matchDetails.employerName,
+            jobTitle: matchDetails.jobTitle,
+            candidateName: matchDetails.candidateName,
+            matchReportUrl: `/match/matchId`,
+            unsubscribeUrl: `/unsubscribe`,
+            preferencesUrl: `/preferences`,
+          },
+        });
+      }
 
       // Create alert entry via createAlert
       const alertData: Omit<Alert, "created_at"> = {
@@ -192,7 +213,7 @@ export async function evaluateJobCandidateMatch(
       const createdAlert = await createAlert(alertData);
 
       if (createdAlert) {
-        console.log("Alert created successfully:", createdAlert);
+        //console.log("Alert created successfully:", createdAlert);
       } else {
         console.error("Failed to create alert");
       }
