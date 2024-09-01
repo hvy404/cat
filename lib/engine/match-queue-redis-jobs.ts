@@ -21,6 +21,9 @@ export async function addJobsToQueue(
   const redis = (await initializeRedis()) as Redis;
   const pipeline = redis.pipeline();
 
+  console.log(activeJobs.length + " jobs to add to queue");
+  console.log(activeJobs);
+
   try {
     for (const job of activeJobs) {
       pipeline.hset(`job:${job.jd_id}`, {

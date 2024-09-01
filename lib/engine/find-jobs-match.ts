@@ -30,6 +30,8 @@ export async function findJobMatches(jobId: string) {
       score: talent.score,
     }));
 
+    const newPairings = [];
+
     // Check if pairing exists and evaluate if not
     for (const pairing of pairings) {
       const { data: existingPair, error: pairError } = await supabase
@@ -45,6 +47,7 @@ export async function findJobMatches(jobId: string) {
       }
 
       if (!existingPair) {
+        newPairings.push(pairing);
         const combos = ["A", "B", "C", "D", "E", "F"];
 
         for (const combo of combos) {
@@ -74,20 +77,25 @@ export async function findJobMatches(jobId: string) {
       }
     }
 
-    // Save each set as a row to database table "matching_sys_pairs"
-    const { data, error } = await supabase
-      .from("matching_sys_pairs")
-      .upsert(pairings, { onConflict: "job_id,candidate_id" });
+    // Save only new pairings to database table "matching_sys_pairs"
+    if (newPairings.length > 0) {
+      const { data, error } = await supabase
+        .from("matching_sys_pairs")
+        .upsert(newPairings, { onConflict: "job_id,candidate_id" });
 
-    if (error) {
-      console.error("Error saving matching pairs:", error);
-      // You might want to handle this error more gracefully
+      if (error) {
+        console.error("Error saving matching pairs:", error);
+        // You might want to handle this error more gracefully
+      }
+
+      // Only send the final score event for new pairings
+      if (newPairings.length > 0) {
+        await inngest.send({
+          name: "app/job-match-final-score",
+          data: { jobId, candidateId: newPairings[0]?.candidate_id },
+        });
+      }
     }
-
-    await inngest.send({
-      name: "app/job-match-final-score",
-      data: { jobId, candidateId: similarTalents[0]?.applicant_id },
-    });
 
     return similarTalents;
   } catch (error) {
