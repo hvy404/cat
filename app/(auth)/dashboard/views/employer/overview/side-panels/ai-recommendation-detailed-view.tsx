@@ -6,6 +6,7 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   ArrowLeft,
@@ -13,25 +14,64 @@ import {
   TrendingUp,
   Lightbulb,
   Circle,
+  AlertTriangle,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Progress } from "@/components/ui/progress";
 import { getAIRecommendationDetails } from "@/lib/employer/get-match-detailed-info";
 import { getAIRecommendationGraphDetails } from "@/lib/employer/get-match-neo-details";
+import { downloadCandidateResume } from "@/lib/employer/download-resume";
+import ResumeDownloadDialog from "@/app/(auth)/dashboard/views/employer/overview/mods/request-resume";
+import { CandidateContactDialog } from "@/app/(auth)/dashboard/views/employer/overview/mods/request-contact";
+import { InviteUserDialog } from "@/app/(auth)/dashboard/views/employer/overview/mods/match-send-invite";
+import {
+  updateMatchStatus,
+  MatchStatus,
+} from "@/lib/employer/update-match-status";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface AIRecommendationDetailProps {
   recommendationId: string;
+  status: RecommendationStatus | null;
   onBack: () => void;
 }
 
+type RecommendationStatus =
+  | "new"
+  | "reviewed"
+  | "contacted"
+  | "rejected"
+  | "all";
+
 const AIRecommendationDetailPanel: React.FC<AIRecommendationDetailProps> = ({
   recommendationId,
+  status,
   onBack,
 }) => {
   const [recommendationData, setRecommendationData] = useState<any>(null);
+  const [currentStatus, setCurrentStatus] = useState<MatchStatus>(
+    status as MatchStatus
+  );
   const [graphData, setGraphData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<MatchStatus | null>(null);
 
   useEffect(() => {
     const fetchRecommendationDetails = async () => {
@@ -63,6 +103,24 @@ const AIRecommendationDetailPanel: React.FC<AIRecommendationDetailProps> = ({
 
     fetchRecommendationDetails();
   }, [recommendationId]);
+
+  const handleStatusChange = (newStatus: MatchStatus) => {
+    setPendingStatus(newStatus);
+    setIsAlertOpen(true);
+  };
+
+  const confirmStatusChange = async () => {
+    if (pendingStatus) {
+      try {
+        await updateMatchStatus(recommendationId, pendingStatus);
+        setCurrentStatus(pendingStatus);
+        toast.success(`Status updated to ${pendingStatus}`);
+      } catch (error) {
+        toast.error("Failed to update status");
+      }
+    }
+    setIsAlertOpen(false);
+  };
 
   const renderMatchScore = (score: number) => {
     const getCircleClass = (threshold: number, partialThreshold: number) => {
@@ -147,9 +205,36 @@ const AIRecommendationDetailPanel: React.FC<AIRecommendationDetailProps> = ({
               <p className="text-sm text-gray-500">
                 {recommendationData.jobTitle}
               </p>
+              {(graphData?.candidateInfo.city ||
+                graphData?.candidateInfo.state ||
+                graphData?.candidateInfo.zipcode) && (
+                <p className="text-xs text-gray-400 mt-1">
+                  <span className="font-medium">Location: </span>
+                  {[
+                    graphData.candidateInfo.city,
+                    graphData.candidateInfo.state,
+                    graphData.candidateInfo.zipcode,
+                  ]
+                    .filter(Boolean)
+                    .join(", ")}
+                </p>
+              )}
             </div>
           </div>
-          {renderMatchScore(recommendationData.matchScore)}
+          <div className="flex items-center space-x-4">
+            <Select value={currentStatus} onValueChange={handleStatusChange}>
+              <SelectTrigger className="w-[140px] h-9 px-3 py-2 text-sm">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="new">New</SelectItem>
+                <SelectItem value="reviewed">Reviewed</SelectItem>
+                <SelectItem value="contacted">Contacted</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+            {renderMatchScore(recommendationData.matchScore)}
+          </div>
         </div>
 
         {renderSection(
@@ -183,10 +268,13 @@ const AIRecommendationDetailPanel: React.FC<AIRecommendationDetailProps> = ({
 
         {renderSection(
           "Job Details",
-          <p className="text-sm">{graphData?.jobInfo.description}</p>,
+          <div>
+            <p className="text-sm text-gray-900">
+              {graphData?.jobInfo.description}
+            </p>
+          </div>,
           true
         )}
-
         {renderSection(
           "Skills",
           <div className="grid grid-cols-2 gap-4">
@@ -311,14 +399,66 @@ const AIRecommendationDetailPanel: React.FC<AIRecommendationDetailProps> = ({
       </CardContent>
       <CardFooter className="sticky bottom-0 bg-white">
         <div className="w-full flex space-x-3">
-          <Button className="flex-1" variant="outline" size="sm">
-            Save for Later
-          </Button>
-          <Button className="flex-1" size="sm">
-            Contact Candidate
-          </Button>
+          <ResumeDownloadDialog
+            onDownload={async () => {
+              const url = await downloadCandidateResume(
+                recommendationData.candidate_id
+              );
+              if (url) {
+                window.open(url, "_blank");
+              }
+            }}
+          />
+          <CandidateContactDialog candidateInfo={graphData.candidateInfo} />
+          <InviteUserDialog
+            candidateId={recommendationData.candidate_id}
+            jobId={recommendationData.job_id}
+            matchId={recommendationId}
+          />
         </div>
       </CardFooter>
+      <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Status Change</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to change the status to {pendingStatus}?
+              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
+                <div className="flex items-center">
+                  <AlertTriangle className="h-5 w-5 text-green-400 mr-2" />
+                  <span className="text-sm font-medium text-green-800">
+                    Note
+                  </span>
+                </div>
+                <p className="mt-2 text-sm text-green-700">
+                  Changing the status is for your notes only. The candidate will
+                  not see this status change.
+                </p>
+              </div>
+              {pendingStatus === "rejected" && (
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                  <div className="flex items-center">
+                    <AlertTriangle className="h-5 w-5 text-red-400 mr-2" />
+                    <span className="text-sm font-medium text-red-800">
+                      Important Note
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm text-red-700">
+                    Changing the status to "rejected" will hide this match from
+                    your list.
+                  </p>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmStatusChange}>
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };

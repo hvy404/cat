@@ -73,7 +73,7 @@ export async function getInviteAlertDetails(
   const obfuscatedInviteDetails: InviteDetails = {
     a: rawData.id,
     b: jobPostings?.title || "Unknown",
-    c: employers?.company_name || "Unknown",
+    c: employers?.company_name || "Private",
     d: employers?.contact_email || "Unknown",
     e: rawData.status,
     f: rawData.created_at,

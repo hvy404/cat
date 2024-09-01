@@ -19,7 +19,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { getApplicationDetailedView } from "@/lib/employer/get-application-details";
-import AlertMessage from "./manual-application-alert";
 import { applicantDetailCopilot } from "@/lib/employer/applicant-details-copilot";
 import {
   updateApplicationStatus,
@@ -403,9 +402,6 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
 }) => {
   const [applicationData, setApplicationData] = useState<any>(null);
   const [currentStatus, setCurrentStatus] = useState<string | null>(null);
-
-  const [showAlert, setShowAlert] = useState(true);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -502,8 +498,6 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
       section.candidateItems.length > 0 || section.jobRequiredItems.length > 0
   );
 
-  const dismissAlert = () => setShowAlert(false);
-
   const formatPhoneNumber = (phone: string | undefined): string => {
     if (!phone) return "N/A";
 
@@ -564,8 +558,6 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
             {`${candidateInfo?.city}, ${candidateInfo?.state}`.trim() || "N/A"}
           </span>
         </div>
-
-        <AlertMessage showAlert={showAlert} dismissAlert={dismissAlert} />
 
         <Tabs defaultValue="comparison" className="w-full">
           <TabsList>

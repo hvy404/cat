@@ -72,6 +72,10 @@ export default function EmployerDashboardOverviewRoles() {
   const [error, setError] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
 
+  if (!dashboard_role_overview.active_role_id) {
+    return null; // or return some loading/error component
+  }
+
   const handleReturnToDashboard = () => {
     setDashboardRoleOverview({
       active: false,
@@ -154,8 +158,6 @@ export default function EmployerDashboardOverviewRoles() {
       console.log("User, UUID or active role ID is missing");
     }
   };
-  
-  
 
   // Onclick handler for deleting the job post
   const handleDeleteJobPost = async () => {
@@ -242,7 +244,11 @@ export default function EmployerDashboardOverviewRoles() {
         Strong Candidates
       </h2>
       <div className="grid grids-col-2 lg:grid-cols-3 gap-4">
-        <AIMatchCandidateOverview />
+        {dashboard_role_overview.active_role_id && (
+          <AIMatchCandidateOverview
+            activeJobId={dashboard_role_overview.active_role_id}
+          />
+        )}
       </div>
       {showDeleteDialog && (
         <DeleteJobPostDialog

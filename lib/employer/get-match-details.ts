@@ -12,6 +12,7 @@ export type AIMatch = {
   employer_id: string;
   job_title: string;
   candidate_name: string;
+  status: string;
 };
 
 type MatchData = {
@@ -49,6 +50,7 @@ export async function getAIMatches(employerId: string): Promise<AIMatch[]> {
         created_at,
         updated_at,
         employer_id,
+        status,
         job_postings(title),
         candidates(name)
       `
@@ -75,9 +77,8 @@ export async function getAIMatches(employerId: string): Promise<AIMatch[]> {
       employer_id: match.employer_id,
       job_title: match.job_postings.title,
       candidate_name: match.candidates.name,
+      status: match.status,
     }));
-
-    //console.log(aiMatches);
 
     return aiMatches;
   } catch (error) {

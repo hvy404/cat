@@ -23,7 +23,7 @@ export async function getAIRecommendations(employerId: string) {
       .eq("employer_id", employerId)
       .gte("created_at", sevenDaysAgo.toISOString())
       .order("created_at", { ascending: false })
-      .limit(200);
+      .limit(500);
 
     if (error) {
       throw new Error(error.message);

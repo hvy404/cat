@@ -1,150 +1,133 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AIMatchCandidateResumeView from "@/app/(auth)/dashboard/views/employer/overview/mods/match-candidate-peek";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getCandidateMatchesByJob } from "@/app/(auth)/dashboard/views/employer/overview/quick-match-glance";
+import { Button } from "@/components/ui/button";
+import AIRecommendationDetailPanel from "@/app/(auth)/dashboard/views/employer/overview/side-panels/ai-recommendation-detailed-view";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
-interface Candidate {
-  id: string;
-  name: string;
-  role: string;
-  location: string;
-  matchingScore: number;
-  keyResponsibilitiesMatch: string[];
-  experienceLevel: string;
-  educationLevel: string;
-  recentJobTitles: string[];
-  availability: string;
-  candidateSummary: string;
+interface CandidateMatch {
+  match_id: string;
+  jobId: string;
+  candidateId: string;
+  matchScore: number;
+  createdAt: string;
+  updatedAt: string;
+  status: string;
+  candidateName: string;
 }
 
-const candidates = [
-  {
-    id: "1",
-    name: "Jane Doe",
-    role: "Software Engineer",
-    location: "Atlanta, GA",
-    matchingScore: 87,
-    keyResponsibilitiesMatch: [
-      "Developing software solutions",
-      "Collaborating with cross-functional teams",
-    ],
-    experienceLevel: "5 years",
-    educationLevel: "Bachelor's Degree in Computer Science",
-    recentJobTitles: ["Senior Software Engineer", "Software Developer"],
-    availability: "2 weeks",
-    candidateSummary:
-      "Experienced Software Engineer with a strong background in developing robust software solutions and working effectively in team environments.",
-  },
-  {
-    id: "2",
-    name: "Jane Doe",
-    role: "Software Engineer",
-    location: "New York City, NY",
-    matchingScore: 32,
-    keyResponsibilitiesMatch: [
-      "Designing and implementing software",
-      "Maintaining and improving code quality",
-    ],
-    experienceLevel: "6 years",
-    educationLevel: "Master's Degree in Computer Science",
-    recentJobTitles: ["Lead Software Engineer", "Software Engineer"],
-    availability: "1 month",
-    candidateSummary:
-      "Proficient Software Engineer with extensive experience in software design and implementation, and a proven track record of leading successful projects.",
-  }
-];
-
-interface CircularProgressProps {
-  value: number;
-}
-
-export const CircularProgress = ({ value }: CircularProgressProps) => {
+export const MatchStrengthIndicator = ({ value }: { value: number }) => {
   const getColor = (value: number) => {
-    if (value <= 10) return "#FFCDD2"; // Red 100
-    if (value <= 20) return "#EF9A9A"; // Red 200
-    if (value <= 30) return "#E57373"; // Red 300
-    if (value <= 40) return "#EF5350"; // Red 400
-    if (value <= 50) return "#FFEB3B"; // Yellow 400
-    if (value <= 60) return "#FFF176"; // Yellow 300
-    if (value <= 70) return "#DCE775"; // Lime 300
-    if (value <= 80) return "#AED581"; // Green 300
-    if (value <= 90) return "#81C784"; // Green 400
-    return "#66BB6A"; // Green 500
+    if (value <= 0.2) return "bg-red-200";
+    if (value <= 0.4) return "bg-yellow-200";
+    if (value <= 0.6) return "bg-green-200";
+    if (value <= 0.8) return "bg-blue-200";
+    return "bg-indigo-200";
   };
 
-  const percentage = Math.min(Math.max(value, 0), 100);
-  const strokeColor = getColor(percentage);
-  const radius = 20; // Radius of the circle
-  const circumference = 2 * Math.PI * radius; // Circumference of the circle
-  const offset = circumference - (percentage / 100) * circumference;
+  const size = 16 + value * 16; // Size ranges from 16px to 32px
+  const colorClass = getColor(value);
 
   return (
-    <div className="relative flex items-center justify-center">
-      <svg
-        width="56"
-        height="56"
-        viewBox="0 0 56 56"
-        className="transform -rotate-90"
-      >
-        <circle
-          cx="28"
-          cy="28"
-          r={radius}
-          stroke="#f0f0f0"
-          strokeWidth="4"
-          fill="transparent"
-        />
-        <circle
-          cx="28"
-          cy="28"
-          r={radius}
-          stroke={strokeColor}
-          strokeWidth="4"
-          fill="transparent"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          className="transition-stroke-dashoffset duration-300"
-        />
-      </svg>
-      <span className="absolute text-xs font-bold">{percentage}%</span>
+    <div className="flex items-center justify-center w-6 h-6">
+      <div
+        className={`rounded-full ${colorClass} transition-all duration-300 ease-in-out`}
+        style={{ width: `${size}px`, height: `${size}px` }}
+      ></div>
     </div>
   );
 };
-
-export default function AIMatchCandidateOverview() {
+export default function AIMatchCandidateOverview({
+  activeJobId,
+}: {
+  activeJobId: string;
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(
     null
   );
+  const [candidates, setCandidates] = useState<CandidateMatch[]>([]);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const handleGetCandidateMatches = async () => {
+    try {
+      const matches = await getCandidateMatchesByJob(activeJobId);
+      setCandidates(matches);
+    } catch (error) {
+      //console.error("Error fetching candidate matches:", error);
+    }
+  };
 
-  const handleOpenResume = (candidate: Candidate) => {
-    setSelectedCandidate(candidate.name);
-    setIsOpen(true);
+  useEffect(() => {
+    handleGetCandidateMatches();
+  }, [activeJobId]);
+
+  const handleOpenResume = (candidate: CandidateMatch) => {
+    setSelectedCandidate(candidate.match_id);
+    setSheetOpen(true);
   };
 
   return (
     <>
-      {candidates.map((candidate, index) => (
-        <Card key={index} onClick={() => handleOpenResume(candidate)} className="cursor-pointer">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              {candidate.name}
-            </CardTitle>
-            <CircularProgress value={candidate.matchingScore} />
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">{candidate.location}</p>
-            <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">
-              {candidate.keyResponsibilitiesMatch.join(", ")}
+      {candidates.length === 0 ? (
+        <Card className="mt-4 border border-gray-200 w-full">
+          <CardContent className="flex flex-col items-center justify-center py-10 px-6 w-full">
+            <MatchStrengthIndicator value={0.2} />
+            <h3 className="text-md font-medium text-gray-800 mt-6 mb-2">
+              Analyzing Talent Pool
+            </h3>
+            <p className="text-center text-sm text-gray-500 max-w-md">
+              Our AI is currently evaluating potential candidates for your
+              position. We'll notify you when we have suitable matches for your
+              review.
             </p>
           </CardContent>
         </Card>
-      ))}
-      <AIMatchCandidateResumeView
-        isOpen={isOpen}
-        setIsOpen={setIsOpen}
-        /* applicantId={selectedCandidate || ""} */
-        applicantId={"a4004387-b3af-4b03-8d44-4109c5e4a143"}
-      />
+      ) : (
+        candidates.map((candidate) => (
+          <Card
+            key={candidate.match_id}
+            onClick={() => handleOpenResume(candidate)}
+            className="cursor-pointer"
+          >
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">
+                {candidate.candidateName}
+              </CardTitle>
+              <MatchStrengthIndicator value={candidate.matchScore} />
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">
+                Match ID: {candidate.match_id}
+              </p>
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">
+                Status: {candidate.status}
+              </p>
+            </CardContent>
+          </Card>
+        ))
+      )}
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent className="min-w-[800px] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Candidate Details</SheetTitle>
+            <SheetDescription>
+              <AIRecommendationDetailPanel
+                recommendationId={selectedCandidate || ""}
+                status={null}
+                onBack={() => setSheetOpen(false)}
+              />
+            </SheetDescription>
+          </SheetHeader>
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

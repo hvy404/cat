@@ -65,6 +65,8 @@ const AIRecommendationsSidePanel = () => {
   const [selectedRecommendationId, setSelectedRecommendationId] = useState<
     string | null
   >(null);
+  const [selectedRecommendationStatus, setSelectedRecommendationStatus] =
+    useState<RecommendationStatus | null>(null);
 
   const employerId = clerkUser?.publicMetadata?.aiq_cuid as string;
 
@@ -82,9 +84,10 @@ const AIRecommendationsSidePanel = () => {
             candidateName: match.candidate_name,
             jobTitle: match.job_title,
             matchScore: match.match_score,
-            status: "new" as RecommendationStatus,
+            status: match.status as RecommendationStatus,
             recommendedDate: match.created_at,
           }));
+
           setRecommendations(newRecommendations);
         } catch (error) {
           console.error("Error fetching AI matches:", error);
@@ -103,12 +106,16 @@ const AIRecommendationsSidePanel = () => {
       const nameMatch = rec.candidateName
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
-      const statusMatch = statusFilter === "all" || rec.status === statusFilter;
+      const statusMatch = 
+        statusFilter === "all" 
+          ? rec.status !== "rejected" 
+          : rec.status === statusFilter;
       return nameMatch && statusMatch;
     });
     setFilteredRecommendations(filtered);
     setCurrentPage(1);
   }, [statusFilter, recommendations, searchTerm]);
+  
 
   const handleBack = () => {
     setEmployerRightPanelView("default");
@@ -142,15 +149,23 @@ const AIRecommendationsSidePanel = () => {
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
 
-  const handleRecommendationClick = (id: string) => {
+  const handleRecommendationClick = (
+    id: string,
+    status: RecommendationStatus
+  ) => {
     setSelectedRecommendationId(id);
+    setSelectedRecommendationStatus(status);
   };
 
   if (selectedRecommendationId) {
     return (
       <AIRecommendationDetailPanel
         recommendationId={selectedRecommendationId}
-        onBack={() => setSelectedRecommendationId(null)}
+        status={selectedRecommendationStatus}
+        onBack={() => {
+          setSelectedRecommendationId(null);
+          setSelectedRecommendationStatus(null);
+        }}
       />
     );
   }
@@ -244,9 +259,6 @@ const AIRecommendationsSidePanel = () => {
                     <p className="text-sm text-gray-500">
                       {recommendation.jobTitle}
                     </p>
-                    <p className="text-xs text-gray-400">
-                      Match Score: {recommendation.matchScore}%
-                    </p>
                   </div>
                   <div className="flex items-center">
                     <span
@@ -261,7 +273,10 @@ const AIRecommendationsSidePanel = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() =>
-                        handleRecommendationClick(recommendation.id)
+                        handleRecommendationClick(
+                          recommendation.id,
+                          recommendation.status
+                        )
                       }
                     >
                       <ChevronRight className="h-4 w-4" />
