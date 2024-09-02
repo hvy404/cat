@@ -34,6 +34,7 @@ import { evaluateMatchPair } from "@/inngest/matching-system-evaluate-pair"; // 
 import { retrieveAndCalculateScores } from "@/inngest/matching-system-final-score";
 import { performLLMFinalEvaluation } from "@/inngest/matching-system-logic-eval";
 import { sendEmailFunction } from "@/inngest/alerts-employer-match-email";
+import { sendResumeViewAlert } from "@/inngest/alerts-candidate-resume-viewed";
 
 /**
  * Represents the serve function for handling HTTP requests.
@@ -80,5 +81,6 @@ export const { GET, POST, PUT } = serve({
     retrieveAndCalculateScores,
     performLLMFinalEvaluation,
     sendEmailFunction,
+    sendResumeViewAlert,
   ],
 });

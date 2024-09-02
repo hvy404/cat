@@ -11,8 +11,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { User, Mail, ThumbsUp } from "lucide-react";
 
 interface ResumeDownloadDialogProps {
-  onDownload: () => void;
+  onDownload: (sendEmail: boolean) => void;
 }
+
 
 const ResumeDownloadDialog: React.FC<ResumeDownloadDialogProps> = ({
   onDownload,
@@ -71,9 +72,8 @@ const ResumeDownloadDialog: React.FC<ResumeDownloadDialogProps> = ({
         </div>
         <div className="mt-8">
           <Button
-            onClick={() => {
-              onDownload();
-              // TODO: add email logic
+             onClick={() => {
+              onDownload(notifyCandidate);
             }}
             className="w-full py-2 text-sm font-medium"
           >

@@ -44,6 +44,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { sendResumeViewAlertAction } from "@/lib/employer/send-resume-view-alert";
 
 interface AIRecommendationDetailProps {
   recommendationId: string;
@@ -400,12 +401,20 @@ const AIRecommendationDetailPanel: React.FC<AIRecommendationDetailProps> = ({
       <CardFooter className="sticky bottom-0 bg-white">
         <div className="w-full flex space-x-3">
           <ResumeDownloadDialog
-            onDownload={async () => {
+            onDownload={async (sendEmail) => {
               const url = await downloadCandidateResume(
                 recommendationData.candidate_id
               );
               if (url) {
                 window.open(url, "_blank");
+                if (sendEmail) {
+                  sendResumeViewAlertAction({
+                    candidateName: recommendationData.candidateName,
+                    jobId: recommendationData.job_id,
+                    candidateEmail: recommendationData.candidateEmail,
+                    jobTitle: recommendationData.jobTitle,
+                  });
+                }
               }
             }}
           />
