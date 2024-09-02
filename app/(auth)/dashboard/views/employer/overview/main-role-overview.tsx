@@ -5,7 +5,7 @@ import {
   fetchJobPostSpecifics,
   jobPostStatus,
 } from "@/lib/overview/fetchRoles";
-import { ArrowLeft, Settings } from "lucide-react";
+import { ArrowLeft, Settings, Pause, Play, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -191,30 +191,6 @@ export default function EmployerDashboardOverviewRoles() {
           <span className="sr-only">Back to Dashboard</span>
         </Button>
         <div className="flex flex-row items-center">
-          <div className="text-xs rounded-lg border border-gray-200/60 bg-gray-100/60 text-gray-500 px-2">
-            <p>
-              {jobDetails.active
-                ? "This job opportunity is active and visible publically"
-                : "This job opportunity is paused and not visible"}
-            </p>
-          </div>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                onClick={() => handleJobStatusUpdate(!jobDetails.active)}
-                variant="ghost"
-              >
-                {jobDetails.active ? "Pause Listing" : "Resume Listing"}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="bg-black border-none text-white">
-              {jobDetails.active
-                ? "Click here to pause job opportunity"
-                : "Click here to resume job opportunity"}
-            </TooltipContent>
-          </Tooltip>
-
           <DropdownMenu>
             <DropdownMenuTrigger>
               {" "}
@@ -222,9 +198,29 @@ export default function EmployerDashboardOverviewRoles() {
                 <Settings className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setShowDeleteDialog(true)}>
-                Delete Job
+            <DropdownMenuContent className="w-56">
+              <DropdownMenuItem
+                onClick={() => handleJobStatusUpdate(!jobDetails.active)}
+                className="flex items-center space-x-2 px-3 py-2 hover:bg-gray-100"
+              >
+                {jobDetails.active ? (
+                  <>
+                    <Pause className="h-4 w-4 text-yellow-500" />
+                    <span>Pause Listing</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-4 w-4 text-green-500" />
+                    <span>Resume Listing</span>
+                  </>
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setShowDeleteDialog(true)}
+                className="flex items-center space-x-2 px-3 py-2 hover:bg-gray-100 text-red-500"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>Delete Job</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -232,9 +228,21 @@ export default function EmployerDashboardOverviewRoles() {
       </div>
       <Card>
         <CardHeader className="px-6 py-4">
-          <CardTitle className="tmt-1 max-w-2xl text-sm leading-6 text-gray-900">
-            {dashboard_role_overview.active_role_name}
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg font-semibold text-gray-900">
+              {dashboard_role_overview.active_role_name}
+            </CardTitle>
+            <div className="flex items-center space-x-2 px-3 py-2 rounded-md bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 shadow-sm">
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  jobDetails.active ? "bg-green-400" : "bg-yellow-400"
+                }`}
+              ></div>
+              <p className="text-sm font-medium text-gray-700">
+                {jobDetails.active ? "Active and visible" : "Paused and hidden"}
+              </p>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <JobDetailsView jobDetails={jobDetails} />

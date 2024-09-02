@@ -50,7 +50,7 @@ const statusColors: Record<RecommendationStatus, string> = {
 
 const ITEMS_PER_PAGE = 10;
 
-const AIRecommendationsSidePanel = () => {
+const AIRecommendationsSidePanel: React.FC = () => {
   const { user: clerkUser } = useUser();
   const { setEmployerRightPanelView } = useStore();
   const [aiMatches, setAIMatches] = useState<AIMatch[]>([]);
@@ -69,6 +69,20 @@ const AIRecommendationsSidePanel = () => {
     useState<RecommendationStatus | null>(null);
 
   const employerId = clerkUser?.publicMetadata?.aiq_cuid as string;
+
+  // Fetch selected match file on mount
+  const { view, payload } = useStore((state) => state.employerRightPanelView);
+  // Catch the select match payload on mount and set it active
+  useEffect(() => {
+    if (view === "aiRecommendations" && payload) {
+      const { selectedRecommendationId, selectedRecommendationStatus } =
+        payload;
+      setSelectedRecommendationId(selectedRecommendationId ?? null);
+      setSelectedRecommendationStatus(
+        selectedRecommendationStatus as RecommendationStatus
+      );
+    }
+  }, [view, payload]);
 
   useEffect(() => {
     const fetchAIMatches = async () => {
@@ -106,16 +120,15 @@ const AIRecommendationsSidePanel = () => {
       const nameMatch = rec.candidateName
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
-      const statusMatch = 
-        statusFilter === "all" 
-          ? rec.status !== "rejected" 
+      const statusMatch =
+        statusFilter === "all"
+          ? rec.status !== "rejected"
           : rec.status === statusFilter;
       return nameMatch && statusMatch;
     });
     setFilteredRecommendations(filtered);
     setCurrentPage(1);
   }, [statusFilter, recommendations, searchTerm]);
-  
 
   const handleBack = () => {
     setEmployerRightPanelView("default");

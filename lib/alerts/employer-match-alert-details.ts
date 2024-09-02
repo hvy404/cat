@@ -24,7 +24,7 @@ interface RawMatchData {
 
 export async function getMatchAlertDetails(
   alertReferenceId: string
-): Promise<MatchDetails | null> {
+): Promise<MatchDetails | { error: string; code: string }> {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
@@ -48,15 +48,21 @@ export async function getMatchAlertDetails(
     .eq("id", alertReferenceId)
     .single();
 
-  if (error) {
-    console.error("Error fetching match details:", error);
-    return null;
-  }
-
-  if (!data) {
-    console.error("No match found for reference_id:", alertReferenceId);
-    return null;
-  }
+    if (error) {
+      //console.error("Error fetching match details:", error);
+      return {
+        error: error.message,
+        code: error.code
+      };
+    }
+  
+    if (!data) {
+      //console.error("No match found for reference_id:", alertReferenceId);
+      return {
+        error: "No match found",
+        code: "NOT_FOUND"
+      };
+    }
 
   const rawData = data as unknown as RawMatchData;
 
@@ -69,8 +75,6 @@ export async function getMatchAlertDetails(
     e: rawData.job_id,
     f: rawData.candidate_id,
   };
-
-  console.log("Match details:", obfuscatedMatchDetails);
 
   return obfuscatedMatchDetails;
 }

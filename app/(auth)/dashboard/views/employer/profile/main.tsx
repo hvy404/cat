@@ -74,7 +74,6 @@ export default function EmployerDashboardProfile() {
           {renderRightPanel()}
         </div>
       </div>
-      <Button onClick={handleEvaluateClick}>Test</Button>
     </main>
   );
 }

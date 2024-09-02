@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import AIMatchCandidateResumeView from "@/app/(auth)/dashboard/views/employer/overview/mods/match-candidate-peek";
+//import AIMatchCandidateResumeView from "@/app/(auth)/dashboard/views/employer/overview/mods/match-candidate-peek";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCandidateMatchesByJob } from "@/app/(auth)/dashboard/views/employer/overview/quick-match-glance";
-import { Button } from "@/components/ui/button";
+//import { Button } from "@/components/ui/button";
 import AIRecommendationDetailPanel from "@/app/(auth)/dashboard/views/employer/overview/side-panels/ai-recommendation-detailed-view";
 import {
   Sheet,
@@ -52,6 +52,7 @@ export const MatchStrengthIndicator = ({ value }: { value: number }) => {
     </div>
   );
 };
+
 export default function AIMatchCandidateOverview({
   activeJobId,
 }: {
@@ -73,6 +74,22 @@ export default function AIMatchCandidateOverview({
       //console.error("Error fetching candidate matches:", error);
     }
   };
+
+  function getStatusColor(status: string): string {
+    switch (status.toLowerCase()) {
+      case 'new':
+        return 'bg-blue-500';
+      case 'reviewed':
+        return 'bg-yellow-500';
+      case 'contacted':
+        return 'bg-green-500';
+      case 'rejected':
+        return 'bg-red-500';
+      default:
+        return 'bg-gray-500';
+    }
+  }
+  
 
   useEffect(() => {
     handleGetCandidateMatches();
@@ -103,25 +120,31 @@ export default function AIMatchCandidateOverview({
       ) : (
         candidates.map((candidate) => (
           <Card
-            key={candidate.match_id}
-            onClick={() => handleOpenResume(candidate)}
-            className="cursor-pointer"
-          >
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">
+          key={candidate.match_id}
+          onClick={() => handleOpenResume(candidate)}
+          className="cursor-pointer hover:shadow-md transition-shadow duration-300"
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div className="flex flex-col">
+              <CardTitle className="text-lg font-semibold text-gray-800">
                 {candidate.candidateName}
               </CardTitle>
-              <MatchStrengthIndicator value={candidate.matchScore} />
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">
-                Match ID: {candidate.match_id}
-              </p>
-              <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">
-                Status: {candidate.status}
-              </p>
-            </CardContent>
-          </Card>
+              <div className="flex items-center mt-1">
+                <div className={`w-2 h-2 rounded-full ${getStatusColor(candidate.status)}`}></div>
+                <span className="text-xs text-gray-600 ml-2">
+                  {candidate.status.charAt(0).toUpperCase() + candidate.status.slice(1)}
+                </span>
+              </div>
+            </div>
+            <MatchStrengthIndicator value={candidate.matchScore} />
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-gray-600">
+              Matched: {new Date(candidate.createdAt).toLocaleDateString()}
+            </p>
+          </CardContent>
+        </Card>
+        
         ))
       )}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>

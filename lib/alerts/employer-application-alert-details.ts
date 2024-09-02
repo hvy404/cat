@@ -27,7 +27,7 @@ interface RawApplicationData {
 
 export async function getApplicationAlertDetails(
   alertReferenceId: string
-): Promise<ApplicationDetails | null> {
+): Promise<ApplicationDetails | { error: string; code: string }> {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
@@ -53,13 +53,17 @@ export async function getApplicationAlertDetails(
     .single();
 
   if (error) {
-    console.error("Error fetching application details:", error);
-    return null;
+    return {
+      error: error.message,
+      code: error.code,
+    };
   }
 
   if (!data) {
-    console.error("No application found for reference_id:", alertReferenceId);
-    return null;
+    return {
+      error: "No application found",
+      code: "NOT_FOUND",
+    };
   }
 
   const rawData = data as unknown as RawApplicationData;

@@ -42,6 +42,10 @@ import {
 } from "@/lib/alerts/employer-match-alert-details";
 import { useUser } from "@clerk/nextjs";
 
+interface ExtendedMatchDetails extends MatchDetails {
+  status: string;
+}
+
 const AlertsCard: React.FC = () => {
   // Clerk
   const { user: clerkUser } = useUser();
@@ -55,6 +59,7 @@ const AlertsCard: React.FC = () => {
   const [applicationDetails, setApplicationDetails] =
     useState<ApplicationDetails | null>(null);
   const [matchDetails, setMatchDetails] = useState<MatchDetails | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAlerts();
@@ -70,7 +75,7 @@ const AlertsCard: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error("Error fetching alerts:", error);
+      //console.error("Error fetching alerts:", error);
     } finally {
       setIsLoading(false);
     }
@@ -85,7 +90,7 @@ const AlertsCard: React.FC = () => {
         );
       }
     } catch (error) {
-      console.error("Error updating alert:", error);
+      //console.error("Error updating alert:", error);
     }
   };
 
@@ -96,28 +101,28 @@ const AlertsCard: React.FC = () => {
         setAlerts(alerts.filter((alert) => alert.id !== id));
       }
     } catch (error) {
-      console.error("Error deleting alert:", error);
+      //console.error("Error deleting alert:", error);
     }
   };
 
   const handleAlertAction = (
     alertType: string,
     ref: string,
-    details?: ApplicationDetails
+    details?: ApplicationDetails | MatchDetails
   ) => {
     if (alertType === "application" && details) {
       setEmployerRightPanelView("inboundApplications", {
         applicationId: ref,
       });
-      console.log("Handling application alert", ref);
-      // Add logic for application alerts
     } else if (alertType === "invite") {
-      setEmployerRightPanelView("inboundApplications"); // or any other appropriate view
-      console.log("Handling invite alert", ref);
-      // Add logic for invite alerts
+      setEmployerRightPanelView("inboundApplications");
+    } else if (alertType === "match" && details) {
+      setEmployerRightPanelView("aiRecommendations", {
+        selectedRecommendationId: ref,
+        selectedRecommendationStatus: (details as ExtendedMatchDetails).status,
+      });
     }
   };
-
   const unreadCount = alerts.filter(
     (alert) => alert.status === "unread"
   ).length;
@@ -143,25 +148,41 @@ const AlertsCard: React.FC = () => {
 
   const openAlertDialog = async (alert: Alert) => {
     setSelectedAlert(alert);
+
     if (alert.status === "unread") {
       handleUpdateAlert(alert.id, { status: "read" });
     }
 
     if (alert.type === "application") {
-      const details = await getApplicationAlertDetails(alert.reference_id);
-      setApplicationDetails(details);
+      const result = await getApplicationAlertDetails(alert.reference_id);
+      if ("error" in result) {
+        setErrorMessage(
+          `There was an error retrieving application details. Please try again.`
+        );
+        setApplicationDetails(null);
+      } else {
+        setApplicationDetails(result);
+        setErrorMessage(null);
+      }
       setMatchDetails(null);
     } else if (alert.type === "match") {
-      const details = await getMatchAlertDetails(alert.reference_id);
-      setMatchDetails(details);
+      const result = await getMatchAlertDetails(alert.reference_id);
+      if ("error" in result) {
+        setErrorMessage(
+          `There was an error retrieving match details. Please try again.`
+        );
+        setMatchDetails(null);
+      } else {
+        setMatchDetails(result);
+        setErrorMessage(null);
+      }
       setApplicationDetails(null);
     } else {
       setApplicationDetails(null);
       setMatchDetails(null);
+      setErrorMessage(null);
     }
   };
-
-  // We need to create getMatchAlertDetails
 
   const closeAlertDialog = () => {
     setSelectedAlert(null);
@@ -304,7 +325,9 @@ const AlertsCard: React.FC = () => {
             </DialogTitle>
           </DialogHeader>
           <div className="p-4 bg-gray-50 rounded-md">
-            {selectedAlert?.type === "application" && applicationDetails ? (
+            {errorMessage ? (
+              <div className="text-sm text-gray-800">{errorMessage}</div>
+            ) : selectedAlert?.type === "application" && applicationDetails ? (
               <div className="space-y-3 text-sm">
                 <div className="flex items-center space-x-2">
                   <Briefcase className="w-5 h-5 text-gray-500" />
@@ -353,14 +376,14 @@ const AlertsCard: React.FC = () => {
               </p>
             )}
           </div>
-          <Separator className="my-4" />
-          <div className="grid grid-cols-2 gap-4">
-            {selectedAlert?.type !== "application" && (
+          <Separator className="my-4" />{" "}
+          {selectedAlert?.type === "match" && matchDetails && (
+            <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center space-x-2">
                 <p className="text-sm">Explore this data-driven match</p>
               </div>
-            )}
-          </div>
+            </div>
+          )}
           {selectedAlert?.action_required && (
             <div className="mt-4">
               <Badge
@@ -375,25 +398,26 @@ const AlertsCard: React.FC = () => {
             <Button variant="outline" onClick={closeAlertDialog}>
               Close
             </Button>
-            {selectedAlert?.type === "application" && (
-              <Button
-                onClick={() => {
-                  if (selectedAlert) {
-                    setEmployerRightPanelView("inboundApplications", {
-                      applicationId: selectedAlert.reference_id,
-                    });
-                    handleAlertAction(
-                      selectedAlert.type,
-                      selectedAlert.reference_id,
-                      applicationDetails || undefined
-                    );
-                  }
-                  closeAlertDialog();
-                }}
-              >
-                View Full Application
-              </Button>
-            )}
+            {selectedAlert?.type === "application" && !errorMessage && applicationDetails && (
+  <Button
+    onClick={() => {
+      if (selectedAlert) {
+        setEmployerRightPanelView("inboundApplications", {
+          applicationId: selectedAlert.reference_id,
+        });
+        handleAlertAction(
+          selectedAlert.type,
+          selectedAlert.reference_id,
+          applicationDetails
+        );
+      }
+      closeAlertDialog();
+    }}
+  >
+    View Full Application
+  </Button>
+)}
+
             {selectedAlert?.type === "invite" && (
               <Button
                 onClick={() => {
@@ -407,6 +431,22 @@ const AlertsCard: React.FC = () => {
                 }}
               >
                 View Invite Details
+              </Button>
+            )}
+            {selectedAlert?.type === "match" && matchDetails && (
+              <Button
+                onClick={() => {
+                  if (selectedAlert && matchDetails) {
+                    handleAlertAction(
+                      selectedAlert.type,
+                      selectedAlert.reference_id,
+                      matchDetails
+                    );
+                  }
+                  closeAlertDialog();
+                }}
+              >
+                View Candidate
               </Button>
             )}
           </DialogFooter>
