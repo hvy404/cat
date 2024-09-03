@@ -70,7 +70,7 @@ export const emailTemplate = `<!DOCTYPE html>
         <p>Best regards,<br>G2X Talent Team</p>
     </div>
     <div class="footer">
-        Sent to [email address]. Manage your notification preferences in your account settings.
+        <a href="[Unsubscribe Link]">Unsubscribe</a> from these notifications.
     </div>
 </body>
 </html>`;

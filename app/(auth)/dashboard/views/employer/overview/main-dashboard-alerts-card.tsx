@@ -377,13 +377,6 @@ const AlertsCard: React.FC = () => {
             )}
           </div>
           <Separator className="my-4" />{" "}
-          {selectedAlert?.type === "match" && matchDetails && (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center space-x-2">
-                <p className="text-sm">Explore this data-driven match</p>
-              </div>
-            </div>
-          )}
           {selectedAlert?.action_required && (
             <div className="mt-4">
               <Badge

@@ -1,12 +1,11 @@
 "use server";
 
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import * as supabaseMutation from "@/lib/match-system/relationship/mutation-sql";
 import * as neo4jMutation from "@/lib/match-system/relationship/mutation-graph";
 import { cookies } from "next/headers";
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from "@/lib/supabase/server";
 import { createClerkSupabaseClient } from "@/lib/supabase/supabaseClerkServer";
-
 
 async function AtomicRecordApplicationSubmission(
   candidateId: string,
@@ -21,18 +20,22 @@ async function AtomicRecordApplicationSubmission(
     candidate_id: candidateId,
     job_id: jobId,
     resume_id: resumeId,
-    status: 'submitted' as const
+    status: "submitted" as const,
   };
 
   try {
     // Step 1: Create application in Supabase
-    const supabaseApplication = await supabaseMutation.createApplication(applicationData);
-    if (!supabaseApplication) { 
+    const supabaseApplication = await supabaseMutation.createApplication(
+      applicationData
+    );
+    if (!supabaseApplication) {
       throw new Error("Failed to create application in Supabase");
     }
 
     // Step 2: Create application in Neo4j
-    const neo4jApplication = await neo4jMutation.createApplication(applicationData);
+    const neo4jApplication = await neo4jMutation.createApplication(
+      applicationData
+    );
     if (!neo4jApplication) {
       // Rollback Supabase creation
       await supabaseMutation.deleteApplication(applicationId);
@@ -45,9 +48,9 @@ async function AtomicRecordApplicationSubmission(
     const alertData = {
       id: alertId,
       user_id: employerId,
-      type: 'application' as const,
+      type: "application" as const,
       reference_id: applicationId,
-      status: 'unread' as const
+      status: "unread" as const,
     };
 
     // Step 3: Create alert in Supabase
@@ -79,44 +82,47 @@ async function AtomicRecordApplicationSubmission(
 export default AtomicRecordApplicationSubmission;
 
 // Helper function to get the employer ID from a job
-async function getEmployerIdFromJob(jobId: string): Promise<string> {
-    const cookieStore = cookies();
-    const supabase = createClient(cookieStore);
-  
-    const { data, error } = await supabase
-      .from('job_postings')
-      .select('employer_id')
-      .eq('jd_id', jobId)
-      .single();
-  
-    if (error) {
-      console.error('Error fetching employer ID:', error);
-      throw new Error('Failed to fetch employer ID');
-    }
-  
-    if (!data || !data.employer_id) {
-      throw new Error('Employer ID not found for the given job');
-    }
-  
-    return data.employer_id;
+export async function getEmployerIdFromJob(jobId: string): Promise<string> {
+  const cookieStore = cookies();
+  const supabase = createClient(cookieStore);
+
+  const { data, error } = await supabase
+    .from("job_postings")
+    .select("employer_id")
+    .eq("jd_id", jobId)
+    .single();
+
+  if (error) {
+    console.error("Error fetching employer ID:", error);
+    throw new Error("Failed to fetch employer ID");
   }
 
-  // Function to check if an application already exists
-  export async function checkExistingApplication(candidateId: string, jobId: string): Promise<boolean> {
-    const cookieStore = cookies();
-    const supabase = createClient(cookieStore);
-  
-    const { data, error } = await supabase
-      .from("applications")
-      .select()
-      .eq("candidate_id", candidateId)
-      .eq("job_id", jobId)
-      .single();
-  
-    if (error && error.code !== 'PGRST116') {
-      console.error("Error checking existing application:", error);
-      throw error;
-    }
-  
-    return !!data;
+  if (!data || !data.employer_id) {
+    throw new Error("Employer ID not found for the given job");
   }
+
+  return data.employer_id;
+}
+
+// Function to check if an application already exists
+export async function checkExistingApplication(
+  candidateId: string,
+  jobId: string
+): Promise<boolean> {
+  const cookieStore = cookies();
+  const supabase = createClient(cookieStore);
+
+  const { data, error } = await supabase
+    .from("applications")
+    .select()
+    .eq("candidate_id", candidateId)
+    .eq("job_id", jobId)
+    .single();
+
+  if (error && error.code !== "PGRST116") {
+    console.error("Error checking existing application:", error);
+    throw error;
+  }
+
+  return !!data;
+}

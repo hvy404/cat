@@ -70,9 +70,9 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [resumeError, setResumeError] = useState<string | null>(null);
   const [selectedResume, setSelectedResume] = useState<Resume | null>(null);
-  const [companyInfo, setCompanyInfo] = useState<Partial<CompanyNode> | null>(
+/*   const [companyInfo, setCompanyInfo] = useState<Partial<CompanyNode> | null>(
     null
-  );
+  ); */
   const [hasApplied, setHasApplied] = useState(false);
 
   const candidateId = clerkUser?.publicMetadata?.aiq_cuid as string;
@@ -107,7 +107,7 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
           const exists = await checkExistingApplication(candidateId, jobId);
           setHasApplied(exists);
         } catch (error) {
-          console.error("Error checking application:", error);
+          console.error("Error checking application");
         }
       }
     };
@@ -124,7 +124,7 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
       setIsResumeDialogOpen(true);
     } catch (err) {
       setResumeError("Failed to fetch resumes. Please try again later.");
-      console.error("Error fetching resumes:", err);
+      console.error("Error fetching resumes");
     }
   };
 
@@ -154,6 +154,7 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
         if (result.success) {
           setHasApplied(true);
           toast.success("Your application has been submitted successfully!");
+          // Send email to employer about application
           handleCloseResumeDialog();
         } else {
           toast.error(`Failed to submit application: ${result.error}`);

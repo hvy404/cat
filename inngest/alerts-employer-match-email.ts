@@ -6,37 +6,37 @@ export const sendEmailFunction = inngest.createFunction(
   { id: "send-alerts-employer-match-email" },
   { event: "app/send-email-employer-new-match" },
   async ({ event, step }) => {
-    const {
-      to,
-      employerName,
-      jobTitle,
-      candidateName,
-      matchReportUrl,
-      unsubscribeUrl,
-      preferencesUrl,
-    } = event.data;
+    const { to, employerName, jobTitle, candidateName, matchReportUrl } =
+      event.data;
 
     if (
       !to ||
       !employerName ||
       !jobTitle ||
       !candidateName ||
-      !matchReportUrl ||
-      !unsubscribeUrl ||
-      !preferencesUrl
+      !matchReportUrl
     ) {
       throw new Error("Missing required data to send email");
     }
 
     try {
+      const baseUrl =
+        process.env.NODE_ENV === "production"
+          ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+          : "http://localhost:3000";
+
+      const encodedEmail = encodeURIComponent(to);
+
       const result = await step.run("Send email", async () => {
         const htmlBody = emailTemplate
           .replace("{{employerName}}", employerName)
           .replace("{{jobTitle}}", jobTitle)
           .replace("{{candidateName}}", candidateName)
           .replace("{{matchReportUrl}}", matchReportUrl)
-          .replace("{{unsubscribeUrl}}", unsubscribeUrl)
-          .replace("{{preferencesUrl}}", preferencesUrl);
+          .replace(
+            "{{unsubscribeUrl}}",
+            `${baseUrl}/dashboard/unsubscribe/${encodedEmail}?type=match`
+          );
 
         return await postmarkClient.sendEmail({
           From: "hello@notifications.g2xchange.com",

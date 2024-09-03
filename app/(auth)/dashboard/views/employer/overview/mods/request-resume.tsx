@@ -14,14 +14,19 @@ interface ResumeDownloadDialogProps {
   onDownload: (sendEmail: boolean) => void;
 }
 
-
 const ResumeDownloadDialog: React.FC<ResumeDownloadDialogProps> = ({
   onDownload,
 }) => {
   const [notifyCandidate, setNotifyCandidate] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const handleDownload = () => {
+    onDownload(notifyCandidate);
+    setOpen(false);
+  };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="flex-1">
           View Resume
@@ -29,7 +34,7 @@ const ResumeDownloadDialog: React.FC<ResumeDownloadDialogProps> = ({
       </DialogTrigger>
       <DialogContent className="sm:max-w-[480px] p-6">
         <DialogHeader>
-        <DialogTitle className="text-xl font-semibold">
+          <DialogTitle className="text-xl font-semibold">
             Download Resume
           </DialogTitle>
         </DialogHeader>
@@ -45,7 +50,10 @@ const ResumeDownloadDialog: React.FC<ResumeDownloadDialogProps> = ({
                 { icon: Mail, text: "Increased Engagement" },
                 { icon: ThumbsUp, text: "Improved Response Rates" },
               ].map(({ icon: Icon, text }, index) => (
-                <div key={index} className="flex flex-col items-center text-center">
+                <div
+                  key={index}
+                  className="flex flex-col items-center text-center"
+                >
                   <div className="bg-blue-50 p-3 rounded-full mb-3">
                     <Icon className="h-6 w-6 text-blue-600" />
                   </div>
@@ -72,13 +80,14 @@ const ResumeDownloadDialog: React.FC<ResumeDownloadDialogProps> = ({
         </div>
         <div className="mt-8">
           <Button
-             onClick={() => {
-              onDownload(notifyCandidate);
-            }}
+            onClick={handleDownload}
             className="w-full py-2 text-sm font-medium"
           >
             Download Resume
           </Button>
+          <p className="text-xs text-gray-500 text-center mt-4">
+            A new tab will open to download the resume. Please ensure your popup blocker is disabled.
+          </p>
         </div>
       </DialogContent>
     </Dialog>

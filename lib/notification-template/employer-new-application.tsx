@@ -3,15 +3,15 @@ export const emailTemplate = `<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exceptional Candidate Match</title>
+    <title>New Job Application Received</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         
         body {
             font-family: 'Inter', sans-serif;
             line-height: 1.6;
-            color: #374151; /* gray-700 */
-            background-color: #f9fafb; /* gray-50 */
+            color: #374151;
+            background-color: #f9fafb;
             margin: 0;
             padding: 0;
             font-size: 14px;
@@ -31,34 +31,34 @@ export const emailTemplate = `<!DOCTYPE html>
             height: auto;
         }
         h1 {
-    color: #111827; /* gray-900 */
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 24px;
-    text-align: center;
-}
+            color: #111827;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            text-align: center;
+        }
 
-@media screen and (max-width: 480px) {
-    h1 {
-        font-size: 18px;
-    }
-}
+        @media screen and (max-width: 480px) {
+            h1 {
+                font-size: 18px;
+            }
+        }
 
-        .match-info {
-            background-color: #f3f4f6; /* gray-100 */
+        .application-info {
+            background-color: #f3f4f6;
             border-radius: 12px;
             padding: 30px;
             margin-bottom: 30px;
         }
-        .match-info p {
+        .application-info p {
             margin: 0 0 16px;
         }
-        .match-info p:last-child {
+        .application-info p:last-child {
             margin-bottom: 0;
         }
         .cta-button {
             display: inline-block;
-            background-color: #4b5563; /* gray-600 */
+            background-color: #4b5563;
             color: #ffffff;
             text-decoration: none;
             padding: 14px 28px;
@@ -68,18 +68,18 @@ export const emailTemplate = `<!DOCTYPE html>
             transition: background-color 0.3s ease;
         }
         .cta-button:hover {
-            background-color: #374151; /* gray-700 */
+            background-color: #374151;
         }
         .footer {
             text-align: center;
             font-size: 14px;
-            color: #6b7280; /* gray-500 */
+            color: #6b7280;
             margin-top: 40px;
             padding-top: 20px;
-            border-top: 1px solid #e5e7eb; /* gray-200 */
+            border-top: 1px solid #e5e7eb;
         }
         .footer a {
-            color: #4b5563; /* gray-600 */
+            color: #4b5563;
             text-decoration: none;
         }
         .footer a:hover {
@@ -92,26 +92,22 @@ export const emailTemplate = `<!DOCTYPE html>
         <div class="header">
             <img src="https://via.placeholder.com/180x60" alt="AI Recruiter Logo" class="logo">
         </div>
-        <h1>Exceptional Candidate Match Found</h1>
-        <div class="match-info">
+        <h1>New Job Application Received</h1>
+        <div class="application-info">
             <p>Hello {{employerName}},</p>
-            <p>We've found an exceptional match for the <strong>{{jobTitle}}</strong> position.</p>
-            <p><strong>Candidate Name:</strong> {{candidateName}}</p>
-            <p>Our intelligent matching system has identified a remarkable alignment between this candidate's profile and your specific job requirements, revealing a high-potential fit.</p>
+            <p>We're excited to inform you that a new application has been submitted for the <strong>{{jobTitle}}</strong> position.</p>
+            <p>This candidate has shown interest in your job posting and has submitted their application for your review.</p>
         </div>
         <p style="text-align: center; margin-bottom: 24px;">
-  Ready to explore this potential match? Click the button below to view the detailed match report in your dashboard:
-</p>
-<div style="text-align: center; margin-bottom: 32px;">
-  <a href="{{matchReportUrl}}" class="cta-button" style="display: inline-block; padding: 14px 28px; background-color: #4b5563; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">View Match Report</a>
-</div>
-<p style="text-align: center; font-size: 14px; color: #6b7280; margin-top: 24px;">
-  If you have any questions or need further information, please don't hesitate to reach out to our support team.
-</p>
+            To review this application and access the candidate's details, please click the button below:
+        </p>
+        <div style="text-align: center; margin-bottom: 32px;">
+            <a href="{{applicationUrl}}" class="cta-button" style="display: inline-block; padding: 14px 28px; background-color: #4b5563; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">Review Application</a>
+        </div>
 
         <div class="footer">
             <p>© 2024 G2Xchange - Talent. All rights reserved.</p>
-            <p>You're receiving this email because you're subscribed to candidate match notifications.</p>
+            <p>You're receiving this email because you have an active job posting on our platform.</p>
             <p><a href="{{unsubscribeUrl}}">Unsubscribe</a></p>
         </div>
     </div>

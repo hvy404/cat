@@ -195,8 +195,6 @@ export async function evaluateJobCandidateMatch(
             jobTitle: matchDetails.jobTitle,
             candidateName: matchDetails.candidateName,
             matchReportUrl: `/match/matchId`,
-            unsubscribeUrl: `/unsubscribe`,
-            preferencesUrl: `/preferences`,
           },
         });
       }
