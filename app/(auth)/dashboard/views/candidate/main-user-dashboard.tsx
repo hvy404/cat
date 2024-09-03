@@ -68,6 +68,7 @@ export function CandidateDashboard() {
   const [bookmarkedJobs, setBookmarkedJobs] = useState<CandidateJobBookmark[]>(
     []
   );
+  const [alertsRefreshTrigger, setAlertsRefreshTrigger] = useState(0);
 
   const candidateId = clerkUser?.publicMetadata?.aiq_cuid as string;
 
@@ -86,6 +87,10 @@ export function CandidateDashboard() {
     setData(mockData);
     setIsLoading(false);
   }, [candidateId]);
+
+  const handleAlertRefresh = useCallback(() => {
+    setAlertsRefreshTrigger((prev) => prev + 1);
+  }, []);
 
   const handleViewMoreJobBookmarked = useCallback(
     (jobId: string) => {
@@ -226,7 +231,12 @@ export function CandidateDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <ProfilePictureUpload userId={candidateId} />
 
-        <CandidateAlertsCard onAlertAction={handleAlertAction} />
+        <CandidateAlertsCard
+          onAlertAction={handleAlertAction}
+          refreshTrigger={alertsRefreshTrigger}
+          onDeleteSuccess={handleAlertRefresh}
+        />
+
         <TalentId
           handleTalentIDLearnMore={handleTalentIDLearnMore}
           candidateId={candidateId}

@@ -39,9 +39,15 @@ import { toast } from "sonner";
 
 interface AlertsCardProps {
   onAlertAction: (alertType: string, jobId: string) => void;
+  refreshTrigger?: number;
+  onDeleteSuccess?: () => void;
 }
 
-const AlertsCard: React.FC<AlertsCardProps> = ({ onAlertAction }) => {
+const AlertsCard: React.FC<AlertsCardProps> = ({
+  onAlertAction,
+  refreshTrigger,
+  onDeleteSuccess,
+}) => {
   const { user: clerkUser } = useUser();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [showOnlyUnread, setShowOnlyUnread] = useState(false);
@@ -56,7 +62,7 @@ const AlertsCard: React.FC<AlertsCardProps> = ({ onAlertAction }) => {
 
   useEffect(() => {
     fetchAlerts();
-  }, [candidateId]);
+  }, [candidateId, refreshTrigger]);
 
   const fetchAlerts = async () => {
     setIsLoading(true);
@@ -93,6 +99,7 @@ const AlertsCard: React.FC<AlertsCardProps> = ({ onAlertAction }) => {
       if (success) {
         setAlerts(alerts.filter((alert) => alert.id !== id));
         toast.success("Alert deleted successfully");
+        onDeleteSuccess?.(); // Call the callback if it exists
       }
     } catch (error) {
       console.error("Error deleting alert:", error);
