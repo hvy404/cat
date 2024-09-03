@@ -129,14 +129,8 @@ export function CandidateDashboard() {
             widgetPayload: { type: "inviteAlerts", payload: { jobId: jobId } },
           });
           break;
-        /* case "match":
-          setCandidateDashboard({
-            widget: "matchAlerts",
-            widgetPayload: { type: "matchAlerts", payload: { jobId: jobId } },
-          });
-          break; */
         default:
-          console.warn(`Unhandled alert type: ${alertType}`);
+          console.log(`Action not allowed`);
       }
     },
     [setCandidateDashboard]

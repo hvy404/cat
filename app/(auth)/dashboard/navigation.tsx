@@ -142,11 +142,6 @@ export default function DashboardNavigation() {
                 icon={Layers2}
               />
               <TooltipButton
-                item="talent-search"
-                label="Search"
-                icon={Search}
-              />
-              <TooltipButton
                 item="talent-experience"
                 label="Experience"
                 icon={BriefcaseBusiness}
@@ -165,6 +160,11 @@ export default function DashboardNavigation() {
                 item="talent-profile"
                 label="Personal Profile"
                 icon={User}
+              />
+              <TooltipButton
+                item="talent-search"
+                label="Search"
+                icon={Search}
               />
               <TooltipButton
                 item="resume-copilot"

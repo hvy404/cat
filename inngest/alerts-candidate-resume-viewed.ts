@@ -1,6 +1,7 @@
 import { inngest } from "@/lib/inngest/client";
 import postmarkClient from "@/lib/notification-sender/postmark-client";
 import { emailTemplate } from "@/lib/notification-template/candidate-resume-viewed";
+import { obfuscateUUID } from "@/lib/global/protect-uuid";
 
 export const sendResumeViewAlert = inngest.createFunction(
   { id: "send-alerts-candidate-resume-view" },
@@ -14,22 +15,25 @@ export const sendResumeViewAlert = inngest.createFunction(
 
     try {
       const result = await step.run("Send email", async () => {
-      
-
         const baseUrl =
-        process.env.NODE_ENV === "production"
-          ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-          : "http://localhost:3000";
+          process.env.NODE_ENV === "production"
+            ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+            : "http://localhost:3000";
 
-          const jobLink = `${baseUrl}/jobs/${jobId}`;
+        const obfuscatedUUID = await obfuscateUUID(jobId);
 
-      const encodedEmail = encodeURIComponent(candidateEmail);
+        const jobLink = `${baseUrl}/dashboard/job?id=${obfuscatedUUID}`;
+
+        const encodedEmail = encodeURIComponent(candidateEmail);
 
         const htmlBody = emailTemplate
           .replace("[Candidate Name]", candidateName)
           .replace("[Job Name]", jobTitle)
           .replace("[Job Link]", jobLink)
-          .replace("[Unsubscribe Link]", `${baseUrl}/dashboard/unsub/${encodedEmail}?type=resume`);
+          .replace(
+            "[Unsubscribe Link]",
+            `${baseUrl}/dashboard/unsub/${encodedEmail}?type=resume`
+          );
 
         const textBody = `
 Dear ${candidateName},

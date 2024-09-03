@@ -191,10 +191,6 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
     );
   }
 
-  if (!jobDetails) {
-    return <div>No job details found.</div>;
-  }
-
   const ResumeCard: React.FC<ResumeCardProps> = ({
     resume,
     onSelect,
@@ -256,7 +252,19 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
   }
 
   if (!jobDetails) {
-    return <div>No job details found.</div>;
+    return (
+      <div className="flex justify-center items-center h-[60vh]">
+        <div className="text-center p-8 bg-gray-100 rounded-lg">
+          <AlertCircle className="w-8 h-8 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-md font-semibold text-gray-700 mb-2">
+            No Job Details Found
+          </h2>
+          <p className="text-gray-600 text-sm">
+            We couldn't find any information for this opportunity.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
