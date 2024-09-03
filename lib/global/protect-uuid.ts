@@ -2,8 +2,8 @@
 import { createCipheriv, createDecipheriv } from "crypto";
 
 const algorithm = "aes-256-cbc";
-const key = Buffer.from(process.env.UUID_OBFUSCATION_KEY || "", "utf-8");
-const iv = Buffer.from(process.env.UUID_OBFUSCATION_IV || "", "utf-8");
+const key = Buffer.from(process.env.UUID_OBFUSCATION_KEY || "", "hex");
+const iv = Buffer.from(process.env.UUID_OBFUSCATION_IV || "", "hex");
 
 if (key.length !== 32 || iv.length !== 16) {
   throw new Error("Invalid encryption key or IV length");

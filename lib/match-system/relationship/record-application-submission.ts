@@ -5,12 +5,15 @@ import * as supabaseMutation from "@/lib/match-system/relationship/mutation-sql"
 import * as neo4jMutation from "@/lib/match-system/relationship/mutation-graph";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { createClerkSupabaseClient } from "@/lib/supabase/supabaseClerkServer";
+import { inngest } from "@/lib/inngest/client";
+
+//import { createClerkSupabaseClient } from "@/lib/supabase/supabaseClerkServer";
 
 async function AtomicRecordApplicationSubmission(
   candidateId: string,
   jobId: string,
-  resumeId: string
+  resumeId: string,
+  jobTitle: string
 ) {
   const applicationId = uuidv4();
   const alertId = uuidv4();
@@ -72,13 +75,27 @@ async function AtomicRecordApplicationSubmission(
       throw new Error("Failed to create alert in Neo4j");
     }
 
+    // After step 4 is successful
+    if (neo4jAlert) {
+
+      // Call Inngest function
+      await inngest.send({
+        name: "app/send-email-employer-new-application",
+        data: {
+          candidateId,
+          jobId,
+          jobTitle,
+          applicationId,
+        },
+      });
+    }
+
     return { success: true, applicationId };
   } catch (error) {
     console.error("Error in AtomicRecordApplicationSubmission:", error);
     return { success: false, error: (error as Error).message };
   }
 }
-
 export default AtomicRecordApplicationSubmission;
 
 // Helper function to get the employer ID from a job

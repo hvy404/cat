@@ -70,7 +70,7 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [resumeError, setResumeError] = useState<string | null>(null);
   const [selectedResume, setSelectedResume] = useState<Resume | null>(null);
-/*   const [companyInfo, setCompanyInfo] = useState<Partial<CompanyNode> | null>(
+  /*   const [companyInfo, setCompanyInfo] = useState<Partial<CompanyNode> | null>(
     null
   ); */
   const [hasApplied, setHasApplied] = useState(false);
@@ -148,7 +148,8 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
         const result = await AtomicRecordApplicationSubmission(
           candidateId,
           jobId,
-          selectedResume.address
+          selectedResume.address,
+          jobDetails?.job_title || ""
         );
 
         if (result.success) {

@@ -4,17 +4,27 @@ import { emailTemplate } from "@/lib/notification-template/employer-new-applicat
 import { getEmployerIdFromJob } from "@/lib/match-system/relationship/record-application-submission";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
+import { obfuscateUUID } from "@/lib/global/protect-uuid";
 
 export const sendApplicationReceivedAlert = inngest.createFunction(
   { id: "send-alerts-employer-new-application" },
   { event: "app/send-email-employer-new-application" },
   async ({ event, step }) => {
-    const { candidateId, jobId, jobTitle } = event.data;
+    const {
+      candidateId,
+      jobId,
+      jobTitle,
+      applicationId: rawApplicationId,
+    } = event.data;
     const supabase = createClient(cookies());
 
     if (!jobId || !candidateId) {
       throw new Error("Missing required data to send email");
     }
+
+    const applicationId = await step.run("Obfuscate jobId", async () => {
+      return await obfuscateUUID(rawApplicationId);
+    });
 
     try {
       const employerId = await step.run("Get employer ID", async () => {
@@ -53,7 +63,7 @@ export const sendApplicationReceivedAlert = inngest.createFunction(
             ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
             : "http://localhost:3000";
 
-        const jobLink = `${baseUrl}/jobs/${jobId}`;
+        const jobLink = `${baseUrl}/dashboard/application?id=${applicationId}`;
         const encodedEmail = encodeURIComponent(employer.contact_email);
 
         const htmlBody = emailTemplate
