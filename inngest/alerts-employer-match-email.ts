@@ -1,20 +1,26 @@
 import { inngest } from "@/lib/inngest/client";
 import postmarkClient from "@/lib/notification-sender/postmark-client";
 import { emailTemplate } from "@/lib/notification-template/employer-new-match";
+import { obfuscateUUID } from "@/lib/global/protect-uuid";
 
 export const sendEmailFunction = inngest.createFunction(
   { id: "send-alerts-employer-match-email" },
   { event: "app/send-email-employer-new-match" },
   async ({ event, step }) => {
-    const { to, employerName, jobTitle, candidateName, matchReportUrl } =
-      event.data;
+    const {
+      to,
+      employerName,
+      jobTitle,
+      candidateName,
+      matchReportUrl: rawMatchReportUrl,
+    } = event.data;
 
     if (
       !to ||
       !employerName ||
       !jobTitle ||
       !candidateName ||
-      !matchReportUrl
+      !rawMatchReportUrl
     ) {
       throw new Error("Missing required data to send email");
     }
@@ -26,6 +32,10 @@ export const sendEmailFunction = inngest.createFunction(
           : "http://localhost:3000";
 
       const encodedEmail = encodeURIComponent(to);
+
+      const matchReportUrlCode = await obfuscateUUID(rawMatchReportUrl);
+
+      const matchReportUrl = `${baseUrl}/dashboard/recommendation?id=${matchReportUrlCode}`;
 
       const result = await step.run("Send email", async () => {
         const htmlBody = emailTemplate

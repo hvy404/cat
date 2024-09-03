@@ -12,6 +12,8 @@ import {
   Alert,
 } from "@/lib/match-system/relationship/mutation-sql";
 import { v4 as uuidv4 } from "uuid";
+import { obfuscateUUID } from "@/lib/global/protect-uuid";
+
 
 // Zod schema
 const jobCandidateMatchSchema = z.object({
@@ -194,7 +196,7 @@ export async function evaluateJobCandidateMatch(
             employerName: matchDetails.employerName,
             jobTitle: matchDetails.jobTitle,
             candidateName: matchDetails.candidateName,
-            matchReportUrl: `/match/matchId`,
+            matchReportUrl: matchId,
           },
         });
       }
