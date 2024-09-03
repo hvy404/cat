@@ -87,7 +87,5 @@ export async function getApplicationAlertDetails(
     h: candidates?.identity || "Unknown",
   };
 
-  console.log("Application details:", obfuscatedApplicationDetails);
-
   return obfuscatedApplicationDetails;
 }

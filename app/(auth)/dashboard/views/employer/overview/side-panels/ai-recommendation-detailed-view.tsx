@@ -92,7 +92,7 @@ const AIRecommendationDetailPanel: React.FC<AIRecommendationDetailProps> = ({
             console.error("Error fetching graph details:", graphResult.error);
           }
         } else {
-          setError("There was an error fetching details");
+          setError("We could not retrieve details about this match.");
         }
       } catch (err) {
         setError("Failed to fetch recommendation details");
@@ -171,10 +171,10 @@ const AIRecommendationDetailPanel: React.FC<AIRecommendationDetailProps> = ({
     return (
       <Card className="h-full">
         <CardHeader>
-          <CardTitle>Error</CardTitle>
+          <CardTitle className="text-md text-gray-800">No match found</CardTitle>
         </CardHeader>
         <CardContent>
-          <p>{error}</p>
+          <p className="text-sm">{error}</p>
         </CardContent>
       </Card>
     );

@@ -14,12 +14,14 @@ export const sendResumeViewAlert = inngest.createFunction(
 
     try {
       const result = await step.run("Send email", async () => {
-        const jobLink = `https://yourwebsite.com/jobs/${jobId}`; // TODO: Replace with your actual job link structure
+      
 
         const baseUrl =
         process.env.NODE_ENV === "production"
           ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
           : "http://localhost:3000";
+
+          const jobLink = `${baseUrl}/jobs/${jobId}`;
 
       const encodedEmail = encodeURIComponent(candidateEmail);
 

@@ -72,19 +72,6 @@ export default function EmployerDashboardOverviewRoles() {
   const [error, setError] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
 
-  if (!dashboard_role_overview.active_role_id) {
-    return null; // or return some loading/error component
-  }
-
-  const handleReturnToDashboard = () => {
-    setDashboardRoleOverview({
-      active: false,
-      active_role_id: null,
-      active_role_name: null,
-    });
-    setEmployerRightPanelView("default");
-  };
-
   useEffect(() => {
     let isMounted = true;
 
@@ -122,6 +109,19 @@ export default function EmployerDashboardOverviewRoles() {
       isMounted = false;
     };
   }, [cuid, dashboard_role_overview.active_role_id]);
+
+  if (!dashboard_role_overview.active_role_id) {
+    return null; // or return some loading/error component
+  }
+
+  const handleReturnToDashboard = () => {
+    setDashboardRoleOverview({
+      active: false,
+      active_role_id: null,
+      active_role_name: null,
+    });
+    setEmployerRightPanelView("default");
+  };
 
   if (error) return <p>{error}</p>; // Display error message if there's an error
   if (!jobDetails)
