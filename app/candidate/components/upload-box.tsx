@@ -1,9 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import Dropzone, { FileWithPath } from "react-dropzone";
-import { PlusIcon } from "@heroicons/react/24/solid";
-import { uploadResumeToStorage } from "@/lib/candidate/resume-upload";
-import { resumeUnconfirmedAddToDatabase } from "@/lib/candidate/resume-upload-entry";
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useSignUp } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,13 +15,8 @@ import {
 import { toast } from "sonner";
 import { createId } from "@paralleldrive/cuid2";
 import { updatePublicMetadata } from "@/lib/auth/actions";
-import { candidateStartOnboard } from "@/lib/candidate/onboard/onboardResume";
-import { QueryWorkerStatus } from "@/lib/workers/check-worker-status";
-import EnhancedLoadingComponent from "@/app/candidate/components/loading-status-bar";
 
-const ResumeUploadBox: React.FC = () => {
-  const [file, setFile] = useState<FileWithPath | null>(null);
-  const [showSignUp, setShowSignUp] = useState(false);
+const SignUpBox: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
@@ -33,10 +24,6 @@ const ResumeUploadBox: React.FC = () => {
   const { isLoaded, signUp, setActive } = useSignUp();
   const [candidateId, setCandidateId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [runId, setRunId] = useState<string | null>(null);
-  const [workerStatus, setWorkerStatus] = useState<string | undefined>(
-    undefined
-  );
 
   const router = useRouter();
 
@@ -44,15 +31,6 @@ const ResumeUploadBox: React.FC = () => {
     const newCuid = createId();
     setCandidateId(newCuid);
   }, []);
-
-  const onFileAdded = (acceptedFiles: FileWithPath[]) => {
-    if (acceptedFiles.length === 0) {
-      toast.error("No file selected.");
-      return;
-    }
-    setFile(acceptedFiles[0]);
-    setShowSignUp(true);
-  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -104,7 +82,7 @@ const ResumeUploadBox: React.FC = () => {
           }
 
           toast.success("Email verified successfully!");
-          await handleFileUpload(completeSignUp.createdUserId || null);
+          router.push("/dashboard");
         }
       }
     } catch (err) {
@@ -113,153 +91,18 @@ const ResumeUploadBox: React.FC = () => {
     }
   };
 
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const isFetchingRef = useRef(false);
-
-  const pollWorkerStatus = useCallback(async (eventId: string) => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-
-    const fetchStatus = async () => {
-      if (isFetchingRef.current) return;
-      isFetchingRef.current = true;
-
-      try {
-        const result = await QueryWorkerStatus(eventId);
-        setWorkerStatus(result.status);
-
-        if (result.status === "completed" || result.status === "failed" || result.status === "cancelled") {
-          if (intervalRef.current) {
-            clearInterval(intervalRef.current);
-          }
-
-          if (result.status === "completed") {
-            console.log("Worker completed successfully");
-            toast.success("Resume processing completed!");
-            setIsLoading(false);
-            router.push('/dashboard');
-          } else {
-            console.error("Worker failed or was cancelled");
-            toast.error(
-              "There was an error processing your resume. Please try again."
-            );
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching worker status:", error);
-      } finally {
-        isFetchingRef.current = false;
-      }
-    };
-
-    await fetchStatus(); // Immediate first call
-    intervalRef.current = setInterval(fetchStatus, 10000);
-  }, [router]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, []);
-
-  const handleFileUpload = async (userId: string | null) => {
-    if (!file) {
-      toast.error("No file selected.");
-      setIsLoading(false);
-      return;
-    }
-
-    if (!userId) {
-      toast.error("User ID is missing. Cannot start onboarding.");
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      // Upload resume
-      const uploadResult = await uploadResumeToStorage(formData);
-      console.log("Upload result:", uploadResult);
-
-      if (!uploadResult || !uploadResult.success || !uploadResult.id) {
-        throw new Error("Failed to upload resume.");
-      }
-
-      // Add to database
-      const addResult = await resumeUnconfirmedAddToDatabase(
-        candidateId,
-        uploadResult.id,
-        email
-      );
-      console.log("Add to database result:", addResult);
-
-      if (!addResult || !addResult.success) {
-        throw new Error("Failed to confirm resume upload.");
-      }
-
-      toast.success("Resume uploaded and confirmed successfully.");
-
-      // Start onboarding
-      const onboardResult = await candidateStartOnboard(candidateId);
-      console.log("Onboarding Run", onboardResult);
-
-      if (
-        onboardResult.message !== "Success" ||
-        !onboardResult.event ||
-        onboardResult.event.length === 0
-      ) {
-        throw new Error(
-          onboardResult.error || "Failed to start onboarding process."
-        );
-      }
-
-      toast.success("Onboarding process started successfully.");
-      setRunId(onboardResult.event[0]);
-      pollWorkerStatus(onboardResult.event[0]);
-    } catch (error) {
-      console.error("Error during file upload or processing:", error);
-      toast.error(
-        error instanceof Error ? error.message : "An unexpected error occurred."
-      );
-    } finally {
-      //setIsLoading(false);
-    }
-  };
-
   if (isLoading) {
-    return <EnhancedLoadingComponent workerStatus={workerStatus} />;
+    return <div>Loading...</div>;
   }
 
   return (
     <div className="w-full max-w-md">
-      {!file && (
-        <Dropzone onDrop={onFileAdded} multiple={false}>
-          {({ getRootProps, getInputProps }) => (
-            <div
-              {...getRootProps()}
-              className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center cursor-pointer"
-            >
-              <input {...getInputProps()} />
-              <PlusIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <p className="mt-2 text-sm text-gray-600">
-                Click or drag file to upload
-              </p>
-            </div>
-          )}
-        </Dropzone>
-      )}
-      {file && showSignUp && !showVerification && (
+      {!showVerification ? (
         <Card>
           <CardHeader>
             <CardTitle>Sign Up</CardTitle>
             <CardDescription>
-              Create an account to upload your resume
+              Create an account to get started
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
@@ -296,8 +139,7 @@ const ResumeUploadBox: React.FC = () => {
             </CardFooter>
           </form>
         </Card>
-      )}
-      {showVerification && !isLoading && (
+      ) : (
         <Card>
           <CardHeader>
             <CardTitle>Verify Email</CardTitle>
@@ -330,4 +172,4 @@ const ResumeUploadBox: React.FC = () => {
   );
 };
 
-export default ResumeUploadBox;
+export default SignUpBox;

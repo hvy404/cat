@@ -84,11 +84,11 @@ export const JobInvited: React.FC<JobInvitedProps> = ({
   return (
     <Card className="h-full">
       <CardHeader className="flex flex-row items-center space-x-2 pb-2">
-      <div className="flex items-center">
-        <Briefcase className="mr-2 h-4 w-4" />
-        <CardTitle className="text-md font-semibold text-gray-800">
-          Jobs You're Invited To
-        </CardTitle>
+        <div className="flex items-center">
+          <Briefcase className="mr-2 h-4 w-4" />
+          <CardTitle className="text-md font-semibold text-gray-800">
+            Jobs You're Invited To
+          </CardTitle>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
@@ -97,20 +97,13 @@ export const JobInvited: React.FC<JobInvitedProps> = ({
         ) : error ? (
           <p className="text-red-500">Error: {error}</p>
         ) : invitedJobs.length === 0 ? (
-          <>
-            <p className="text-sm text-gray-500">
-              Exciting opportunities are on the horizon. Check back soon for job
-              invitations. These invitations are personalized outreach from HR
-              managers who have discovered your profile and believe you'd be a
-              great fit for their openings.
+          <div className="text-center py-8">
+            <p className="text-gray-500 text-sm">No job invitations yet.</p>
+            <p className="text-gray-500 text-xs mt-2">
+              Recruiting managers send invites to candidates they're interested
+              in.
             </p>
-            <div className="mt-3 flex items-center text-xs text-indigo-600">
-              <UserCheck className="w-4 h-4 mr-1" />
-              <span>
-                Invites are hand-picked by a company's human recruiters
-              </span>
-            </div>
-          </>
+          </div>
         ) : (
           <>
             <div className="space-y-4">

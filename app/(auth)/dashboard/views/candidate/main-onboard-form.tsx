@@ -42,6 +42,7 @@ import { handleUpload } from "@/lib/dashboard/candidate/onboard-confirm-profile"
 import { MonthYearPicker } from "@/app/(auth)/dashboard/views/candidate/assets/date-picker-my";
 import { candidateFinalizeOnboard } from "@/lib/candidate/onboard/onboardResume";
 import { QueryWorkerStatus } from "@/lib/workers/check-worker-status";
+import { LoadingAlert } from "@/app/(auth)/dashboard/views/candidate/main-onboard-form-loading";
 
 interface Education {
   institution: string;
@@ -230,7 +231,7 @@ export function CandidateOnboardingForm() {
   const handlePopulate = async () => {
     if (user) {
       const result = await fetchCandidatePreliminaryData(user as string);
-      
+
       if (result.success && result.data && result.data.length > 0) {
         const data = result.data[0] as CandidateData;
         setOriginalData(data);
@@ -250,7 +251,6 @@ export function CandidateOnboardingForm() {
       }
     }
   };
-  
 
   const pollWorkerStatus = useCallback(async (eventId: string) => {
     const pollInterval = setInterval(async () => {
@@ -263,7 +263,7 @@ export function CandidateOnboardingForm() {
         setIsSubmitting(false);
         // Reload the component here
         // You might want to use a state update or a router refresh depending on your setup
-        window.location.reload(); // This is a simple way to reload, but you might want a more elegant solution
+        window.location.reload(); // This is a simple way to reload, but might want a more elegant solution
       } else if (result.status === "failed" || result.status === "cancelled") {
         clearInterval(pollInterval);
         console.error("Worker failed or was cancelled");
@@ -307,7 +307,7 @@ export function CandidateOnboardingForm() {
   if (!formLoaded) {
     return (
       <div className="flex flex-col min-h-[70vh] items-center justify-center">
-        <div className="font-merriweather text-2xl text-gray-700 flex items-center">
+        <div className="text-2xl text-gray-700 flex items-center">
           Please wait
           <div className="dots ml-2 flex">
             <span className="animate-wave">.</span>
@@ -862,16 +862,10 @@ export function CandidateOnboardingForm() {
           Reset
         </Button>
         <Button onClick={handleFormSubmit} disabled={isSubmitting}>
-          {isSubmitting ? (
-            <>
-              <span className="animate-spin mr-2">⏳</span>
-              Saving...
-            </>
-          ) : (
-            "Confirm Profile"
-          )}
+          Confirm Profile
         </Button>
       </div>
+      {isSubmitting && <LoadingAlert />}
     </div>
   );
 }

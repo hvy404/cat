@@ -52,7 +52,7 @@ export default function ResumeSuggestionCard({
       <div className="flex items-center">
         <Lightbulb className="w-4 h-4 text-yellow-400 mr-2" />
         <CardTitle className="text-md font-semibold text-gray-800">
-          Resume Enhancements
+          Story Enhancements
         </CardTitle>
         </div>
       </CardHeader>

@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import useStore from "@/app/state/useStore";
 import { candidateStatus } from "@/lib/candidate/status";
+import { MainCandidatePostSignup } from "@/app/(auth)/dashboard/views/candidate/main-post-signup";
 import { CandidateOnboardingForm } from "@/app/(auth)/dashboard/views/candidate/main-onboard-form";
 import { CandidateDashboard } from "@/app/(auth)/dashboard/views/candidate/main-user-dashboard";
 import CandidateDashboardRightPanelWelcome from "@/app/(auth)/dashboard/views/candidate/right-panel-welcome";
@@ -16,7 +17,8 @@ import { useUser } from "@clerk/nextjs";
 const MainPanel = React.memo(function MainPanel({ step }: { step: number }) {
   switch (step) {
     case 0:
-      return <CandidateOnboardingForm />;
+      /* return <CandidateOnboardingForm />; */
+    return <MainCandidatePostSignup />;
     case 1:
       return <CandidateDashboard />;
     default:
@@ -57,6 +59,7 @@ export default function CandidateDashboardMain() {
 
   const isActive = useRef(false);
 
+  // Check if candidate is "onboarded" and set step
   useEffect(() => {
     if (!isActive.current && user) {
       isActive.current = true;

@@ -76,7 +76,7 @@ export default function DashboardBody() {
         switch (role) {
           case "employer":
           case "employer-trial":
-            return <EmployerDashboardMain />;
+            return <EmployerDashboardMain />; // TODO: Make trial limit
           case "talent":
             return <CandidateDashboardMain />;
           default:

@@ -36,6 +36,7 @@ import { performLLMFinalEvaluation } from "@/inngest/matching-system-logic-eval"
 import { sendEmailFunction } from "@/inngest/alerts-employer-match-email";
 import { sendResumeViewAlert } from "@/inngest/alerts-candidate-resume-viewed";
 import { sendApplicationReceivedAlert } from "@/inngest/alerts-employer-new-application";
+import { processManualResumeStart } from "@/inngest/manual-resume-helper";
 
 /**
  * Represents the serve function for handling HTTP requests.
@@ -84,5 +85,6 @@ export const { GET, POST, PUT } = serve({
     sendEmailFunction,
     sendResumeViewAlert,
     sendApplicationReceivedAlert,
+    processManualResumeStart,
   ],
 });

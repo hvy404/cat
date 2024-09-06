@@ -29,7 +29,6 @@ export async function candidateStartOnboard(userId: string) {
     }
 
     if (!data || !data.filename) {
-      console.error("No filename found for user:", userId);
       return {
         message: "No resume filename found for the user.",
         error: "Missing filename",

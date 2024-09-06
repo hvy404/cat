@@ -206,7 +206,7 @@ const ContinuousCareerPipelineCard = ({
         <p className="text-xs text-indigo-700 font-medium flex items-center">
           <InfoIcon className="h-4 w-4 mr-2" />
           Maintain an accurate, up-to-date profile for optimal career
-          advancement
+          recommendations
         </p>
       </CardFooter>
     </Card>

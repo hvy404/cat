@@ -32,7 +32,6 @@ export default function AddResume() {
             It's that easy. Add your resume to start matching or view
             opportunites. And remove your resume at anytime.
           </p>
-
         </div>
         <div className="relative mt-16 h-85 lg:mt-8">
           <div className="absolute flex flex-row p-8 items-center left-0 top-0 w-[50rem] max-w-none rounded-md bg-white/5 ring-1 ring-white/10 min-h-full">
