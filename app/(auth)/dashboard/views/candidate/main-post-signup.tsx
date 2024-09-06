@@ -5,18 +5,33 @@ import { motion } from "framer-motion";
 import { ResumeUpload } from "@/app/(auth)/dashboard/views/candidate/main-post-upload";
 import { CreateResumeForm } from "@/app/(auth)/dashboard/views/candidate/main-post-manual-resume";
 import { useUser } from "@clerk/nextjs";
+import useStore from "@/app/state/useStore";
 
 export function MainCandidatePostSignup() {
   const [showUpload, setShowUpload] = useState(false);
   const [showCreateResume, setShowCreateResume] = useState(false);
   const { user } = useUser();
+  const { setCandidateRightPanelView } = useStore();
 
   const cuid = user?.publicMetadata?.aiq_cuid as string;
+
+  const handleShowUpload = () => {
+    setShowUpload(true);
+    setCandidateRightPanelView("resumeUpload");
+  };
+
+  const handleShowCreateResume = () => {
+    setShowCreateResume(true);
+    setCandidateRightPanelView("createResume");
+  };
 
   if (showUpload) {
     return (
       <ResumeUpload
-        onBack={() => setShowUpload(false)}
+        onBack={() => {
+          setShowUpload(false);
+          setCandidateRightPanelView("welcome");
+        }}
         email={user?.primaryEmailAddress?.emailAddress || ""}
         candidateId={cuid}
       />
@@ -24,9 +39,15 @@ export function MainCandidatePostSignup() {
   }
 
   if (showCreateResume) {
-    return <CreateResumeForm onBack={() => setShowCreateResume(false)} />;
+    return (
+      <CreateResumeForm
+        onBack={() => {
+          setShowCreateResume(false);
+          setCandidateRightPanelView("welcome");
+        }}
+      />
+    );
   }
-
 
   return (
     <div className="flex items-center justify-center min-h-[80vh] bg-white">
@@ -47,7 +68,7 @@ export function MainCandidatePostSignup() {
             <Button
               className="w-full py-6 text-base font-semibold rounded-xl shadow-md transition-all duration-200 ease-in-out bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
               variant="default"
-              onClick={() => setShowUpload(true)}
+              onClick={handleShowUpload}
             >
               <Upload className="mr-3 h-5 w-5" />
               Upload Your Existing Resume
@@ -55,10 +76,10 @@ export function MainCandidatePostSignup() {
             </Button>
           </motion.div>
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
-          <Button
+            <Button
               className="w-full py-6 text-base font-semibold rounded-xl shadow-md transition-all duration-200 ease-in-out border-2 border-indigo-200 hover:border-indigo-300 hover:bg-indigo-50"
               variant="outline"
-              onClick={() => setShowCreateResume(true)}
+              onClick={handleShowCreateResume}
             >
               <FileEdit className="mr-3 h-5 w-5" />
               Create a New Resume from Scratch

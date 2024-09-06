@@ -8,7 +8,6 @@ import React, {
 import useStore from "@/app/state/useStore";
 import { candidateStatus } from "@/lib/candidate/status";
 import { MainCandidatePostSignup } from "@/app/(auth)/dashboard/views/candidate/main-post-signup";
-import { CandidateOnboardingForm } from "@/app/(auth)/dashboard/views/candidate/main-onboard-form";
 import { CandidateDashboard } from "@/app/(auth)/dashboard/views/candidate/main-user-dashboard";
 import CandidateDashboardRightPanelWelcome from "@/app/(auth)/dashboard/views/candidate/right-panel-welcome";
 import CandidateDashboardRightPanelDashboard from "@/app/(auth)/dashboard/views/candidate/right-panel-dashboard";
@@ -17,8 +16,7 @@ import { useUser } from "@clerk/nextjs";
 const MainPanel = React.memo(function MainPanel({ step }: { step: number }) {
   switch (step) {
     case 0:
-      /* return <CandidateOnboardingForm />; */
-    return <MainCandidatePostSignup />;
+      return <MainCandidatePostSignup />;
     case 1:
       return <CandidateDashboard />;
     default:

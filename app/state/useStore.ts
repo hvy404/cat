@@ -106,7 +106,8 @@ interface CandidateDashboard {
   step: number;
   onboardingFormStep: string;
   widget: string;
-  onboarded: boolean; // TOOD: revaluate if this is the best way to track onboarding when done with authencation
+  onboarded: boolean;
+  rightPanelView: "welcome" | "resumeUpload" | "createResume";
 }
 
 // Talent dashboard widget payloads
@@ -217,6 +218,7 @@ interface StoreState {
   setJDBuilderWizard: (wizard: Partial<JDBuilderWizard>) => void;
   updateJDBuilderWizardStep: (newStep: number) => void;
   setCandidateDashboard: (dashboard: Partial<CandidateDashboard>) => void;
+  setCandidateRightPanelView: (view: CandidateDashboard['rightPanelView']) => void;
   recentApplications: Application[];
   aiRecommendations: AIRecommendation[];
   setRecentApplications: (applications: Application[]) => void;
@@ -305,6 +307,7 @@ const useStore = create<StoreState>((set) => ({
     widget: "",
     widgetPayload: { type: null, payload: null },
     onboarded: false,
+    rightPanelView: "welcome",
   },
   // Set candidate dashboard step
   setCandidateDashboard: (dashboard) =>
@@ -312,6 +315,14 @@ const useStore = create<StoreState>((set) => ({
       candidateDashboard: {
         ...state.candidateDashboard,
         ...dashboard,
+      },
+    })),
+  // Setter for right panel view in candidate dashboard
+  setCandidateRightPanelView: (view: CandidateDashboard['rightPanelView']) =>
+    set((state) => ({
+      candidateDashboard: {
+        ...state.candidateDashboard,
+        rightPanelView: view,
       },
     })),
   // Set the active menu item in the sidebar

@@ -124,9 +124,6 @@ export function CreateResumeForm({ onBack }: CreateResumeFormProps) {
     console.log("Form submit event triggered");
 
     const formData = form.getValues();
-    //console.log("Current form data:", formData);
-    //console.log("Form is valid:", form.formState.isValid);
-    //console.log("Form errors:", form.formState.errors);
 
     if (form.formState.isValid) {
       if (cuid) {
@@ -214,7 +211,7 @@ export function CreateResumeForm({ onBack }: CreateResumeFormProps) {
         <h2 className="text-lg font-bold mb-6 text-gray-800">
           Create Your Resume
         </h2>
-        <div className="mb-6">
+        <div className="mb-4">
           <ol className="flex items-center w-full">
             {steps.map((stepName, index) => (
               <li
@@ -224,23 +221,24 @@ export function CreateResumeForm({ onBack }: CreateResumeFormProps) {
                 }`}
               >
                 <div className="flex flex-col items-center">
-                  <span
+                  <motion.span
+                    whileHover={{ scale: 1.1 }}
                     className={`flex items-center justify-center w-8 h-8 rounded-full border transition-all duration-300 ${
                       step === index + 1
-                        ? "bg-gray-800 text-white border-gray-800"
+                        ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-indigo-600"
                         : step > index + 1
-                        ? "bg-gray-600 text-white border-gray-600"
+                        ? "bg-gradient-to-r from-blue-400 to-indigo-500 text-white border-indigo-500"
                         : "bg-white text-gray-400 border-gray-300"
                     }`}
                   >
                     <span className="text-xs font-semibold">{index + 1}</span>
-                  </span>
+                  </motion.span>
                   <span
                     className={`mt-1 text-xs font-medium ${
                       step === index + 1
-                        ? "text-gray-800"
+                        ? "text-indigo-600"
                         : step > index + 1
-                        ? "text-gray-600"
+                        ? "text-indigo-500"
                         : "text-gray-400"
                     }`}
                   >
@@ -248,10 +246,12 @@ export function CreateResumeForm({ onBack }: CreateResumeFormProps) {
                   </span>
                 </div>
                 {index < steps.length - 1 && (
-                  <div className="w-full mx-2">
+                  <div className="w-full mx-1">
                     <div
-                      className={`h-px transition-all duration-300 ${
-                        step > index + 1 ? "bg-gray-600" : "bg-gray-200"
+                      className={`h-0.5 rounded-full transition-all duration-300 ${
+                        step > index + 1
+                          ? "bg-gradient-to-r from-blue-400 to-indigo-500"
+                          : "bg-gray-200"
                       }`}
                     ></div>
                   </div>
@@ -260,11 +260,13 @@ export function CreateResumeForm({ onBack }: CreateResumeFormProps) {
             ))}
           </ol>
         </div>
-        <div className="w-full bg-gray-100 rounded-full h-1 mb-4 overflow-hidden">
-          <div
-            className="bg-gray-800 h-1 rounded-full transition-all duration-500 ease-in-out"
-            style={{ width: `${progressPercentage}%` }}
-          ></div>
+        <div className="w-full bg-gray-100 rounded-full h-1 mb-4 overflow-hidden shadow-inner">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${progressPercentage}%` }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
+            className="bg-gradient-to-r from-blue-500 to-indigo-600 h-1 rounded-full"
+          ></motion.div>
         </div>
 
         <Form {...form}>
@@ -820,20 +822,34 @@ export function CreateResumeForm({ onBack }: CreateResumeFormProps) {
 
             <div className="flex justify-between mt-6">
               {step > 1 && (
-                <Button type="button" onClick={prevStep}>
+                <Button
+                  type="button"
+                  onClick={prevStep}
+                  variant="outline"
+                  className="py-3 px-6 text-base font-semibold rounded-xl shadow-md transition-all duration-200 ease-in-out border-2 border-indigo-200 hover:border-indigo-300 hover:bg-indigo-50"
+                >
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Previous
                 </Button>
               )}
               {step < 5 ? (
-                <Button type="button" onClick={nextStep}>
+                <Button
+                  type="button"
+                  onClick={nextStep}
+                  className="py-3 px-6 text-base font-semibold rounded-xl shadow-md transition-all duration-200 ease-in-out bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+                >
                   Next
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               ) : (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button type="button" disabled={showAlert && !!runId}>
+                    <Button
+                      type="button"
+                      disabled={showAlert && !!runId}
+                      className="py-3 px-6 text-base font-semibold rounded-xl shadow-md transition-all duration-200 ease-in-out bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+                      variant="default"
+                    >
                       I'm Ready
                     </Button>
                   </AlertDialogTrigger>
@@ -846,8 +862,14 @@ export function CreateResumeForm({ onBack }: CreateResumeFormProps) {
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleFormSubmit}>
+                      <AlertDialogCancel className="py-2 px-4 rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors duration-200">
+                        Cancel
+                      </AlertDialogCancel>
+
+                      <AlertDialogAction
+                        onClick={handleFormSubmit}
+                        className="py-2 px-4 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white transition-colors duration-200"
+                      >
                         Submit
                       </AlertDialogAction>
                     </AlertDialogFooter>
