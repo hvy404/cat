@@ -194,7 +194,7 @@ export default function TalentPropertiesEditor() {
           });
         }
       }
-      toast.success("Your information has been updated successfully!");
+      toast.success("Request was successful, please wait just a few moments.");
     } catch (error) {
       console.error("Error saving talent properties:", error);
       toast.error("Failed to save your information. Please try again.");

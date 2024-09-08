@@ -18,13 +18,13 @@ const EnhancedLoadingComponent = ({
 
       if (timeSinceLastPoll >= 10000) {
         setProgress((prevProgress) =>
-          Math.min(prevProgress + Math.random() * 15 + 5, 99)
+          Math.min(prevProgress + Math.random() * 12 + 3, 99)
         );
         setLastPollTime(now);
       } else {
         setProgress((prevProgress) => {
-          const smallIncrement = Math.random() * 0.3 + 0.1;
-          return Math.min(prevProgress + smallIncrement, 99);
+          const smallIncrement = Math.random() * 0.2 + 0.08;
+          return Math.min(prevProgress + smallIncrement, 95);
         });
       }
     };

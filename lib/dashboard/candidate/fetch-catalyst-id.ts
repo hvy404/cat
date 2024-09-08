@@ -28,7 +28,6 @@ export async function fetchCatalystId(candidateId: string) {
 
     // Check if a quickid was found
     if (!data[0]) {
-      console.log("No quickid found");
       
       // Generate a new quickid using custom nanoid (6 characters, letters and numbers only, uppercase)
       const newQuickId = nanoid();
