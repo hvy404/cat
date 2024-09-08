@@ -29,8 +29,6 @@ export const resumeGenerateEmbeddings = inngest.createFunction(
       // Build the cypher query
       const cypherQuery = buildCypherQuery(id, embeddings);
 
-      console.log("Writing the embeddings to Neo4j");
-
       // Run the cypher query on the Neo4j database
       await write(cypherQuery);
     } else {

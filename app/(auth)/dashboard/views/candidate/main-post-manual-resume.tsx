@@ -34,6 +34,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { states } from "@/lib/data/form-value-states";
 import { useUser } from "@clerk/nextjs";
+import { addCandidateEntryManually } from "@/lib/candidate/manual-resume-upload/add-manual-user-entry";
 import { saveResumeData } from "@/lib/candidate/manual-resume-upload/add-static-entry";
 import {
   FormValues,
@@ -121,22 +122,35 @@ export function CreateResumeForm({ onBack }: CreateResumeFormProps) {
   });
 
   const handleFormSubmit = async () => {
-    console.log("Form submit event triggered");
-
     const formData = form.getValues();
 
     if (form.formState.isValid) {
-      if (cuid) {
-        const result = await saveResumeData(formData, cuid);
-        if (result.success) {
-          const { runId } = await startManualResumeProcess(cuid);
-          setRunId(runId[0]);
-          setShowAlert(true);
+      if (cuid && userEmail) {
+        // First, add the candidate entry manually
+        const addCandidateResult = await addCandidateEntryManually(
+          userEmail,
+          cuid,
+          formData.name
+        );
+
+        if (addCandidateResult.success) {
+          // If the candidate entry was added successfully, proceed with saving resume data
+          const result = await saveResumeData(formData, cuid);
+          if (result.success) {
+            const { runId } = await startManualResumeProcess(cuid);
+            setRunId(runId[0]);
+            setShowAlert(true);
+          } else {
+            console.error("Error saving resume data");
+            // Display toast error instead
+          }
         } else {
-          // Handle error (e.g., show an error message)
+          console.error("Error adding candidate entry");
+          // Display toast error for candidate entry failure
         }
       } else {
-        // Handle the case where cuid is undefined (e.g., show an error message to the user)
+        console.error("Missing user email or cuid");
+        // Display toast error for missing user information
       }
     } else {
       // Handle invalid form (e.g., show validation errors to the user)
@@ -144,7 +158,8 @@ export function CreateResumeForm({ onBack }: CreateResumeFormProps) {
   };
 
   const handleProcessComplete = () => {
-    setShowAlert(false);
+    //setShowAlert(false);
+    // Toast
   };
 
   const nextStep = async () => {

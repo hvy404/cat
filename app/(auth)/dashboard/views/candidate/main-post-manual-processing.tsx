@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -24,7 +23,6 @@ export function ProcessAlertDialog({
   useEffect(() => {
     const checkStatus = async () => {
       const currentStatus = await QueryEventStatus(runId);
-      console.log("Current status:", currentStatus);
       setStatus(currentStatus);
 
       if (currentStatus === "Completed") {
@@ -34,7 +32,7 @@ export function ProcessAlertDialog({
           window.location.reload(); // todo: not the most elegant
         }, 1500);
       } else if (currentStatus !== "Running") {
-        console.error(`Process ${currentStatus}`);
+        //console.error(`Process ${currentStatus}`);
       } else {
         setTimeout(checkStatus, 5000);
       }

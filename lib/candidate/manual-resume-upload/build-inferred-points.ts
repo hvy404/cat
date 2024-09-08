@@ -101,7 +101,7 @@ export async function generateSupplementalData(
       throw new Error("Failed to save inferred data to database.");
     }
 
-    // // Save output to Supabase modified_static table
+    // Save output to Supabase modified_static table
     const modifiedStaticData = {
       ...updatedResumeData,
       intro:
@@ -125,7 +125,7 @@ export async function generateSupplementalData(
       throw new Error("Failed to save modified_static data to database.");
     }
 
-    return inferredOutput;
+    return { success: true };
   } catch (error) {
     console.error("Error in generating inferred data:", error);
     throw new Error("Failed to generate supplemental candidate data.");

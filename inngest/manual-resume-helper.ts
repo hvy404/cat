@@ -48,14 +48,6 @@ export const processManualResumeStart = inngest.createFunction(
       return await generateSupplementalData(updatedResumeData, candidateId);
     });
 
-    await step.run("Log Inferred Data", async () => {
-      console.log("Inferred Data:", inferredData);
-    });
-
-    await step.run("Log Final Output", async () => {
-      console.log("Final Out", updatedResumeData);
-    });
-
     // Run the additional steps
     await step.run("Generate Candidate Cypher", async () => {
       await inngest.send({
@@ -74,6 +66,13 @@ export const processManualResumeStart = inngest.createFunction(
     await step.run("Update Onboard Status", async () => {
       await inngest.send({
         name: "app/candidate-onboard-boolean-true",
+        data: { user: { id: candidateId } },
+      });
+    });
+
+    await step.run("Assemble Resume", async () => {
+      await inngest.send({
+        name: "app/resume-manual-assembly",
         data: { user: { id: candidateId } },
       });
     });
