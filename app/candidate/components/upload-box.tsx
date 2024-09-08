@@ -4,17 +4,11 @@ import { useSignUp } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { toast } from "sonner";
 import { createId } from "@paralleldrive/cuid2";
 import { updatePublicMetadata } from "@/lib/auth/actions";
+import { motion } from "framer-motion";
+import { Loader2 } from "lucide-react";
 
 const SignUpBox: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -37,6 +31,7 @@ const SignUpBox: React.FC = () => {
     if (!isLoaded || !signUp) return;
 
     try {
+      setIsLoading(true);
       await signUp.create({
         emailAddress: email,
         password,
@@ -56,6 +51,8 @@ const SignUpBox: React.FC = () => {
         toast.error("An unexpected error occurred during sign-up.");
       }
       console.error("Sign-up error:", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -91,84 +88,83 @@ const SignUpBox: React.FC = () => {
     }
   };
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
   return (
-    <div className="w-full max-w-md">
-      {!showVerification ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Sign Up</CardTitle>
-            <CardDescription>
-              Create an account to get started
-            </CardDescription>
-          </CardHeader>
-          <form onSubmit={handleSubmit}>
-            <CardContent>
-              <div className="grid w-full items-center gap-4">
-                <div className="flex flex-col space-y-1.5">
-                  <Label htmlFor="email">Email</Label>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="w-full max-w-md mx-auto bg-white dark:bg-gray-800 shadow-2xl rounded-2xl overflow-hidden"
+    >
+      <div className="p-8">
+        <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">
+          {!showVerification ? "Create Account" : "Verify Email"}
+        </h2>
+        <form onSubmit={!showVerification ? handleSubmit : handleVerification}>
+          <div className="space-y-6">
+            {!showVerification ? (
+              <>
+                <div>
+                  <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Email
+                  </Label>
                   <Input
                     id="email"
-                    placeholder="Enter your email"
                     type="email"
+                    placeholder="you@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                   />
                 </div>
-                <div className="flex flex-col space-y-1.5">
-                  <Label htmlFor="password">Password</Label>
+                <div>
+                  <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Password
+                  </Label>
                   <Input
                     id="password"
-                    placeholder="Enter your password"
                     type="password"
+                    placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                   />
                 </div>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button type="submit" className="w-full">
-                Sign Up
-              </Button>
-            </CardFooter>
-          </form>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>Verify Email</CardTitle>
-            <CardDescription>
-              Enter the verification code sent to your email
-            </CardDescription>
-          </CardHeader>
-          <form onSubmit={handleVerification}>
-            <CardContent>
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="verificationCode">Verification Code</Label>
+              </>
+            ) : (
+              <div>
+                <Label htmlFor="verificationCode" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Verification Code
+                </Label>
                 <Input
                   id="verificationCode"
-                  placeholder="Enter verification code"
+                  type="text"
+                  placeholder="Enter code"
                   value={verificationCode}
                   onChange={(e) => setVerificationCode(e.target.value)}
                   required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                 />
               </div>
-            </CardContent>
-            <CardFooter>
-              <Button type="submit" className="w-full">
-                Verify Email
-              </Button>
-            </CardFooter>
-          </form>
-        </Card>
-      )}
-    </div>
+            )}
+            <Button
+              type="submit"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : !showVerification ? (
+                "Sign Up"
+              ) : (
+                "Verify Email"
+              )}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </motion.div>
   );
 };
 

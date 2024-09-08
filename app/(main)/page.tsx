@@ -1,6 +1,6 @@
 "use client";
 import { useAuth, useSignUp, SignInButton } from "@clerk/nextjs";
-import AddResume from "../candidate/add-resume";
+import SignUp from "../candidate/sign-up-main";
 
 const Main = () => {
   const { isSignedIn } = useAuth();
@@ -8,7 +8,7 @@ const Main = () => {
   return (
     <div className="bg-white">
       <div className="relative isolate px-6 pt-14 lg:px-8">
-        <AddResume />
+        <SignUp />
       </div>
     </div>
   );
