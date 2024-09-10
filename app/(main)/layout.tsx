@@ -30,7 +30,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="max-w-7xl mx-auto">
+          <div className="mx-auto">
             <MainHeader />
             {children}
             {/* <MainFooter /> */}

@@ -1,4 +1,4 @@
-import SignUpBox from "./components/upload-box";
+import SignUpBox from "./components/sign-up-box";
 import { motion } from "framer-motion";
 
 export default function SignUp() {

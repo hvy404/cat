@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSignUp } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,8 @@ import { createId } from "@paralleldrive/cuid2";
 import { updatePublicMetadata } from "@/lib/auth/actions";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
+import { useEnhancedDetection } from "@/app/candidate/components/enhance-det";
+import { load } from "@fingerprintjs/botd";
 
 const SignUpBox: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -18,6 +20,9 @@ const SignUpBox: React.FC = () => {
   const { isLoaded, signUp, setActive } = useSignUp();
   const [candidateId, setCandidateId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { isLikelyBot } = useEnhancedDetection();
+  const formRef = useRef<HTMLFormElement>(null);
+  const [isBotd, setIsBotd] = useState(false);
 
   const router = useRouter();
 
@@ -26,9 +31,42 @@ const SignUpBox: React.FC = () => {
     setCandidateId(newCuid);
   }, []);
 
+  useEffect(() => {
+    const runBotd = async () => {
+      const botd = await load({
+        monitoring: false,
+      });
+      const result = await botd.detect();
+      setIsBotd(result.bot);
+    };
+    runBotd();
+  }, []);
+
+  useEffect(() => {
+    if (formRef.current) {
+      const handleMouseMove = () => {};
+      const handleKeyDown = () => {};
+
+      formRef.current.addEventListener("mousemove", handleMouseMove);
+      formRef.current.addEventListener("keydown", handleKeyDown);
+
+      return () => {
+        if (formRef.current) {
+          formRef.current.removeEventListener("mousemove", handleMouseMove);
+          formRef.current.removeEventListener("keydown", handleKeyDown);
+        }
+      };
+    }
+  }, [formRef]);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!isLoaded || !signUp) return;
+
+    if (isLikelyBot || isBotd) {
+      toast.error("Our system detected unusual behavior. Please try again.");
+      return;
+    }
 
     try {
       setIsLoading(true);
@@ -41,6 +79,7 @@ const SignUpBox: React.FC = () => {
       setShowVerification(true);
       toast.success("Please check your email for the verification code.");
     } catch (err: any) {
+      console.error("Sign-up error:", err);
       if (err && err.errors) {
         const errorMessage =
           err.errors[0]?.longMessage ||
@@ -50,7 +89,6 @@ const SignUpBox: React.FC = () => {
       } else {
         toast.error("An unexpected error occurred during sign-up.");
       }
-      console.error("Sign-up error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -58,7 +96,9 @@ const SignUpBox: React.FC = () => {
 
   const handleVerification = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!signUp) return;
+    if (!signUp) {
+      return;
+    }
 
     try {
       setIsLoading(true);
@@ -84,6 +124,7 @@ const SignUpBox: React.FC = () => {
       }
     } catch (err) {
       setIsLoading(false);
+      console.error("Verification error:", err);
       toast.error(err instanceof Error ? err.message : "Error verifying email");
     }
   };
@@ -99,12 +140,18 @@ const SignUpBox: React.FC = () => {
         <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">
           {!showVerification ? "Create Account" : "Verify Email"}
         </h2>
-        <form onSubmit={!showVerification ? handleSubmit : handleVerification}>
+        <form
+          ref={formRef}
+          onSubmit={!showVerification ? handleSubmit : handleVerification}
+        >
           <div className="space-y-6">
             {!showVerification ? (
               <>
                 <div>
-                  <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <Label
+                    htmlFor="email"
+                    className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
                     Email
                   </Label>
                   <Input
@@ -118,7 +165,10 @@ const SignUpBox: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <Label
+                    htmlFor="password"
+                    className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
                     Password
                   </Label>
                   <Input
@@ -134,7 +184,10 @@ const SignUpBox: React.FC = () => {
               </>
             ) : (
               <div>
-                <Label htmlFor="verificationCode" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <Label
+                  htmlFor="verificationCode"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
                   Verification Code
                 </Label>
                 <Input
@@ -151,7 +204,7 @@ const SignUpBox: React.FC = () => {
             <Button
               type="submit"
               className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
-              disabled={isLoading}
+              disabled={isLoading || isLikelyBot}
             >
               {isLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -167,5 +220,4 @@ const SignUpBox: React.FC = () => {
     </motion.div>
   );
 };
-
 export default SignUpBox;
