@@ -4,7 +4,7 @@ import { ArrowRight, FileText, Users, BarChart, Calendar, Search, Zap } from 'lu
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 
-const FeatureCard = ({ icon, title, description }) => (
+const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) => (
   <motion.div
     whileHover={{ scale: 1.05 }}
     whileTap={{ scale: 0.95 }}
@@ -22,7 +22,6 @@ const FeatureCard = ({ icon, title, description }) => (
     </Card>
   </motion.div>
 );
-
 const EmployerFeaturesSection = () => {
   const features = [
     {

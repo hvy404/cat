@@ -27,7 +27,7 @@ export function MainHeader() {
           </Link>
 
           <div className="hidden md:flex items-center space-x-8">
-            <NavLink href="/features">For Employers</NavLink>
+            <NavLink href="/hire">For Employers</NavLink>
             <NavLink href="/pricing">Privacy</NavLink>
             <NavLink href="/about">How It Works?</NavLink>
             {!isSignedIn ? (
@@ -79,7 +79,7 @@ export function MainHeader() {
             className="md:hidden bg-white shadow-lg rounded-b-2xl overflow-hidden"
           >
             <div className="px-4 pt-2 pb-3 space-y-2">
-              <MobileNavLink href="/features">For Employers</MobileNavLink>
+              <MobileNavLink href="/hire">For Employers</MobileNavLink>
               <MobileNavLink href="/pricing">Privacy</MobileNavLink>
               <MobileNavLink href="/about">How It Works?</MobileNavLink>
               <SignInButton mode="modal">
