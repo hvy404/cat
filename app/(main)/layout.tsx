@@ -5,6 +5,7 @@ import "../globals.css";
 import { MainHeader } from "./header";
 import { ClerkProvider } from '@clerk/nextjs'
 import { Toaster } from 'sonner'
+import Footer from "@/app/(main)/footer";
 
 
 const inter = Inter({ subsets: ["latin"] });
@@ -38,6 +39,7 @@ export default function RootLayout({
           
         </ThemeProvider>
         <Toaster position="bottom-center" expand={false} /> 
+        <Footer />
       </body>
     </html>
     </ClerkProvider>

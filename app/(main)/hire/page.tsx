@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import EmployerFeaturesSection from "@/app/(main)/hire/sections/employer-feature";
 import ContinuousTalentPipelineSection from "@/app/(main)/hire/sections/pipeline";
+import FinalCallToAction from "@/app/(main)/hire/sections/footer-cta";
 
 const EmployerMain = () => {
   const [activeFeature, setActiveFeature] = useState(0);
@@ -148,6 +149,7 @@ const EmployerMain = () => {
       </div>
       <EmployerFeaturesSection />
       <ContinuousTalentPipelineSection />
+      <FinalCallToAction />
     </div>
   );
 };
