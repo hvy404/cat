@@ -1,26 +1,14 @@
-import React from "react";
-import { motion } from "framer-motion";
-import {
-  ArrowRight,
-  FileText,
-  Users,
-  BarChart,
-  Calendar,
-  Search,
-  Zap,
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React from 'react';
+import { motion } from 'framer-motion';
+import { ArrowRight, FileText, Users, BarChart, Calendar, Search, Zap } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-const FeatureCard = ({
-  icon,
-  title,
-  description,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}) => (
-  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+
+const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) => (
+  <motion.div
+    whileHover={{ scale: 1.05 }}
+    whileTap={{ scale: 0.95 }}
+  >
     <Card className="h-full bg-white/10 backdrop-blur-lg border-none text-white hover:bg-white/20 transition-all duration-300">
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
@@ -39,19 +27,17 @@ const EmployerFeaturesSection = () => {
     {
       icon: <FileText className="w-6 h-6 text-blue-400" />,
       title: "AI-Assisted Job Descriptions",
-      description:
-        "Create compelling job postings with our AI to attract top talent.",
+      description: "Create compelling job postings with our AI to attract top talent."
     },
     {
       icon: <Users className="w-6 h-6 text-green-400" />,
       title: "Smart Candidate Matching",
-      description:
-        "Our AI algorithm finds the perfect candidates for your roles.",
+      description: "Our AI algorithm finds the perfect candidates for your roles."
     },
     {
       icon: <BarChart className="w-6 h-6 text-purple-400" />,
       title: "Insights Dashboard",
-      description: "Get valuable hiring insights and analytics at a glance.",
+      description: "Get valuable hiring insights and analytics at a glance."
     },
     {
       icon: <Calendar className="w-6 h-6 text-yellow-400" />,
@@ -62,22 +48,17 @@ const EmployerFeaturesSection = () => {
     {
       icon: <Search className="w-6 h-6 text-red-400" />,
       title: "Advanced Candidate Search",
-      description:
-        "Find the right talent with powerful search and filtering options.",
+      description: "Find the right talent with powerful search and filtering options."
     },
     {
       icon: <Zap className="w-6 h-6 text-indigo-400" />,
       title: "SOW Analysis",
-      description:
-        "AI-powered parsing of Statements of Work for complex projects.",
-    },
+      description: "AI-powered parsing of Statements of Work for complex projects."
+    }
   ];
 
   return (
-    <div
-      id="features"
-      className="bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 py-24 px-4 sm:px-6 lg:px-8"
-    >
+    <div className="bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 py-24 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -85,12 +66,9 @@ const EmployerFeaturesSection = () => {
           transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold text-white mb-4">
-            Empower Your Hiring Process
-          </h2>
+          <h2 className="text-4xl font-bold text-white mb-4">Empower Your Hiring Process</h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Discover how our AI-powered platform can transform your recruitment
-            strategy and help you find the best talent.
+            Discover how our AI-powered platform can transform your recruitment strategy and help you find the best talent.
           </p>
         </motion.div>
 

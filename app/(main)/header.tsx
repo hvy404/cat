@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import React, { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,11 +20,14 @@ export function MainHeader() {
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
-          <Link
-            href="/"
-            className="text-2xl font-extrabold text-gray-900 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600"
-          >
-            Catalyst
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/global/logo_mono_dark.png"
+              alt="G2X Talent"
+              width={90}
+              height={24}
+              className="h-auto"
+            />
           </Link>
 
           <div className="hidden md:flex items-center space-x-8">
@@ -104,7 +108,7 @@ const NavLink: React.FC<{ href: string; children: React.ReactNode }> = ({
   children,
 }) => (
   <Link href={href} className="relative group">
-    <span className="text-gray-700 hover:text-gray-900 font-medium transition-colors duration-200">
+    <span className="text-sm font-semibold leading-6 text-gray-900 hover:text-gray-900 transition-colors duration-200">
       {children}
     </span>
     <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-purple-600 to-indigo-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
