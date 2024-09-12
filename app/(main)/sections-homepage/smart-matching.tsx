@@ -52,7 +52,7 @@ export const SmartMatchingSection: React.FC = () => {
               { icon: Search, text: "Broad job listings requiring manual filtering" },
               { icon: Search, text: "Time-intensive search and application process" },
               { icon: Search, text: "Surface-level matching based on keywords" },
-              { icon: Search, text: "Generic approach to candidate evaluation" },
+              { icon: Search, text: "Generic approach to opportunity evaluation" },
               { icon: Search, text: "Information overload from numerous postings" },
             ]}
           />
@@ -61,11 +61,11 @@ export const SmartMatchingSection: React.FC = () => {
             icon={Zap}
             iconColor="text-indigo-600"
             features={[
-              { icon: Brain, text: "Intelligent Matching: Our advanced AI analyzes your complete professional story for precise opportunity alignment." },
+              { icon: Brain, text: "Intelligent Matching: We continously analyze your complete professional story for precise opportunity alignment." },
               { icon: Zap, text: "Always-On Opportunity Finder: Keep your profile current, and let our AI uncover perfect-fit positions 24/7." },
               { icon: UserCheck, text: "Career Progression Focus: We identify opportunities that not only match your skills but propel your career forward." },
               { icon: Sparkles, text: "Effortless Discovery: We surface only the opportunities that truly matter, streamlining your job search." },
-              { icon: Brain, text: "Holistic Candidate Understanding: Our AI considers your skills, experience, potential, and aspirations for optimal matching." },
+              { icon: Brain, text: "Holistic Understanding: Our AI considers your skills, experience, potential, and aspirations for optimal matching." },
             ]}
           />
         </div>

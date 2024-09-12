@@ -43,9 +43,9 @@ const CandidateMain = () => {
 
   return (
     <>
-      <div className="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
-        <div className="relative isolate px-6 pt-14 lg:px-8">
-          <div className="mx-auto max-w-7xl py-32 sm:py-48 lg:py-56">
+      <div className="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen relative overflow-hidden">
+        <div className="relative isolate px-6 pt-14 lg:px-8 z-10">
+          <div className="mx-auto max-w-7xl py-24 lg:py-56">
             <motion.div
               variants={containerVariants}
               initial="hidden"
@@ -89,7 +89,6 @@ const CandidateMain = () => {
             </motion.div>
           </div>
         </div>
-
         {/* Abstract Shape Background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <svg

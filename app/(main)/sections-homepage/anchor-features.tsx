@@ -20,23 +20,23 @@ export const AnchorFeaturesSection = () => {
   const features = [
     {
       icon: Cpu,
-      title: "Adaptive Learning",
+      title: "Warm Introductions",
       description:
-        "Our platform analyzes your progress and tailors recommendations to your evolving career path.",
+        "We thoughtfully present your profile to ideal employers, carefully showcasing your unique strengths and perfect-fit potential for their opportunities.",
       color: "from-blue-400 to-indigo-600",
     },
     {
       icon: Network,
-      title: "Industry Insights",
+      title: "Career Ally",
       description:
-        "Stay ahead with data-driven predictions of emerging skills in your field.",
+        "Your dedicated partner in professional growth, providing personalized guidance and support throughout your career journey.",
       color: "from-purple-400 to-pink-600",
     },
     {
       icon: TrendingUp,
-      title: "Growth Tracking",
+      title: "Future-Focused Alignment",
       description:
-        "Visualize your professional growth with dynamic, AI-generated career trajectories.",
+        "Our AI continuously scans the horizon to identify emerging opportunities that align with your career trajectory and industry trends.",
       color: "from-green-400 to-teal-600",
     },
     {
@@ -66,12 +66,13 @@ export const AnchorFeaturesSection = () => {
           </span>{" "}
           Your Career Growth
         </motion.h2>
-        
+
         <motion.p
           variants={itemVariants}
           className="text-xl text-gray-700 text-center mb-20 max-w-3xl mx-auto"
         >
-          Leverage cutting-edge AI technology to propel your career forward and stay ahead in your industry.
+          The platform that propel your career forward and keeps you ahead in
+          your industry.
         </motion.p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -83,15 +84,26 @@ export const AnchorFeaturesSection = () => {
 
       {/* Abstract Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-50">
-        <svg className="absolute w-full h-full" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
+        <svg
+          className="absolute w-full h-full"
+          viewBox="0 0 1000 1000"
+          preserveAspectRatio="xMidYMid slice"
+        >
           <defs>
             <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#4F46E5" stopOpacity="0.1" />
               <stop offset="100%" stopColor="#7C3AED" stopOpacity="0.1" />
             </linearGradient>
           </defs>
-          <path d="M0,1000 C200,800 350,900 500,750 C650,600 700,750 800,600 C900,450 1000,500 1000,500 V1000 H0" fill="url(#grad2)">
-            <animate attributeName="d" dur="20s" repeatCount="indefinite" values="
+          <path
+            d="M0,1000 C200,800 350,900 500,750 C650,600 700,750 800,600 C900,450 1000,500 1000,500 V1000 H0"
+            fill="url(#grad2)"
+          >
+            <animate
+              attributeName="d"
+              dur="20s"
+              repeatCount="indefinite"
+              values="
               M0,1000 C200,800 350,900 500,750 C650,600 700,750 800,600 C900,450 1000,500 1000,500 V1000 H0;
               M0,1000 C150,850 300,950 450,800 C600,650 750,700 850,550 C950,400 1000,450 1000,450 V1000 H0;
               M0,1000 C200,800 350,900 500,750 C650,600 700,750 800,600 C900,450 1000,500 1000,500 V1000 H0"
@@ -125,14 +137,18 @@ const FeatureCard = ({
       <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-opacity duration-300 ease-in-out {color}" />
       <div className="relative z-10">
         <div className="flex items-center mb-6">
-          <div className={`w-16 h-16 mr-6 rounded-2xl flex items-center justify-center bg-gradient-to-br {color}`}>
+          <div
+            className={`w-16 h-16 mr-6 rounded-2xl flex items-center justify-center bg-gradient-to-br {color}`}
+          >
             <Icon className="w-8 h-8 text-white" />
           </div>
           <h3 className="text-2xl font-bold text-gray-800 group-hover:text-indigo-600 transition-colors duration-300">
             {title}
           </h3>
         </div>
-        <p className="text-gray-600 text-lg leading-relaxed mb-6">{description}</p>
+        <p className="text-gray-600 text-lg leading-relaxed mb-6">
+          {description}
+        </p>
         <motion.button
           whileHover={{ x: 5 }}
           className="text-indigo-600 font-medium flex items-center text-lg"

@@ -28,7 +28,7 @@ export const FinalCTA: React.FC = () => {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-xl mb-8"
             >
-              Join thousands of professionals who have already transformed their job search experience.
+              Join the network of professionals who have already transformed their job search experience.
             </motion.p>
             <ul className="space-y-4 mb-8">
               {benefits.map((benefit, index) => (

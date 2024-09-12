@@ -15,9 +15,9 @@ export default function SignUp() {
             initial={{ y: -20 }}
             animate={{ y: 0 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-4xl font-extrabold text-gray-900 sm:text-5xl md:text-6xl"
+            className="text-4xl font-extrabold text-gray-900 md:text-5xl"
           >
-            Create Your Account
+            Activate Your Career Boost
           </motion.h1>
           <motion.p
             initial={{ y: -20 }}
@@ -25,7 +25,9 @@ export default function SignUp() {
             transition={{ delay: 0.3, duration: 0.5 }}
             className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl"
           >
-            Join our platform and unlock your career potential with AI-powered resume building and job matching.
+            Join our platform and transform your professional journey. Discover
+            opportunities that truly align with your unique talents and
+            aspirations.
           </motion.p>
         </div>
 

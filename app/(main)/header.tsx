@@ -6,10 +6,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth, UserButton, SignInButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronDown } from "lucide-react";
+import { usePathname } from 'next/navigation';
+
 
 export function MainHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isSignedIn } = useAuth();
+  const pathname = usePathname();
 
   return (
     <motion.header
@@ -31,19 +34,38 @@ export function MainHeader() {
           </Link>
 
           <div className="hidden md:flex items-center space-x-8">
+          <NavLink href="/">For Candidates</NavLink>
             <NavLink href="/hire">For Employers</NavLink>
-            <NavLink href="/pricing">Privacy</NavLink>
-            <NavLink href="/about">How It Works?</NavLink>
+            <NavLink href="/responsible-ai">Responsible AI</NavLink>
+            <NavLink href="/how-it-works">How It Works?</NavLink>
             {!isSignedIn ? (
-              <SignInButton mode="modal">
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold px-6 py-2 rounded-full hover:shadow-lg transition-all duration-300"
-                >
-                  Sign Up{" "}
-                </Button>
-              </SignInButton>
+              <div className="flex items-center space-x-4">
+                {pathname === "/hire" ? (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={handleScheduleDemo}
+                    className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold px-6 py-2 rounded-full hover:shadow-lg transition-all duration-300"
+                  >
+                    Schedule Demo
+                  </Button>
+                ) : (
+                  <SignInButton mode="modal">
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold px-6 py-2 rounded-full hover:shadow-lg transition-all duration-300"
+                    >
+                      Sign Up
+                    </Button>
+                  </SignInButton>
+                )}
+                <SignInButton mode="modal">
+                  <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                    Login
+                  </Button>
+                </SignInButton>
+              </div>
             ) : (
               <UserButton
                 afterSignOutUrl="/"
@@ -56,7 +78,6 @@ export function MainHeader() {
               />
             )}
           </div>
-
           <div className="md:hidden">
             <Button
               variant="ghost"
@@ -84,15 +105,25 @@ export function MainHeader() {
           >
             <div className="px-4 pt-2 pb-3 space-y-2">
               <MobileNavLink href="/hire">For Employers</MobileNavLink>
-              <MobileNavLink href="/pricing">Privacy</MobileNavLink>
-              <MobileNavLink href="/about">How It Works?</MobileNavLink>
+              <MobileNavLink href="/responsible-ai">Responsible AI</MobileNavLink>
+              <MobileNavLink href="/how-it-works">How It Works?</MobileNavLink>
+              <SignInButton mode="modal">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full text-left py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-all duration-200"
+                >
+                  Login
+                </Button>
+              </SignInButton>
               <SignInButton mode="modal">
                 <Button
                   variant="default"
                   size="sm"
+                  onClick={pathname === "/hire" ? handleScheduleDemo : undefined}
                   className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold py-3 rounded-lg hover:shadow-md transition-all duration-300"
                 >
-                  Sign Up
+                  {pathname === "/hire" ? "Schedule Demo" : "Sign Up"}
                 </Button>
               </SignInButton>
             </div>
@@ -129,3 +160,8 @@ const MobileNavLink: React.FC<{ href: string; children: React.ReactNode }> = ({
 );
 
 export default MainHeader;
+
+const handleScheduleDemo = () => {
+  // Implement your demo scheduling logic here
+  console.log("Schedule Demo clicked");
+};

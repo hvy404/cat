@@ -70,7 +70,6 @@ const EmployerMain = () => {
   return (
     <>
       <div className="bg-gradient-to-br from-gray-50 to-gray-100 py-20 px-4 sm:px-6 lg:px-8 min-h-screen flex items-center relative overflow-hidden">
-        {/* Balanced Animated Background Glow */}
         <div className="absolute inset-0">
           <motion.div
             className="absolute -top-40 -left-40 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-[0.15]"
@@ -103,11 +102,14 @@ const EmployerMain = () => {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center"
+            className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center py-8"
           >
             {/* Left Column */}
-            <motion.div variants={itemVariants} className="text-center lg:text-left">
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight mb-8 leading-[1.2] text-gray-900">
+            <motion.div
+              variants={itemVariants}
+              className="text-center lg:text-left"
+            >
+              <h1 className="text-3xl lg:text-7xl font-extrabold tracking-tight mb-8 leading-[1.2] text-gray-900">
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
                   Revolutionize
                 </span>
@@ -135,10 +137,7 @@ const EmployerMain = () => {
             </motion.div>
 
             {/* Right Column */}
-            <motion.div
-              variants={itemVariants}
-              className="relative"
-            >
+            <motion.div variants={itemVariants} className="relative">
               <Card className="bg-white/80 backdrop-blur-lg border-none text-gray-800 hover:bg-white/90 transition-all duration-300 p-10 rounded-3xl shadow-2xl">
                 <AnimatePresence mode="wait">
                   <motion.div
@@ -194,13 +193,30 @@ const EmployerMain = () => {
                 </div>
                 <div className="grid grid-cols-3 gap-4 text-center">
                   {[
-                    { icon: <Globe className="h-8 w-8 mb-2 mx-auto text-blue-600" />, label: "Reach" },
-                    { icon: <Users className="h-8 w-8 mb-2 mx-auto text-purple-600" />, label: "Vetted" },
-                    { icon: <Zap className="h-8 w-8 mb-2 mx-auto text-yellow-600" />, label: "AI-Powered" },
+                    {
+                      icon: (
+                        <Globe className="h-8 w-8 mb-2 mx-auto text-blue-600" />
+                      ),
+                      label: "Reach",
+                    },
+                    {
+                      icon: (
+                        <Users className="h-8 w-8 mb-2 mx-auto text-purple-600" />
+                      ),
+                      label: "Vetted",
+                    },
+                    {
+                      icon: (
+                        <Zap className="h-8 w-8 mb-2 mx-auto text-yellow-600" />
+                      ),
+                      label: "AI-Powered",
+                    },
                   ].map((item, index) => (
                     <div key={index} className="p-4 bg-gray-100 rounded-xl">
                       {item.icon}
-                      <p className="text-sm font-medium text-gray-800">{item.label}</p>
+                      <p className="text-sm font-medium text-gray-800">
+                        {item.label}
+                      </p>
                     </div>
                   ))}
                 </div>

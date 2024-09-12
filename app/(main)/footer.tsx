@@ -1,39 +1,34 @@
-import React from 'react';
-import { Facebook, Twitter, Linkedin, Instagram } from 'lucide-react';
+import React from "react";
+import { Facebook, Twitter, Linkedin, Instagram } from "lucide-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   const footerLinks = [
     {
-      title: 'Company',
+      title: "Company",
       links: [
-        { name: 'About Us', href: '#' },
-        { name: 'Press', href: '#' },
-        { name: 'Blog', href: '#' },
+        { name: "About Us", href: "/about" },
+        { name: "Blog", href: "#" },
       ],
     },
     {
-      title: 'Product',
+      title: "Product",
       links: [
-        { name: 'Features', href: '#' },
-        { name: 'Pricing', href: '#' },
+        { name: "Features", href: "#" },
+        { name: "Pricing", href: "#" },
       ],
     },
     {
-      title: 'Resources',
-      links: [
-        { name: 'Documentation', href: '#' },
-        { name: 'Guides', href: '#' },
-        { name: 'Support', href: '#' },
-      ],
+      title: "Resources",
+      links: [{ name: "Contact Us", href: "/contact" }],
     },
     {
-      title: 'Legal',
+      title: "Legal",
       links: [
-        { name: 'Privacy Policy', href: '#' },
-        { name: 'Terms of Service', href: '#' },
-        { name: 'Cookie Policy', href: '#' },
+        { name: "Privacy Policy", href: "/privacy" },
+        { name: "Terms of Service", href: "/terms-of-service" },
+        { name: "Cookie Policy", href: "/cookies" },
       ],
     },
   ];
@@ -50,7 +45,10 @@ const Footer = () => {
               <ul className="space-y-2">
                 {column.links.map((link) => (
                   <li key={link.name}>
-                    <a href={link.href} className="text-base hover:text-gray-900 transition-colors duration-300">
+                    <a
+                      href={link.href}
+                      className="text-base hover:text-gray-900 transition-colors duration-300"
+                    >
                       {link.name}
                     </a>
                   </li>
@@ -59,7 +57,7 @@ const Footer = () => {
             </div>
           ))}
         </div>
-        
+
         <div className="mt-12 border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center">
           <div className="flex space-x-6 mb-4 md:mb-0">
             <a href="#" className="text-gray-400 hover:text-gray-500">
