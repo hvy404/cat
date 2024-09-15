@@ -1,18 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
   FileText,
   Users,
-  BarChart,
+  Shield,
   Calendar,
   Search,
   Zap,
-  X
+  X,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import RequestDemoForm from "@/app/(main)/hire/sections/request-demo";
-
 const FeatureCard = ({
   icon,
   title,
@@ -47,20 +46,21 @@ const EmployerFeaturesSection = () => {
   const features = [
     {
       icon: <FileText className="w-6 h-6 text-blue-400" />,
-      title: "AI-Assisted Job Descriptions",
+      title: "Job Descriptions Copilot",
       description:
         "Create compelling job postings with our AI to attract top talent.",
     },
     {
       icon: <Users className="w-6 h-6 text-green-400" />,
-      title: "Smart Candidate Matching",
+      title: "Precise Candidate Matching",
       description:
-        "Our AI algorithm finds the perfect candidates for your roles.",
+        "We analyze job requirements and candidate profiles to find the best fits for your roles.",
     },
+    
     {
-      icon: <BarChart className="w-6 h-6 text-purple-400" />,
-      title: "Insights Dashboard",
-      description: "Get valuable hiring insights and analytics at a glance.",
+      icon: <Shield className="w-6 h-6 text-purple-400" />,
+      title: "Diverse Talent Network",
+      description: "Access candidates vetted for both federal and private sector requirements."
     },
     {
       icon: <Calendar className="w-6 h-6 text-yellow-400" />,
@@ -78,7 +78,7 @@ const EmployerFeaturesSection = () => {
       icon: <Zap className="w-6 h-6 text-indigo-400" />,
       title: "SOW Analysis",
       description:
-        "AI-powered parsing of Statements of Work for complex projects.",
+        "Generate job descriptions from Statements of Work for complex projects.",
     },
   ];
 

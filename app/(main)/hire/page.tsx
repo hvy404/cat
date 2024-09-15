@@ -118,8 +118,9 @@ const EmployerMain = () => {
               </h1>
 
               <p className="text-xl sm:text-2xl leading-8 text-gray-700 mb-12 max-w-2xl mx-auto lg:mx-0">
-                Harness the power of AI to streamline your recruitment, find
-                perfect candidates, and make data-driven hiring decisions.
+                Streamline your recruitment process, identify ideal candidates,
+                and make evidence-based hiring decisions with advanced matching
+                technology.
               </p>
               <motion.div
                 whileHover={{ scale: 1.05 }}
@@ -127,10 +128,15 @@ const EmployerMain = () => {
                 className="inline-block"
               >
                 <a
-                  href="#demo"
+                  onClick={() => {
+                    const featuresSection = document.getElementById("features");
+                    if (featuresSection) {
+                      featuresSection.scrollIntoView({ behavior: "smooth" });
+                    }
+                  }}
                   className="rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-4 text-lg font-semibold text-white shadow-lg hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 inline-flex items-center transition-all duration-300"
                 >
-                  Request a Demo
+                  Learn More
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </a>
               </motion.div>

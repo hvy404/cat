@@ -118,13 +118,13 @@ const HowItWorksPage = () => {
             growth and business success, creating a symbiotic ecosystem where
             talent meets opportunity.
           </p>
-          <motion.button
+         {/*  <motion.button
             className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold py-4 px-10 rounded-full hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             Join Our Community
-          </motion.button>
+          </motion.button> */}
         </motion.div>
       </div>
     </div>

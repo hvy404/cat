@@ -8,6 +8,7 @@ import { SmartMatchingSection } from "./sections-homepage/smart-matching";
 import { FinalCTA } from "./sections-homepage/call-to-action";
 import { WhySection } from "./sections-homepage/why";
 import SignUp from "../candidate/sign-up-main";
+import AppDemo from "@/app/(main)/sections-homepage/demo-screenshot";
 
 const CandidateMain = () => {
   const containerVariants = {
@@ -120,9 +121,9 @@ const CandidateMain = () => {
         </div>
       </div>
       <WhySection />
+      <AppDemo />
       <SmartMatchingSection />
       <AnchorFeaturesSection />
-
       <HowItWorks />
 
       <FinalCTA />

@@ -9,7 +9,7 @@ const ContinuousTalentPipelineSection = () => {
       icon: <Upload className="w-8 h-8 sm:w-10 sm:h-10 text-blue-600" />,
       title: "Upload Your Job",
       description:
-        "Simply post your job requirements and let our AI-powered system take over.",
+        "Simply post your job requirements and let our intelligent system take over the process for you.",
     },
     {
       icon: <RefreshCw className="w-8 h-8 sm:w-10 sm:h-10 text-green-600" />,
@@ -120,17 +120,10 @@ const ContinuousTalentPipelineSection = () => {
           className="mt-16 sm:mt-28 text-center"
         >
           <p className="text-xl sm:text-2xl text-gray-900 font-semibold mb-6 sm:mb-8 max-w-3xl mx-auto">
-            Set it and forget it. Let our AI-powered system build your
-            continuous talent pipeline.
+            Automate your recruitment. Our intelligent matching system
+            continuously builds your talent pipeline, delivering top candidates
+            directly to you.
           </p>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold text-white shadow-xl hover:shadow-2xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 inline-flex items-center transition-all duration-300"
-          >
-            Start Your Talent Pipeline
-            <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
-          </motion.button>
         </motion.div>
       </div>
     </div>
