@@ -1,4 +1,5 @@
 "use client";
+
 import Image from "next/image";
 import React, { useState } from "react";
 import Link from "next/link";
@@ -6,13 +7,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth, UserButton, SignInButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronDown } from "lucide-react";
-import { usePathname } from 'next/navigation';
-
+import { usePathname } from "next/navigation";
+import RequestDemoForm from "@/app/(main)/hire/sections/request-demo";
 
 export function MainHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isSignedIn } = useAuth();
   const pathname = usePathname();
+  const [isRequestDemoOpen, setIsRequestDemoOpen] = useState(false);
+
+  const handleScheduleDemo = () => {
+    setIsRequestDemoOpen(true);
+  };
 
   return (
     <motion.header
@@ -34,7 +40,7 @@ export function MainHeader() {
           </Link>
 
           <div className="hidden md:flex items-center space-x-8">
-          <NavLink href="/">For Candidates</NavLink>
+            <NavLink href="/">For Candidates</NavLink>
             <NavLink href="/hire">For Employers</NavLink>
             <NavLink href="/responsible-ai">Responsible AI</NavLink>
             <NavLink href="/how-it-works">How It Works?</NavLink>
@@ -61,7 +67,11 @@ export function MainHeader() {
                   </SignInButton>
                 )}
                 <SignInButton mode="modal">
-                  <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-600 hover:text-gray-900"
+                  >
                     Login
                   </Button>
                 </SignInButton>
@@ -105,7 +115,9 @@ export function MainHeader() {
           >
             <div className="px-4 pt-2 pb-3 space-y-2">
               <MobileNavLink href="/hire">For Employers</MobileNavLink>
-              <MobileNavLink href="/responsible-ai">Responsible AI</MobileNavLink>
+              <MobileNavLink href="/responsible-ai">
+                Responsible AI
+              </MobileNavLink>
               <MobileNavLink href="/how-it-works">How It Works?</MobileNavLink>
               <SignInButton mode="modal">
                 <Button
@@ -116,18 +128,31 @@ export function MainHeader() {
                   Login
                 </Button>
               </SignInButton>
-              <SignInButton mode="modal">
+              {pathname === "/hire" ? (
                 <Button
                   variant="default"
                   size="sm"
-                  onClick={pathname === "/hire" ? handleScheduleDemo : undefined}
+                  onClick={handleScheduleDemo}
                   className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold py-3 rounded-lg hover:shadow-md transition-all duration-300"
                 >
-                  {pathname === "/hire" ? "Schedule Demo" : "Sign Up"}
+                  Schedule Demo
                 </Button>
-              </SignInButton>
+              ) : (
+                <SignInButton mode="modal">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold py-3 rounded-lg hover:shadow-md transition-all duration-300"
+                  >
+                    Sign Up
+                  </Button>
+                </SignInButton>
+              )}
             </div>
           </motion.div>
+        )}
+        {isRequestDemoOpen && (
+          <RequestDemoForm onClose={() => setIsRequestDemoOpen(false)} />
         )}
       </AnimatePresence>
     </motion.header>
@@ -160,8 +185,3 @@ const MobileNavLink: React.FC<{ href: string; children: React.ReactNode }> = ({
 );
 
 export default MainHeader;
-
-const handleScheduleDemo = () => {
-  // Implement your demo scheduling logic here
-  console.log("Schedule Demo clicked");
-};

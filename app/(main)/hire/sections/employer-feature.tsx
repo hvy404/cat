@@ -1,5 +1,5 @@
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
   FileText,
@@ -8,8 +8,10 @@ import {
   Calendar,
   Search,
   Zap,
+  X
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import RequestDemoForm from "@/app/(main)/hire/sections/request-demo";
 
 const FeatureCard = ({
   icon,
@@ -34,7 +36,14 @@ const FeatureCard = ({
     </Card>
   </motion.div>
 );
+
 const EmployerFeaturesSection = () => {
+  const [showDemoForm, setShowDemoForm] = useState(false);
+
+  const toggleDemoForm = () => {
+    setShowDemoForm(!showDemoForm);
+  };
+
   const features = [
     {
       icon: <FileText className="w-6 h-6 text-blue-400" />,
@@ -122,11 +131,30 @@ const EmployerFeaturesSection = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="rounded-full bg-gradient-to-r from-blue-500 to-purple-500 px-8 py-4 text-lg font-semibold text-white shadow-lg hover:from-blue-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 inline-flex items-center transition-all duration-300"
+            onClick={toggleDemoForm}
           >
-            Schedule a Demo
-            <ArrowRight className="ml-2 h-5 w-5" />
+            {showDemoForm ? "Close Form" : "Schedule a Demo"}
+            {showDemoForm ? (
+              <X className="ml-2 h-5 w-5" />
+            ) : (
+              <ArrowRight className="ml-2 h-5 w-5" />
+            )}
           </motion.button>
         </motion.div>
+
+        <AnimatePresence>
+          {showDemoForm && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="mt-8"
+            >
+              <RequestDemoForm onClose={toggleDemoForm} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
