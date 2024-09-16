@@ -9,6 +9,15 @@ export const FinalCTA: React.FC = () => {
     "Career growth insights",
   ];
 
+  const handleSignup = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const target = document.querySelector("#signup");
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+
   return (
     <section className="py-24 bg-gradient-to-br from-indigo-600 to-purple-700 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -65,6 +74,7 @@ export const FinalCTA: React.FC = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={handleSignup}
               className="w-full bg-white text-indigo-700 font-semibold py-3 px-6 rounded-lg flex items-center justify-center transition-colors duration-300 hover:bg-indigo-100"
             >
               Get Started Now

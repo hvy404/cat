@@ -34,7 +34,7 @@ const AppDemoShowcase = () => {
               1. Traditional Job Search
             </h3>
             <p className="text-lg text-gray-600">
-              Search and apply manually - the way you're used to.
+              Search and apply manually - if you still want to.
             </p>
             <div className="bg-white rounded-xl shadow-2xl overflow-hidden relative">
               <div className="max-h-[600px] overflow-y-auto">
@@ -57,7 +57,7 @@ const AppDemoShowcase = () => {
               2. Proactive Opportunity Alerts
             </h3>
             <p className="text-lg text-gray-600">
-              Let our AI find the perfect job for you.
+              Or let our AI find the perfect job for you.
             </p>
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg p-6 shadow-lg">
               <div className="flex items-center mb-4">

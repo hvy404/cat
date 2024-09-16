@@ -149,12 +149,6 @@ const FeatureCard = ({
         <p className="text-gray-600 text-lg leading-relaxed mb-6">
           {description}
         </p>
-        <motion.button
-          whileHover={{ x: 5 }}
-          className="text-indigo-600 font-medium flex items-center text-lg"
-        >
-          Learn more <ChevronRight className="ml-1 h-5 w-5" />
-        </motion.button>
       </div>
     </Card>
   </motion.div>

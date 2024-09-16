@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import {
   Linkedin,
   Mail,
+  Loader2,
   KeyIcon,
   LogOut,
   ArrowLeft,
@@ -26,6 +27,7 @@ const SignInPage = () => {
   const [resetCode, setResetCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [mode, setMode] = useState<"signIn" | "requestReset" | "enterCode">(
     "signIn"
@@ -47,25 +49,26 @@ const SignInPage = () => {
       } finally {
         setTimeout(() => {
           setIsDetecting(false);
-        }, 2000);
+        }, 1200);
       }
     };
 
     runBotDetection();
   }, []);
 
-  const handleEmailPasswordSignIn = async (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
+  const handleEmailPasswordSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!isLoaded) return;
-
+  
+    setIsLoading(true);
+    setError('');
+  
     try {
       const result = await signIn.create({
         identifier: email,
         password,
       });
-
+  
       if (result.status === "complete") {
         router.push("/dashboard");
       } else {
@@ -83,8 +86,10 @@ const SignInPage = () => {
           "An error occurred during sign-in. Please check your credentials and try again."
         );
       }
+    } finally {
+      setIsLoading(false);
     }
-  };
+  };  
 
   const handleSignOut = async () => {
     await signOut();
@@ -279,13 +284,23 @@ const SignInPage = () => {
                   </Button>
                 ) : (
                   <Button
-                    type="submit"
-                    disabled={isLikelyBot}
-                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2 rounded-md hover:from-indigo-700 hover:to-purple-700 transition-all duration-300"
-                  >
-                    <Mail className="w-4 h-4 mr-2" />
-                    Sign In with Email
-                  </Button>
+                  type="submit"
+                  disabled={isLikelyBot || isLoading}
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2 rounded-md hover:from-indigo-700 hover:to-purple-700 transition-all duration-300"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Signing In...
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="w-4 h-4 mr-2" />
+                      Sign In with Email
+                    </>
+                  )}
+                </Button>
+                
                 )}
               </form>
               <Button

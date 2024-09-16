@@ -58,7 +58,7 @@ const CandidateMain = () => {
                 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight mb-8 leading-[1.2]"
               >
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
-                  Navigating Careers
+                  Navigating Careers,
                 </span>{" "}
                 Empowering Futures
               </motion.h1>
