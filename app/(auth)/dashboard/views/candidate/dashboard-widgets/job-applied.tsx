@@ -1,22 +1,16 @@
 import React from "react";
-import { Briefcase, FileText, PlusCircle } from "lucide-react";
+import { FileText, PlusCircle, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { JobCard } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-card";
 
-interface Job {
-  id: number;
+interface ApplicationWithJobTitle {
+  job_id: string;
   title: string;
-  company: string;
-  salary?: string;
-  match?: number;
-  status?: string;
-  progress?: number;
 }
 
-interface DashboardData {
-  invitedJobs: Job[];
-  appliedJobs: Job[];
+interface JobAppliedProps {
+  appliedJobs: ApplicationWithJobTitle[];
+  handleViewMoreDetails: (jobId: string) => void;
 }
 
 const EmptyStateCard = ({
@@ -47,31 +41,57 @@ const EmptyStateCard = ({
   </Card>
 );
 
-export const JobApplied = ({ appliedJobs }: { appliedJobs: Job[] }) => {
+export const JobApplied: React.FC<JobAppliedProps> = ({
+  appliedJobs,
+  handleViewMoreDetails,
+}) => {
   const hasAppliedJobs = appliedJobs && appliedJobs.length > 0;
 
   return (
-    <div className="h-full flex flex-col">
-      <h2 className="text-md font-semibold text-gray-800 mb-4 flex items-center">
-        <FileText className="w-4 h-4 mr-2 text-gray-700" />
-        Jobs You've Applied To
-      </h2>
-      <div className="flex-grow">
+    <Card className="h-full">
+      <CardHeader className="flex flex-row items-center space-x-2 pb-2">
+        <div className="flex items-center">
+          <FileText className="mr-2 h-4 w-4" />
+          <CardTitle className="text-md font-semibold text-gray-800">
+            Jobs You've Applied To
+          </CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-0">
         {hasAppliedJobs ? (
-          <div className="grid grid-cols-1 gap-4 h-full">
+          <div className="space-y-4">
             {appliedJobs.map((job) => (
-              <JobCard key={job.id} job={job} type="applied" />
+              <div
+                key={job.job_id}
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+              >
+                <div>
+                  <h3 className="font-medium text-sm">{job.title}</h3>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleViewMoreDetails(job.job_id)}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             ))}
           </div>
         ) : (
-          <EmptyStateCard
-            title="No Applications Yet"
-            description="Explore a selection of roles handpicked for you, leveraging cutting-edge technology to connect your skills with premier opportunities. Start your personalized search today and discover the perfect match for your career ambitions."
-            buttonText="Browse Jobs"
-          />
+          <div className="text-center py-8">
+            <p className="text-gray-500 text-sm">No applied jobs yet.</p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-4"
+            >
+              <PlusCircle className="mr-2 h-4 w-4" /> Browse Jobs
+            </Button>
+          </div>
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

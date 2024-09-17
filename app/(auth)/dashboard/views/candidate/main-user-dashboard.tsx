@@ -2,10 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useUser } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
 import useStore from "@/app/state/useStore";
-import {
-  InsightsCard,
-  CareerInsight,
-} from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/career-insight";
+import { CareerInsight } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/career-insight";
 import ProfileSuggestionCard from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/profile-suggestions";
 import { Suggestion as ProfileSuggestion } from "@/lib/dashboard/candidate/profile-enhancements/build-suggestions";
 import ResumeSuggestionCard from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/resume-suggestions";
@@ -16,6 +13,8 @@ import {
   CandidateJobBookmark,
 } from "@/lib/candidate/search/bookmark";
 import { JobBookmarked } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-bookmarked";
+import { JobApplied } from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/job-applied";
+import { getApplicationsByCandidate } from "@/lib/candidate/apply/fetch-applications";
 import TalentId from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/talent-id";
 import CandidateAlertsCard from "@/app/(auth)/dashboard/views/candidate/main-candidate-alerts";
 import ProfilePictureUpload from "@/app/(auth)/dashboard/views/candidate/dashboard-widgets/profile-picture";
@@ -29,6 +28,11 @@ interface Job {
   status?: string;
   progress?: number;
   inviteDate: string;
+}
+
+interface ApplicationWithJobTitle {
+  job_id: string;
+  title: string;
 }
 
 interface DashboardData {
@@ -68,19 +72,25 @@ export function CandidateDashboard() {
   const [bookmarkedJobs, setBookmarkedJobs] = useState<CandidateJobBookmark[]>(
     []
   );
-  const [alertsRefreshTrigger, setAlertsRefreshTrigger] = useState(0);
+  const [appliedJobs, setAppliedJobs] = useState<ApplicationWithJobTitle[]>([]);
+    const [alertsRefreshTrigger, setAlertsRefreshTrigger] = useState(0);
 
   const candidateId = clerkUser?.publicMetadata?.aiq_cuid as string;
 
   const refreshData = useCallback(async () => {
     setIsLoading(true);
     if (candidateId) {
-      const response = await getAllBookmarkedJobsForCandidate(candidateId);
-      if (response.success) {
-        setBookmarkedJobs(response.data || []);
+      const [bookmarkedResponse, appliedJobsResponse] = await Promise.all([
+        getAllBookmarkedJobsForCandidate(candidateId),
+        getApplicationsByCandidate(candidateId),
+      ]);
+
+      if (bookmarkedResponse.success) {
+        setBookmarkedJobs(bookmarkedResponse.data || []);
       } else {
-        console.error("Failed to fetch bookmarked jobs:", response.error);
+        // Show error
       }
+      setAppliedJobs(appliedJobsResponse);
     }
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -103,7 +113,6 @@ export function CandidateDashboard() {
   );
 
   const handleBookmarkRemoved = useCallback((jobId: string) => {
-    console.log("Bookmark removed for job:", jobId);
     setBookmarkedJobs((prevJobs) =>
       prevJobs.filter((job) => job.jd_id !== jobId)
     );
@@ -150,7 +159,6 @@ export function CandidateDashboard() {
           payload: { show: true, candidateId },
         },
       });
-      console.log("Talent ID learn more");
     },
     [setCandidateDashboard]
   );
@@ -219,9 +227,19 @@ export function CandidateDashboard() {
     [handleViewMoreJobInvited]
   );
 
-  const memoizedInsightsCard = useMemo(
+  /*   const memoizedInsightsCard = useMemo(
     () => <InsightsCard data={data.careerInsights} />,
     [data.careerInsights]
+  ); */
+
+  const memoizedJobApplied = useMemo(
+    () => (
+      <JobApplied
+        appliedJobs={appliedJobs}
+        handleViewMoreDetails={handleViewMoreJobBookmarked}
+      />
+    ),
+    [appliedJobs, candidateId]
   );
 
   if (!candidateId) return <p>Loading...</p>;
@@ -256,6 +274,7 @@ export function CandidateDashboard() {
           >
             <div className="flex flex-col h-full">{memoizedJobBookmarked}</div>
             <div className="flex flex-col h-full">{memoizedJobInvited}</div>
+            <div className="flex flex-col h-full">{memoizedJobApplied}</div>
           </motion.div>
 
           <motion.div

@@ -158,7 +158,7 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
           // Send email to employer about application
           handleCloseResumeDialog();
         } else {
-          toast.error(`Failed to submit application: ${result.error}`);
+          toast.error(`Failed to submit application.`);
         }
       } catch (error) {
         console.error("Error submitting application:", error);
