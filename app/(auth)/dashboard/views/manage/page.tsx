@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useState, useMemo } from "react";
 import { useUser } from "@clerk/nextjs";
 import useStore from "@/app/state/useStore";
