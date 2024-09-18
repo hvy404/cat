@@ -73,7 +73,7 @@ export function CandidateDashboard() {
     []
   );
   const [appliedJobs, setAppliedJobs] = useState<ApplicationWithJobTitle[]>([]);
-    const [alertsRefreshTrigger, setAlertsRefreshTrigger] = useState(0);
+  const [alertsRefreshTrigger, setAlertsRefreshTrigger] = useState(0);
 
   const candidateId = clerkUser?.publicMetadata?.aiq_cuid as string;
 
@@ -227,20 +227,18 @@ export function CandidateDashboard() {
     [handleViewMoreJobInvited]
   );
 
-  /*   const memoizedInsightsCard = useMemo(
-    () => <InsightsCard data={data.careerInsights} />,
-    [data.careerInsights]
-  ); */
-
   const memoizedJobApplied = useMemo(
     () => (
-      <JobApplied
-        appliedJobs={appliedJobs}
-        handleViewMoreDetails={handleViewMoreJobBookmarked}
-      />
+      appliedJobs.length > 0 ? (
+        <JobApplied
+          appliedJobs={appliedJobs}
+          handleViewMoreDetails={handleViewMoreJobBookmarked}
+        />
+      ) : null
     ),
-    [appliedJobs, candidateId]
+    [appliedJobs, handleViewMoreJobBookmarked]
   );
+  
 
   if (!candidateId) return <p>Loading...</p>;
 

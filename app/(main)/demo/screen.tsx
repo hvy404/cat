@@ -1,17 +1,10 @@
 import React from "react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import {
-  ArrowRight,
-  Zap,
-  FileText,
-  FileSearch,
-  Globe,
-  Users,
   ChevronDown,
   MapPin,
   ShieldCheck,
   Clock,
-  DollarSign,
   Bookmark,
 } from "lucide-react";
 
@@ -46,7 +39,6 @@ const AppDemo = () => {
                 clearance="Public Trust"
                 jobType="Full-Time"
               />
-              {/* Add more JobCard components as needed */}
             </div>
           </div>
         </div>
@@ -105,7 +97,17 @@ const AppDemo = () => {
   );
 };
 
-const JobCard = ({ title, location, clearance, jobType }) => (
+const JobCard = ({
+  title,
+  location,
+  clearance,
+  jobType,
+}: {
+  title: string;
+  location?: string;
+  clearance?: string;
+  jobType?: string;
+}) => (
   <Card className="mb-4">
     <CardContent className="p-4">
       <div className="flex justify-between items-start">
@@ -144,12 +146,16 @@ const JobCard = ({ title, location, clearance, jobType }) => (
     </CardContent>
   </Card>
 );
-
-const Badge = ({ children, icon: Icon }) => (
+const Badge = ({
+  children,
+  icon: Icon,
+}: {
+  children: React.ReactNode;
+  icon: React.ElementType;
+}) => (
   <div className="inline-flex items-center rounded-full border transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 text-sm font-normal py-0.5 px-2">
     <Icon className="w-4 h-4 mr-1" />
     {children}
   </div>
 );
-
 export default AppDemo;

@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -20,6 +20,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { submitDemoRequest } from "@/lib/hubspot/demo-request";
 
 const formSchema = z.object({
   firstName: z
@@ -50,6 +51,12 @@ interface RequestDemoFormProps {
 }
 
 const RequestDemoForm: React.FC<RequestDemoFormProps> = ({ onClose }) => {
+  const [submitting, setSubmitting] = useState(false);
+  const [submitResult, setSubmitResult] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
+
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -60,11 +67,30 @@ const RequestDemoForm: React.FC<RequestDemoFormProps> = ({ onClose }) => {
     },
   });
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    console.log(data);
-    // Here you would typically send the data to your backend
-    if (onClose) {
-      onClose();
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    setSubmitting(true);
+    try {
+      const result = await submitDemoRequest(data);
+      setSubmitResult(result);
+      if (result.success) {
+        console.log(result.message);
+        // Optionally reset the form on success
+        form.reset();
+        // Close the dialog after a short delay
+        setTimeout(() => {
+          if (onClose) onClose();
+        }, 2000);
+      } else {
+        console.error(result.message);
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      setSubmitResult({
+        success: false,
+        message: "An unexpected error occurred.",
+      });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -149,11 +175,21 @@ const RequestDemoForm: React.FC<RequestDemoFormProps> = ({ onClose }) => {
                 </FormItem>
               )}
             />
+            {submitResult && (
+              <div
+                className={`text-center p-2 ${
+                  submitResult.success ? "text-green-600" : "text-red-600"
+                }`}
+              >
+                {submitResult.message}
+              </div>
+            )}
             <Button
               type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition duration-300 ease-in-out"
+              disabled={submitting}
             >
-              Submit Request
+              {submitting ? "Submitting..." : "Submit Request"}
             </Button>
           </form>
         </Form>

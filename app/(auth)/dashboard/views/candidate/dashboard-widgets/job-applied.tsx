@@ -13,34 +13,6 @@ interface JobAppliedProps {
   handleViewMoreDetails: (jobId: string) => void;
 }
 
-const EmptyStateCard = ({
-  title,
-  description,
-  buttonText,
-}: {
-  title: string;
-  description: string;
-  buttonText: string;
-}) => (
-  <Card className="w-full h-full bg-white shadow-sm hover:shadow-md transition-all duration-300 border-gray-300 flex flex-col">
-    <CardHeader className="pb-2">
-      <CardTitle className="text-lg font-semibold text-gray-800">
-        {title}
-      </CardTitle>
-    </CardHeader>
-    <CardContent className="py-4 flex-grow flex flex-col justify-between">
-      <p className="text-sm text-gray-600 mb-4">{description}</p>
-      <Button
-        variant="outline"
-        size="sm"
-        className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 self-start"
-      >
-        <PlusCircle className="mr-2 h-4 w-4" /> {buttonText}
-      </Button>
-    </CardContent>
-  </Card>
-);
-
 export const JobApplied: React.FC<JobAppliedProps> = ({
   appliedJobs,
   handleViewMoreDetails,
@@ -81,11 +53,7 @@ export const JobApplied: React.FC<JobAppliedProps> = ({
         ) : (
           <div className="text-center py-8">
             <p className="text-gray-500 text-sm">No applied jobs yet.</p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-4"
-            >
+            <Button variant="outline" size="sm" className="mt-4">
               <PlusCircle className="mr-2 h-4 w-4" /> Browse Jobs
             </Button>
           </div>

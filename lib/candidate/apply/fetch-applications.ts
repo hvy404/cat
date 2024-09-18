@@ -15,6 +15,12 @@ interface QueryResult {
   };
 }
 
+/**
+ * Fetches the applications for the specified candidate, including the job title for each application.
+ *
+ * @param candidateId - The ID of the candidate to fetch applications for.
+ * @returns An array of `ApplicationWithJobTitle` objects, containing the job ID and job title for each application.
+ */
 export async function getApplicationsByCandidate(
   candidateId: string
 ): Promise<ApplicationWithJobTitle[]> {
@@ -23,12 +29,14 @@ export async function getApplicationsByCandidate(
 
   const { data, error } = await supabase
     .from("applications")
-    .select(`
+    .select(
+      `
       job_id,
       job_postings!inner (
         title
       )
-    `)
+    `
+    )
     .eq("candidate_id", candidateId)
     .returns<QueryResult[]>();
 

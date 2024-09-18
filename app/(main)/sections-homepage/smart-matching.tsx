@@ -1,6 +1,13 @@
 import React, { useState } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import { Search, Zap, Brain, UserCheck, Sparkles, ArrowRight } from "lucide-react";
+import {
+  Search,
+  Zap,
+  Brain,
+  UserCheck,
+  Sparkles,
+  ArrowRight,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 const itemVariants = {
@@ -11,11 +18,18 @@ const itemVariants = {
 export const SmartMatchingSection: React.FC = () => {
   const ref = React.useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
-  const [hoveredFeature, setHoveredFeature] = useState<number | null>(null);
 
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.2 } },
+  };
+
+  const handleSignup = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const target = document.querySelector("#signup");
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   };
 
   return (
@@ -49,11 +63,26 @@ export const SmartMatchingSection: React.FC = () => {
             icon={Search}
             iconColor="text-gray-600"
             features={[
-              { icon: Search, text: "Broad job listings requiring manual filtering" },
-              { icon: Search, text: "Time-intensive search and application process" },
-              { icon: Search, text: "Surface-level matching based on keywords" },
-              { icon: Search, text: "Generic approach to opportunity evaluation" },
-              { icon: Search, text: "Information overload from numerous postings" },
+              {
+                icon: Search,
+                text: "Broad job listings requiring manual filtering",
+              },
+              {
+                icon: Search,
+                text: "Time-intensive search and application process",
+              },
+              {
+                icon: Search,
+                text: "Surface-level matching based on keywords",
+              },
+              {
+                icon: Search,
+                text: "Generic approach to opportunity evaluation",
+              },
+              {
+                icon: Search,
+                text: "Information overload from numerous postings",
+              },
             ]}
           />
           <ComparisonColumn
@@ -61,22 +90,35 @@ export const SmartMatchingSection: React.FC = () => {
             icon={Zap}
             iconColor="text-indigo-600"
             features={[
-              { icon: Brain, text: "Intelligent Matching: We continously analyze your complete professional story for precise opportunity alignment." },
-              { icon: Zap, text: "Always-On Opportunity Finder: Keep your profile current, and let our AI uncover perfect-fit positions 24/7." },
-              { icon: UserCheck, text: "Career Progression Focus: We identify opportunities that not only match your skills but propel your career forward." },
-              { icon: Sparkles, text: "Effortless Discovery: We surface only the opportunities that truly matter, streamlining your job search." },
-              { icon: Brain, text: "Holistic Understanding: Our AI considers your skills, experience, potential, and aspirations for optimal matching." },
+              {
+                icon: Brain,
+                text: "Intelligent Matching: We continously analyze your complete professional story for precise opportunity alignment.",
+              },
+              {
+                icon: Zap,
+                text: "Always-On Opportunity Finder: Keep your profile current, and let our AI uncover perfect-fit positions 24/7.",
+              },
+              {
+                icon: UserCheck,
+                text: "Career Progression Focus: We identify opportunities that not only match your skills but propel your career forward.",
+              },
+              {
+                icon: Sparkles,
+                text: "Effortless Discovery: We surface only the opportunities that truly matter, streamlining your job search.",
+              },
+              {
+                icon: Brain,
+                text: "Holistic Understanding: Our AI considers your skills, experience, potential, and aspirations for optimal matching.",
+              },
             ]}
           />
         </div>
 
-        <motion.div
-          variants={itemVariants}
-          className="mt-16 text-center"
-        >
+        <motion.div variants={itemVariants} className="mt-16 text-center">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            onClick={handleSignup}
             className="rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-4 text-lg font-semibold text-white shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 inline-flex items-center transition-all duration-300"
           >
             Get Started with AI-Powered Matching
@@ -116,10 +158,10 @@ const ComparisonColumn = ({
               onHoverStart={() => setHoveredFeature(index)}
               onHoverEnd={() => setHoveredFeature(null)}
             >
-              <feature.icon className={`w-6 h-6 mr-3 mt-1 flex-shrink-0 ${iconColor}`} />
-              <span className="text-gray-700">
-                {feature.text}
-              </span>
+              <feature.icon
+                className={`w-6 h-6 mr-3 mt-1 flex-shrink-0 ${iconColor}`}
+              />
+              <span className="text-gray-700">{feature.text}</span>
               <AnimatePresence>
                 {hoveredFeature === index && (
                   <motion.div
@@ -146,7 +188,7 @@ const getFeatureDetail = (index: number) => {
     "Set your preferences once, and receive tailored job recommendations continuously.",
     "We track industry trends to suggest roles that align with your long-term career goals.",
     "Our platform curates a personalized feed of highly relevant job opportunities.",
-    "By understanding your unique profile, we can match you with roles where you'll truly excel."
+    "By understanding your unique profile, we can match you with roles where you'll truly excel.",
   ];
   return details[index] || "Learn more about this feature";
 };
