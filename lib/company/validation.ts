@@ -48,6 +48,7 @@ const CompanyProfileSchema = z.object({
   phoneNumber: z.string().optional(),
   admin: z.array(z.string()).optional(),
   manager: z.array(z.string()).optional(),
+  hasLogo: z.boolean(),
 });
 
 export type CompanyProfileData = z.infer<typeof CompanyProfileSchema>;

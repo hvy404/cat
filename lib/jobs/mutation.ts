@@ -95,6 +95,7 @@ export interface CompanyNode {
   };
   phoneNumber?: string;
   size?: string;
+  hasLogo?: boolean;
 }
 
 export type RelationshipType =

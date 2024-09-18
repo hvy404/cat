@@ -24,9 +24,6 @@ export async function addNewCompanyEntry(
     return { success: false, error: "Company ID is required" };
   }
 
-  console.log("Adding new company entry");
-  console.log("Company ID:", companyId);
-
   const supabase = getSupabase();
 
   try {

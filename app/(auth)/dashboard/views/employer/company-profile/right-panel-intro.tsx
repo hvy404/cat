@@ -1,19 +1,34 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
   Building,
-  Briefcase,
   Users,
   Calendar,
   MapPin,
-  Globe,
   FileText,
-  Mail,
-  Phone,
   Share2,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-export default function CompanyProfileImportance() {
+interface CompanyProfileImportanceProps {
+  isCollapsed: boolean;
+}
+
+export default function CompanyProfileImportance({
+  isCollapsed: initialIsCollapsed,
+}: CompanyProfileImportanceProps) {
+  const [isCollapsed, setIsCollapsed] = useState(initialIsCollapsed);
+
+  useEffect(() => {
+    setIsCollapsed(initialIsCollapsed);
+  }, [initialIsCollapsed]);
+
+  const toggleCollapse = () => {
+    setIsCollapsed(!isCollapsed);
+  };
+
   const reasons = [
     {
       icon: <Building className="w-5 h-5 text-blue-600" />,
@@ -56,33 +71,44 @@ export default function CompanyProfileImportance() {
   return (
     <Card className="w-full bg-gray-50 shadow-lg">
       <CardHeader className="bg-gray-100 border-b border-gray-200">
-        <CardTitle className="text-lg font-bold text-gray-800">
-          Why Complete Your Company Profile?
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-6">
-        <p className="text-sm text-gray-600 mb-6">
-          A detailed company profile significantly enhances your ability to
-          attract top talent. Here's how each piece of information influences
-          potential candidates:
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {reasons.map((reason, index) => (
-            <div
-              key={index}
-              className="flex items-start bg-white p-4 rounded-lg shadow"
-            >
-              <div className="mr-4 mt-1">{reason.icon}</div>
-              <div>
-                <h3 className="text-md font-semibold text-gray-800 mb-2">
-                  {reason.title}
-                </h3>
-                <p className="text-sm text-gray-600">{reason.description}</p>
-              </div>
-            </div>
-          ))}
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-lg font-bold text-gray-800">
+            Why Complete Your Company Profile?
+          </CardTitle>
+          <Button variant="ghost" size="sm" onClick={toggleCollapse}>
+            {isCollapsed ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronUp className="h-4 w-4" />
+            )}
+          </Button>
         </div>
-      </CardContent>
+      </CardHeader>
+      {!isCollapsed && (
+        <CardContent className="p-6">
+          <p className="text-sm text-gray-600 mb-6">
+            A detailed company profile significantly enhances your ability to
+            attract top talent. Here's how each piece of information influences
+            potential candidates:
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {reasons.map((reason, index) => (
+              <div
+                key={index}
+                className="flex items-start bg-white p-4 rounded-lg shadow"
+              >
+                <div className="mr-4 mt-1">{reason.icon}</div>
+                <div>
+                  <h3 className="text-md font-semibold text-gray-800 mb-2">
+                    {reason.title}
+                  </h3>
+                  <p className="text-sm text-gray-600">{reason.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      )}
     </Card>
   );
 }

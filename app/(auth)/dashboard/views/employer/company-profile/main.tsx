@@ -22,9 +22,9 @@ enum CompanyState {
 }
 
 export default function EmployerDashboardCompanyProfile() {
-    // Clerk
-    const { user: clerkUser } = useUser();
-    const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+  // Clerk
+  const { user: clerkUser } = useUser();
+  const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
 
   const { isExpanded, setExpanded } = useStore();
 
@@ -50,12 +50,14 @@ export default function EmployerDashboardCompanyProfile() {
     phoneNumber: "",
     admin: [],
     manager: [],
+    hasLogo: false,
   };
 
   const [companyState, setCompanyState] = useState<CompanyState>(
     CompanyState.LOADING
   );
   const [formData, setFormData] = useState<CompanyProfileData>(defaultFormData);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
   useEffect(() => {
     const checkCompany = async () => {
@@ -126,6 +128,8 @@ export default function EmployerDashboardCompanyProfile() {
             createNew={false}
             isInitialOwner={false}
             employerId={cuid}
+            logoPreview={logoPreview}
+            setLogoPreview={setLogoPreview}
           />
         );
       case CompanyState.CREATING_COMPANY:
@@ -138,6 +142,8 @@ export default function EmployerDashboardCompanyProfile() {
               createNew={true}
               isInitialOwner={true}
               employerId={cuid}
+              logoPreview={logoPreview}
+              setLogoPreview={setLogoPreview}
             />
           </>
         );
@@ -180,8 +186,17 @@ export default function EmployerDashboardCompanyProfile() {
         }`}
       >
         <div className="min-h-[90vh] rounded-xl bg-muted/50 p-4 overflow-auto space-y-6">
-          {formData.name && <CompanyProfileRightPanel formData={formData} />}
-          <CompanyProfileImportance />
+          {formData.name && (
+            <CompanyProfileRightPanel
+  formData={formData}
+  logoPreview={logoPreview}
+  hasLogo={formData.hasLogo}
+/>
+
+          )}
+          <CompanyProfileImportance isCollapsed={!!formData.name} />
+
+
         </div>
       </div>
     </main>

@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { fetchJobDetails } from "./job-detail-helper";
+import { fetchJobDetails } from "@/app/(auth)/dashboard/views/candidate/search/job-detail-helper";
 import { JobNode, NodeWithId, CompanyNode } from "@/lib/jobs/mutation"; // type definition for JobNode
 import { getResumes } from "@/lib/candidate/apply/resume-choice";
 import CompanyInfoCard from "@/app/(auth)/dashboard/views/candidate/search/company-info-card";
@@ -85,6 +85,9 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
       try {
         const { jobDetails, jobRelationships, isBookmarked } =
           await fetchJobDetails(jobId);
+
+        console.log("Fetched job relationships:", jobRelationships);
+
         setJobDetails(jobDetails);
         setJobRelationships(jobRelationships);
         setIsBookmarked(isBookmarked);

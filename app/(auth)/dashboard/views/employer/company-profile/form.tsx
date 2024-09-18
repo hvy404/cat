@@ -10,6 +10,7 @@ import {
   ChevronsUpDown,
   Check,
   LoaderCircle,
+  TrashIcon,
 } from "lucide-react";
 import { states } from "@/lib/data/form-value-states";
 import { countries } from "@/lib/data/form-value-countries";
@@ -42,6 +43,7 @@ import {
 } from "@/lib/company/create-new";
 import { toast } from "sonner";
 import { addCompanyNode } from "@/lib/company/mutation";
+import { uploadCompanyLogo } from "@/lib/company/upload-logo";
 
 type NestedKeys = "headquarters" | "socialMedia";
 
@@ -51,6 +53,8 @@ interface EditCompanyProfileProps {
   createNew: boolean;
   isInitialOwner: boolean;
   employerId: string;
+  logoPreview: string | null;
+  setLogoPreview: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 export default function EditCompanyProfile({
@@ -59,6 +63,8 @@ export default function EditCompanyProfile({
   createNew,
   isInitialOwner,
   employerId,
+  logoPreview,
+  setLogoPreview,
 }: EditCompanyProfileProps) {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -67,6 +73,7 @@ export default function EditCompanyProfile({
   const [sizeOpen, setSizeOpen] = useState(false);
   const [industryOpen, setIndustryOpen] = useState(false);
   const [isSavingForm, setIsSavingForm] = useState(false);
+  const [selectedLogo, setSelectedLogo] = useState<File | null>(null);
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | string,
@@ -131,12 +138,54 @@ export default function EditCompanyProfile({
     return processObject(data);
   };
 
+  const handleLogoUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedLogo(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleLogoRemove = () => {
+    setSelectedLogo(null);
+    setLogoPreview(null);
+    // Reset the file input
+    const fileInput = document.getElementById("logo") as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = "";
+    }
+  };
+
   const handleSubmit = async () => {
     const result = await validateCompanyProfile(formData);
+  
     if (result.success) {
       setIsSavingForm(true);
   
       try {
+        let logoUrl = null;
+        let hasLogo = false;
+  
+        if (selectedLogo) {
+          const logoFormData = new FormData();
+          logoFormData.append("file", selectedLogo);
+          logoFormData.append("companyId", formData.id);
+  
+          const { data: uploadedLogoUrl, error: uploadError } =
+            await uploadCompanyLogo(logoFormData);
+  
+          if (uploadError) {
+            throw new Error("Failed to upload logo");
+          }
+  
+          logoUrl = uploadedLogoUrl;
+          hasLogo = true;
+        }
+  
         const processedData = processCompanyData(formData);
   
         // Handle the admin property
@@ -149,7 +198,10 @@ export default function EditCompanyProfile({
           processedData.admin = formData.admin;
         }
   
-        // Use addCompanyNode with the correctly handled admin property
+        // Add hasLogo to the processed data
+        processedData.hasLogo = hasLogo;
+  
+        // Use addCompanyNode with the correctly handled admin property and hasLogo
         const companyNode = await addCompanyNode(processedData);
   
         if (createNew) {
@@ -173,7 +225,10 @@ export default function EditCompanyProfile({
             }
   
             // Add this new function call
-            const updateEmployer = await updateEmployerCompanyId(employerId, companyNode.id);
+            const updateEmployer = await updateEmployerCompanyId(
+              employerId,
+              companyNode.id
+            );
             if (!updateEmployer.success) {
               toast.error(updateEmployer.error);
               setIsSavingForm(false);
@@ -202,6 +257,7 @@ export default function EditCompanyProfile({
       console.log("Validation errors:", newErrors);
     }
   };
+  
 
   return (
     <main className="p-4 w-full overflow-auto">
@@ -228,6 +284,26 @@ export default function EditCompanyProfile({
             />
             {errors.name && (
               <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+            )}
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Input
+              type="file"
+              id="logo"
+              name="logo"
+              accept="image/jpeg, image/png, image/jpeg"
+              onChange={handleLogoUpload}
+            />
+            {logoPreview && (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={handleLogoRemove}
+              >
+                <TrashIcon className="h-4 w-4" />
+              </Button>
             )}
           </div>
 

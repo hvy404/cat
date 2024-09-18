@@ -25,6 +25,7 @@ export interface CompanyNode {
   phoneNumber?: string;
   admin: string[];
   manager?: string[];
+  hasLogo?: boolean;
 }
 
 function formatValue(value: any): string {
