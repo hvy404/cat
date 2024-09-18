@@ -5,9 +5,6 @@ import RightPanel from "@/app/(auth)/dashboard/views/candidate/profile/panel";
 
 export default function CandidateDashboardProfile() {
   const { isExpanded, setExpanded } = useStore();
-  const candidateDashboardStep = useStore(
-    (state) => state.candidateDashboard.step
-  );
 
   // Clean up on unmount
   useEffect(() => {

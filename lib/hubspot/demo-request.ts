@@ -14,7 +14,7 @@ export async function submitDemoRequest(formData: DemoRequestFormData) {
   try {
     const response = await hubspotClient.apiRequest({
       method: 'POST',
-      path: `/submissions/v3/integration/submit/23635143/8ce1c2d7-717b-4d04-bc5e-de7f0b1487b5`,
+      path: `/marketing/v3/forms/23635143/8ce1c2d7-717b-4d04-bc5e-de7f0b1487b5/submissions`,
       body: {
         fields: [
           { name: 'firstname', value: formData.firstName },

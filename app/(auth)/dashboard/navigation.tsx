@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/tooltip";
 import {
   UserRoundPlus,
-  LifeBuoy,
   WandSparkles,
   Settings2,
   Home,
@@ -94,6 +93,13 @@ export default function DashboardNavigation() {
   const { isLoaded, isSignedIn, user: clerkUser } = useUser();
   const { signOut } = useClerk();
   const onboarded = useStore((state) => state.candidateDashboard.onboarded);
+
+  const { setSelectedMenuItem } = useStore();
+
+  const handleAccountSettings = () => {
+    setSelectedMenuItem("account-manage");
+    setIsAccountDialogOpen(false);
+  };
 
   if (!isLoaded || !isSignedIn) {
     return null;
@@ -228,10 +234,7 @@ export default function DashboardNavigation() {
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col space-y-4 mt-4">
-              <Button
-                variant="outline"
-                onClick={() => setIsAccountDialogOpen(false)}
-              >
+              <Button variant="outline" onClick={handleAccountSettings}>
                 Account Settings
               </Button>
               <Button variant="destructive" onClick={handleLogout}>

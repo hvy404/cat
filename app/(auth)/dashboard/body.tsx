@@ -14,6 +14,7 @@ import CandidateDashboardProfile from "@/app/(auth)/dashboard/views/candidate/pr
 import CandidateDashboardCertifications from "@/app/(auth)/dashboard/views/candidate/certifications/main";
 import CandidateDashboardJobSearch from "@/app/(auth)/dashboard/views/candidate/search/main";
 import CandidateResumeCopilot from "@/app/(auth)/dashboard/views/candidate/resume-copilot/main";
+import AccountManage from "@/app/(auth)/dashboard/views/manage/page";
 import useStore from "@/app/state/useStore";
 import { useUser } from "@clerk/nextjs";
 
@@ -71,6 +72,8 @@ export default function DashboardBody() {
         return <CandidateResumeCopilot />;
       case "candidate-user-settings":
         return <CandidateDashboardSettings />;
+      case "account-manage":
+        return <AccountManage />;
       // Add more cases as needed for other components
       default:
         switch (role) {
