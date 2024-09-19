@@ -12,6 +12,7 @@ import { Loader2 } from "lucide-react";
 import { useEnhancedDetection } from "@/app/candidate/components/enhance-det";
 import { load } from "@fingerprintjs/botd";
 import { checkApprovedEmail } from "@/app/(main)/hire/start/permission";
+import SlidingBulletMessage from "@/app/(main)/hire/start/sliding-message";
 
 const EmployerSignUpBox: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -24,6 +25,9 @@ const EmployerSignUpBox: React.FC = () => {
   const { isLikelyBot } = useEnhancedDetection();
   const formRef = useRef<HTMLFormElement>(null);
   const [isBotd, setIsBotd] = useState(false);
+
+  const [showErrorMessage, setShowErrorMessage] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const router = useRouter();
 
@@ -65,7 +69,10 @@ const EmployerSignUpBox: React.FC = () => {
     if (!isLoaded || !signUp) return;
 
     if (isLikelyBot || isBotd) {
-      toast.error("Our system detected unusual behavior. Please try again.");
+      setErrorMessage(
+        "Our system detected unusual behavior. Please try again."
+      );
+      setShowErrorMessage(true);
       return;
     }
 
@@ -75,7 +82,8 @@ const EmployerSignUpBox: React.FC = () => {
       // Check if the email is approved
       const { allow } = await checkApprovedEmail(email);
       if (!allow) {
-        toast.error("This email is not approved for registration.");
+        setErrorMessage("This email is not approved for registration.");
+        setShowErrorMessage(true);
         setIsLoading(false);
         return;
       }
@@ -88,18 +96,20 @@ const EmployerSignUpBox: React.FC = () => {
 
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       setShowVerification(true);
-      toast.success("Please check your email for the verification code.");
+      setErrorMessage("Please check your email for the verification code.");
+      setShowErrorMessage(true);
     } catch (err: any) {
       console.error("Sign-up error:", err);
       if (err && err.errors) {
-        const errorMessage =
+        const errorMsg =
           err.errors[0]?.longMessage ||
           err.errors[0]?.message ||
           "An error occurred during sign-up.";
-        toast.error(errorMessage);
+        setErrorMessage(errorMsg);
       } else {
-        toast.error("An unexpected error occurred during sign-up.");
+        setErrorMessage("An unexpected error occurred during sign-up.");
       }
+      setShowErrorMessage(true);
     } finally {
       setIsLoading(false);
     }
@@ -139,96 +149,102 @@ const EmployerSignUpBox: React.FC = () => {
       toast.error(err instanceof Error ? err.message : "Error verifying email");
     }
   };
-
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="w-full max-w-md mx-auto bg-white dark:bg-gray-800 shadow-2xl rounded-2xl overflow-hidden"
-    >
-      <div className="p-8">
-        <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">
-          {!showVerification ? "Start Hiring" : "Verify Email"}
-        </h2>
-        <form
-          ref={formRef}
-          onSubmit={!showVerification ? handleSubmit : handleVerification}
-        >
-          <div className="space-y-6">
-            {!showVerification ? (
-              <>
-                <div>
-                  <Label
-                    htmlFor="email"
-                    className="text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Email
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
-                </div>
-                <div>
-                  <Label
-                    htmlFor="password"
-                    className="text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Password
-                  </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
-                </div>
-              </>
-            ) : (
-              <div>
-                <Label
-                  htmlFor="verificationCode"
-                  className="text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  Verification Code
-                </Label>
-                <Input
-                  id="verificationCode"
-                  type="text"
-                  placeholder="Enter code"
-                  value={verificationCode}
-                  onChange={(e) => setVerificationCode(e.target.value)}
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                />
-              </div>
-            )}
-            <Button
-              type="submit"
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
-              disabled={isLoading || isLikelyBot}
-            >
-              {isLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : !showVerification ? (
-                "Sign Up"
+    <div className="relative w-full max-w-md mx-auto">
+      <motion.div
+        className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl overflow-hidden z-10 relative"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <SlidingBulletMessage
+          message={errorMessage}
+          isVisible={showErrorMessage}
+          onDismiss={() => setShowErrorMessage(false)}
+        />
+        <div className="p-8">
+          <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">
+            {!showVerification ? "Start Hiring" : "Verify Email"}
+          </h2>
+          <form
+            ref={formRef}
+            onSubmit={!showVerification ? handleSubmit : handleVerification}
+          >
+            <div className="space-y-6">
+              {!showVerification ? (
+                <>
+                  <div>
+                    <Label
+                      htmlFor="email"
+                      className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Email
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                    />
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="password"
+                      className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Password
+                    </Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                    />
+                  </div>
+                </>
               ) : (
-                "Verify Email"
+                <div>
+                  <Label
+                    htmlFor="verificationCode"
+                    className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Verification Code
+                  </Label>
+                  <Input
+                    id="verificationCode"
+                    type="text"
+                    placeholder="Enter code"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value)}
+                    required
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                  />
+                </div>
               )}
-            </Button>
-          </div>
-        </form>
-      </div>
-    </motion.div>
+              <Button
+                type="submit"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
+                disabled={isLoading || isLikelyBot}
+              >
+                {isLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : !showVerification ? (
+                  "Sign Up"
+                ) : (
+                  "Verify Email"
+                )}
+              </Button>
+            </div>
+          </form>
+        </div>
+      </motion.div>
+    </div>
   );
 };
 

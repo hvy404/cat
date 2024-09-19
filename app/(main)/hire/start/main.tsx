@@ -18,7 +18,7 @@ export function EmployerRegister() {
             transition={{ delay: 0.2, duration: 0.5 }}
             className="text-4xl font-extrabold text-gray-900 md:text-5xl"
           >
-            Unlock Top Talent for Your Team
+            Your Talent Scout
           </motion.h1>
           <motion.p
             initial={{ y: -20 }}
@@ -26,7 +26,9 @@ export function EmployerRegister() {
             transition={{ delay: 0.3, duration: 0.5 }}
             className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl"
           >
-            Join our platform to connect with exceptional candidates.
+            Unlock a continuous stream of exceptional candidates, precisely
+            matched to your needs. Our intelligent system works round-the-clock
+            to build your dream team.
           </motion.p>
         </div>
 
