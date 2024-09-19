@@ -1,6 +1,8 @@
 import React from "react";
 import { Facebook, Twitter, Linkedin, Instagram } from "lucide-react";
 import Image from "next/image";
+import CookieConsent from "@/app/(main)/consent/cookie-consent";
+
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -28,6 +30,7 @@ const Footer = () => {
   ];
 
   return (
+    <>
     <footer className="bg-white text-gray-600 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
@@ -89,6 +92,8 @@ const Footer = () => {
         </div>
       </div>
     </footer>
+    <CookieConsent />
+    </>
   );
 };
 
