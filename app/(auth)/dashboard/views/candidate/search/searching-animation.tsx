@@ -1,6 +1,6 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Loader2 } from 'lucide-react';
+import React from "react";
+import { motion } from "framer-motion";
+import { Loader2 } from "lucide-react";
 
 const SearchingAnimation: React.FC = () => {
   return (
@@ -19,9 +19,11 @@ const SearchingAnimation: React.FC = () => {
       >
         <Loader2 className="w-14 h-14 text-blue-500" />
       </motion.div>
-      <h3 className="text-xl font-bold text-gray-800 mb-3">AI-Powered Search in Progress</h3>
+      <h3 className="text-xl font-bold text-gray-800 mb-3">
+        Search in Progress
+      </h3>
       <p className="text-sm text-gray-600 text-center max-w-md leading-relaxed">
-        Our advanced AI is analyzing your profile and scouring thousands of opportunities to find your perfect match. This may take a few moments, but the results will be worth the wait!
+        This may take a few moments, but the results will be worth the wait!
       </p>
       {/* <motion.div
         className="mt-6 flex space-x-2"
