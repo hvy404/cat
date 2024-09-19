@@ -1,4 +1,3 @@
-"use client";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,6 +19,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { CheckCircle, XCircle } from "lucide-react";
 import { submitDemoRequest } from "@/lib/hubspot/demo-request";
 
 const formSchema = z.object({
@@ -74,17 +75,15 @@ const RequestDemoForm: React.FC<RequestDemoFormProps> = ({ onClose }) => {
       setSubmitResult(result);
       if (result.success) {
         console.log(result.message);
-        // Optionally reset the form on success
         form.reset();
-        // Close the dialog after a short delay
         setTimeout(() => {
           if (onClose) onClose();
-        }, 2000);
+        }, 3000);
       } else {
         console.error(result.message);
       }
     } catch (error) {
-      console.error("Error submitting form:", error);
+      //console.error("Error submitting form:", error);
       setSubmitResult({
         success: false,
         message: "An unexpected error occurred.",
@@ -117,7 +116,7 @@ const RequestDemoForm: React.FC<RequestDemoFormProps> = ({ onClose }) => {
                     <Input
                       placeholder="John"
                       {...field}
-                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300"
                     />
                   </FormControl>
                   <FormMessage className="text-red-600" />
@@ -134,7 +133,7 @@ const RequestDemoForm: React.FC<RequestDemoFormProps> = ({ onClose }) => {
                     <Input
                       placeholder="Doe"
                       {...field}
-                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300"
                     />
                   </FormControl>
                   <FormMessage className="text-red-600" />
@@ -151,7 +150,7 @@ const RequestDemoForm: React.FC<RequestDemoFormProps> = ({ onClose }) => {
                     <Input
                       placeholder="Acme Inc."
                       {...field}
-                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300"
                     />
                   </FormControl>
                   <FormMessage className="text-red-600" />
@@ -168,7 +167,7 @@ const RequestDemoForm: React.FC<RequestDemoFormProps> = ({ onClose }) => {
                     <Input
                       placeholder="john@example.com"
                       {...field}
-                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300"
                     />
                   </FormControl>
                   <FormMessage className="text-red-600" />
@@ -176,20 +175,39 @@ const RequestDemoForm: React.FC<RequestDemoFormProps> = ({ onClose }) => {
               )}
             />
             {submitResult && (
-              <div
-                className={`text-center p-2 ${
-                  submitResult.success ? "text-green-600" : "text-red-600"
+              <Alert
+                variant={submitResult.success ? "default" : "destructive"}
+                className={`transition-all duration-300 ease-in-out ${
+                  submitResult.success ? "bg-green-50" : "bg-red-50"
                 }`}
               >
-                {submitResult.message}
-              </div>
+                {submitResult.success ? (
+                  <CheckCircle className="h-4 w-4" />
+                ) : (
+                  <XCircle className="h-4 w-4" />
+                )}
+                <AlertTitle>
+                  {submitResult.success ? "Success!" : "Error"}
+                </AlertTitle>
+                <AlertDescription>{submitResult.message}</AlertDescription>
+              </Alert>
             )}
             <Button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition duration-300 ease-in-out"
+              className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-300 ease-in-out shadow-md transform hover:scale-105"
               disabled={submitting}
             >
-              {submitting ? "Submitting..." : "Submit Request"}
+              {submitting ? (
+                <span className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Submitting...
+                </span>
+              ) : (
+                "Submit Request"
+              )}
             </Button>
           </form>
         </Form>
