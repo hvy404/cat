@@ -26,6 +26,7 @@ import {
   Compass,
   Building,
   LogOut,
+  RocketIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { clearDashboardWidgetPanel } from "@/lib/dashboard/janitor";
@@ -136,6 +137,11 @@ export default function DashboardNavigation() {
               icon={Building}
             />
             <TooltipButton item="settings" label="Settings" icon={Settings2} />
+            <TooltipButton
+              item="upgrade"
+              label="Upgrade Account"
+              icon={RocketIcon}
+            />
           </>
         );
       case "talent":

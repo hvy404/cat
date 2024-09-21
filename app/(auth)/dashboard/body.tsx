@@ -6,6 +6,7 @@ import EmployerDashboardDocuments from "@/app/(auth)/dashboard/views/employer/co
 import EmployerDashboardProfile from "@/app/(auth)/dashboard/views/employer/profile/main";
 import EmployerDashboardCandidateSearch from "@/app/(auth)/dashboard/views/employer/search/main";
 import EmployerDashboardCompanyProfile from "@/app/(auth)/dashboard/views/employer/company-profile/main";
+import EmployerDashboardUpgrade from "@/app/(auth)/dashboard/views/employer/subscription/main";
 import CandidateDashboardSettings from "@/app/(auth)/dashboard/views/candidate/settings/main";
 import CandidateDashboardMain from "@/app/(auth)/dashboard/views/candidate/main";
 import CandidateDashboardExperience from "@/app/(auth)/dashboard/views/candidate/experience/main";
@@ -56,6 +57,8 @@ export default function DashboardBody() {
         return <EmployerDashboardCandidateSearch />;
       case "company-profile":
         return <EmployerDashboardCompanyProfile />;
+      case "upgrade":
+        return <EmployerDashboardUpgrade />;
       case "talent-dashboard":
         return <CandidateDashboardMain />;
       case "talent-experience":
