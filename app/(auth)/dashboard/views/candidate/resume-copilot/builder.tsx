@@ -177,17 +177,17 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   };
 
   useEffect(() => {
-    console.log("Current alerts:", alerts);
+    //console.log("Current alerts:", alerts);
   }, [alerts]);
 
   // useEffect console nextSteps on changes
   useEffect(() => {
-    console.log("Next steps:", nextSteps);
+    //console.log("Next steps:", nextSteps);
   }, [nextSteps]);
 
   // useEffect to console actionHistory on change
   useEffect(() => {
-    console.log("History", actionHistory);
+    //console.log("History", actionHistory);
   }, [actionHistory]);
 
   useEffect(() => {
@@ -255,7 +255,188 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     if (talentProfile) {
       moveItemsToChosen(["name", "email", "city", "state", "zipcode"]);
     }
+  }, [talentProfile]);
+
+  const excludedPersonalItems = useMemo(
+    () => [
+      "name",
+      "email",
+      "city",
+      "state",
+      "zipcode",
+      "location",
+      "phone",
+      "clearance_level",
+    ],
+    []
+  );
+
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout | null = null;
+
+    if (onSelectedItemsChange) {
+      onSelectedItemsChange(items.chosen);
+    }
+
+    if (items.chosen.length > 0 && history.length > 0 && lastModifiedItemId) {
+      const lastModifiedItem = items.chosen.find(
+        (item) => item.id === lastModifiedItemId
+      );
+
+      const isExcludedPersonalItem =
+        lastModifiedItem?.type === "personal" &&
+        excludedPersonalItems.includes(lastModifiedItem.content.key);
+
+      if (!isExcludedPersonalItem) {
+        timeoutId = setTimeout(() => {
+          setProcessingItems((prevProcessing) =>
+            new Set(prevProcessing).add(lastModifiedItemId)
+          );
+        }, 1500);
+      }
+    }
+
+    setLastModifiedItemId(null);
+
+    // Cleanup function
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [
+    items.chosen,
+    onSelectedItemsChange,
+    lastModifiedItemId,
+    excludedPersonalItems,
+  ]);
+
+  const toggleAlertMinimize = useCallback((id: string) => {
+    setAlertMinimizedState((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
   }, []);
+
+  const findContainer = useCallback(
+    (id: string) => {
+      if (id === "chosen") return "chosen";
+      return Object.keys(items).find((key) =>
+        items[key].some((item) => item.id === id)
+      );
+    },
+    [items]
+  );
+
+  // Add new functions for custom sections and items
+  const handleAddCustomSection = () => {
+    if (newSectionTitle.trim()) {
+      setCustomSections((prevSections) =>
+        addCustomSection(prevSections, newSectionTitle)
+      );
+      setNewSectionTitle("");
+      setIsAddingSectionDialogOpen(false);
+    }
+  };
+
+  const handleAddCustomItem = useCallback((sectionId: string) => {
+    setCustomSections((prevSections) => addCustomItem(prevSections, sectionId));
+  }, []);
+
+  const handleEditCustomItem = useCallback(
+    (sectionId: string, itemId: string, text: string) => {
+      setCustomSections((prevSections) =>
+        editCustomItem(prevSections, sectionId, itemId, text)
+      );
+    },
+    []
+  );
+
+  const renderAvailableItems = useMemo(
+    () => (
+      <AvailableItems
+        items={items.available}
+        renderCondensedItemContent={renderCondensedItemContent}
+      />
+    ),
+    [items.available]
+  );
+
+  const handleDragStart = useCallback(
+    (event: DragStartEvent) => {
+      const { active } = event;
+      const id = active.id as string;
+      const startContainer = findContainer(id);
+      setDragStartContainer(startContainer || null);
+
+      const item =
+        items[startContainer as keyof typeof items]?.find(
+          (item) => item.id === id
+        ) ||
+        customSections
+          .flatMap((section) => section.items)
+          .find((item) => item.id === id);
+      setDraggedItem(item || null);
+      setActiveId(id);
+    },
+    [items, customSections, findContainer]
+  );
+
+  const handleDragOverCallback = useCallback(
+    (event: DragOverEvent) => handleDragOver(event, findContainer, setItems),
+    [findContainer, setItems]
+  );
+
+  // Selection Choices
+  const handleCraniumItems = useCallback(async () => {
+    try {
+      const result = await cranium(builderSession.sessionId, userId, {
+        cacheKeyType: "choice",
+        items: items,
+      });
+      if (result.success) {
+        // console.log(result.message);
+      }
+    } catch (error) {
+      // console.error("Error storing items:", error);
+    }
+  }, [builderSession.sessionId, userId, items]);
+
+  // Set choices to cache on load
+  useEffect(() => {
+    handleCraniumItems();
+  }, [handleCraniumItems]); // Run only once
+
+  // Suggestions and feedback
+  const handleCraniumFeedback = useCallback(
+    async (nextSteps: NextStep[]) => {
+      try {
+        const result = await cranium(builderSession.sessionId, userId, {
+          cacheKeyType: "feedback",
+          items: nextSteps,
+        });
+
+        if (result.success) {
+          //console.log("Successfully stored feedback:", result.message);
+        }
+      } catch (error) {
+        //console.error("Error storing feedback:", error);
+      }
+    },
+    [builderSession.sessionId, userId]
+  );
+
+  // Edit History
+  const handleCraniumHistory = useCallback(async () => {
+    try {
+      await cranium(builderSession.sessionId, userId, {
+        cacheKeyType: "history",
+        items: actionHistory,
+      });
+    } catch (error) {
+      //console.error("Error storing history:", error);
+    }
+  }, [actionHistory, builderSession.sessionId, userId]);
 
   const processNextInQueue = useCallback(async () => {
     if (processingQueue.length === 0 || isProcessing) return;
@@ -296,14 +477,13 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       if (!("error" in nextStepsResult)) {
         setNextSteps((prevNextSteps) => {
           setIsChatButtonExpanded(true);
-          // Add to feedbank memory
-          handleCraniumFeedback(nextSteps);
-          return [...prevNextSteps, nextStepsResult];
+          const updatedNextSteps = [...prevNextSteps, nextStepsResult];
+          handleCraniumFeedback(updatedNextSteps);
+          return updatedNextSteps;
         });
       }
     } catch (error) {
       console.error("Error processing item:", error);
-      // Implement error handling strategy here (e.g., retry logic, user notification)
     } finally {
       setProcessingItems((prev) => {
         const newSet = new Set(prev);
@@ -319,139 +499,12 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     items,
     talentProfile,
     selectedRole,
-    buildEditReview,
-    suggestNextSteps,
+    handleCraniumFeedback,
   ]);
 
   useEffect(() => {
     processNextInQueue();
   }, [processNextInQueue]);
-
-  const excludedPersonalItems = [
-    "name",
-    "email",
-    "city",
-    "state",
-    "zipcode",
-    "location",
-    "phone",
-    "clearance_level",
-  ];
-
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout | null = null;
-
-    if (onSelectedItemsChange) {
-      onSelectedItemsChange(items.chosen);
-    }
-
-    if (items.chosen.length > 0 && history.length > 0 && lastModifiedItemId) {
-      const lastModifiedItem = items.chosen.find(
-        (item) => item.id === lastModifiedItemId
-      );
-
-      const isExcludedPersonalItem =
-        lastModifiedItem?.type === "personal" &&
-        excludedPersonalItems.includes(lastModifiedItem.content.key);
-
-      if (!isExcludedPersonalItem) {
-        timeoutId = setTimeout(() => {
-          setProcessingItems((prevProcessing) =>
-            new Set(prevProcessing).add(lastModifiedItemId)
-          );
-        }, 1500);
-      }
-    }
-
-    setLastModifiedItemId(null);
-
-    // Cleanup function
-    return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    };
-  }, [
-    items.chosen,
-    onSelectedItemsChange,
-    history,
-    lastModifiedItemId,
-    excludedPersonalItems,
-  ]);
-
-  const toggleAlertMinimize = useCallback((id: string) => {
-    setAlertMinimizedState((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  }, []);
-
-  const findContainer = (id: string) => {
-    if (id === "chosen") return "chosen";
-    return Object.keys(items).find((key) =>
-      items[key].some((item) => item.id === id)
-    );
-  };
-
-  // Add new functions for custom sections and items
-  const handleAddCustomSection = () => {
-    if (newSectionTitle.trim()) {
-      setCustomSections((prevSections) =>
-        addCustomSection(prevSections, newSectionTitle)
-      );
-      setNewSectionTitle("");
-      setIsAddingSectionDialogOpen(false);
-    }
-  };
-
-  const handleAddCustomItem = (sectionId: string) => {
-    setCustomSections((prevSections) => addCustomItem(prevSections, sectionId));
-  };
-
-  const handleEditCustomItem = (
-    sectionId: string,
-    itemId: string,
-    text: string
-  ) => {
-    setCustomSections((prevSections) =>
-      editCustomItem(prevSections, sectionId, itemId, text)
-    );
-  };
-
-  const renderAvailableItems = useMemo(
-    () => (
-      <AvailableItems
-        items={items.available}
-        renderCondensedItemContent={renderCondensedItemContent}
-      />
-    ),
-    [items.available, renderCondensedItemContent]
-  );
-
-  const handleDragStart = useCallback(
-    (event: DragStartEvent) => {
-      const { active } = event;
-      const id = active.id as string;
-      const startContainer = findContainer(id);
-      setDragStartContainer(startContainer || null);
-
-      const item =
-        items[startContainer as keyof typeof items]?.find(
-          (item) => item.id === id
-        ) ||
-        customSections
-          .flatMap((section) => section.items)
-          .find((item) => item.id === id);
-      setDraggedItem(item || null);
-      setActiveId(id);
-    },
-    [items, customSections, findContainer]
-  );
-
-  const handleDragOverCallback = useCallback(
-    (event: DragOverEvent) => handleDragOver(event, findContainer, setItems),
-    [findContainer, setItems]
-  );
 
   const dragEnd = useCallback(
     (event: DragEndEvent) => {
@@ -490,56 +543,10 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       setProcessingQueue,
       setProcessingItems,
       handleAddCustomItem,
+      handleCraniumItems,
+      handleCraniumHistory,
     ]
   );
-
-  // Selection Choices
-  const handleCraniumItems = async () => {
-    try {
-      const result = await cranium(builderSession.sessionId, userId, {
-        cacheKeyType: "choice",
-        items: items,
-      });
-      if (result.success) {
-        console.log(result.message);
-      }
-    } catch (error) {
-      console.error("Error storing items:", error);
-    }
-  };
-
-  // Set choices to cache on load
-  useEffect(() => {
-    handleCraniumItems();
-  }, []); // Run only once
-
-  // Suggestions and feedback
-  const handleCraniumFeedback = async (nextSteps: NextStep[]) => {
-    try {
-      const result = await cranium(builderSession.sessionId, userId, {
-        cacheKeyType: "feedback",
-        items: nextSteps,
-      });
-
-      if (result.success) {
-        console.log("Successfully stored feedback:", result.message);
-      }
-    } catch (error) {
-      console.error("Error storing feedback:", error);
-    }
-  };
-
-  // Edit History
-  const handleCraniumHistory = useCallback(async () => {
-    try {
-      await cranium(builderSession.sessionId, userId, {
-        cacheKeyType: "history",
-        items: actionHistory,
-      });
-    } catch (error) {
-      console.error("Error storing history:", error);
-    }
-  }, [actionHistory, builderSession.sessionId, cranium, userId]);
 
   /* Editor */
   const handleEdit = useCallback((item: Item) => {
@@ -615,18 +622,31 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     ] // Add alertMinimizedState to the dependency array
   );
 
-  const handleDeleteCustomSection = (sectionId: string) => {
-    const sectionToDelete = customSections.find(
-      (section) => section.id === sectionId
-    );
-    setDeleteConfirmation({
-      isOpen: true,
-      itemToDelete: null,
-      sectionToDelete: sectionToDelete || null,
-    });
-  };
+  const handleDeleteCustomSection = useCallback(
+    (sectionId: string) => {
+      const sectionToDelete = customSections.find(
+        (section) => section.id === sectionId
+      );
+      setDeleteConfirmation({
+        isOpen: true,
+        itemToDelete: null,
+        sectionToDelete: sectionToDelete || null,
+      });
+    },
+    [customSections]
+  );
 
-  const confirmDelete = () => {
+  const handleDeleteCustomItem = useCallback(
+    (sectionId: string, itemId: string) => {
+      setCustomSections((prevSections) =>
+        deleteCustomItem(prevSections, sectionId, itemId)
+      );
+      setLastModifiedItemId(itemId);
+    },
+    [setCustomSections, setLastModifiedItemId]
+  );
+
+  const confirmDelete = useCallback(() => {
     if (deleteConfirmation.itemToDelete) {
       handleDeleteCustomItem(
         deleteConfirmation.itemToDelete.sectionId,
@@ -645,7 +665,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
       itemToDelete: null,
       sectionToDelete: null,
     });
-  };
+  }, [deleteConfirmation, handleDeleteCustomItem, setCustomSections]);
 
   const renderChosen = useMemo(() => {
     if (!items.chosen) {
@@ -796,7 +816,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
   }, [
     items.chosen,
     customSections,
-    editedItems,
     renderItemContent,
     handleDeleteCustomSection,
     handleAddCustomItem,
@@ -804,13 +823,6 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({
     deleteConfirmation,
     confirmDelete,
   ]);
-
-  const handleDeleteCustomItem = (sectionId: string, itemId: string) => {
-    setCustomSections((prevSections) =>
-      deleteCustomItem(prevSections, sectionId, itemId)
-    );
-    setLastModifiedItemId(itemId);
-  };
 
   const handleCreateResume = () => {
     setIsTemplateDialogOpen(true);

@@ -56,19 +56,16 @@ export default function CollectRightPanelEditor({
     }
   };
 
-  // Load the preset entry
   useEffect(() => {
     if (addNew) {
       return;
     }
-
+  
     const handleFetch = async (userID: string, editingID: string) => {
       if (!userID) {
-        console.log("userID is null or undefined");
         return;
       }
       const result = await fetchPresetEntry(userID, editingID);
-      console.log(result);
       if (result.title) {
         setTitle(result.title);
       }
@@ -76,11 +73,12 @@ export default function CollectRightPanelEditor({
         setContent(result.content);
       }
     };
-
+  
     if (userID && editingID) {
       handleFetch(userID, editingID);
     }
-  }, [userID, editingID]);
+  }, [userID, editingID, addNew]);
+  
 
   // handle Cancel click, by clearing ediitingID
   const handleCancel = () => {

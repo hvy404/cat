@@ -1,5 +1,6 @@
 import React from "react";
 import { CompanyProfileData } from "@/lib/company/validation";
+import Image from 'next/image';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
   Building,
@@ -59,18 +60,24 @@ export default function CompanyProfileRightPanel({
           <div className="w-1/4 pr-4 flex items-center justify-center">
               {hasLogo ? (
                 <div className="flex items-center justify-center w-full h-32">
-                  <img
+                  <Image
                     src={`/api/partners?partnerLogo=${formData.id}&type=logo`}
                     alt="Company Logo"
+                    width={128}
+                    height={128}
                     className="max-w-full max-h-full object-contain"
+                    unoptimized
                   />
                 </div>
               ) : logoPreview ? (
                 <div className="flex items-center justify-center w-full h-32">
-                  <img
+                  <Image
                     src={logoPreview}
                     alt="Company Logo"
+                    width={128}
+                    height={128}
                     className="max-w-full max-h-full object-contain"
+                    unoptimized
                   />
                 </div>
               ) : (

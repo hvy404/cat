@@ -23,7 +23,7 @@ export function buildSystemMessage(intent: string): string {
 
   const systemMessage = `${baseMessage}\n\n${intentMessage}`;
 
-  console.log("System Message:", systemMessage);
+  //console.log("System Message:", systemMessage);
 
   return systemMessage;
 }

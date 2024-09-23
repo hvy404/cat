@@ -11,16 +11,6 @@ export default function EmployerDashboardProfile() {
   const { isExpanded, setExpanded, toggleExpansion } = useStore();
   const [activeOption, setActiveOption] = useState("");
 
-  // const to call evaluateTalentMatch on click
-  const handleEvaluateClick = async () => {
-    const result = await evaluateTalentMatch(
-      "y2rnttkx5ak9pn0gcdpl009l",
-      "bb296f3a-7932-4419-a554-0bfbef6aefe1",
-      "E"
-    );
-    console.log(result);
-  };
-
   // Reset expanded state when component unmounts
   useEffect(() => {
     return () => {

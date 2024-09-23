@@ -9,11 +9,9 @@ export async function jobDescriptionUpload(formData: FormData) {
   const newFileName = `${uuidv4()}.${fileExtension}`;
 
   if (!file) {
-    console.error("No file provided.");
+    //console.error("Error: No file provided for job description upload.");
     return { success: false, message: "No file provided." };
   }
-
-  // Optionally, validate file size and type here, check for virus
 
   try {
     const cookieStore = cookies();
@@ -22,17 +20,33 @@ export async function jobDescriptionUpload(formData: FormData) {
     const { data, error } = await supabase.storage
       .from("jobs")
       .upload(`jd/${newFileName}`, file, {
-        upsert: true, // using upsert to avoid duplicate filenames causing errors edgecase
+        upsert: true,
       });
 
     if (error) {
-      console.error("Error uploading file: ", error.message);
-      return { success: false, message: "Error uploading file." };
+    /*   console.error("Supabase storage upload error:", {
+        error: error.message,
+        fileName: newFileName,
+        fileSize: file.size,
+        fileType: file.type,
+      }); */
+      return { success: false, message: "Error uploading file.", error: error.message };
     }
-    // Return the filename as the ID
+
+/*     console.log("Job description upload successful:", {
+      fileName: newFileName,
+      fileSize: file.size,
+      fileType: file.type,
+    }); */
+
     return { success: true, filename: newFileName };
   } catch (err) {
-    console.error("Server error: ", err);
-    return { success: false, message: "Server error during file upload." };
+/*     console.error("Unexpected error during job description upload:", {
+      error: err instanceof Error ? err.message : String(err),
+      fileName: newFileName,
+      fileSize: file.size,
+      fileType: file.type,
+    }); */
+    return { success: false, message: "Server error during file upload.", error: String(err) };
   }
 }

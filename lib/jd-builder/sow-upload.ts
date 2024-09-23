@@ -12,7 +12,7 @@ export async function sowUpload(
   employerID: string
 ) {
 
-  console.log("Sow Upload: ", sowUUID, employerID);
+  //console.log("Sow Upload: ", sowUUID, employerID);
   const files = formData.getAll("file") as File[];
   if (files.length === 0) {
     console.error("No files provided.");

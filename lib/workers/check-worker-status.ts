@@ -46,7 +46,7 @@ export async function QueryWorkerStatus(
 
   try {
     const response = await fetch(api_url, options);
-    console.log("URL Called: ", api_url);
+    //console.log("URL Called: ", api_url);
     if (!response.ok) {
       throw new Error(`HTTP API error! status: ${response.status}`);
     }

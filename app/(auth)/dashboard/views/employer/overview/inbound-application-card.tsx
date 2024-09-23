@@ -69,7 +69,7 @@ const InboundApplicantsCard: React.FC = () => {
     };
 
     fetchApplications();
-  }, [cuid]);
+  }, [cuid, setRecentApplications]);
 
   const handleCardClick = () => {
     setEmployerRightPanelView("inboundApplications");

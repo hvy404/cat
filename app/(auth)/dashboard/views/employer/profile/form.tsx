@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -128,18 +128,34 @@ export function MyProfileForm({
 
       {/* Subscription Level */}
       <div className="rounded-lg border p-4 space-y-4">
-        <h2 className="text-gray-800 text-sm font-semibold">Subscription Level</h2>
+        <h2 className="text-gray-800 text-sm font-semibold">
+          Subscription Level
+        </h2>
         <div className="flex flex-col sm:flex-row gap-4">
-          <Card className={`flex-1 ${subscriptionLevel === 'Premium' ? 'border-blue-500 border-2' : 'border-gray-200'}`}>
+          <Card
+            className={`flex-1 ${
+              subscriptionLevel === "Premium"
+                ? "border-blue-500 border-2"
+                : "border-gray-200"
+            }`}
+          >
             <CardHeader className="font-semibold text-lg">Premium</CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600">Access to all features</p>
             </CardContent>
           </Card>
-          <Card className={`flex-1 ${subscriptionLevel === 'Trial' ? 'border-blue-500 border-2' : 'border-gray-200'}`}>
+          <Card
+            className={`flex-1 ${
+              subscriptionLevel === "Trial"
+                ? "border-blue-500 border-2"
+                : "border-gray-200"
+            }`}
+          >
             <CardHeader className="font-semibold text-lg">Trial</CardHeader>
             <CardContent>
-              <p className="text-sm text-gray-600">Limited access for 14 days</p>
+              <p className="text-sm text-gray-600">
+                Experience recruiting at scale for 30 days
+              </p>
             </CardContent>
           </Card>
         </div>

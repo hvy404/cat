@@ -65,7 +65,5 @@ export async function getUserCompanyDetails({
     return null;
   }
 
-  console.log("User company details:", data);
-
   return data;
 }

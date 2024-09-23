@@ -22,7 +22,7 @@ export async function applicantDetailCopilot(
   cachedData = await redis.get(cacheKey);
 
   if (!cachedData) {
-    console.log("No cached data found for application:", applicationId);
+    //console.log("No cached data found for application:", applicationId);
     return {
       success: false,
       message: "No data available for this application",

@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useDropzone } from "react-dropzone";
+import NextImage from "next/image";
 import { Camera, Edit2, User, X, RefreshCw } from "lucide-react";
 import Cropper from "react-easy-crop";
 import { uploadProfilePicture } from "@/lib/workers/profile-picture-upload";
@@ -71,11 +72,14 @@ const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
     reader.readAsDataURL(file);
   }, []);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0) {
-      handleFileChange(acceptedFiles[0]);
-    }
-  }, [handleFileChange]);
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      if (acceptedFiles.length > 0) {
+        handleFileChange(acceptedFiles[0]);
+      }
+    },
+    [handleFileChange]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
@@ -183,7 +187,9 @@ const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
     fileInputRef.current?.click();
   };
 
-  const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (file) {
       handleFileChange(file);
@@ -211,10 +217,13 @@ const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
                 <div {...getRootProps()} className="cursor-pointer">
                   <input {...getInputProps()} />
                   {profilePicture || croppedImage ? (
-                    <img
+                    <NextImage
                       src={croppedImage || profilePicture!}
                       alt="Profile"
-                      className="w-24 h-24 rounded-full object-cover"
+                      width={96}
+                      height={96}
+                      className="rounded-full object-cover"
+                      unoptimized
                     />
                   ) : (
                     <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center">
@@ -284,7 +293,7 @@ const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
         <input
           type="file"
           ref={fileInputRef}
-          style={{ display: 'none' }}
+          style={{ display: "none" }}
           onChange={handleFileInputChange}
           accept="image/*"
         />

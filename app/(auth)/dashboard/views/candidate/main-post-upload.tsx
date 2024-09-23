@@ -76,13 +76,13 @@ export function ResumeUpload({
             }
 
             if (result.status === "completed") {
-              console.log("Worker completed successfully");
+              //console.log("Worker completed successfully");
               toast.success("Resume processing completed!");
               // TODO: We need to now display the confirmation component
               setIsLoading(false);
               router.push("/dashboard");
             } else {
-              console.error("Worker failed or was cancelled");
+              //console.error("Worker failed or was cancelled");
               toast.error(
                 "There was an error processing your resume. Please try again."
               );
@@ -143,7 +143,7 @@ export function ResumeUpload({
       //toast.success("Resume uploaded and confirmed successfully.");
 
       const onboardResult = await candidateStartOnboard(candidateId);
-      console.log("Onboarding Run", onboardResult);
+      //console.log("Onboarding Run", onboardResult);
 
       if (
         onboardResult.message !== "Success" ||

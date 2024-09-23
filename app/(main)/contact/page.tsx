@@ -54,7 +54,7 @@ const SupportPage = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     // await handleSupportSubmission(values);
-    console.log(values);
+    //console.log(values);
   }
 
   return (

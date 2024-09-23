@@ -36,7 +36,7 @@ const AIRecommendationsCard: React.FC = () => {
     };
 
     fetchRecommendations();
-  }, [clerkUser]);
+  }, [clerkUser, setAiRecommendations]);
 
   const handleCardClick = () => {
     setEmployerRightPanelView("aiRecommendations");

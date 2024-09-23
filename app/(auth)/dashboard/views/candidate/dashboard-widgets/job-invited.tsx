@@ -65,7 +65,7 @@ export const JobInvited: React.FC<JobInvitedProps> = ({
     };
 
     loadInvites();
-  }, [user]);
+  }, [user, candidateId]);
 
   const totalPages = Math.ceil(invitedJobs.length / ITEMS_PER_PAGE);
   const paginatedJobs = invitedJobs.slice(

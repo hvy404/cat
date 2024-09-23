@@ -94,10 +94,10 @@ export async function generateJDStatic(
       response_format: { type: "json_object", schema: jsonSchemaSecondary },
     });
 
-    console.log("Secondary details extracted:", extractSecondary);
+    //console.log("Secondary details extracted:", extractSecondary);
 
     secondaryOutput = JSON.parse(extractSecondary.choices[0].message.content!);
-    console.log("Secondary details:", secondaryOutput);
+    //console.log("Secondary details:", secondaryOutput);
   } catch (error) {
     console.error("Error in secondary extraction:", error);
     return {
@@ -125,10 +125,10 @@ export async function generateJDStatic(
       response_format: { type: "json_object", schema: jsonSchemaThird },
     });
 
-    console.log("Third details extracted:", extractThird);
+    //console.log("Third details extracted:", extractThird);
 
     thirdOutput = JSON.parse(extractThird.choices[0].message.content!);
-    console.log("Third details:", thirdOutput);
+    //console.log("Third details:", thirdOutput);
   } catch (error) {
     console.error("Error in third extraction:", error);
     return {

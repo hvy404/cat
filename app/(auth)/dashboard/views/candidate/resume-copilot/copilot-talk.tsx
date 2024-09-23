@@ -85,24 +85,26 @@ const CopilotTalk: React.FC<CopilotTalkProps> = ({
     addNextStepMessages();
   }, [nextSteps, addNextStepMessages]);
 
-  const handleStoreToLocal = () => {
-    setLocalMessages(messages);
-    setIsMessageComplete(false);
-  }
-
-  const handleCraniumChatHistory = () => {
-    cranium(builderSession, userId!, {
-      cacheKeyType: "chat",
-      items: localMessages,
-    });
-  };
-  
   useEffect(() => {
-    if (isMessageComplete)
+    const handleStoreToLocal = () => {
+      setLocalMessages(messages);
+      setIsMessageComplete(false);
+    };
+  
+    const handleCraniumChatHistory = () => {
+      cranium(builderSession, userId!, {
+        cacheKeyType: "chat",
+        items: localMessages,
+      });
+    };
+  
+    if (isMessageComplete) {
       handleStoreToLocal();
+    }
     handleCraniumChatHistory();
-  }, [isMessageComplete]);
-
+  }, [isMessageComplete, messages, localMessages, builderSession, userId]);
+  
+  
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     handleInputChange(e);

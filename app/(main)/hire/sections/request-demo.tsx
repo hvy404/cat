@@ -74,7 +74,7 @@ const RequestDemoForm: React.FC<RequestDemoFormProps> = ({ onClose }) => {
       const result = await submitDemoRequest(data);
       setSubmitResult(result);
       if (result.success) {
-        console.log(result.message);
+        //console.log(result.message);
         form.reset();
         setTimeout(() => {
           if (onClose) onClose();

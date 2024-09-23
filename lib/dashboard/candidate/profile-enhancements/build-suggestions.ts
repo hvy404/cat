@@ -120,7 +120,7 @@ export async function FetchBuildEnhancements({
   candidateId,
 }: FetchBuildEnhancementsProps): Promise<Suggestion[]> {
   try {
-    console.log("Fetching talent node...", candidateId);
+    //console.log("Fetching talent node...", candidateId);
     const talentNodeData = await getTalentNodeNoEmbedding(candidateId);
 
     if (talentNodeData === null) {
@@ -135,7 +135,7 @@ export async function FetchBuildEnhancements({
       ];
     }
 
-    console.log(generateSuggestions(talentNodeData));
+    //console.log(generateSuggestions(talentNodeData));
 
     return generateSuggestions(talentNodeData);
   } catch (error) {

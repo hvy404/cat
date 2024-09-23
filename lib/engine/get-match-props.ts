@@ -42,9 +42,9 @@ export async function getMatchDetails(
   jobId: string,
   candidateId: string
 ): Promise<MatchAlert | null> {
-  console.log("Match ID:", matchId);
-  console.log("Job ID:", jobId);
-  console.log("Candidate:", candidateId);
+  //console.log("Match ID:", matchId);
+  //console.log("Job ID:", jobId);
+  //console.log("Candidate:", candidateId);
 
   const supabase = createClient(cookies());
   const { data, error } = await supabase

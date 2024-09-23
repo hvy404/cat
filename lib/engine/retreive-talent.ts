@@ -35,7 +35,7 @@ Each object contains the applicant_id and score properties.
 @example
 const embedding = [0.1, 0.2, 0.3, ...];
 const similarTalents = await findSimilarTalents(embedding);
-console.log(similarTalents);
+//console.log(similarTalents);
 // Output: [
 //   { applicant_id: '96eda40b-5fd1-4378-a4dd-e2ef63dc7a75', score: 0.8, title: 'Software Engineer', clearance_level: 'TS/SCI' },
 //   { applicant_id: '70689ca0-ea2c-4a92-ac06-84ecfcd0a08e', score: 0.7, title: 'Data Scientist', clearance_level: 'Secret' },
@@ -123,10 +123,10 @@ export async function getTalentProperties(applicantId: string) {
   try {
     const result = await read(query, params);
     const talentProperties = result[0]?.t.properties;
-    console.log("Talent Properties:", talentProperties);
+    //console.log("Talent Properties:", talentProperties);
     return talentProperties;
   } catch (error) {
-    console.error("Error executing Neo4j query:", error);
+    //console.error("Error executing Neo4j query:", error);
     throw error;
   }
 }

@@ -15,9 +15,9 @@ export default function JDBuilderStartProcessing() {
   const runnerID = jdBuilderWizard.sowParseRunnerID;
 
   useEffect(() => {
-    console.log("Polling useEffect triggered");
+    //console.log("Polling useEffect triggered");
     if (!sowID || !runnerID || pollingStatus === true) {
-      console.log("Returning early");
+      //console.log("Returning early");
       return;
     }
 
@@ -30,7 +30,7 @@ export default function JDBuilderStartProcessing() {
       const pollFunction = async () => {
         try {
           const status = await QueryEventStatus(runnerID);
-          console.log("status: ", status);
+          //console.log("status: ", status);
 
           if (status === "Completed") {
             setJDBuilderWizard({ pollingStatus: true });
@@ -41,7 +41,7 @@ export default function JDBuilderStartProcessing() {
             status === "Failed" ||
             status === "Cancelled"
           ) {
-            console.log(status);
+            //console.log(status);
             if (isPollingActive) {
               setTimeout(pollFunction, 7500);
             }
@@ -51,7 +51,7 @@ export default function JDBuilderStartProcessing() {
               setTimeout(pollFunction, 7500);
             }
           } else {
-            console.log("Unexpected status:", status);
+            //console.log("Unexpected status:", status);
             isPollingActive = false;
           }
         } catch (error) {

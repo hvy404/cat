@@ -17,10 +17,10 @@ export async function sendResumeViewAlertAction(props: {
   candidateEmail: string;
   jobTitle: string;
 }) {
-  console.log("Candidate Name:", props.candidateName);
-  console.log("Job ID:", props.jobId);
-  console.log("Candidate Email:", props.candidateEmail);
-  console.log("Job Title:", props.jobTitle);
+  //console.log("Candidate Name:", props.candidateName);
+  //console.log("Job ID:", props.jobId);
+  //console.log("Candidate Email:", props.candidateEmail);
+  //console.log("Job Title:", props.jobTitle);
 
   try {
     await inngest.send({

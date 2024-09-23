@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import useStore from "@/app/state/useStore";
 import {
   fetchPresets,
@@ -38,29 +38,31 @@ export default function EmployerDashboardDocuments() {
   const [addNew, setAddNew] = useState(false);
 
   // Load preset from store
-  const getPresets = async () => {
+  const getPresets = useCallback(async () => {
     try {
       const owner = cuid;
       if (!owner) {
-        console.error("User UUID is null");
         return;
       }
-
+  
       const presets = await fetchPresets(owner);
-      console.log(presets);
-
-      // Assuming presets is an object with 'intro' and 'benefits' arrays
+  
       setPresetIntro(presets.intro || []);
       setPresetBenefits(presets.benefits || []);
       setFetching(false);
     } catch (error) {
       console.error(error);
     }
-  };
-
+  }, [cuid]);
+  
   useEffect(() => {
     getPresets();
-  }, []); // Empty dependency array ensures this runs once on component load
+  }, [getPresets]);
+  
+  useEffect(() => {
+    getPresets();
+  }, [getPresets]);
+  
 
   const handlePrimaryChange = async (
     type: "intro" | "benefits",
@@ -87,7 +89,7 @@ export default function EmployerDashboardDocuments() {
         );
       }
     } catch (error) {
-      console.error(error);
+      //console.error(error);
     }
   };
 
@@ -96,7 +98,7 @@ export default function EmployerDashboardDocuments() {
     setEditingID(snippet_id);
     setExpanded(false);
     setAddNew(false);
-    console.log(snippet_id);
+    //console.log(snippet_id);
   };
 
   // onClick handler for create new button
@@ -105,7 +107,7 @@ export default function EmployerDashboardDocuments() {
     setAddNew(true);
     setExpanded(false);
     setEditingID("new");
-    console.log(type);
+    //console.log(type);
   };
 
   // Controller for right panel content

@@ -187,10 +187,6 @@ ${humanReadableRule}`;
 
   const systemMessage = buildSystemMessage(intent.classification);
 
-  console.log("Intent: ", intent);
-  console.log("System Message: ", systemMessage);
-  console.log("Message Array", messages);
-
   const result = await streamText({
     system: systemMessage,
     model: openai("mistralai/Mixtral-8x7B-Instruct-v0.1"),

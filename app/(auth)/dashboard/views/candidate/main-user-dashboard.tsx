@@ -144,7 +144,7 @@ export function CandidateDashboard() {
           });
           break;
         default:
-          console.log(`Action not allowed`);
+          //console.log(`Action not allowed`);
       }
     },
     [setCandidateDashboard]

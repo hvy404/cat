@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,9 +26,33 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { createCheckoutSession } from "@/lib/stripe/init";
+
+interface Feature {
+  text: string;
+  superscript: string;
+  tooltip: string;
+}
+
+interface Plan {
+  name: string;
+  price: string;
+  period: string;
+  features: (string | Feature)[];
+  cta: string;
+  recommended?: boolean;
+  priceId: string;
+}
+
+interface FeatureItem {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}
 
 export default function EmployerDashboardUpgrade() {
   const { isExpanded, setExpanded, toggleExpansion } = useStore();
+  const [loading, setLoading] = useState(false);
 
   const aiPoweredExplanationShort =
     "Active AI-driven recruitment campaigns. Flexible allocation between AI-powered and traditional job postings.";
@@ -34,7 +60,7 @@ export default function EmployerDashboardUpgrade() {
   const aiPoweredExplanationFull =
     "AI-Powered Talent Searches represent your active, AI-driven recruitment campaigns. This is not a one-time use credit, but an ongoing allocation. You have the flexibility to switch jobs between AI-powered and traditional posting modes. When you pause AI matching for a job, it automatically becomes a standard job listing, freeing up that AI-Powered Talent Search slot for another position. This allows you to dynamically allocate your AI resources to your most critical hiring needs.";
 
-  const plans = [
+  const plans: Plan[] = [
     {
       name: "Monthly",
       price: "$450",
@@ -61,6 +87,7 @@ export default function EmployerDashboardUpgrade() {
         "Instant Notifications",
       ],
       cta: "Start Monthly Plan",
+      priceId: "price_1Q1G5pECD1UabPVRY5H7JTSc",
     },
     {
       name: "Annual",
@@ -78,10 +105,11 @@ export default function EmployerDashboardUpgrade() {
       ],
       cta: "Start Annual Plan",
       recommended: true,
+      priceId: "price_1Q1Xz8ECD1UabPVRYENPvNlM",
     },
   ];
 
-  const features = [
+  const features: FeatureItem[] = [
     {
       icon: <Brain />,
       title: "AI-Powered Matching",
@@ -131,6 +159,23 @@ export default function EmployerDashboardUpgrade() {
         "Post jobs to our traditional job board for candidate applications",
     },
   ];
+
+  const handleSubscription = async (priceId: string) => {
+    setLoading(true);
+    try {
+      const result = await createCheckoutSession(priceId);
+      if ('error' in result) {
+        throw new Error(result.error);
+      }
+      // Redirect to Stripe Checkout
+      window.location.href = result.url;
+    } catch (error) {
+      console.error('Error:', error);
+      // Handle the error, maybe show a notification to the user
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <TooltipProvider>
@@ -217,8 +262,10 @@ export default function EmployerDashboardUpgrade() {
                           ? "bg-indigo-600 hover:bg-indigo-700"
                           : "bg-gray-600 hover:bg-gray-700"
                       }`}
+                      onClick={() => handleSubscription(plan.priceId)}
+                      disabled={loading}
                     >
-                      {plan.cta} <ArrowRight className="ml-2" size={16} />
+                      {loading ? "Processing..." : plan.cta} <ArrowRight className="ml-2" size={16} />
                     </Button>
                   </CardFooter>
                 </Card>
@@ -258,7 +305,7 @@ export default function EmployerDashboardUpgrade() {
                   <CardContent className="p-4">
                     <div className="flex items-center mb-2">
                       <div className="bg-indigo-100 p-2 rounded-full mr-3">
-                        {React.cloneElement(feature.icon, {
+                        {React.cloneElement(feature.icon as React.ReactElement, {
                           className: "h-5 w-5 text-indigo-600",
                         })}
                       </div>

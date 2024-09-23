@@ -1,5 +1,5 @@
 import useStore from "@/app/state/useStore";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import EditCompanyProfile from "@/app/(auth)/dashboard/views/employer/company-profile/form";
 import { CompanyProfileData } from "@/lib/company/validation";
 import CompanyProfileRightPanel from "@/app/(auth)/dashboard/views/employer/company-profile/right-panel";
@@ -28,7 +28,7 @@ export default function EmployerDashboardCompanyProfile() {
 
   const { isExpanded, setExpanded } = useStore();
 
-  const defaultFormData: CompanyProfileData = {
+  const defaultFormData = useMemo<CompanyProfileData>(() => ({
     id: createId(),
     name: "",
     industry: "",
@@ -51,7 +51,7 @@ export default function EmployerDashboardCompanyProfile() {
     admin: [],
     manager: [],
     hasLogo: false,
-  };
+  }), []);
 
   const [companyState, setCompanyState] = useState<CompanyState>(
     CompanyState.LOADING
@@ -59,43 +59,43 @@ export default function EmployerDashboardCompanyProfile() {
   const [formData, setFormData] = useState<CompanyProfileData>(defaultFormData);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
-  useEffect(() => {
-    const checkCompany = async () => {
-      if (cuid) {
-        try {
-          const result = await checkUserCompany({ employerId: cuid });
-          if (result.hasCompany && result.companyId) {
-            setCompanyState(CompanyState.HAS_COMPANY);
-            try {
-              const companyNode = await getCompanyNode(result.companyId);
-              console.log("Company Node:", companyNode);
-              if (companyNode) {
-                setFormData({
-                  ...defaultFormData,
-                  ...companyNode,
-                });
-              }
-            } catch (error) {
-              console.error("Error retrieving Company node:", error);
+useEffect(() => {
+  const checkCompany = async () => {
+    if (cuid) {
+      try {
+        const result = await checkUserCompany({ employerId: cuid });
+        if (result.hasCompany && result.companyId) {
+          setCompanyState(CompanyState.HAS_COMPANY);
+          try {
+            const companyNode = await getCompanyNode(result.companyId);
+            if (companyNode) {
+              setFormData({
+                ...defaultFormData,
+                ...companyNode,
+              });
             }
-          } else {
-            setCompanyState(CompanyState.INITIAL);
+          } catch (error) {
+            console.error("Error retrieving Company node:", error);
           }
-        } catch (error) {
-          console.error("Error checking company:", error);
+        } else {
           setCompanyState(CompanyState.INITIAL);
         }
-      } else {
+      } catch (error) {
+        console.error("Error checking company:", error);
         setCompanyState(CompanyState.INITIAL);
       }
-    };
+    } else {
+      setCompanyState(CompanyState.INITIAL);
+    }
+  };
 
-    checkCompany();
+  checkCompany();
 
-    return () => {
-      setExpanded(false);
-    };
-  }, [cuid, setExpanded]);
+  return () => {
+    setExpanded(false);
+  };
+}, [cuid, setExpanded, defaultFormData]);
+
 
   // Early return if user is not logged in
   if (!cuid) {

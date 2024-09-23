@@ -34,7 +34,7 @@ export default function ProfileSuggestionCard({
     };
 
     fetchSuggestions();
-  }, []);
+  }, [candidateId]);
 
   const getPriorityClass = (priority: string) => {
     switch (priority) {

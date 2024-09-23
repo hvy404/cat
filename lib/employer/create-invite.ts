@@ -39,7 +39,7 @@ export async function createInvite(
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  console.log("Creating new invite");
+  //console.log("Creating new invite");
 
   try {
     // Check for existing invite

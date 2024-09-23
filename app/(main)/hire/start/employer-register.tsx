@@ -48,21 +48,21 @@ const EmployerSignUpBox: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (formRef.current) {
+    const currentForm = formRef.current;
+    if (currentForm) {
       const handleMouseMove = () => {};
       const handleKeyDown = () => {};
-
-      formRef.current.addEventListener("mousemove", handleMouseMove);
-      formRef.current.addEventListener("keydown", handleKeyDown);
-
+  
+      currentForm.addEventListener("mousemove", handleMouseMove);
+      currentForm.addEventListener("keydown", handleKeyDown);
+  
       return () => {
-        if (formRef.current) {
-          formRef.current.removeEventListener("mousemove", handleMouseMove);
-          formRef.current.removeEventListener("keydown", handleKeyDown);
-        }
+        currentForm.removeEventListener("mousemove", handleMouseMove);
+        currentForm.removeEventListener("keydown", handleKeyDown);
       };
     }
-  }, [formRef]);
+  }, []);
+  
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

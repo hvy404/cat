@@ -33,7 +33,7 @@ export default function CandidateResumeCopilot() {
       if (candidateId) {
         try {
           const result = await getFetchSuggestionRoles(candidateId);
-          console.log("Suggestion Roles:", result);
+          //console.log("Suggestion Roles:", result);
 
           if (result.status === "success") {
             setPotentialRoles(result.potentialRoles);
@@ -43,7 +43,7 @@ export default function CandidateResumeCopilot() {
             setRolesError(result.message || "Failed to fetch suggestion roles");
           }
         } catch (err) {
-          console.error("Error fetching suggestion roles:", err);
+          //console.error("Error fetching suggestion roles:", err);
           setPotentialRoles(null);
           setRolesError("An unexpected error occurred while fetching roles");
         }

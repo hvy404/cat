@@ -34,9 +34,9 @@ export async function publishDraftJD(employerId: string, draftText: string) {
   } else {
     if (id) {
       jobID = id;
-      console.log("Job ID: ", jobID);
+      //console.log("Job ID: ", jobID);
     } else {
-      console.error("Received undefined ID from JDAddDatabaseEntry.");
+      //console.error("Received undefined ID from JDAddDatabaseEntry.");
       return {
         message: "Failed to retrieve job ID from database entry.",
       };

@@ -116,13 +116,13 @@ export default function AddJDStep2Form() {
     let isMounted = true;
 
     if (!cuid || !addJD.jdEntryID) {
-      console.log("User not logged in.");
+      //console.log("User not logged in.");
       return;
     }
 
     async function fetchJobDetails() {
       if (!addJD.jdEntryID) {
-        console.error("Job Description ID not found");
+        //console.error("Job Description ID not found");
         return;
       }
 
@@ -171,7 +171,7 @@ export default function AddJDStep2Form() {
     return () => {
       isMounted = false;
     };
-  }, [cuid, addJD.jdEntryID]);
+  }, [cuid, addJD.jdEntryID, setAddJD]);
 
   const handleSubmit = async () => {
     try {
@@ -188,14 +188,14 @@ export default function AddJDStep2Form() {
       }
 
       if (result.success) {
-        console.log("Job details saved successfully");
-        console.log(addJD.jobDetails[0]);
+        //console.log("Job details saved successfully");
+        //console.log(addJD.jobDetails[0]);
         setValidationErrors({});
         setAddJD({
           step: 3,
           publishingRunnerID: null,
         });
-        console.log("Updated to step 3");
+        //console.log("Updated to step 3");
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -204,9 +204,9 @@ export default function AddJDStep2Form() {
           return acc;
         }, {} as ValidationErrors);
         setValidationErrors(errors);
-        console.log(errors);
+        //console.log(errors);
       } else {
-        console.log(error);
+        //console.log(error);
       }
     }
   };
@@ -241,7 +241,7 @@ export default function AddJDStep2Form() {
         filename: null, // Reset the filename
       });
 
-      console.log("Session cancelled successfully");
+      //console.log("Session cancelled successfully");
     } catch (error) {
       console.error("Error cancelling session");
       // You might want to show an error message to the user here

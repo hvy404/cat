@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import useStore from "@/app/state/useStore";
 import { Button } from "@/components/ui/button";
 import { TitleOptions } from "@/lib/dashboard/panels/step-2-title";
@@ -21,22 +21,27 @@ export default function Step2SubPanelTitle() {
   }, [addJD.jobDetails]);
 
   // click handler to call TitleOptions function and console log the result
-const handleTitleOptions = async () => {
-  if (addJD.jdEntryID !== null) {
-    const result = await TitleOptions(addJD.jdEntryID);
-    // set the jobDetails in the store
-    setAddJD({ jobDescriptionTitles: result });
-  } else {
-    // TODO: This could be setting a default value, throwing an error, etc.
-  }
-};
+  const handleTitleOptions = useCallback(async () => {
+    if (addJD.jdEntryID !== null) {
+      const result = await TitleOptions(addJD.jdEntryID);
+      setAddJD({ jobDescriptionTitles: result });
+    } else {
+      // TODO: Handle the case when jdEntryID is null
+    }
+  }, [addJD.jdEntryID, setAddJD]);
+
+  useEffect(() => {
+    if (addJD.jobDescriptionTitles.length === 0) {
+      handleTitleOptions();
+    }
+  }, [addJD.jobDescriptionTitles.length, handleTitleOptions]);
 
   // Fetch job title suggestions on page load if not already set
   useEffect(() => {
     if (addJD.jobDescriptionTitles.length === 0) {
       handleTitleOptions();
     }
-  }, []);
+  }, [addJD.jobDescriptionTitles.length, handleTitleOptions]);
 
   return (
     <>

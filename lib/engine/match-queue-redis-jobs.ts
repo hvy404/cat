@@ -21,8 +21,8 @@ export async function addJobsToQueue(
   const redis = (await initializeRedis()) as Redis;
   const pipeline = redis.pipeline();
 
-  console.log(activeJobs.length + " jobs to add to queue");
-  console.log(activeJobs);
+  //console.log(activeJobs.length + " jobs to add to queue");
+  //console.log(activeJobs);
 
   try {
     for (const job of activeJobs) {
@@ -60,7 +60,7 @@ export async function processNextJob(): Promise<string | null> {
   const jobId = (await redis.lpop("job_queue")) as string | null;
 
   if (!jobId) {
-    console.log("No more jobs in the queue");
+    //console.log("No more jobs in the queue");
     return null;
   }
 
@@ -70,18 +70,18 @@ export async function processNextJob(): Promise<string | null> {
   }>(`job:${jobId}`);
 
   if (!jobData || !jobData.employer_id) {
-    console.log(`Invalid job data for job ${jobId}`);
+    //console.log(`Invalid job data for job ${jobId}`);
     return null;
   }
 
-  //console.log(`Processing job ${jobId} for employer ${jobData.employer_id}`);
+  ////console.log(`Processing job ${jobId} for employer ${jobData.employer_id}`);
 
   // Find matches and console log
   const matches = await findJobMatches(jobId);
   if (matches) {
-    console.log(`Found ${matches.length} matches for job ${jobId}`);
+    //console.log(`Found ${matches.length} matches for job ${jobId}`);
   } else {
-    console.log(`No matches found for job ${jobId}`);
+    //console.log(`No matches found for job ${jobId}`);
   }
 
   // Delete the job hash entry

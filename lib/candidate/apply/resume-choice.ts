@@ -23,7 +23,7 @@ export async function getResumes(userId: string) {
     }
 
     if (!data || data.length === 0) {
-      console.log("No resumes found for user:", userId);
+      //console.log("No resumes found for user:", userId);
       return [];
     }
 

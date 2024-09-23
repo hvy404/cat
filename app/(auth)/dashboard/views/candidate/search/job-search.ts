@@ -61,18 +61,18 @@ export async function jobSearchHandler(
   // Check for easter eggs
   switch (true) {
     case mainSearchQuery.includes("!wildwest"):
-      console.log("Yeehaw! 🤠");
+      //console.log("Yeehaw! 🤠");
       threshold = 0.5;
       mode = "wildwest";
       cleanedSearchQuery = mainSearchQuery.replace("!wildwest", "").trim();
       break;
     case mainSearchQuery.includes("!cyberpunk"):
-      console.log("Welcome to Night City! 🌃");
+      //console.log("Welcome to Night City! 🌃");
       threshold = 0.6;
       cleanedSearchQuery = mainSearchQuery.replace("!cyberpunk", "").trim();
       break;
     case mainSearchQuery.includes("!space"):
-      console.log("To infinity and beyond! 🚀");
+      //console.log("To infinity and beyond! 🚀");
       threshold = 0.55;
       cleanedSearchQuery = mainSearchQuery.replace("!space", "").trim();
       break;

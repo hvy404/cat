@@ -209,7 +209,6 @@ const CommandList = ({
     },
     onError: (e) => {
       //toast.error(e.message);
-      console.log("Error");
     },
   });
 

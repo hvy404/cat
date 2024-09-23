@@ -1,5 +1,5 @@
 import { useUser } from "@clerk/nextjs";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Bell,
@@ -60,11 +60,9 @@ const AlertsCard: React.FC<AlertsCardProps> = ({
 
   const candidateId = clerkUser?.publicMetadata?.aiq_cuid as string;
 
-  useEffect(() => {
-    fetchAlerts();
-  }, [candidateId, refreshTrigger]);
+  
 
-  const fetchAlerts = async () => {
+  const fetchAlerts = useCallback(async () => {
     setIsLoading(true);
     try {
       if (candidateId) {
@@ -78,7 +76,12 @@ const AlertsCard: React.FC<AlertsCardProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [candidateId]);
+
+  useEffect(() => {
+    fetchAlerts();
+  }, [candidateId, refreshTrigger, fetchAlerts]);
+  
 
   const handleUpdateAlert = async (id: string, updates: Partial<Alert>) => {
     try {
@@ -191,36 +194,17 @@ const AlertsCard: React.FC<AlertsCardProps> = ({
     }
   };
 
-  const emptyStateMessages = [
-    "Your profile is live and active!",
-    "Ready to receive great opportunities soon!",
-    "Your job search is set up for success!",
-    "Exciting job matches are just around the corner!",
-    "Your next great opportunity could be coming any moment!",
-    "Stay tuned for potential perfect matches!",
-    "Your profile is out there working for you!",
-    "Keep an eye out, top employers may be viewing your profile!",
-    "You're all set to attract amazing job opportunities!",
-    "Get ready for a flood of exciting job prospects!",
-  ];
-
   const EmptyState = () => {
-    const randomMessage = useMemo(() => {
-      const randomIndex = Math.floor(Math.random() * emptyStateMessages.length);
-      return emptyStateMessages[randomIndex];
-    }, []);
-
     return (
       <div className="flex flex-col items-center justify-center h-full">
         <Inbox className="w-10 h-10 text-gray-300 mb-4" />
         <p className="text-gray-500 text-center text-sm">
           No alerts at the moment.
-          <br />
-          {randomMessage}
         </p>
       </div>
     );
   };
+  
 
   const LoadingSkeleton = () => (
     <div className="space-y-3">

@@ -155,7 +155,7 @@ export function CandidateOnboardingForm() {
           }
           return item;
         });
-        console.log(`Updated ${field} ${name} for index ${index}:`, value);
+        //console.log(`Updated ${field} ${name} for index ${index}:`, value);
         return { ...prev, [field]: newArray };
       });
     } else {
@@ -258,7 +258,7 @@ export function CandidateOnboardingForm() {
 
       if (result.status === "completed") {
         clearInterval(pollInterval);
-        console.log("Worker completed successfully");
+        //console.log("Worker completed successfully");
         toast.success("Resume processing completed!");
         setIsSubmitting(false);
         // Reload the component here

@@ -513,7 +513,7 @@ const ApplicantDetailPanel: React.FC<ApplicantDetailPanelProps> = ({
       const result = await updateApplicationStatus(applicationId, newStatus);
       if (result.success) {
         setCurrentStatus(newStatus);
-        console.log(`Application status updated to: ${newStatus}`);
+        //console.log(`Application status updated to: ${newStatus}`);
       } else {
         console.error("Failed to update application status:", result.message);
       }

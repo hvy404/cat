@@ -254,7 +254,7 @@ export default function EditCompanyProfile({
         newErrors[error.path] = error.message;
       });
       setErrors(newErrors);
-      console.log("Validation errors:", newErrors);
+      //console.log("Validation errors:", newErrors);
     }
   };
   

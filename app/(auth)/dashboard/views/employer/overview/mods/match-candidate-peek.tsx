@@ -51,27 +51,28 @@ export default function AIMatchCandidateResumeView({
 
   useEffect(() => {
     if (isOpen && applicantId) {
+      const fetchTalentData = async () => {
+        try {
+          const talent = await getTalentNodeNoEmbedding(applicantId);
+          setTalentData(talent);
+  
+          const experiences = await getTalentWorkExperiences(applicantId);
+          setWorkExperiences(experiences);
+  
+          const educationData = await getTalentEducation(applicantId);
+          setEducation(educationData);
+  
+          const skillsData = await getTalentSkills(applicantId);
+          setSkills(skillsData);
+        } catch (error) {
+          console.error("Error fetching talent data:", error);
+        }
+      };
+  
       fetchTalentData();
     }
   }, [isOpen, applicantId]);
-
-  const fetchTalentData = async () => {
-    try {
-      const talent = await getTalentNodeNoEmbedding(applicantId);
-      setTalentData(talent);
-
-      const experiences = await getTalentWorkExperiences(applicantId);
-      setWorkExperiences(experiences);
-
-      const educationData = await getTalentEducation(applicantId);
-      setEducation(educationData);
-
-      const skillsData = await getTalentSkills(applicantId);
-      setSkills(skillsData);
-    } catch (error) {
-      console.error("Error fetching talent data:", error);
-    }
-  };
+  
 
   const toggleExpand = (index: number) => {
     setExpandedExperiences((prev) => {

@@ -15,7 +15,7 @@ export async function findJobMatches(jobId: string) {
     const jobEmbedding = await getJobEmbedding(jobId);
 
     if (!jobEmbedding) {
-      console.log(`No embedding found for job ${jobId}`);
+      //console.log(`No embedding found for job ${jobId}`);
       return null;
     }
 
@@ -62,11 +62,9 @@ export async function findJobMatches(jobId: string) {
             });
 
             if (result.ids) {
-              console.log(
-                `Evaluation for combo ${combo} completed successfully.`
-              );
+              //console.log(`Evaluation for combo ${combo} completed successfully.`);
             } else {
-              console.log(`Evaluation for combo ${combo} failed.`);
+              //console.log(`Evaluation for combo ${combo} failed.`);
               break;
             }
           } catch (error) {

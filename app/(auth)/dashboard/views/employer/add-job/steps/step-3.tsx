@@ -1,5 +1,5 @@
 import useStore from "@/app/state/useStore";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { jobDescriptionFinishOnboard } from "@/lib/dashboard/finish-onboard";
 import { QueryEventStatus } from "@/lib/dashboard/query-runner-status";
 import { fetchUserCompanyId } from "@/lib/dashboard/get-company-membership";
@@ -34,24 +34,22 @@ export default function AddJDStepThree() {
     const getCompanyId = async () => {
       if (cuid && !companyId) {
         try {
-          console.log("Fetching company ID for cuid:", cuid);
+          //console.log("Fetching company ID for cuid:", cuid);
           const result = await fetchUserCompanyId(cuid);
           if (result.success) {
-            console.log("Company ID fetched successfully:", result.companyId);
+            //console.log("Company ID fetched successfully:", result.companyId);
             setCompanyId(result.companyId);
           } else {
-            console.error("Failed to fetch company ID:", result.error);
+            //console.error("Failed to fetch company ID:", result.error);
           }
         } catch (error) {
           console.error("Error fetching company ID:", error);
         } finally {
-          console.log("Setting isCompanyIdFetched to true");
+          //console.log("Setting isCompanyIdFetched to true");
           setIsCompanyIdFetched(true);
         }
       } else {
-        console.log(
-          "No need to fetch company ID, setting isCompanyIdFetched to true"
-        );
+        //console.log("No need to fetch company ID, setting isCompanyIdFetched to true");
         setIsCompanyIdFetched(true);
       }
     };
@@ -74,7 +72,7 @@ export default function AddJDStepThree() {
       ) {
         hasRun.current = true;
         setAddJD({ finishingStarted: true });
-    
+  
         try {
           const result = await jobDescriptionFinishOnboard(
             addJD.jdEntryID,
@@ -82,39 +80,39 @@ export default function AddJDStepThree() {
             companyId,
             addJD.session || ""
           );
-    
+  
           if (result.success) {
-            console.log("Finish onboard result: ", result.event[0]);
             setAddJD({
               isFinalizing: true,
             });
-    
+  
             setTimeout(() => {
               setAddJD({
                 publishingRunnerID: result.event[0],
               });
             }, 2000);
           } else {
-            console.error("Failed to finish onboard");
-            setAddJD({ finishingStarted: false }); // Reset if failed
+            setAddJD({ finishingStarted: false });
           }
         } catch (error) {
-          console.error("Error in finishOnboard:", error);
-          setAddJD({ finishingStarted: false }); // Reset if error
+          setAddJD({ finishingStarted: false });
         }
       }
     };
-
+  
     finishOnboard();
   }, [
     addJD.jdEntryID,
-    user,
+    addJD.step,
+    addJD.session,
+    addJD.finishingStarted,
+    addJD.publishingRunnerID,
     cuid,
     companyId,
-    addJD.step,
     isCompanyIdFetched,
-    addJD.session,
+    setAddJD,
   ]);
+  
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -132,7 +130,74 @@ export default function AddJDStepThree() {
     return () => clearInterval(timer);
   }, [showSuccess]);
 
-  // Poll status of publishing runner
+  const cancelPost = async () => {
+    if (!cuid || !addJD.jdEntryID) {
+      console.error("User not logged in or JD Entry ID not found");
+      return;
+    }
+
+    try {
+      await CancelJDParser({ sessionID: addJD.session! });
+
+      await CleanUpOnCancel({
+        jdId: addJD.jdEntryID,
+        employerId: cuid,
+        filename: addJD.filename,
+      });
+
+      // Reset the application state
+      setAddJD({
+        step: 1,
+        jdEntryID: null,
+        jobDetails: [],
+        activeField: null,
+        publishingRunnerID: null,
+        session: uuidv4(),
+        filename: null, // Reset the filename
+        onboardingStarted: false,
+        finishingStarted: false,
+      });
+      setSelectedMenuItem("dashboard");
+    } catch (error) {
+      console.error("Error cancelling post:", error);
+      // Handle the error (e.g., show an error message to the user)
+    }
+  };
+
+  // Return to dashboard after completed
+  const goToDashboard = useCallback(() => {
+    // Clean up the state
+    setAddJD({
+      onboardingStarted: false,
+      finishingStarted: false,
+      filename: null,
+      jdEntryID: null,
+      session: null,
+      isProcessing: false,
+      isFinalizing: false,
+      file: null,
+      step: 1,
+      jobDetails: [
+        {
+          jobTitle: "",
+          location_type: "",
+          min_salary: 0,
+          max_salary: 0,
+          salary_ote: 0,
+          commission_percent: 0,
+          security_clearance: "",
+          salary_disclose: false,
+          commission_pay: false,
+        },
+      ],
+      jobDescriptionTitles: [],
+      activeField: null,
+      publishingRunnerID: null,
+    });
+
+    setSelectedMenuItem("dashboard");
+  }, [setAddJD, setSelectedMenuItem]);
+
   useEffect(() => {
     let isStep3Mounted = true;
 
@@ -186,75 +251,7 @@ export default function AddJDStepThree() {
       isPollingActive = false; // This will stop any scheduled polling operations
       isStep3Mounted = false;
     };
-  }, [addJD.publishingRunnerID]);
-
-  const cancelPost = async () => {
-    if (!cuid || !addJD.jdEntryID) {
-      console.error("User not logged in or JD Entry ID not found");
-      return;
-    }
-
-    try {
-      await CancelJDParser({ sessionID: addJD.session! });
-
-      await CleanUpOnCancel({
-        jdId: addJD.jdEntryID,
-        employerId: cuid,
-        filename: addJD.filename,
-      });
-
-      // Reset the application state
-      setAddJD({
-        step: 1,
-        jdEntryID: null,
-        jobDetails: [],
-        activeField: null,
-        publishingRunnerID: null,
-        session: uuidv4(),
-        filename: null, // Reset the filename
-        onboardingStarted: false,
-        finishingStarted: false,
-      });
-      setSelectedMenuItem("dashboard");
-    } catch (error) {
-      console.error("Error cancelling post:", error);
-      // Handle the error (e.g., show an error message to the user)
-    }
-  };
-
-  // Return to dashboard after completed
-  const goToDashboard = () => {
-    // Clean up the state
-    setAddJD({
-      onboardingStarted: false,
-      finishingStarted: false,
-      filename: null,
-      jdEntryID: null,
-      session: null,
-      isProcessing: false,
-      isFinalizing: false,
-      file: null,
-      step: 1,
-      jobDetails: [
-        {
-          jobTitle: "",
-          location_type: "",
-          min_salary: 0,
-          max_salary: 0,
-          salary_ote: 0,
-          commission_percent: 0,
-          security_clearance: "",
-          salary_disclose: false,
-          commission_pay: false,
-        },
-      ],
-      jobDescriptionTitles: [],
-      activeField: null,
-      publishingRunnerID: null,
-    });
-
-    setSelectedMenuItem("dashboard");
-  };
+  }, [addJD.publishingRunnerID, addJD.isFinalizing, goToDashboard, setAddJD]);
 
   return (
     <WaitingState

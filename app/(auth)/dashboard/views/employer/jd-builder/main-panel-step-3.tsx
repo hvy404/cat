@@ -33,7 +33,7 @@ export default function JDBuilderDetectedRoles() {
     };
 
     fetchRolesAndKeyPersonnel();
-  }, []);
+  }, [setJDBuilderWizard, sowID]);
 
   const handleClick = (item: string) => {
     if (!jdGenerationRunnerID) {
@@ -126,7 +126,7 @@ export default function JDBuilderDetectedRoles() {
     return () => {
       isPollingActive = false;
     };
-  }, [jdBuilderWizard.jdGenerationRunnerID]);
+  }, [jdBuilderWizard.jdGenerationRunnerID, setJDBuilderWizard]);
 
   if (!employerID) {
     return <div>Please login</div>

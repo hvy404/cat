@@ -394,11 +394,11 @@ export async function updateNodeProperty<T>({
     const result = await write(query, { nodeId, propertyValue });
 
     if (result && result.length > 0) {
-      console.log(
+      /* console.log(
         `Successfully updated ${String(
           propertyName
         )} for node with ID ${nodeId}`
-      );
+      ); */
       return true;
     } else {
       console.warn(`No node found with ID ${nodeId}`);

@@ -137,9 +137,9 @@ const JobList = ({
         if (isMounted) {
           setLoadingJobs(false);
           if (result && Array.isArray(result.data) && result.data.length > 0) {
-            const filteredJobs = result.data.filter((job) =>
-              filter === "active" ? job.active : !job.active
-            );
+            const filteredJobs = result.data
+              .filter((job) => filter === "active" ? job.active : !job.active)
+              .sort((a, b) => new Date(b.posted_date).getTime() - new Date(a.posted_date).getTime());
             setJobs(filteredJobs);
             if (filteredJobs.length === 0 && onNoJobs) {
               onNoJobs();
@@ -159,7 +159,7 @@ const JobList = ({
     return () => {
       isMounted = false;
     };
-  }, [cuid, filter, onNoJobs, jobStatusUpdated]);
+  }, [cuid, filter, onNoJobs, jobStatusUpdated, setJobStatusUpdated]);
 
   const handleClick = (job_id: string, title: string) => {
     setDashboardRoleOverview({

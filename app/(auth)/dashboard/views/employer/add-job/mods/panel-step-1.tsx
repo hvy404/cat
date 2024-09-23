@@ -26,7 +26,8 @@ export default function AddNewJobStart() {
       setCurrentTip((prev) => (prev + 1) % tips.length);
     }, 8000);
     return () => clearInterval(interval);
-  }, []);
+  }, [tips.length]);
+  
 
   return (
     <div className="space-y-6">

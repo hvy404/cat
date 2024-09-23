@@ -62,24 +62,25 @@ const AlertsCard: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    const fetchAlerts = async () => {
+      setIsLoading(true);
+      try {
+        if (cuid) {
+          const fetchedAlerts = await getAlerts(cuid);
+          if (fetchedAlerts) {
+            setAlerts(fetchedAlerts as Alert[]);
+          }
+        }
+      } catch (error) {
+        // Error handling can be done here if needed
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
     fetchAlerts();
   }, [cuid]);
-
-  const fetchAlerts = async () => {
-    setIsLoading(true);
-    try {
-      if (cuid) {
-        const fetchedAlerts = await getAlerts(cuid);
-        if (fetchedAlerts) {
-          setAlerts(fetchedAlerts as Alert[]);
-        }
-      }
-    } catch (error) {
-      //console.error("Error fetching alerts:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  
 
   const handleUpdateAlert = async (id: string, updates: Partial<Alert>) => {
     try {

@@ -86,7 +86,7 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
         const { jobDetails, jobRelationships, isBookmarked } =
           await fetchJobDetails(jobId);
 
-        console.log("Fetched job relationships:", jobRelationships);
+        //console.log("Fetched job relationships:", jobRelationships);
 
         setJobDetails(jobDetails);
         setJobRelationships(jobRelationships);

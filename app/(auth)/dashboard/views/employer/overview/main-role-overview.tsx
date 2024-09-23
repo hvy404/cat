@@ -98,7 +98,7 @@ export default function EmployerDashboardOverviewRoles() {
           setError("An unexpected error occurred.");
         }
       } else {
-        console.log("User, UUID or active role ID is missing");
+        //console.log("User, UUID or active role ID is missing");
         setError("Missing required user details.");
       }
     };
@@ -145,7 +145,7 @@ export default function EmployerDashboardOverviewRoles() {
           return;
         }
         if (message === "Success") {
-          console.log("Job status updated successfully:");
+          //console.log("Job status updated successfully:");
           setJobDetails((prevDetails) =>
             prevDetails ? { ...prevDetails, active: status } : prevDetails
           );
@@ -155,7 +155,7 @@ export default function EmployerDashboardOverviewRoles() {
         console.error("Unexpected error:", error);
       }
     } else {
-      console.log("User, UUID or active role ID is missing");
+      //console.log("User, UUID or active role ID is missing");
     }
   };
 
@@ -178,7 +178,7 @@ export default function EmployerDashboardOverviewRoles() {
         toast.error("An error occurred while deleting the job post");
       }
     } else {
-      console.log("User, UUID or active role ID is missing");
+      //console.log("User, UUID or active role ID is missing");
       toast.error("Missing required information to delete job post");
     }
   };

@@ -143,7 +143,7 @@ export default function TalentPropertiesEditor() {
             });
           }
 
-          console.log("Talent properties:", talent);
+          //console.log("Talent properties:", talent);
         } catch (error) {
           console.error("Error fetching talent properties:", error);
           toast.error("Failed to load your information. Please try again.");

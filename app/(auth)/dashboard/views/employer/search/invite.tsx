@@ -75,56 +75,57 @@ export default function InviteActionWithList({
     }
   };
 
-  const fetchJobList = async () => {
-    if (!cuid) {
-      console.error("User not found");
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      const simplifiedJobs = await getSimplifiedJobPosts(cuid, "active");
-
-      if (simplifiedJobs && simplifiedJobs.length > 0) {
-        const invitedJobsSet = new Set<string>();
-        await Promise.all(
-          simplifiedJobs.map(async (job) => {
-            const inviteExists = await checkExistingInvite(
-              cuid,
-              applicantId,
-              job.job_uuid
-            );
-            if (inviteExists) {
-              invitedJobsSet.add(job.job_uuid);
-            }
-          })
-        );
-        setInvitedJobs(invitedJobsSet);
-        setOpportunitiesData(simplifiedJobs);
-        setFilteredOpportunities(simplifiedJobs);
-      } else {
-        console.log("No job opportunities found");
-        setOpportunitiesData([]);
-        setFilteredOpportunities([]);
-      }
-    } catch (error) {
-      console.error("Error fetching job posts:", error);
-      setOpportunitiesData([]);
-      setFilteredOpportunities([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  
   useEffect(() => {
     if (dialogOpen) {
+      const fetchJobList = async () => {
+        if (!cuid) {
+          console.error("User not found");
+          return;
+        }
+  
+        try {
+          setIsLoading(true);
+          const simplifiedJobs = await getSimplifiedJobPosts(cuid, "active");
+  
+          if (simplifiedJobs && simplifiedJobs.length > 0) {
+            const invitedJobsSet = new Set<string>();
+            await Promise.all(
+              simplifiedJobs.map(async (job) => {
+                const inviteExists = await checkExistingInvite(
+                  cuid,
+                  applicantId,
+                  job.job_uuid
+                );
+                if (inviteExists) {
+                  invitedJobsSet.add(job.job_uuid);
+                }
+              })
+            );
+            setInvitedJobs(invitedJobsSet);
+            setOpportunitiesData(simplifiedJobs);
+            setFilteredOpportunities(simplifiedJobs);
+          } else {
+            setOpportunitiesData([]);
+            setFilteredOpportunities([]);
+          }
+        } catch (error) {
+          console.error("Error fetching job posts:", error);
+          setOpportunitiesData([]);
+          setFilteredOpportunities([]);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+  
       fetchJobList();
     } else {
       setJobToInvite(null);
       setCurrentPage(1);
       setSearchTerm("");
     }
-  }, [dialogOpen]);
+  }, [dialogOpen, cuid, applicantId]);
+  
 
   const filterOpportunities = useCallback(() => {
     const filtered = opportunitiesData.filter((job) =>

@@ -64,10 +64,10 @@ export async function searchHandler(mainSearchQuery: string) {
 
   // Easter egg detection
   if (mainSearchQuery.includes("!wildwildwest")) {
-    console.log("Easter egg detected: Wild Wild West");
+    //console.log("Easter egg detected: Wild Wild West");
   }
   if (mainSearchQuery.includes("!eagleeye")) {
-    console.log("Easter egg detected: Eagle Eye");
+    //console.log("Easter egg detected: Eagle Eye");
     eagleEyeDetected = true;
   }
 

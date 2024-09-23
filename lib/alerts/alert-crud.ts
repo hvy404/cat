@@ -18,20 +18,7 @@ export interface Alert {
 export async function getAlerts(userId: string) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
-  /* // Use the auth() function directly
-  const { getToken } = auth();
-  const token = await getToken(
-    { template: "supabase-talent" }
-  );
-
-  if (!token) {
-    console.log("No token found");
-    return null;
-  }
-
-  console.log("Decoded JWT:", token); */
   
-
   const { data, error } = await supabase
     .from("alerts")
     .select(

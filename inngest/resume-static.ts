@@ -18,7 +18,7 @@ export const resumeGenerateStatic = inngest.createFunction(
     const supabase = createClient(cookieStore);
     const id = event.data.user.id;
 
-    console.log("candidate-generate-static-info function activated");
+    //console.log("candidate-generate-static-info function activated");
 
     const { data, error } = await supabase
       .from("candidate_create")
@@ -26,7 +26,7 @@ export const resumeGenerateStatic = inngest.createFunction(
       .eq("user", id);
 
     if (error) {
-      console.error(error);
+      //console.error(error);
       return {
         message: "Failed to get extracted resume.",
         error: error,

@@ -12,7 +12,7 @@ export const employerSignupHandler = inngest.createFunction(
   { event: "app/employer-signed-up" },
   async ({ event, step }) => {
     const result = await step.run("Log employer signup", async () => {
-      console.log("New employer signed up with ID:", event.data.employerId);
+      //console.log("New employer signed up with ID:", event.data.employerId);
 
       const addUser = await addNewEmployerToDB({
         employer_id: event.data.employerId,

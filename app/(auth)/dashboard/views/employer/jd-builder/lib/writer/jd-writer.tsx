@@ -323,12 +323,12 @@ const JDWriter = () => {
       const result = await publishDraftJD(employerID, currentEditorContent);
 
       if (!result.success) {
-        console.error("Failed to publish JD", result.message);
+        //console.error("Failed to publish JD", result.message);
         setIsPublishing(false);
         return;
       }
       if (result.success) {
-        console.log("Published successfully", result.event);
+        //console.log("Published successfully", result.event);
 
         // Add 1.5 second delay
         setTimeout(() => {
@@ -405,7 +405,13 @@ const JDWriter = () => {
     return () => {
       isPollingActive = false;
     };
-  }, [jdBuilderWizard.sowParseRunnerID]);
+  }, [
+    jdBuilderWizard.sowParseRunnerID,
+    generatedJobDescriptionID,
+    setAddJD,
+    setJDBuilderWizard,
+    setSelectedMenuItem,
+  ]);
 
   return (
     <div

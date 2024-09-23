@@ -120,7 +120,7 @@ export default function SOWUploader() {
         files: [],
       });
     };
-  }, []);
+  }, [setJDBuilderWizard]);
 
   return (
     <div className="flex flex-row items-center bg-gray-50 m-1.5 rounded-md p-4 gap-4">

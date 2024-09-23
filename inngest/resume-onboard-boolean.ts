@@ -24,7 +24,7 @@ export const resumeOnboardBooleanStatus = inngest.createFunction(
         .update({ onboarded: true })
         .eq("identity", id);
 
-        console.log(error);
+        //console.log(error);
 
       if (error) throw new Error(error.message);
 

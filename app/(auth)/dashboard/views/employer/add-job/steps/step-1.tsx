@@ -137,7 +137,7 @@ export default function AddJDStepOne() {
         setAddJD({ isProcessing: false });
       }
     } else {
-      console.log("User is null or no file selected. File upload aborted.");
+      //console.log("User is null or no file selected. File upload aborted.");
     }
   };
 
@@ -219,7 +219,7 @@ export default function AddJDStepOne() {
 
           if (startOnboard.success && startOnboard.event) {
             const eventID = startOnboard.event[0];
-            console.log("Session ID: ", startOnboard.session);
+            //console.log("Session ID: ", startOnboard.session);
             setAddJD({ publishingRunnerID: eventID });
           }
         }
@@ -231,7 +231,7 @@ export default function AddJDStepOne() {
     return () => {
       isMounted = false;
     };
-  }, [addJD.filename, cuid, addJD.jdEntryID, addJD.session, addJD.step]);
+  }, [addJD.filename, cuid, addJD.jdEntryID, addJD.session, addJD.step, addJD.onboardingStarted, setAddJD]);
 
   useEffect(() => {
     let isMounted = true;
@@ -239,7 +239,7 @@ export default function AddJDStepOne() {
     const pollEventStatus = async () => {
       if (addJD.publishingRunnerID) {
         const status = await QueryEventStatus(addJD.publishingRunnerID);
-        console.log("Status:", status);
+        //console.log("Status:", status);
 
         if (status === "Completed") {
           setAddJD({
@@ -259,7 +259,7 @@ export default function AddJDStepOne() {
       clearInterval(interval);
       isMounted = false;
     };
-  }, [addJD.publishingRunnerID]);
+  }, [addJD.publishingRunnerID, setAddJD]);
 
   return (
     <AnimatePresence mode="wait">

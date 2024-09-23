@@ -66,14 +66,7 @@ export default function AIMatchCandidateOverview({
   const [selectedCandidateStatus, setSelectedCandidateStatus] =
     useState<RecommendationStatus | null>(null);
 
-  const handleGetCandidateMatches = async () => {
-    try {
-      const matches = await getCandidateMatchesByJob(activeJobId);
-      setCandidates(matches);
-    } catch (error) {
-      //console.error("Error fetching candidate matches:", error);
-    }
-  };
+
 
   function getStatusColor(status: string): string {
     switch (status.toLowerCase()) {
@@ -92,8 +85,18 @@ export default function AIMatchCandidateOverview({
   
 
   useEffect(() => {
+    const handleGetCandidateMatches = async () => {
+      try {
+        const matches = await getCandidateMatchesByJob(activeJobId);
+        setCandidates(matches);
+      } catch (error) {
+        // Error handling can be done here if needed
+      }
+    };
+  
     handleGetCandidateMatches();
   }, [activeJobId]);
+  
 
   const handleOpenResume = (candidate: CandidateMatch) => {
     setSelectedCandidate(candidate.match_id);
