@@ -32,10 +32,10 @@ const EditDialog: React.FC<EditDialogProps> = ({
   const fields = getFieldsForItemType(editingItem.type);
 
   const getFieldLabel = (field: string) => {
-    if (editingItem.type === "personal") {
-      return editingItem.content.key;
+    if (editingItem?.type === "skills" && field === "value") {
+      return "Skill";
     }
-    return fieldLabels[field] || field;
+    return field.charAt(0).toUpperCase() + field.slice(1).replace(/_/g, " ");
   };
 
   const handleDateChange = (field: string) => (value: string | undefined) => {

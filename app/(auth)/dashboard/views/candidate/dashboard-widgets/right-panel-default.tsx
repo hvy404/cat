@@ -30,16 +30,18 @@ const containerVariants = {
     opacity: 1,
     transition: {
       when: "beforeChildren",
-      staggerChildren: 0.1,
+      duration: 0.3,
     },
   },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    y: 0,
+    transition: {
+      duration: 0.3,
+    },
   },
 };
 
@@ -110,12 +112,18 @@ const WelcomeContent = () => (
         Discover powerful tools and features to accelerate your job search and
         career growth.
       </p>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
         {features.map((feature, index) => (
           <motion.div
             key={index}
             className="bg-white bg-opacity-50 rounded-lg p-4 transition-all duration-300 hover:bg-opacity-70 hover:shadow-md"
             variants={itemVariants}
+            whileHover={{ scale: 1.02 }}
           >
             <div className="flex items-start space-x-3">
               <div className="p-2 bg-gray-200 rounded-full flex-shrink-0">
@@ -132,7 +140,7 @@ const WelcomeContent = () => (
             </div>
           </motion.div>
         ))}
-      </div>
+      </motion.div>
     </CardContent>
     <CardFooter className="bg-gray-100 p-4">
       <p className="text-xs text-gray-600 font-medium flex items-center">

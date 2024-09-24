@@ -199,7 +199,7 @@ const AlertsCard: React.FC<AlertsCardProps> = ({
       <div className="flex flex-col items-center justify-center h-full">
         <Inbox className="w-10 h-10 text-gray-300 mb-4" />
         <p className="text-gray-500 text-center text-sm">
-          No alerts at the moment.
+          No alerts at the moment
         </p>
       </div>
     );

@@ -33,6 +33,7 @@ const SignInPage = () => {
     "signIn"
   );
   const [existingSession, setExistingSession] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
   const { signIn, isLoaded } = useSignIn();
   const { signOut } = useClerk();
   const router = useRouter();
@@ -56,23 +57,30 @@ const SignInPage = () => {
     runBotDetection();
   }, []);
 
-  const handleEmailPasswordSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleEmailPasswordSignIn = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
     if (!isLoaded) return;
-  
+
     setIsLoading(true);
-    setError('');
-  
+    setIsSigningIn(true);
+    setError("");
+
     try {
       const result = await signIn.create({
         identifier: email,
         password,
       });
-  
+
       if (result.status === "complete") {
-        router.push("/dashboard");
+        // Delay the redirect to show the loading state
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 2000); // 2 second delay, adjust as needed
       } else {
         setError(`Unexpected status: ${result.status}`);
+        setIsSigningIn(false);
       }
     } catch (err: any) {
       console.error("Sign-in error:", err);
@@ -82,14 +90,13 @@ const SignInPage = () => {
           "You're currently signed in to another account. Please sign out first."
         );
       } else {
-        setError(
-          "An error occurred during sign-in. Please check your credentials and try again."
-        );
+        setError("Please check your credentials and try again.");
       }
+      setIsSigningIn(false);
     } finally {
       setIsLoading(false);
     }
-  };  
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -284,23 +291,35 @@ const SignInPage = () => {
                   </Button>
                 ) : (
                   <Button
-                  type="submit"
-                  disabled={isLikelyBot || isLoading}
-                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2 rounded-md hover:from-indigo-700 hover:to-purple-700 transition-all duration-300"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Signing In...
-                    </>
-                  ) : (
-                    <>
-                      <Mail className="w-4 h-4 mr-2" />
-                      Sign In with Email
-                    </>
-                  )}
-                </Button>
-                
+                    type="submit"
+                    disabled={isLikelyBot || isLoading || isSigningIn}
+                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2 rounded-md hover:from-indigo-700 hover:to-purple-700 transition-all duration-300"
+                  >
+                    {isLoading || isSigningIn ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Signing In...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="w-4 h-4 mr-2" />
+                        Sign In with Email
+                      </>
+                    )}
+                  </Button>
+                )}
+                {isSigningIn && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-lg shadow-xl text-center">
+                      <Loader2 className="w-12 h-12 animate-spin text-indigo-600 mx-auto mb-4" />
+                      <p className="text-lg font-semibold text-gray-700">
+                        Signing you in...
+                      </p>
+                      <p className="text-sm text-gray-500 mt-2">
+                        Please wait while we redirect you to the dashboard.
+                      </p>
+                    </div>
+                  </div>
                 )}
               </form>
               <Button
