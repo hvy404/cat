@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,10 @@ interface FeatureItem {
 
 export default function EmployerDashboardUpgrade() {
   const { isExpanded, setExpanded, toggleExpansion } = useStore();
+  const [loadingStates, setLoadingStates] = useState({
+    monthly: false,
+    annual: false,
+  });
   const [loading, setLoading] = useState(false);
 
   const aiPoweredExplanationShort =
@@ -160,20 +164,22 @@ export default function EmployerDashboardUpgrade() {
     },
   ];
 
-  const handleSubscription = async (priceId: string) => {
-    setLoading(true);
+  const handleSubscription = async (
+    priceId: string,
+    planType: "monthly" | "annual"
+  ) => {
+    setLoadingStates((prev) => ({ ...prev, [planType]: true }));
     try {
       const result = await createCheckoutSession(priceId);
-      if ('error' in result) {
+      if ("error" in result) {
         throw new Error(result.error);
       }
-      // Redirect to Stripe Checkout
       window.location.href = result.url;
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
       // Handle the error, maybe show a notification to the user
     } finally {
-      setLoading(false);
+      setLoadingStates((prev) => ({ ...prev, [planType]: false }));
     }
   };
 
@@ -262,10 +268,24 @@ export default function EmployerDashboardUpgrade() {
                           ? "bg-indigo-600 hover:bg-indigo-700"
                           : "bg-gray-600 hover:bg-gray-700"
                       }`}
-                      onClick={() => handleSubscription(plan.priceId)}
-                      disabled={loading}
+                      onClick={() =>
+                        handleSubscription(
+                          plan.priceId,
+                          plan.name.toLowerCase() as "monthly" | "annual"
+                        )
+                      }
+                      disabled={
+                        loadingStates[
+                          plan.name.toLowerCase() as "monthly" | "annual"
+                        ]
+                      }
                     >
-                      {loading ? "Processing..." : plan.cta} <ArrowRight className="ml-2" size={16} />
+                      {loadingStates[
+                        plan.name.toLowerCase() as "monthly" | "annual"
+                      ]
+                        ? "Processing..."
+                        : plan.cta}{" "}
+                      <ArrowRight className="ml-2" size={16} />
                     </Button>
                   </CardFooter>
                 </Card>
@@ -305,9 +325,12 @@ export default function EmployerDashboardUpgrade() {
                   <CardContent className="p-4">
                     <div className="flex items-center mb-2">
                       <div className="bg-indigo-100 p-2 rounded-full mr-3">
-                        {React.cloneElement(feature.icon as React.ReactElement, {
-                          className: "h-5 w-5 text-indigo-600",
-                        })}
+                        {React.cloneElement(
+                          feature.icon as React.ReactElement,
+                          {
+                            className: "h-5 w-5 text-indigo-600",
+                          }
+                        )}
                       </div>
                       <h4 className="font-semibold text-gray-900">
                         {feature.title}

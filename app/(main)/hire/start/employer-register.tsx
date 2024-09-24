@@ -13,6 +13,7 @@ import { useEnhancedDetection } from "@/app/candidate/components/enhance-det";
 import { load } from "@fingerprintjs/botd";
 import { checkApprovedEmail } from "@/app/(main)/hire/start/permission";
 import SlidingBulletMessage from "@/app/(main)/hire/start/sliding-message";
+import { addEmployerAndSubscription } from "@/lib/employer/create-initial-account-database";
 
 const EmployerSignUpBox: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -52,17 +53,16 @@ const EmployerSignUpBox: React.FC = () => {
     if (currentForm) {
       const handleMouseMove = () => {};
       const handleKeyDown = () => {};
-  
+
       currentForm.addEventListener("mousemove", handleMouseMove);
       currentForm.addEventListener("keydown", handleKeyDown);
-  
+
       return () => {
         currentForm.removeEventListener("mousemove", handleMouseMove);
         currentForm.removeEventListener("keydown", handleKeyDown);
       };
     }
   }, []);
-  
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -139,8 +139,19 @@ const EmployerSignUpBox: React.FC = () => {
             });
           }
 
-          toast.success("Email verified successfully!");
-          router.push("/dashboard");
+          const addEmployerResult = await addEmployerAndSubscription(
+            employerId,
+            email
+          );
+
+          if (addEmployerResult.success) {
+            toast.success("Email verified successfully!");
+            router.push("/dashboard");
+          } else {
+            toast.error(
+              "Failed to create employer account. Please contact support."
+            );
+          }
         }
       }
     } catch (err) {

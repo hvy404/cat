@@ -8,8 +8,17 @@ import {
 } from "@/lib/employer/personal-profile";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { Info } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useUser } from "@clerk/nextjs";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { countActiveJobs } from "@/lib/employer/get-active-jobs-count";
+import { Progress } from "@/components/ui/progress";
 
 interface ActivePanelProps {
   onMouseEnter: (panel: string) => void;
@@ -29,10 +38,34 @@ export function MyProfileForm({
   });
   const [isLoading, setIsLoading] = useState(true);
   const [subscriptionLevel, setSubscriptionLevel] = useState("Trial");
+  const [activeJobCount, setActiveJobCount] = useState<number | null>(null);
 
   // Clerk
   const { user: clerkUser } = useUser();
   const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+
+  useEffect(() => {
+    async function fetchData() {
+      if (!cuid) {
+        setIsLoading(false);
+        toast.error("Please log in to view your profile.");
+        return;
+      }
+
+      try {
+        const data = await retrievePersonalProfile(cuid);
+        setProfile(data);
+        const count = await countActiveJobs(cuid);
+        setActiveJobCount(count);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toast.error("Failed to load profile data. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchData();
+  }, [cuid]);
 
   useEffect(() => {
     async function fetchProfile() {
@@ -158,6 +191,46 @@ export function MyProfileForm({
               </p>
             </CardContent>
           </Card>
+        </div>
+      </div>
+
+      {/* Active Job Count */}
+      <div className="rounded-lg border p-4 space-y-4">
+        <div className="flex items-center space-x-2">
+          <h2 className="text-gray-800 text-sm font-semibold">
+            Active AI Recruitment Campaigns
+          </h2>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Info className="h-4 w-4 text-gray-500" />
+              </TooltipTrigger>
+              <TooltipContent className="bg-black border-0 text-white">
+                <p className="max-w-xs">
+                  AI-Powered Talent Searches represent your active, AI-driven
+                  recruitment campaigns. This is not a one-time use credit, but
+                  an ongoing allocation. You have the flexibility to switch jobs
+                  between AI-powered and traditional posting modes. When you
+                  pause AI matching for a job, it automatically becomes a
+                  standard job listing, freeing up that AI-Powered Talent Search
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gray-600">
+              {activeJobCount !== null ? activeJobCount : 0}/100
+            </span>
+            <span className="text-sm text-gray-600">
+              {activeJobCount !== null ? (activeJobCount / 100) * 100 : 0}%
+            </span>
+          </div>
+          <Progress
+            value={activeJobCount !== null ? (activeJobCount / 100) * 100 : 0}
+            className="w-full"
+          />
         </div>
       </div>
 
