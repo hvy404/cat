@@ -12,7 +12,7 @@ import { clerkClient } from "@clerk/nextjs/server";
  */
 export async function updatePublicMetadata(
   userId: string,
-  metadata: { aiq_role: string; aiq_cuid: string; employer_init: boolean }
+  metadata: { aiq_role: string; aiq_cuid: string; employer_init?: boolean }
 ) {
   try {
     await clerkClient().users.updateUser(userId, {

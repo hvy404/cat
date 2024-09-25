@@ -44,6 +44,7 @@ export async function addEmployerAndSubscription(cuid: string, email: string) {
           employer_id: cuid,
           start_date: startDate,
           end_date: endDate,
+          trial_end_date: endDate,
         },
       ])
       .select();
