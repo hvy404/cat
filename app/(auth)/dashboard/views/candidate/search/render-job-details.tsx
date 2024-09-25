@@ -1,7 +1,19 @@
-import React from 'react';
-import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from "@/components/ui/card";
+import React from "react";
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  CardFooter,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import {
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 import { MapPin, ShieldCheck, Clock, DollarSign, Bookmark } from "lucide-react";
 import { SerializableJobResult } from "./job-search";
 
@@ -15,6 +27,10 @@ export const renderJobDetails = (
 ): JSX.Element => {
   const location = JSON.parse(job.location)[0];
   const hasLocation = location?.city || location?.state;
+
+  const capitalizeWords = (str: string) => {
+    return str.replace(/\b\w/g, (char) => char.toUpperCase());
+  };
 
   return (
     <Card
@@ -30,9 +46,9 @@ export const renderJobDetails = (
           )}
           <CardDescription className="text-sm text-gray-600">
             {job.company ? (
-              job.company
+              capitalizeWords(job.company)
             ) : (
-              <span className="inline-flex flex-grow-0 rounded-xl text-xs bg-gray-700 text-white px-2 py-1">
+              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200 shadow-sm">
                 Private Employer
               </span>
             )}

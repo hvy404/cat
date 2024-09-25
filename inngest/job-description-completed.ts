@@ -16,8 +16,8 @@ export const jobDescriptionGenerateCompleted = inngest.createFunction(
     const cookieStore = cookies();
     const supabase = createClient(cookieStore);
     const jobDescriptionID = event.data.job_description.id;
-    const user = event.data.job_description.employer;
-    const sessionID = event.data.job_description.session;
+    //const user = event.data.job_description.employer;
+    //const sessionID = event.data.job_description.session;
 
     // Update 'processed' column in job_postings table to true in the row where the jd_id is jobDescriptionID
     const { error } = await supabase

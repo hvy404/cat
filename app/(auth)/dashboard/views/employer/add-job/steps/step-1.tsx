@@ -37,13 +37,6 @@ import { CompanyProfileAlert } from "@/app/(auth)/dashboard/views/employer/globa
 
 const MotionCard = motion(Card);
 
-const funFacts = [
-  "Fun fact: Our AI-powered matching system analyzes over dynamic data points to find the most suitable candidates for your role.",
-  "Our AI matching algorithm excludes name, age, gender, ethnicity, and personal contact details, focusing solely on professional qualifications and experience to ensure fair and unbiased candidate selection.",
-  "Interesting: 75% of HR managers say AI will play a key role in recruitment in the next 5 years.",
-  "Quick tip: Detailed job descriptions in our system lead to 47% more accurately matched candidates, saving you time in the screening process.",
-];
-
 export default function AddJDStepOne() {
   const { addJD, setAddJD, setSelectedMenuItem } = useStore();
   const { user: clerkUser } = useUser();

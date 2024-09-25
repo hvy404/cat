@@ -32,8 +32,8 @@ export async function remapJobType(type: string): Promise<string> {
   const jobTypeMap: { [key: string]: string } = {
     "full-time": "Full-Time",
     "part-time": "Part-Time",
-    "contract": "Contract",
-    "temporary": "Temporary",
+    contract: "Contract",
+    temporary: "Temporary",
     // Add more mappings as needed
   };
 
@@ -44,7 +44,11 @@ export async function remapJobProperties(
   jobType: string,
   locationType: string,
   securityClearance: string
-): Promise<{ jobType: string; locationType: string; securityClearance: string }> {
+): Promise<{
+  jobType: string;
+  locationType: string;
+  securityClearance: string;
+}> {
   const remappedJobType = await remapJobType(jobType);
 
   const remapLocationType = async (type: string): Promise<string> => {
@@ -82,7 +86,9 @@ export async function remapJobProperties(
   };
 
   const remappedLocationType = await remapLocationType(locationType);
-  const remappedSecurityClearance = await remapClearanceLevel(securityClearance);
+  const remappedSecurityClearance = await remapClearanceLevel(
+    securityClearance
+  );
 
   return {
     jobType: remappedJobType,
@@ -128,14 +134,13 @@ export async function findSimilarJobs(
         score
     `;
 
-
   const params = { embedding, threshold };
 
   try {
     const result = await read(query, params);
 
-    const similarJobsPlain: DetailedJobResult[] = await Promise.all(result.map(
-      async ({ similarJob, score }) => {
+    const similarJobsPlain: DetailedJobResult[] = await Promise.all(
+      result.map(async ({ similarJob, score }) => {
         const remappedProperties = await remapJobProperties(
           similarJob.job_type,
           similarJob.location_type,
@@ -174,8 +179,8 @@ export async function findSimilarJobs(
         }
 
         return jobResult;
-      }
-    ));
+      })
+    );
 
     return similarJobsPlain;
   } catch (error) {
@@ -195,7 +200,7 @@ export async function getJobProperties(jobId: string) {
   try {
     const result = await read(query, params);
     const jobProperties = result[0]?.j.properties;
-    
+
     if (jobProperties) {
       const remappedProperties = await remapJobProperties(
         jobProperties.job_type,
@@ -259,73 +264,78 @@ export async function fullTextSearchAlternativeTitles(
       score: record.score,
     }));
   } catch (error) {
-    console.error("Error executing full-text search query for AlternativeTitles:", error);
+    console.error(
+      "Error executing full-text search query for AlternativeTitles:",
+      error
+    );
     throw error;
   }
 }
 
-export async function getJobNodesByIds(jobIds: string[]): Promise<DetailedJobResult[]> {
+export async function getJobNodesByIds(
+  jobIds: string[]
+): Promise<DetailedJobResult[]> {
   const query = `
-    MATCH (j:Job)
-    WHERE j.job_id IN $jobIds
-    RETURN j {
-      .job_id, 
-      .job_title, 
-      .company,
-      .security_clearance,
-      .location,
-      .experience,
-      .client,
-      .job_type,
-      .remote_flexibility,
-      .company_overview,
-      .employer_id,
-      .location_type,
-      .summary,
-      .salary_disclose,
-      .private_employer,
-      .compensation_type,
-      .maximum_salary,
-      .starting_salary,
-      .commission_percent,
-      .commission_pay,
-      .ote_salary,
-      .hourly_comp_min,
-      .hourly_comp_max
-    } AS job
-  `;
+  MATCH (j:Job)
+  WHERE j.job_id IN $jobIds
+  OPTIONAL MATCH (j)-[:POSTED_BY]->(c:Company)
+  RETURN j {
+    .job_id, 
+    .job_title, 
+    .security_clearance,
+    .location,
+    .experience,
+    .client,
+    .job_type,
+    .remote_flexibility,
+    .employer_id,
+    .location_type,
+    .summary,
+    .salary_disclose,
+    .private_employer,
+    .compensation_type,
+    .maximum_salary,
+    .starting_salary,
+    .commission_percent,
+    .commission_pay,
+    .ote_salary,
+    .hourly_comp_min,
+    .hourly_comp_max,
+    company: c.name
+  } AS job
+`;
 
   const params = { jobIds };
 
   try {
     const result = await read(query, params);
-    return Promise.all(result.map(async (record) => {
-      const job = record.job;
-      const remappedProperties = await remapJobProperties(
-        job.job_type,
-        job.location_type,
-        job.security_clearance
-      );
+    return Promise.all(
+      result.map(async (record) => {
+        const job = record.job;
+        const remappedProperties = await remapJobProperties(
+          job.job_type,
+          job.location_type,
+          job.security_clearance
+        );
 
-      const jobResult: DetailedJobResult = {
-        ...job,
-        job_type: remappedProperties.jobType,
-        location_type: remappedProperties.locationType,
-        security_clearance: remappedProperties.securityClearance,
-        score: 0, // Add a default score if needed
-      };
+        const jobResult: DetailedJobResult = {
+          ...job,
+          job_type: remappedProperties.jobType,
+          location_type: remappedProperties.locationType,
+          security_clearance: remappedProperties.securityClearance,
+          score: 0, // Add a default score if needed
+        };
 
-      // Only include company if private_employer is false
-      if (!job.private_employer) {
-        jobResult.company = job.company;
-      }
+        // Only include company if private_employer is false
+        if (!job.private_employer) {
+          jobResult.company = job.company;
+        }
 
-      return jobResult;
-    }));
+        return jobResult;
+      })
+    );
   } catch (error) {
     console.error("Error fetching Job nodes by IDs:", error);
     throw error;
   }
 }
-
-

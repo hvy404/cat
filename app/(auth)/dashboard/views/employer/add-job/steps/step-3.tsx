@@ -43,7 +43,7 @@ export default function AddJDStepThree() {
             //console.error("Failed to fetch company ID:", result.error);
           }
         } catch (error) {
-          console.error("Error fetching company ID:", error);
+          //console.error("Error fetching company ID:", error);
         } finally {
           //console.log("Setting isCompanyIdFetched to true");
           setIsCompanyIdFetched(true);

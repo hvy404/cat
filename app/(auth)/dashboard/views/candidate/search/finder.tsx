@@ -126,6 +126,7 @@ export const JobSearch: React.FC<JobSearchProps> = ({ viewDetails }) => {
 
     try {
       const results = await jobSearchHandler(query, candidateId);
+      console.log(results);  
       setSearchResults(results as ExtendedJobSearchResult);
       setFilteredJobs((results as ExtendedJobSearchResult).similarJobs);
     } catch (err) {

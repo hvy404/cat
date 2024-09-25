@@ -206,12 +206,12 @@ export default function EmployerDashboardOverviewRoles() {
                 {jobDetails.active ? (
                   <>
                     <Pause className="h-4 w-4 text-yellow-500" />
-                    <span>Pause Listing</span>
+                    <span>Pause AI Recruiting</span>
                   </>
                 ) : (
                   <>
                     <Play className="h-4 w-4 text-green-500" />
-                    <span>Resume Listing</span>
+                    <span>Resume AI Recruiting</span>
                   </>
                 )}
               </DropdownMenuItem>
@@ -239,7 +239,7 @@ export default function EmployerDashboardOverviewRoles() {
                 }`}
               ></div>
               <p className="text-sm font-medium text-gray-700">
-                {jobDetails.active ? "Active and visible" : "Paused and hidden"}
+                {jobDetails.active ? "AI Campaign Active" : "AI Campaign Paused"}
               </p>
             </div>
           </div>
