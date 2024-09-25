@@ -247,6 +247,13 @@ export async function getJobRelationships(jobId: string) {
 export async function fullTextSearchAlternativeTitles(
   searchTerm: string
 ): Promise<any[]> {
+  // Disable fuzzy term search for keywords less than 4 characters
+  // Helps false positives between "AWS" and "SAW" for example
+  const processedSearchTerm = searchTerm
+    .split(" ")
+    .map((word) => (word.length >= 4 ? `${word}~2` : word))
+    .join(" ");
+
   const query = `
     CALL db.index.fulltext.queryNodes("alternativeTitleIndex", $searchTerm) YIELD node as alternativeTitle, score
     MATCH (job:Job)-[:HAS_ALTERNATIVE_TITLE]->(alternativeTitle)
@@ -254,7 +261,7 @@ export async function fullTextSearchAlternativeTitles(
     ORDER BY score DESC
   `;
 
-  const params = { searchTerm: `${searchTerm}~2` };
+  const params = { searchTerm: processedSearchTerm };
 
   try {
     const result = await read(query, params);

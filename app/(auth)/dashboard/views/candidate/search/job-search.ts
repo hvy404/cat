@@ -2,9 +2,13 @@
 
 import { generateEmbeddings } from "@/lib/llm/generate-embeddings";
 import { contentModerationWordFilter } from "@/lib/content-moderation/explicit_word_filter";
-import { findSimilarJobs, fullTextSearchAlternativeTitles, getJobNodesByIds } from "./job-utils";
+import {
+  findSimilarJobs,
+  fullTextSearchAlternativeTitles,
+  getJobNodesByIds,
+} from "./job-utils";
 import { Integer } from "neo4j-driver";
-import { jobSearchCache, getCache, setCache } from "./cache";
+import { setCache } from "./cache";
 
 // Utility function to ensure all data is serializable
 function ensureSerializable(obj: any): any {
@@ -102,16 +106,18 @@ export async function jobSearchHandler(
 
   try {
     // Perform text search
-    const textSearchResults = await fullTextSearchAlternativeTitles(cleanedSearchQuery);
-    const uniqueJobIds = new Set(textSearchResults.map(job => job.job_id));
+    const textSearchResults = await fullTextSearchAlternativeTitles(
+      cleanedSearchQuery
+    );
+    const uniqueJobIds = new Set(textSearchResults.map((job) => job.job_id));
 
     // Perform semantic search
-    const buildQuery = `I am looking for a job as a ${cleanedSearchQuery}`;
+    const buildQuery = `Job opportunity that fits ${cleanedSearchQuery}`;
     const embeddings = await generateEmbeddings(buildQuery);
     const semanticSearchResults = await findSimilarJobs(embeddings, threshold);
 
     // Merge job IDs from both searches
-    semanticSearchResults.forEach(job => uniqueJobIds.add(job.job_id));
+    semanticSearchResults.forEach((job) => uniqueJobIds.add(job.job_id));
 
     // Fetch full job details for all unique job IDs
     const allJobs = await getJobNodesByIds(Array.from(uniqueJobIds));
