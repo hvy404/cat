@@ -55,13 +55,13 @@ export default function EmployerDashboardAddJob() {
           </h2>
           <Separator orientation="vertical" />
           <AddJobBreadcrumb />
-          <div className="text-xs text-gray-200">
+         {/*  <div className="text-xs text-gray-200">
             <p>addJD.filename: {addJD.filename}</p>
             <p>jdEntryID: {addJD.jdEntryID}</p>
             <p>session: {addJD.session}</p>
             <p>publishingRunnerID: {addJD.publishingRunnerID}</p>
             <p>company: {user?.company}</p>
-          </div>
+          </div> */}
         </div>
 
         {renderCurrentStep()}
