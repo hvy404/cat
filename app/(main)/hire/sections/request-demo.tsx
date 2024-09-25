@@ -20,7 +20,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, XCircle, User, Briefcase, Mail } from "lucide-react";
 import { submitDemoRequest } from "@/lib/hubspot/demo-request";
 
 const formSchema = z.object({
@@ -74,7 +74,6 @@ const RequestDemoForm: React.FC<RequestDemoFormProps> = ({ onClose }) => {
       const result = await submitDemoRequest(data);
       setSubmitResult(result);
       if (result.success) {
-        //console.log(result.message);
         form.reset();
         setTimeout(() => {
           if (onClose) onClose();
@@ -83,7 +82,6 @@ const RequestDemoForm: React.FC<RequestDemoFormProps> = ({ onClose }) => {
         console.error(result.message);
       }
     } catch (error) {
-      //console.error("Error submitting form:", error);
       setSubmitResult({
         success: false,
         message: "An unexpected error occurred.",
@@ -95,63 +93,74 @@ const RequestDemoForm: React.FC<RequestDemoFormProps> = ({ onClose }) => {
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] bg-white">
+      <DialogContent className="sm:max-w-[500px] bg-gradient-to-br from-white to-gray-50 p-8 rounded-2xl shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-semibold text-gray-800">
+          <DialogTitle className="text-3xl font-bold text-gray-800 mb-2">
             Request a Demo
           </DialogTitle>
-          <DialogDescription className="text-gray-600">
-            Fill out this form to request a demo of our platform.
+          <DialogDescription className="text-gray-600 text-lg">
+            Experience the future of recruitment.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="firstName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700">First Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="John"
-                      {...field}
-                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300"
-                    />
-                  </FormControl>
-                  <FormMessage className="text-red-600" />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="lastName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700">Last Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Doe"
-                      {...field}
-                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300"
-                    />
-                  </FormControl>
-                  <FormMessage className="text-red-600" />
-                </FormItem>
-              )}
-            />
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="firstName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-700 font-semibold">First Name</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                        <Input
+                          placeholder="John"
+                          {...field}
+                          className="pl-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300 rounded-lg"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage className="text-red-600" />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="lastName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-700 font-semibold">Last Name</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                        <Input
+                          placeholder="Doe"
+                          {...field}
+                          className="pl-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300 rounded-lg"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage className="text-red-600" />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
               name="companyName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700">Company Name</FormLabel>
+                  <FormLabel className="text-gray-700 font-semibold">Company Name</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Acme Inc."
-                      {...field}
-                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300"
-                    />
+                    <div className="relative">
+                      <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                      <Input
+                        placeholder="Acme Inc."
+                        {...field}
+                        className="pl-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300 rounded-lg"
+                      />
+                    </div>
                   </FormControl>
                   <FormMessage className="text-red-600" />
                 </FormItem>
@@ -162,13 +171,16 @@ const RequestDemoForm: React.FC<RequestDemoFormProps> = ({ onClose }) => {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700">Email Address</FormLabel>
+                  <FormLabel className="text-gray-700 font-semibold">Email Address</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="john@example.com"
-                      {...field}
-                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300"
-                    />
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                      <Input
+                        placeholder="john@example.com"
+                        {...field}
+                        className="pl-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300 rounded-lg"
+                      />
+                    </div>
                   </FormControl>
                   <FormMessage className="text-red-600" />
                 </FormItem>
@@ -194,7 +206,7 @@ const RequestDemoForm: React.FC<RequestDemoFormProps> = ({ onClose }) => {
             )}
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-300 ease-in-out shadow-md transform hover:scale-105"
+              className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-4 px-6 rounded-xl transition duration-300 ease-in-out shadow-lg transform hover:scale-105"
               disabled={submitting}
             >
               {submitting ? (
@@ -206,7 +218,7 @@ const RequestDemoForm: React.FC<RequestDemoFormProps> = ({ onClose }) => {
                   Submitting...
                 </span>
               ) : (
-                "Submit Request"
+                "Request Your Personalized Demo"
               )}
             </Button>
           </form>

@@ -115,7 +115,7 @@ export default function AccountManage() {
         <div className="flex flex-col gap-6">
           <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
             <h3 className="text-lg font-semibold">Change Password</h3>
-            <div className="space-y-2">
+            <div className="space-y-2 bg-orange-50 p-2 rounded-lg">
               <label htmlFor="currentPassword" className="text-sm font-medium text-gray-700">Current Password</label>
               <Input
                 id="currentPassword"
@@ -130,7 +130,7 @@ export default function AccountManage() {
                 disabled={success}
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 p-2">
               <label htmlFor="newPassword" className="text-sm font-medium text-gray-700">New Password</label>
               <Input
                 id="newPassword"
@@ -153,7 +153,7 @@ export default function AccountManage() {
                 </p>
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 p-2">
               <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">Confirm New Password</label>
               <Input
                 id="confirmPassword"
