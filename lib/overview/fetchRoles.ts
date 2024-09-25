@@ -1,5 +1,5 @@
 "use server";
-import { format, parseISO } from 'date-fns';
+import { format, parseISO } from "date-fns";
 import { createClerkSupabaseClient } from "@/lib/supabase/supabaseClerkServer";
 
 const supabase = createClerkSupabaseClient();
@@ -38,13 +38,12 @@ function remapLocationType(type: string) {
   }
 }
 
-
 function formatDate(dateString: string) {
   try {
     const date = parseISO(dateString);
-    return format(date, 'MMMM d, yyyy');
+    return format(date, "MMMM d, yyyy");
   } catch (error) {
-    console.error('Error formatting date:', error);
+    console.error("Error formatting date:", error);
     return dateString; // Return original string if parsing fails
   }
 }
@@ -69,7 +68,7 @@ export async function fetchDetailedJobPosts(userID: string, filter: string) {
   }
 
   // Remap the security clearance levels and location types
-  const remappedData = data?.map(job => ({
+  const remappedData = data?.map((job) => ({
     ...job,
     security_clearance: remapClearanceLevel(job.security_clearance),
     location_type: remapLocationType(job.location_type),
@@ -79,12 +78,11 @@ export async function fetchDetailedJobPosts(userID: string, filter: string) {
   return { data: remappedData };
 }
 
-
 const jobTypeMap: Record<string, string> = {
   "full-time": "Full-Time",
   "part-time": "Part-Time",
-  "contract": "Contract",
-  "temporary": "Temporary",
+  contract: "Contract",
+  temporary: "Temporary",
 };
 
 const compensationTypeMap: Record<string, string> = {
@@ -148,22 +146,76 @@ export async function getSimplifiedJobPosts(userID: string, filter: string) {
     const response = await fetchDetailedJobPosts(userID, filter);
 
     if (response.error) {
-      throw new Error(response.message || 'Failed to fetch job posts');
+      throw new Error(response.message || "Failed to fetch job posts");
     }
 
     if (!response.data || !Array.isArray(response.data)) {
       return [];
     }
 
-    return response.data.map(job => ({
+    return response.data.map((job) => ({
       title: job.title,
-      security_clearance: job.security_clearance, 
+      security_clearance: job.security_clearance,
       location: job.location,
       location_type: job.location_type,
       job_uuid: job.jd_id,
     }));
   } catch (error) {
-    console.error('Error fetching simplified job posts:', error);
+    console.error("Error fetching simplified job posts:", error);
+    throw error;
+  }
+}
+
+// No active filter flag in this version
+export async function fetchAllDetailedJobPosts(userID: string) {
+  const { data, error } = await supabase
+    .from("job_postings")
+    .select(
+      "jd_id, title, location, location_type, security_clearance, posted_date, private_employer, active"
+    )
+    .eq("employer_id", userID)
+    .eq("processed", true);
+
+  if (error) {
+    return {
+      message: "Failed to fetch active job posts.",
+      error: error,
+    };
+  }
+
+  // Remap the security clearance levels and location types
+  const remappedData = data?.map((job) => ({
+    ...job,
+    security_clearance: remapClearanceLevel(job.security_clearance),
+    location_type: remapLocationType(job.location_type),
+    posted_date: formatDate(job.posted_date),
+  }));
+
+  return { data: remappedData };
+}
+
+// No active filter flag in this version
+export async function getAllSimplifiedJobPosts(userID: string) {
+  try {
+    const response = await fetchAllDetailedJobPosts(userID);
+
+    if (response.error) {
+      throw new Error(response.message || "Failed to fetch job posts");
+    }
+
+    if (!response.data || !Array.isArray(response.data)) {
+      return [];
+    }
+
+    return response.data.map((job) => ({
+      title: job.title,
+      security_clearance: job.security_clearance,
+      location: job.location,
+      location_type: job.location_type,
+      job_uuid: job.jd_id,
+    }));
+  } catch (error) {
+    console.error("Error fetching simplified job posts:", error);
     throw error;
   }
 }

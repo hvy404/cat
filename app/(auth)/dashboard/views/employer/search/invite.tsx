@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import useStore from "@/app/state/useStore";
-import { getSimplifiedJobPosts, Opportunity } from "@/lib/overview/fetchRoles";
+import {
+  getAllSimplifiedJobPosts,
+  Opportunity,
+} from "@/lib/overview/fetchRoles";
 import { Send, Check, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import {
   Dialog,
@@ -75,7 +78,6 @@ export default function InviteActionWithList({
     }
   };
 
-  
   useEffect(() => {
     if (dialogOpen) {
       const fetchJobList = async () => {
@@ -83,11 +85,11 @@ export default function InviteActionWithList({
           console.error("User not found");
           return;
         }
-  
+
         try {
           setIsLoading(true);
-          const simplifiedJobs = await getSimplifiedJobPosts(cuid, "active");
-  
+          const simplifiedJobs = await getAllSimplifiedJobPosts(cuid);
+
           if (simplifiedJobs && simplifiedJobs.length > 0) {
             const invitedJobsSet = new Set<string>();
             await Promise.all(
@@ -117,7 +119,7 @@ export default function InviteActionWithList({
           setIsLoading(false);
         }
       };
-  
+
       fetchJobList();
     } else {
       setJobToInvite(null);
@@ -125,7 +127,6 @@ export default function InviteActionWithList({
       setSearchTerm("");
     }
   }, [dialogOpen, cuid, applicantId]);
-  
 
   const filterOpportunities = useCallback(() => {
     const filtered = opportunitiesData.filter((job) =>

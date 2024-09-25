@@ -35,6 +35,7 @@ import CompanyInfoCard from "@/app/(auth)/dashboard/views/candidate/search/compa
 import AtomicRecordApplicationSubmission, {
   checkExistingApplication,
 } from "@/lib/match-system/relationship/record-application-submission";
+import JobDetailsContent from "@/app/(auth)/dashboard/views/candidate/search/job-details-content";
 
 import { toast } from "sonner";
 
@@ -335,179 +336,40 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
             </div>
 
             {jobDetails?.salary_disclose && (
-              <div className="flex items-center text-green-600 font-semibold text-sm">
-                <DollarSign className="w-5 h-5 mr-2" />
-                {jobDetails.compensation_type === "salary" && (
-                  <span>
-                    Salary Range: {formatSalary(jobDetails.starting_salary)} -{" "}
-                    {formatSalary(jobDetails.maximum_salary)}
-                  </span>
-                )}
-                {jobDetails.compensation_type === "hourly" && (
-                  <span>
-                    Hourly Rate: {formatHourlyRate(jobDetails.hourly_comp_min)}{" "}
-                    - {formatHourlyRate(jobDetails.hourly_comp_max)}
-                  </span>
-                )}
-                {jobDetails.compensation_type === "commission" && (
-                  <span>
-                    OTE: {formatSalary(jobDetails.ote_salary)} (Commission:{" "}
-                    {jobDetails.commission_percent}%)
-                  </span>
-                )}
+              <div className="bg-gray-50 rounded-md p-3 mt-3">
+                <h4 className="text-base font-semibold text-gray-700 mb-1 flex items-center">
+                  <DollarSign className="w-4 h-4 mr-1" />
+                  Compensation
+                </h4>
+                <div className="text-sm text-gray-600">
+                  {jobDetails.compensation_type === "salary" && (
+                    <span>
+                      Salary: {formatSalary(jobDetails.starting_salary)} -{" "}
+                      {formatSalary(jobDetails.maximum_salary)}
+                    </span>
+                  )}
+                  {jobDetails.compensation_type === "hourly" && (
+                    <span>
+                      Hourly: {formatHourlyRate(jobDetails.hourly_comp_min)} -{" "}
+                      {formatHourlyRate(jobDetails.hourly_comp_max)}
+                    </span>
+                  )}
+                  {jobDetails.compensation_type === "commission" && (
+                    <span>
+                      OTE: {formatSalary(jobDetails.ote_salary)} (Commission:{" "}
+                      {jobDetails.commission_percent}%)
+                    </span>
+                  )}
+                </div>
               </div>
             )}
 
             <Separator />
 
-            <Tabs defaultValue="description" className="w-full">
-              <TabsList>
-                <TabsTrigger value="description" className="text-sm">
-                  Job Description
-                </TabsTrigger>
-                <TabsTrigger value="requirements" className="text-sm">
-                  Requirements
-                </TabsTrigger>
-                <TabsTrigger value="benefits" className="text-sm">
-                  Benefits
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="description" className="mt-4">
-                <p className="text-sm text-gray-600">{jobDetails.summary}</p>
-                {jobDetails.responsibilities &&
-                  jobDetails.responsibilities.length > 0 && (
-                    <>
-                      <h4 className="text-sm font-semibold mt-3 mb-1 text-gray-700">
-                        Responsibilities
-                      </h4>
-                      <ul className="text-sm text-gray-600 list-disc pl-5 space-y-1">
-                        {jobDetails.responsibilities.map(
-                          (resp: string, index: number) => (
-                            <li key={index}>{capitalizeFirstLetter(resp)}</li>
-                          )
-                        )}
-                      </ul>
-                    </>
-                  )}
-              </TabsContent>
-              <TabsContent value="requirements" className="mt-4">
-                {jobDetails.experience && (
-                  <div className="mb-4">
-                    <h4 className="text-sm font-semibold mt-3 mb-1 text-gray-700">
-                      Experience
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      {jobDetails.experience}
-                    </p>
-                  </div>
-                )}
-                {jobRelationships.REQUIRES_SKILL && (
-                  <>
-                    <h4 className="text-sm font-semibold mt-3 mb-1 text-gray-700">
-                      Required Skills
-                    </h4>
-                    <ul className="text-sm text-gray-600 list-disc pl-5 space-y-1">
-                      {jobRelationships.REQUIRES_SKILL.map(
-                        (skill: any, index: number) => (
-                          <li key={index}>
-                            {capitalizeFirstLetter(skill.name)}
-                          </li>
-                        )
-                      )}
-                    </ul>
-                  </>
-                )}
-                {jobRelationships.PREFERS_SKILL && (
-                  <>
-                    <h4 className="text-sm font-semibold mt-3 mb-1 text-gray-700">
-                      Preferred Skills
-                    </h4>
-                    <ul className="text-sm text-gray-600 list-disc pl-5 space-y-1">
-                      {jobRelationships.PREFERS_SKILL.map(
-                        (skill: any, index: number) => (
-                          <li key={index}>
-                            {capitalizeFirstLetter(skill.name)}
-                          </li>
-                        )
-                      )}
-                    </ul>
-                  </>
-                )}
-                {jobRelationships.REQUIRES_QUALIFICATION && (
-                  <>
-                    <h4 className="text-sm font-semibold mt-3 mb-1 text-gray-700">
-                      Qualifications
-                    </h4>
-                    <ul className="text-sm text-gray-600 list-disc pl-5 space-y-1">
-                      {jobRelationships.REQUIRES_QUALIFICATION.map(
-                        (qual: any, index: number) => (
-                          <li key={index}>
-                            {capitalizeFirstLetter(qual.name)}
-                          </li>
-                        )
-                      )}
-                    </ul>
-                  </>
-                )}
-                {jobRelationships.REQUIRED_EDUCATION && (
-                  <>
-                    <h4 className="text-sm font-semibold mt-3 mb-1 text-gray-700">
-                      Education
-                    </h4>
-                    <ul className="text-sm text-gray-600 list-disc pl-5 space-y-1">
-                      {jobRelationships.REQUIRED_EDUCATION.map(
-                        (edu: any, index: number) => (
-                          <li key={index}>{`${capitalizeFirstLetter(
-                            edu.degree
-                          )}${
-                            edu.field
-                              ? ` in ${capitalizeFirstLetter(edu.field)}`
-                              : ""
-                          }`}</li>
-                        )
-                      )}
-                    </ul>
-                  </>
-                )}
-                {jobRelationships.REQUIRED_CERTIFICATION && (
-                  <>
-                    <h4 className="text-sm font-semibold mt-3 mb-1 text-gray-700">
-                      Certifications
-                    </h4>
-                    <ul className="text-sm text-gray-600 list-disc pl-5 space-y-1">
-                      {jobRelationships.REQUIRED_CERTIFICATION.map(
-                        (cert: any, index: number) => (
-                          <li key={index}>
-                            {capitalizeFirstLetter(cert.name)}
-                          </li>
-                        )
-                      )}
-                    </ul>
-                  </>
-                )}
-              </TabsContent>
-              <TabsContent value="benefits" className="mt-4">
-                {jobDetails.benefits && jobDetails.benefits.length > 0 && (
-                  <ul className="text-sm text-gray-600 list-disc pl-5 space-y-1">
-                    {jobDetails.benefits.map(
-                      (benefit: string, index: number) => (
-                        <li key={index}>{capitalizeFirstLetter(benefit)}</li>
-                      )
-                    )}
-                  </ul>
-                )}
-                {jobDetails.remote_flexibility && (
-                  <p className="text-sm text-gray-600 mt-2">
-                    This position offers remote work flexibility.
-                  </p>
-                )}
-                {jobDetails.leadership_opportunity && (
-                  <p className="text-sm text-gray-600 mt-2">
-                    This position includes leadership opportunities.
-                  </p>
-                )}
-              </TabsContent>
-            </Tabs>
+            <JobDetailsContent
+              jobDetails={jobDetails}
+              jobRelationships={jobRelationships}
+            />
           </CardContent>
 
           <CardFooter className="flex justify-between items-center mt-4">
@@ -517,7 +379,9 @@ const JobMoreDetails: React.FC<JobDetailsProps> = ({ jobId, onBack }) => {
               onClick={handleApplyNow}
               disabled={hasApplied}
             >
-              {hasApplied ? "Application Sent" : "Send Your Resume"}
+              {hasApplied
+                ? "You've Submitted An Application"
+                : "Send Your Resume"}
             </Button>
           </CardFooter>
         </Card>
