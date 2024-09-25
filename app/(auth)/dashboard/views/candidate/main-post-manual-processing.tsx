@@ -2,9 +2,6 @@ import React, { useEffect, useState } from "react";
 import {
   AlertDialog,
   AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { QueryEventStatus } from "@/lib/dashboard/query-runner-status";
 import { motion } from "framer-motion";
@@ -26,7 +23,6 @@ export function ProcessAlertDialog({
       setStatus(currentStatus);
 
       if (currentStatus === "Completed") {
-        //console.log("Process completed");
         onComplete();
         setTimeout(() => {
           window.location.reload(); // todo: not the most elegant

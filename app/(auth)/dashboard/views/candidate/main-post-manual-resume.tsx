@@ -42,6 +42,7 @@ import {
 } from "@/lib/candidate/manual-resume-upload/schema";
 import { startManualResumeProcess } from "@/lib/candidate/manual-resume-upload/manual-process-helper";
 import { ProcessAlertDialog } from "@/app/(auth)/dashboard/views/candidate/main-post-manual-processing";
+import { toast } from "sonner";
 
 interface CreateResumeFormProps {
   onBack: () => void;
@@ -126,7 +127,6 @@ export function CreateResumeForm({ onBack }: CreateResumeFormProps) {
 
     if (form.formState.isValid) {
       if (cuid && userEmail) {
-        // First, add the candidate entry manually
         const addCandidateResult = await addCandidateEntryManually(
           userEmail,
           cuid,
@@ -134,32 +134,34 @@ export function CreateResumeForm({ onBack }: CreateResumeFormProps) {
         );
 
         if (addCandidateResult.success) {
-          // If the candidate entry was added successfully, proceed with saving resume data
           const result = await saveResumeData(formData, cuid);
           if (result.success) {
             const { runId } = await startManualResumeProcess(cuid);
             setRunId(runId[0]);
             setShowAlert(true);
           } else {
-            console.error("Error saving resume data");
-            // Display toast error instead
+            toast.error(
+              "There was an error processing your resume. Please try again."
+            );
           }
         } else {
-          console.error("Error adding candidate entry");
-          // Display toast error for candidate entry failure
+          toast.error(
+            "There was an error processing your resume. Please try again."
+          );
         }
       } else {
-        console.error("Missing user email or cuid");
-        // Display toast error for missing user information
+        toast.error("Please log out and log back in to complete your resume");
       }
     } else {
-      // Handle invalid form (e.g., show validation errors to the user)
+      toast.error("Please fill out required fields for this step");
     }
   };
 
   const handleProcessComplete = () => {
-    //setShowAlert(false);
-    // Toast
+    toast.success("Added successfully!", {
+      duration: 3000,
+      description: "Your resume has been added to the platform",
+    });
   };
 
   const nextStep = async () => {

@@ -53,6 +53,10 @@ export async function generateCandidateEmbeddings(applicant_id: string) {
   // Extract the embeddings from the response
   const embeddings = embeddingsResponse.data[0].embedding;
 
+  if (!embeddings || embeddings.length === 0) {
+    throw new Error("Generated embeddings are empty");
+  }
+
   // return the embeddings
   return embeddings;
 }

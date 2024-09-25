@@ -22,19 +22,27 @@ export const resumeGenerateEmbeddings = inngest.createFunction(
   async ({ event, step }) => {
     const id = event.data.user.id;
 
-    const embeddings = await generateCandidateEmbeddings(id);
+    try {
+      const embeddings = await generateCandidateEmbeddings(id);
 
-    // Check if embeddings is an array of numbers
-    if (Array.isArray(embeddings)) {
-      // Build the cypher query
-      const cypherQuery = buildCypherQuery(id, embeddings);
+      // Check if embeddings is an array of numbers
+      if (Array.isArray(embeddings) && embeddings.length > 0) {
+        // Build the cypher query
+        const cypherQuery = buildCypherQuery(id, embeddings);
 
-      // Run the cypher query on the Neo4j database
-      await write(cypherQuery);
-    } else {
-      console.error("Invalid embeddings");
+        // Add a 1.5 second delay before next step
+        // Prevent timing issues
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        // Run the cypher query on the Neo4j database
+        await write(cypherQuery);
+      } else {
+        throw new Error("Invalid or empty embeddings");
+      }
+
+      return { message: "Candidate embeddings added successfully." };
+    } catch (error) {
+      console.error("Error generating embeddings:", error);
+      throw error; // This will cause Inngest to retry the function
     }
-
-    return { message: "Candidate embeddings added successfully." };
   }
 );
