@@ -47,7 +47,7 @@ export async function generateJobDescriptionEmbeddings(jd_id: string) {
     .select(
       "static, inferred, role_names ,salary_disclose, compensation_type, hourly_comp_min, hourly_comp_max, private_employer, title, location_type, min_salary, max_salary, security_clearance, commission_pay, commission_percent, ote_salary, location"
     )
-    .eq("jd_id", jd_id); // TODO: change this to dynamic jd_id
+    .eq("jd_id", jd_id);
 
   if (error) {
     return {

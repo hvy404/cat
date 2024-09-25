@@ -13,22 +13,26 @@ export default function Step2SubPanelTitle() {
 
   const [jobTitle, setJobTitle] = useState("");
 
-  // Local state to manage input value (useState)
   useEffect(() => {
     if (addJD.jobDetails.length > 0) {
       setJobTitle(addJD.jobDetails[0].jobTitle);
     }
   }, [addJD.jobDetails]);
 
-  // click handler to call TitleOptions function and console log the result
   const handleTitleOptions = useCallback(async () => {
     if (addJD.jdEntryID !== null) {
-      const result = await TitleOptions(addJD.jdEntryID);
-      setAddJD({ jobDescriptionTitles: result });
+      try {
+        const result = await TitleOptions(addJD.jdEntryID);
+        setAddJD({ jobDescriptionTitles: result });
+      } catch (error) {
+        console.error("Error fetching title options");
+      }
     } else {
-      // TODO: Handle the case when jdEntryID is null
+      console.warn("Unable to fetch title options.");
+      setAddJD({ jobDescriptionTitles: [] });
     }
   }, [addJD.jdEntryID, setAddJD]);
+  
 
   useEffect(() => {
     if (addJD.jobDescriptionTitles.length === 0) {

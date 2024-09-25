@@ -46,11 +46,10 @@ export async function generateJDInferred(
 
   //console.log(output);
 
-  //TODO: make sure to update the jd_id to prop instead of hardcoded value
   const { error } = await supabase
     .from("job_postings")
     .update({ inferred: output }) // Only updating the 'inferred' column
-    .match({ jd_id: jobDescriptionID }); // Matching the row by 'jd_id'
+    .match({ jd_id: jobDescriptionID });
 
   if (error) {
     console.error(error);

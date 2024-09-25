@@ -1,6 +1,3 @@
-// TODO: NanoID generation should be at the onboard profile confirm stage
-// And maybe this should be stored in user metadata
-
 "use server";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";

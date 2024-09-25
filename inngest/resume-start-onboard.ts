@@ -178,7 +178,6 @@ export const finalizeOnboarding = inngest.createFunction(
       console.error("Error during generating embeddings:", error);
     }
 
-    // TODO: Add database entry that candidate has been onboarded
     try {
       const onboarded = await step.invoke("candidate-onboard-boolean-true", {
         function: referenceFunction<typeof resumeOnboardBooleanStatus>({
