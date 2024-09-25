@@ -70,16 +70,11 @@ export default function JDBuilderNewStart() {
       )}
 
       {hasCompanyId && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-center space-x-4">
-            <div className="flex-grow h-px bg-gray-200"></div>
-            <span className="text-sm text-gray-400 px-2 uppercase tracking-wider">or</span>
-            <div className="flex-grow h-px bg-gray-200"></div>
-          </div>
-          <div className="text-center">
-            <p className="text-sm text-gray-500 mb-2">Select from your previous SOW files</p>
+        <div className="">
+
+           
             <PreviousSOWDropdown />
-          </div>
+
         </div>
       )}
 
