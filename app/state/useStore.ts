@@ -218,11 +218,15 @@ interface StoreState {
   setJDBuilderWizard: (wizard: Partial<JDBuilderWizard>) => void;
   updateJDBuilderWizardStep: (newStep: number) => void;
   setCandidateDashboard: (dashboard: Partial<CandidateDashboard>) => void;
-  setCandidateRightPanelView: (view: CandidateDashboard['rightPanelView']) => void;
+  setCandidateRightPanelView: (
+    view: CandidateDashboard["rightPanelView"]
+  ) => void;
   recentApplications: Application[];
   aiRecommendations: AIRecommendation[];
   setRecentApplications: (applications: Application[]) => void;
   setAiRecommendations: (recommendations: AIRecommendation[]) => void;
+  employerOnboardingStatus: boolean | undefined;
+  setEmployerOnboardingStatus: (status: boolean | undefined) => void;
 }
 
 const useStore = create<StoreState>((set) => ({
@@ -318,7 +322,7 @@ const useStore = create<StoreState>((set) => ({
       },
     })),
   // Setter for right panel view in candidate dashboard
-  setCandidateRightPanelView: (view: CandidateDashboard['rightPanelView']) =>
+  setCandidateRightPanelView: (view: CandidateDashboard["rightPanelView"]) =>
     set((state) => ({
       candidateDashboard: {
         ...state.candidateDashboard,
@@ -467,7 +471,10 @@ const useStore = create<StoreState>((set) => ({
   setAiRecommendations: (recommendations: AIRecommendation[]) =>
     set({ aiRecommendations: recommendations }),
 
-  // End of store
+  // Employer onboarding status from clerk metadata
+  employerOnboardingStatus: undefined,
+  setEmployerOnboardingStatus: (status) =>
+    set({ employerOnboardingStatus: status }),
 }));
 
 export default useStore;

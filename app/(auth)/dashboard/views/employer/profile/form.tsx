@@ -19,6 +19,7 @@ import { useUser } from "@clerk/nextjs";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { countActiveJobs } from "@/lib/employer/get-active-jobs-count";
 import { Progress } from "@/components/ui/progress";
+import { checkUserSubscription } from "@/lib/employer/get-subscription-level";
 
 interface ActivePanelProps {
   onMouseEnter: (panel: string) => void;
@@ -36,13 +37,40 @@ export function MyProfileForm({
     email_match: false,
     email_applicant: false,
   });
+  const [subscriptionLevel, setSubscriptionLevel] = useState<string | null>(
+    null
+  );
+  const [subscriptionData, setSubscriptionData] = useState<{
+    level: string | null;
+    endDate: string | null;
+  }>({ level: null, endDate: null });
+
   const [isLoading, setIsLoading] = useState(true);
-  const [subscriptionLevel, setSubscriptionLevel] = useState("Trial");
   const [activeJobCount, setActiveJobCount] = useState<number | null>(null);
 
   // Clerk
   const { user: clerkUser } = useUser();
   const cuid = clerkUser?.publicMetadata?.aiq_cuid as string | undefined;
+
+  useEffect(() => {
+    async function fetchSubscriptionData() {
+      if (!cuid) {
+        setIsLoading(false);
+        toast.error("Please log in to view your profile.");
+        return;
+      }
+
+      try {
+        const { level, endDate } = await checkUserSubscription(cuid);
+        setSubscriptionData({ level, endDate });
+        setSubscriptionLevel(level);
+      } catch (error) {
+        console.error("Error fetching subscription data:", error);
+        toast.error("Failed to load subscription data. Please try again.");
+      }
+    }
+    fetchSubscriptionData();
+  }, [cuid]);
 
   useEffect(() => {
     async function fetchData() {
@@ -155,6 +183,7 @@ export function MyProfileForm({
             placeholder="Email"
             value={profile.contact_email}
             onChange={handleInputChange}
+            readOnly
           />
         </div>
       </div>
@@ -167,7 +196,8 @@ export function MyProfileForm({
         <div className="flex flex-col sm:flex-row gap-4">
           <Card
             className={`flex-1 ${
-              subscriptionLevel === "Premium"
+              subscriptionLevel === "employer_monthly" ||
+              subscriptionLevel === "employer_yearly"
                 ? "border-blue-500 border-2"
                 : "border-gray-200"
             }`}
@@ -179,7 +209,7 @@ export function MyProfileForm({
           </Card>
           <Card
             className={`flex-1 ${
-              subscriptionLevel === "Trial"
+              subscriptionData.level === "employer_trial"
                 ? "border-blue-500 border-2"
                 : "border-gray-200"
             }`}
@@ -189,6 +219,13 @@ export function MyProfileForm({
               <p className="text-sm text-gray-600">
                 Experience recruiting at scale for 30 days
               </p>
+              {subscriptionData.level === "employer_trial" &&
+                subscriptionData.endDate && (
+                  <p className="text-xs text-gray-600 mt-2">
+                    <span className="font-medium">Trial ends on:</span>{" "}
+                    {new Date(subscriptionData.endDate).toLocaleDateString()}
+                  </p>
+                )}
             </CardContent>
           </Card>
         </div>
@@ -202,7 +239,7 @@ export function MyProfileForm({
           </h2>
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger>
+              <TooltipTrigger type="button">
                 <Info className="h-4 w-4 text-gray-500" />
               </TooltipTrigger>
               <TooltipContent className="bg-black border-0 text-white">

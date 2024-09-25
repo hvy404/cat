@@ -136,6 +136,7 @@ const EmployerSignUpBox: React.FC = () => {
             await updatePublicMetadata(completeSignUp.createdUserId, {
               aiq_role: "employer-trial",
               aiq_cuid: employerId,
+              employer_init: false,
             });
           }
 
