@@ -361,6 +361,8 @@ export function CreateResumeForm({ onBack }: CreateResumeFormProps) {
                           type="email"
                           placeholder={userEmail}
                           defaultValue={userEmail}
+                          disabled={true}
+                          className="bg-gray-100 cursor-not-allowed"
                         />
                       </FormControl>
                       <FormMessage />

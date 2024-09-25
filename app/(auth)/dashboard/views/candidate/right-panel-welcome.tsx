@@ -53,7 +53,7 @@ export default function CandidateDashboardRightPanelWelcome() {
             >
               <h2 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center justify-center mb-2">
                 <Smile className="mr-2 text-blue-500" size={28} />
-                Welcome to Your Career Journey
+                Hello, welcome!
               </h2>
             </motion.div>
             <p className="text-base text-gray-600 mt-2 max-w-xl mx-auto leading-relaxed">

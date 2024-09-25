@@ -105,13 +105,15 @@ export async function searchHandler(mainSearchQuery: string) {
     // Semantic search preparation
     const buildQuery = `Candidate suitable for role as ${cleanedSearchQuery}.`;
     const mainSearchEmbedding = await generateEmbeddings(buildQuery);
+
     const threshold = 0.75;
 
     // Re-rank full-text results based on semantic similarity
     const rerankedResults = await Promise.all(
       fullTextCompleteResults.map(async (result) => {
         const talentEmbedding = await getTalentEmbedding(result.applicant_id);
-        if (talentEmbedding) {
+
+        if (talentEmbedding && talentEmbedding.length > 0) {
           const similarity = await calculateSimilarity(
             mainSearchEmbedding,
             talentEmbedding
@@ -122,12 +124,14 @@ export async function searchHandler(mainSearchQuery: string) {
       })
     );
 
-    // Filter out null results and those below the threshold
-    const thresholdedResults = rerankedResults
-      .filter(
-        (result): result is typeof result & { similarity: number } =>
-          result !== null && result.similarity >= 0.7
-      )
+    // Filter out null results (which include empty embeddings)
+    const filteredRerankedResults = rerankedResults.filter(
+      (result): result is NonNullable<typeof result> => result !== null
+    );
+
+    // Filter out results below the threshold and sort
+    const thresholdedResults = filteredRerankedResults
+      .filter((result) => result.similarity >= threshold)
       .sort((a, b) => b.similarity - a.similarity);
 
     const similarTalents = await findSimilarTalents(

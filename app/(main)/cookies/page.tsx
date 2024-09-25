@@ -44,9 +44,6 @@ const CookiesPolicyPage = () => {
             <li>To enable certain functions of the service</li>
             <li>To provide analytics</li>
             <li>To store your preferences</li>
-            <li>
-              To enable advertisement delivery, including behavioral advertising
-            </li>
             <li>For authentication and security purposes</li>
           </ul>
         </section>
@@ -72,17 +69,42 @@ const CookiesPolicyPage = () => {
               <strong>Functionality cookies:</strong> These are used to
               recognize you when you return to our website.
             </li>
-            <li>
-              <strong>Targeting cookies:</strong> These cookies record your
-              visit to our website, the pages you have visited and the links you
-              have followed.
-            </li>
           </ul>
         </section>
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-            5. Third-party cookies
+            5. Essential Cookies
+          </h2>
+          <p className="text-gray-700 mb-4">
+            Our application uses essential cookies that are necessary for the
+            proper functioning of our platform. These cookies are critical and
+            cannot be disabled as they ensure core features work correctly.
+          </p>
+          <p className="text-gray-700 mb-4">
+            <strong>Clerk Authentication Cookies:</strong> We use Clerk, a
+            third-party authentication service, which sets essential cookies to:
+          </p>
+          <ul className="list-disc list-inside text-gray-700 mb-4">
+            <li>Maintain your logged-in state across our platform</li>
+            <li>Protect against unauthorized access to your account</li>
+            <li>Enable secure user authentication and session management</li>
+            <li>
+              Provide personalized user experiences based on your account
+              settings
+            </li>
+          </ul>
+          <p className="text-gray-700 mb-4">
+            These essential cookies from Clerk are strictly necessary for the
+            operation of our website and the security of your account. They do
+            not store any personally identifiable information beyond what is
+            required for authentication purposes.
+          </p>
+        </section>
+
+        <section className="mb-8">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            6. Third-party cookies
           </h2>
           <p className="text-gray-700 mb-4">
             In addition to our own cookies, we may also use various third-party
@@ -99,7 +121,7 @@ const CookiesPolicyPage = () => {
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-            6. What are your cookie options?
+            7. What are your cookie options?
           </h2>
           <p className="text-gray-700 mb-4">
             If you'd like to delete cookies or instruct your web browser to
@@ -116,7 +138,7 @@ const CookiesPolicyPage = () => {
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-            7. Changes to our Cookies Policy
+            8. Changes to our Cookies Policy
           </h2>
           <p className="text-gray-700 mb-4">
             We may update this Cookies Policy from time to time in order to
@@ -129,7 +151,7 @@ const CookiesPolicyPage = () => {
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-            8. Contact Us
+            9. Contact Us
           </h2>
           <p className="text-gray-700 mb-4">
             If you have any questions about our use of cookies or other
