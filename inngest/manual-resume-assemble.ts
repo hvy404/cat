@@ -241,6 +241,7 @@ export const resumeManualAssembly = inngest.createFunction(
   }
 );
 
+/* Suppporting functions */
 function formatDate(dateString: string): string {
   if (!dateString) return "";
   if (dateString.toLowerCase() === "present") return "Present";

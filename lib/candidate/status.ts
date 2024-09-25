@@ -25,7 +25,7 @@ export async function candidateStatus(
       .single();
 
     if (error) {
-      console.error("Candidate is not ready yet");
+      //console.error("Candidate is not ready yet");
       return null;
     }
 
